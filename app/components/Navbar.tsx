@@ -25,7 +25,7 @@ export default function App() {
         </NavbarBrand>
         <NavbarContent className="hidden sm:flex gap-3">
           <NavbarItem>
-            <Link color="foreground" href="#">
+            <Link color="primary" href="#">
               Features
             </Link>
           </NavbarItem>
