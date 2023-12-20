@@ -11,14 +11,17 @@
     "typecheck": "tsc"
   },
   "dependencies": {
-    "@adobe/react-spectrum": "^3.32.2",
+    "@nextui-org/react": "^2.2.9",
     "@remix-run/express": "^2.4.0",
     "@remix-run/node": "^2.4.0",
     "@remix-run/react": "^2.4.0",
     "express": "^4.18.2",
+    "framer-motion": "^10.16.16",
     "isbot": "^3.6.8",
+    "lucide-react": "^0.299.0",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "remix-themes": "^1.2.2"
   },
   "devDependencies": {
     "@remix-run/dev": "^2.4.0",
@@ -35,6 +38,7 @@
     "eslint-plugin-react": "^7.33.2",
     "eslint-plugin-react-hooks": "^4.6.0",
     "prettier": "3.1.1",
+    "tailwindcss": "^3.3.7",
     "typescript": "^5.1.6",
     "vite": "^5.0.0",
     "vite-tsconfig-paths": "^4.2.1"

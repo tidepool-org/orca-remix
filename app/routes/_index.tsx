@@ -1,15 +1,18 @@
-import type { MetaFunction } from "@remix-run/node";
+import type { MetaFunction } from '@remix-run/node';
+
+import Navbar from '../components/Navbar';
 
 export const meta: MetaFunction = () => {
   return [
-    { title: "New Remix App" },
-    { name: "description", content: "Welcome to Remix!" },
+    { title: 'Tidepool ORCA' },
+    { name: 'description', content: 'Welcome to Tidepool ORCA!' },
   ];
 };
 
 export default function Index() {
   return (
-    <div style={{ fontFamily: "system-ui, sans-serif", lineHeight: "1.8" }}>
+    <div style={{ fontFamily: 'system-ui, sans-serif', lineHeight: '1.8' }}>
+      <Navbar />
       <h1>Welcome to Remix</h1>
       <ul>
         <li>

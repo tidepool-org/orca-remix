@@ -1,107 +1,69 @@
+import type { LoaderFunctionArgs } from '@remix-run/node';
 import {
   Links,
   LiveReload,
   Meta,
+  Outlet,
   Scripts,
   ScrollRestoration,
+  useNavigate,
+  useLoaderData,
 } from '@remix-run/react';
 
-import {
-  Button,
-  defaultTheme,
-  Flex,
-  Grid,
-  Provider,
-  View,
-} from '@adobe/react-spectrum';
+import './tailwind.css';
+import { NextUIProvider } from '@nextui-org/react';
 
-export default function App() {
+import {
+  ThemeProvider,
+  useTheme,
+  PreventFlashOnWrongTheme,
+} from 'remix-themes';
+import { themeSessionResolver } from './sessions.server';
+
+// Return the theme from the session storage using the loader
+export const loader = async ({ request }: LoaderFunctionArgs) => {
+  const { getTheme } = await themeSessionResolver(request);
+  return {
+    theme: getTheme(),
+  };
+};
+
+// Wrap your app with ThemeProvider.
+// `specifiedTheme` is the stored theme in the session storage.
+// `themeAction` is the action name that's used to change the theme in the session storage.
+export default function AppWithProviders() {
+  const data = useLoaderData<typeof loader>();
   return (
-    <html lang="en">
+    <ThemeProvider specifiedTheme={data.theme} themeAction="/action/set-theme">
+      <App />
+    </ThemeProvider>
+  );
+}
+
+// Use the theme in your app.
+// If the theme is missing in session storage, PreventFlashOnWrongTheme will get
+// the browser theme before hydration and will prevent a flash in browser.
+// The client code runs conditionally, it won't be rendered if we have a theme in session storage.
+function App() {
+  const data = useLoaderData<typeof loader>();
+  const navigate = useNavigate();
+  const [theme] = useTheme();
+  return (
+    <html lang="en" data-theme={theme ?? ''}>
       <head>
         <meta charSet="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="viewport" content="width=device-width,initial-scale=1" />
         <Meta />
+        <PreventFlashOnWrongTheme ssrTheme={Boolean(data.theme)} />
         <Links />
       </head>
       <body>
-        <Provider theme={defaultTheme}>
-          <Grid
-            areas={{
-              base: ['header', 'nav', 'content', 'footer'],
-              M: [
-                'header   header',
-                'nav      content',
-                'nav      content',
-                'footer   footer',
-              ],
-              L: [
-                'header header  header',
-                'nav    content toc',
-                'nav    content toc',
-                'footer footer  footer',
-              ],
-            }}
-            columns={{
-              M: ['size-2000', '1fr'],
-              L: ['size-2000', '1fr', 'size-2000'],
-            }}
-            gap="size-100"
-          >
-            <View
-              backgroundColor="celery-600"
-              gridArea="header"
-              height="size-1000"
-            />
-            <View backgroundColor="blue-600" gridArea="nav">
-              <Flex
-                direction={{ base: 'row', M: 'column' }}
-                gap="size-100"
-                margin="size-100"
-              >
-                <View
-                  backgroundColor="static-gray-50"
-                  height="size-250"
-                  minWidth="size-900"
-                />
-                <View
-                  backgroundColor="static-gray-50"
-                  height="size-250"
-                  minWidth="size-900"
-                />
-                <View
-                  backgroundColor="static-gray-50"
-                  height="size-250"
-                  minWidth="size-900"
-                />
-              </Flex>
-            </View>
-            <View
-              backgroundColor="purple-600"
-              gridArea="content"
-              height="size-4600"
-            >
-              <Button variant="accent" onPress={() => alert('Hey there!')}>
-                Hello React Spectrum!
-              </Button>
-            </View>
-            <View
-              backgroundColor="magenta-600"
-              gridArea="toc"
-              minHeight="size-1000"
-              isHidden={{ base: true, L: false }}
-            />
-            <View
-              backgroundColor="seafoam-600"
-              gridArea="footer"
-              height="size-1000"
-            />
-          </Grid>
-        </Provider>
-
-        <ScrollRestoration />
-        <Scripts />
-        <LiveReload />
+        <NextUIProvider navigate={navigate}>
+          <Outlet />
+          <ScrollRestoration />
+          <Scripts />
+          {process.env.NODE_ENV === 'development' && <LiveReload />}
+        </NextUIProvider>
       </body>
     </html>
   );
