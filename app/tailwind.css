@@ -5,85 +5,85 @@
 @layer base {
   @font-face {
     font-family: 'Basis';
-    src: url('../public/fonts/basis/basis-grotesque-light.woff') format('woff');
+    src: url('../fonts/basis/basis-grotesque-light.woff') format('woff');
     font-style: normal;
     font-weight: 300;
   }
   @font-face {
     font-family: 'Basis';
-    src: url('../public/fonts/basis/basis-grotesque-light-italic.woff') format('woff');
+    src: url('../fonts/basis/basis-grotesque-light-italic.woff') format('woff');
     font-style: italic;
     font-weight: 300;
   }
   @font-face {
     font-family: 'Basis';
-    src: url('../public/fonts/basis/basis-grotesque-regular.woff') format('woff');
+    src: url('../fonts/basis/basis-grotesque-regular.woff') format('woff');
     font-style: normal;
     font-weight: 400;
   }
   @font-face {
     font-family: 'Basis';
-    src: url('../public/fonts/basis/basis-grotesque-italic.woff') format('woff');
+    src: url('../fonts/basis/basis-grotesque-italic.woff') format('woff');
     font-style: italic;
     font-weight: 400;
   }
   @font-face {
     font-family: 'Basis';
-    src: url('../public/fonts/basis/basis-grotesque-medium.woff') format('woff');
+    src: url('../fonts/basis/basis-grotesque-medium.woff') format('woff');
     font-style: normal;
     font-weight: 500;
   }
   @font-face {
     font-family: 'Basis';
-    src: url('../public/fonts/basis/basis-grotesque-medium-italic.woff') format('woff');
+    src: url('../fonts/basis/basis-grotesque-medium-italic.woff') format('woff');
     font-style: italic;
     font-weight: 500;
   }
   @font-face {
     font-family: 'Basis';
-    src: url('../public/fonts/basis/basis-grotesque-bold.woff') format('woff');
+    src: url('../fonts/basis/basis-grotesque-bold.woff') format('woff');
     font-style: normal;
     font-weight: 700;
   }
   @font-face {
     font-family: 'Basis';
-    src: url('../public/fonts/basis/basis-grotesque-bold-italic.woff') format('woff');
+    src: url('../fonts/basis/basis-grotesque-bold-italic.woff') format('woff');
     font-style: italic;
     font-weight: 700;
   }
   @font-face {
     font-family: 'Basis';
-    src: url('../public/fonts/basis/basis-grotesque-black.woff') format('woff');
+    src: url('../fonts/basis/basis-grotesque-black.woff') format('woff');
     font-style: normal;
     font-weight: 900;
   }
   @font-face {
     font-family: 'Basis';
-    src: url('../public/fonts/basis/basis-grotesque-black-italic.woff') format('woff');
+    src: url('../fonts/basis/basis-grotesque-black-italic.woff') format('woff');
     font-style: italic;
     font-weight: 900;
   }
   @font-face {
     font-family: 'Basis Mono';
-    src: url('../public/fonts/basis/basis-grotesque-mono-regular.woff') format('woff');
+    src: url('../fonts/basis/basis-grotesque-mono-regular.woff') format('woff');
     font-style: normal;
     font-weight: 400;
   }
   @font-face {
     font-family: 'Basis Mono';
-    src: url('../public/fonts/basis/basis-grotesque-mono-italic.woff') format('woff');
+    src: url('../fonts/basis/basis-grotesque-mono-italic.woff') format('woff');
     font-style: italic;
     font-weight: 400;
   }
   @font-face {
     font-family: 'Basis Mono';
-    src: url('../public/fonts/basis/basis-grotesque-mono-bold.woff') format('woff');
+    src: url('../fonts/basis/basis-grotesque-mono-bold.woff') format('woff');
     font-style: normal;
     font-weight: 700;
   }
   @font-face {
     font-family: 'Basis Mono';
-    src: url('../public/fonts/basis/basis-grotesque-mono-bold-italic.woff') format('woff');
+    src: url('../fonts/basis/basis-grotesque-mono-bold-italic.woff') format('woff');
     font-style: italic;
     font-weight: 700;
   }

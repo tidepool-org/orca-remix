@@ -81,6 +81,14 @@ const brandColors = {
   focus: '#687df7',
 };
 
+const text = {
+  link: '#6784FA',
+  primary: '#4F6A92',
+  primaryGrey: '#66788A',
+  primaryDisabled: '#A5ADBA',
+  primarySubdued: '#7E98C3',
+};
+
 export default {
   content: [
     './app/**/*.{js,jsx,ts,tsx}',
@@ -98,10 +106,23 @@ export default {
     nextui({
       themes: {
         light: {
-          colors: brandColors,
+          colors: {
+            ...brandColors,
+            foreground: text.primary,
+            content1: '#F6F6F6',
+            content2: '#EDEDED',
+            content3: '#D3D3D3',
+            content4: { DEFAULT: '#271B46', foreground: '#FFFFFF' },
+          },
         },
         dark: {
-          colors: brandColors,
+          colors: {
+            ...brandColors,
+            content1: '#0A0A0A',
+            content2: '#131313',
+            content3: '#2C2C2C',
+            content4: { DEFAULT: '#271B46', foreground: '#FFFFFF' },
+          },
         },
       },
     }),

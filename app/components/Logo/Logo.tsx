@@ -8,5 +8,5 @@ export default function Logo() {
   const [theme] = useTheme();
   const Logo = theme === Theme.DARK ? DarkLogo : LightLogo;
 
-  return <Image src={Logo} alt="Tidepool Logo" />;
+  return <Image src={Logo} width={200} alt="Tidepool Logo" />;
 }

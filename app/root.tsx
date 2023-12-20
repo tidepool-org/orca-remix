@@ -3,7 +3,6 @@ import {
   Links,
   LiveReload,
   Meta,
-  Outlet,
   Scripts,
   ScrollRestoration,
   useNavigate,
@@ -19,6 +18,8 @@ import {
   PreventFlashOnWrongTheme,
 } from 'remix-themes';
 import { themeSessionResolver } from './sessions.server';
+
+import Dashboard from './layouts/Dashboard';
 
 // Return the theme from the session storage using the loader
 export const loader = async ({ request }: LoaderFunctionArgs) => {
@@ -59,7 +60,7 @@ function App() {
       </head>
       <body>
         <NextUIProvider navigate={navigate}>
-          <Outlet />
+          <Dashboard />
           <ScrollRestoration />
           <Scripts />
           {process.env.NODE_ENV === 'development' && <LiveReload />}
