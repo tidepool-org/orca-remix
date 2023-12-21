@@ -6,7 +6,12 @@ import {
   Avatar,
 } from '@nextui-org/react';
 
+import { RootLoaderType } from '~/root';
+import { useLoaderData } from '@remix-run/react';
+
 export default function UserMenu() {
+  const { agent } = useLoaderData<RootLoaderType>();
+
   return (
     <Dropdown placement="bottom-end">
       <DropdownTrigger>
@@ -15,15 +20,15 @@ export default function UserMenu() {
           as="button"
           className="transition-transform"
           color="primary"
-          name="Jason Hughes"
+          name={agent?.name}
           size="sm"
-          src="https://i.pravatar.cc/150?u=a042581f4e29026704d"
+          src={agent?.picture}
         />
       </DropdownTrigger>
       <DropdownMenu aria-label="Profile Actions" variant="flat">
         <DropdownItem key="profile" className="h-14 gap-2">
           <p className="font-semibold">Signed in as</p>
-          <p className="font-semibold">zoey@example.com</p>
+          <p className="font-semibold">{agent?.email}</p>
         </DropdownItem>
         <DropdownItem key="settings">My Settings</DropdownItem>
         <DropdownItem key="team_settings">Team Settings</DropdownItem>

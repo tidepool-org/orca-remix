@@ -1,4 +1,5 @@
 import type { LoaderFunctionArgs } from '@remix-run/node';
+import type { ClientLoaderFunctionArgs } from '@remix-run/react';
 import {
   Links,
   LiveReload,
@@ -20,6 +21,7 @@ import {
 import { themeSessionResolver } from './sessions.server';
 
 import Dashboard from './layouts/Dashboard';
+import { Agent } from './routes/action.get-agent';
 
 // Return the theme from the session storage using the loader
 export const loader = async ({ request }: LoaderFunctionArgs) => {
@@ -29,11 +31,28 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   };
 };
 
+export async function clientLoader({
+  request,
+  serverLoader,
+}: ClientLoaderFunctionArgs) {
+  const { origin } = new URL(request.url);
+  const [serverData] = await Promise.all([serverLoader<typeof loader>()]);
+  const agentData = await fetch(`${origin}/action/get-agent`);
+  const agent: Agent = await agentData.json();
+  return {
+    ...serverData,
+    agent,
+  };
+}
+clientLoader.hydrate = true;
+
+export type RootLoaderType = typeof clientLoader;
+
 // Wrap your app with ThemeProvider.
 // `specifiedTheme` is the stored theme in the session storage.
 // `themeAction` is the action name that's used to change the theme in the session storage.
 export default function AppWithProviders() {
-  const data = useLoaderData<typeof loader>();
+  const data = useLoaderData<typeof clientLoader>();
   return (
     <ThemeProvider specifiedTheme={data.theme} themeAction="/action/set-theme">
       <App />
@@ -46,7 +65,7 @@ export default function AppWithProviders() {
 // the browser theme before hydration and will prevent a flash in browser.
 // The client code runs conditionally, it won't be rendered if we have a theme in session storage.
 function App() {
-  const data = useLoaderData<typeof loader>();
+  const data = useLoaderData<typeof clientLoader>();
   const navigate = useNavigate();
   const [theme] = useTheme();
   return (

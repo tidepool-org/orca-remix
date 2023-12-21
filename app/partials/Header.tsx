@@ -2,7 +2,12 @@ import Logo from '~/components/Logo/Logo';
 import ThemeSwitcher from '~/components/ThemeSwitcher';
 import UserMenu from '~/components/UserMenu';
 
-function Header({ sidebarOpen, setSidebarOpen }) {
+type HeaderProps = {
+  sidebarOpen: boolean;
+  setSidebarOpen: React.Dispatch<React.SetStateAction<boolean>>;
+};
+
+function Header({ sidebarOpen, setSidebarOpen }: HeaderProps) {
   return (
     <header className="sticky top-0 bg-content1 border-b border-slate-200 dark:border-slate-700 z-30">
       <div className="px-4 sm:px-6 lg:px-8">
