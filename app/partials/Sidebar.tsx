@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useLocation } from '@remix-run/react';
+import SmallLogo from '~/components/Logo/Tidepool_T_Icon_Dark.svg';
+import { Image } from '@nextui-org/react';
 
 function Sidebar({ sidebarOpen, setSidebarOpen }) {
   const location = useLocation(); // to use later for active sidebar
@@ -86,6 +88,11 @@ function Sidebar({ sidebarOpen, setSidebarOpen }) {
               <path d="M10.7 18.7l1.4-1.4L7.8 13H20v-2H7.8l4.3-4.3-1.4-1.4L4 12z" />
             </svg>
           </button>
+          <Image
+            className="hidden lg:block"
+            src={SmallLogo}
+            alt="Tidepool Logo"
+          />
         </div>
 
         {/* Links */}
