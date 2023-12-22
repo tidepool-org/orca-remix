@@ -16,7 +16,6 @@ function Sidebar({ sidebarOpen, setSidebarOpen }: SidebarOpenProps) {
   const { sidebarExpanded: localSidebarExpanded } =
     useLoaderData<RootLoaderType>();
 
-  console.log('localSidebarExpanded', localSidebarExpanded);
   const [sidebarExpanded, setSidebarExpanded] = useState<boolean | undefined>();
 
   // synchronize on init
