@@ -7,7 +7,7 @@ import { useLoaderData } from '@remix-run/react';
 import Logo from '~/components/Logo/Logo';
 import SmallLogo from '~/components/Logo/Tidepool_T_Icon_Dark.svg';
 import type { SidebarOpenProps } from '~/layouts/Dashboard';
-import { RootLoaderType } from '~/root';
+import type { RootLoaderType } from '~/root';
 
 function Sidebar({ sidebarOpen, setSidebarOpen }: SidebarOpenProps) {
   const trigger = useRef<HTMLButtonElement>(null);
@@ -16,29 +16,29 @@ function Sidebar({ sidebarOpen, setSidebarOpen }: SidebarOpenProps) {
   const { sidebarExpanded: localSidebarExpanded } =
     useLoaderData<RootLoaderType>();
 
-  const [sidebarExpanded, setSidebarExpanded] = useState(localSidebarExpanded);
+  console.log('localSidebarExpanded', localSidebarExpanded);
+  const [sidebarExpanded, setSidebarExpanded] = useState<boolean | undefined>();
 
   // synchronize on init
   useEffect(() => {
-    setSidebarExpanded(localSidebarExpanded);
+    if (localSidebarExpanded != undefined)
+      setSidebarExpanded(localSidebarExpanded);
   }, [localSidebarExpanded]);
 
   // synchronize on change
   useEffect(() => {
-    if (
-      sidebarExpanded != undefined &&
-      sidebarExpanded?.toString() !==
-        window.localStorage.getItem('sidebar-expanded')
-    )
-      window.localStorage.setItem(
-        'sidebar-expanded',
-        sidebarExpanded.toString(),
-      );
-    const bodyElement = document.querySelector('body') as HTMLElement;
-    if (sidebarExpanded) {
-      bodyElement.classList.add('sidebar-expanded');
-    } else {
-      bodyElement.classList.remove('sidebar-expanded');
+    if (sidebarExpanded != undefined) {
+      if (
+        sidebarExpanded?.toString() !== localStorage.getItem('sidebar-expanded')
+      )
+        localStorage.setItem('sidebar-expanded', sidebarExpanded.toString());
+
+      const bodyElement = document.querySelector('body') as HTMLElement;
+      if (sidebarExpanded) {
+        bodyElement.classList.add('sidebar-expanded');
+      } else {
+        bodyElement.classList.remove('sidebar-expanded');
+      }
     }
   }, [sidebarExpanded]);
 
@@ -103,10 +103,12 @@ function Sidebar({ sidebarOpen, setSidebarOpen }: SidebarOpenProps) {
             <ArrowLeftFromLine />
           </Button>
           <Logo
+            className="hidden md:block 2xl:hidden"
             src={sidebarOpen || sidebarExpanded ? undefined : SmallLogo}
             width={sidebarOpen || sidebarExpanded ? undefined : 32}
             theme={Theme.DARK}
           />
+          <Logo className="md:hidden 2xl:block" theme={Theme.DARK} />
         </div>
 
         {/* Links */}

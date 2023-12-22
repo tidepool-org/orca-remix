@@ -15,5 +15,7 @@ export default function Logo(props: LogoProps) {
   const currentTheme = themeProp || theme;
   const src = srcProp || (currentTheme === Theme.DARK ? DarkLogo : LightLogo);
 
-  return <Image src={src} width={200} alt="Tidepool Logo" {...rest} />;
+  return (
+    <Image removeWrapper src={src} width={200} alt="Tidepool Logo" {...rest} />
+  );
 }

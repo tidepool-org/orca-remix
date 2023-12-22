@@ -29,7 +29,7 @@ function Header({ sidebarOpen, setSidebarOpen }: SidebarOpenProps) {
               <Menu />
             </Button>
             <div>
-              <Logo className="md:hidden" />
+              <Logo className="lg:hidden" />
             </div>
           </div>
 

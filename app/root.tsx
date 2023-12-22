@@ -40,16 +40,8 @@ export async function clientLoader({
   const agentData = await fetch(`${origin}/action/get-agent`);
   const agent: Agent = await agentData.json();
 
-  // synchronize initially
   const sidebarExpanded: boolean =
-    window.localStorage.getItem('sidebar-expanded') === 'true';
-
-  console.log(
-    'window.localStorage.getItem(sidebar-expanded)',
-    window.localStorage.getItem('sidebar-expanded'),
-  );
-
-  console.log('sidebarExpanded', sidebarExpanded);
+    localStorage.getItem('sidebar-expanded') !== 'false';
 
   return {
     ...serverData,
@@ -90,7 +82,7 @@ function App() {
         <PreventFlashOnWrongTheme ssrTheme={Boolean(data.theme)} />
         <Links />
       </head>
-      <body>
+      <body className="sidebar-expanded">
         <NextUIProvider navigate={navigate}>
           <Dashboard />
           <ScrollRestoration />
