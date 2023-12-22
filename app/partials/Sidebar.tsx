@@ -1,28 +1,56 @@
 import { useState, useEffect, useRef } from 'react';
-import { useLocation } from '@remix-run/react';
+import { ArrowRightFromLine, ArrowLeftFromLine } from 'lucide-react';
+import { Theme } from 'remix-themes';
+import { Button } from '@nextui-org/react';
+import { useLoaderData } from '@remix-run/react';
+
+import Logo from '~/components/Logo/Logo';
 import SmallLogo from '~/components/Logo/Tidepool_T_Icon_Dark.svg';
-import { Image } from '@nextui-org/react';
+import type { SidebarOpenProps } from '~/layouts/Dashboard';
+import { RootLoaderType } from '~/root';
 
-function Sidebar({ sidebarOpen, setSidebarOpen }) {
-  const location = useLocation(); // to use later for active sidebar
+function Sidebar({ sidebarOpen, setSidebarOpen }: SidebarOpenProps) {
+  const trigger = useRef<HTMLButtonElement>(null);
+  const sidebar = useRef<HTMLDivElement>(null);
 
-  const trigger = useRef(null);
-  const sidebar = useRef(null);
+  const { sidebarExpanded: localSidebarExpanded } =
+    useLoaderData<RootLoaderType>();
 
-  const storedSidebarExpanded = true;
-  // const storedSidebarExpanded = localStorage.getItem('sidebar-expanded');
-  const [sidebarExpanded, setSidebarExpanded] = useState(
-    storedSidebarExpanded === null ? false : storedSidebarExpanded === 'true',
-  );
+  const [sidebarExpanded, setSidebarExpanded] = useState(localSidebarExpanded);
+
+  // synchronize on init
+  useEffect(() => {
+    setSidebarExpanded(localSidebarExpanded);
+  }, [localSidebarExpanded]);
+
+  // synchronize on change
+  useEffect(() => {
+    if (
+      sidebarExpanded != undefined &&
+      sidebarExpanded?.toString() !==
+        window.localStorage.getItem('sidebar-expanded')
+    )
+      window.localStorage.setItem(
+        'sidebar-expanded',
+        sidebarExpanded.toString(),
+      );
+    const bodyElement = document.querySelector('body') as HTMLElement;
+    if (sidebarExpanded) {
+      bodyElement.classList.add('sidebar-expanded');
+    } else {
+      bodyElement.classList.remove('sidebar-expanded');
+    }
+  }, [sidebarExpanded]);
 
   // close on click outside
   useEffect(() => {
-    const clickHandler = ({ target }) => {
+    const clickHandler = ({ target }: Event) => {
       if (!sidebar.current || !trigger.current) return;
       if (
-        !sidebarOpen ||
-        sidebar.current.contains(target) ||
-        trigger.current.contains(target)
+        target &&
+        (!sidebarOpen ||
+          sidebar.current.contains(target as Node) ||
+          trigger.current.contains(target as Node))
       )
         return;
       setSidebarOpen(false);
@@ -33,23 +61,13 @@ function Sidebar({ sidebarOpen, setSidebarOpen }) {
 
   // close if the esc key is pressed
   useEffect(() => {
-    const keyHandler = ({ keyCode }) => {
+    const keyHandler = ({ keyCode }: KeyboardEvent) => {
       if (!sidebarOpen || keyCode !== 27) return;
       setSidebarOpen(false);
     };
     document.addEventListener('keydown', keyHandler);
     return () => document.removeEventListener('keydown', keyHandler);
   });
-
-  // TODO: use cookie like with dark mode pref
-  // useEffect(() => {
-  //   localStorage.setItem('sidebar-expanded', sidebarExpanded);
-  //   if (sidebarExpanded) {
-  //     document.querySelector('body').classList.add('sidebar-expanded');
-  //   } else {
-  //     document.querySelector('body').classList.remove('sidebar-expanded');
-  //   }
-  // }, [sidebarExpanded]);
 
   return (
     <div>
@@ -70,28 +88,24 @@ function Sidebar({ sidebarOpen, setSidebarOpen }) {
         }`}
       >
         {/* Sidebar header */}
-        <div className="flex justify-between mb-10 pr-3 sm:px-2">
+        <div className="flex items-center justify-between mb-10 pr-3 sm:px-2">
           {/* Close button */}
-          <button
+          <Button
             ref={trigger}
-            className="lg:hidden text-slate-500 hover:text-slate-400"
-            onClick={() => setSidebarOpen(!sidebarOpen)}
+            className="lg:hidden bg-transparent text-content4-foreground"
+            onPress={() => setSidebarOpen(!sidebarOpen)}
             aria-controls="sidebar"
             aria-expanded={sidebarOpen}
+            isIconOnly
+            size="sm"
           >
             <span className="sr-only">Close sidebar</span>
-            <svg
-              className="w-6 h-6 fill-current"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path d="M10.7 18.7l1.4-1.4L7.8 13H20v-2H7.8l4.3-4.3-1.4-1.4L4 12z" />
-            </svg>
-          </button>
-          <Image
-            className="hidden lg:block"
-            src={SmallLogo}
-            alt="Tidepool Logo"
+            <ArrowLeftFromLine />
+          </Button>
+          <Logo
+            src={sidebarOpen || sidebarExpanded ? undefined : SmallLogo}
+            width={sidebarOpen || sidebarExpanded ? undefined : 32}
+            theme={Theme.DARK}
           />
         </div>
 
@@ -101,19 +115,17 @@ function Sidebar({ sidebarOpen, setSidebarOpen }) {
         {/* Expand / collapse button */}
         <div className="pt-3 hidden lg:inline-flex 2xl:hidden justify-end mt-auto">
           <div className="px-3 py-2">
-            <button onClick={() => setSidebarExpanded(!sidebarExpanded)}>
+            <Button
+              className="bg-transparent text-content4-foreground"
+              onPress={() => setSidebarExpanded(!sidebarExpanded)}
+              aria-controls="sidebar"
+              aria-expanded={sidebarOpen}
+              isIconOnly
+              size="sm"
+            >
               <span className="sr-only">Expand / collapse sidebar</span>
-              <svg
-                className="w-6 h-6 fill-current sidebar-expanded:rotate-180"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  className="text-slate-400"
-                  d="M19.586 11l-5-5L16 4.586 23.414 12 16 19.414 14.586 18l5-5H7v-2z"
-                />
-                <path className="text-slate-600" d="M3 23H1V1h2z" />
-              </svg>
-            </button>
+              <ArrowRightFromLine className="sidebar-expanded:rotate-180" />
+            </Button>
           </div>
         </div>
       </div>

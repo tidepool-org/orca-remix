@@ -39,9 +39,22 @@ export async function clientLoader({
   const [serverData] = await Promise.all([serverLoader<typeof loader>()]);
   const agentData = await fetch(`${origin}/action/get-agent`);
   const agent: Agent = await agentData.json();
+
+  // synchronize initially
+  const sidebarExpanded: boolean =
+    window.localStorage.getItem('sidebar-expanded') === 'true';
+
+  console.log(
+    'window.localStorage.getItem(sidebar-expanded)',
+    window.localStorage.getItem('sidebar-expanded'),
+  );
+
+  console.log('sidebarExpanded', sidebarExpanded);
+
   return {
     ...serverData,
     agent,
+    sidebarExpanded,
   };
 }
 clientLoader.hydrate = true;

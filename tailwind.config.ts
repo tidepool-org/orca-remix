@@ -1,6 +1,8 @@
 import type { Config } from 'tailwindcss';
+import plugin from 'tailwindcss/plugin';
 import { nextui } from '@nextui-org/react';
 import defaultTheme from 'tailwindcss/defaultTheme';
+import { PluginCreator } from 'tailwindcss/types/config';
 
 const brandColors = {
   primary: {
@@ -103,6 +105,16 @@ export default {
     },
   },
   plugins: [
+    plugin(({ addVariant, e }) => {
+      addVariant('sidebar-expanded', ({ modifySelectors, separator }) => {
+        modifySelectors(
+          ({ className }) =>
+            `.sidebar-expanded .${e(
+              `sidebar-expanded${separator}${className}`,
+            )}`,
+        );
+      });
+    }),
     nextui({
       themes: {
         light: {

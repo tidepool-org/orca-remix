@@ -5,6 +5,11 @@ import { Outlet } from '@remix-run/react';
 import Sidebar from '../partials/Sidebar';
 import Header from '../partials/Header';
 
+export type SidebarOpenProps = {
+  sidebarOpen: boolean;
+  setSidebarOpen: React.Dispatch<React.SetStateAction<boolean>>;
+};
+
 function Dashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 

@@ -1,22 +1,23 @@
+import { Button } from '@nextui-org/react';
 import Logo from '~/components/Logo/Logo';
 import ThemeSwitcher from '~/components/ThemeSwitcher';
 import UserMenu from '~/components/UserMenu';
+import { Menu } from 'lucide-react';
 
-type HeaderProps = {
-  sidebarOpen: boolean;
-  setSidebarOpen: React.Dispatch<React.SetStateAction<boolean>>;
-};
+import type { SidebarOpenProps } from '~/layouts/Dashboard';
 
-function Header({ sidebarOpen, setSidebarOpen }: HeaderProps) {
+function Header({ sidebarOpen, setSidebarOpen }: SidebarOpenProps) {
   return (
     <header className="sticky top-0 bg-content1 border-b border-slate-200 dark:border-slate-700 z-30">
       <div className="px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 -mb-px">
           {/* Header: Left side */}
-          <div className="flex">
+          <div className="flex items-center">
             {/* Hamburger button */}
-            <button
-              className="text-slate-500 hover:text-slate-600 lg:hidden"
+            <Button
+              className="bg-transparent text-foreground lg:hidden"
+              size="sm"
+              isIconOnly
               aria-controls="sidebar"
               aria-expanded={sidebarOpen}
               onClick={(e) => {
@@ -25,18 +26,10 @@ function Header({ sidebarOpen, setSidebarOpen }: HeaderProps) {
               }}
             >
               <span className="sr-only">Open sidebar</span>
-              <svg
-                className="w-6 h-6 fill-current"
-                viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <rect x="4" y="5" width="16" height="2" />
-                <rect x="4" y="11" width="16" height="2" />
-                <rect x="4" y="17" width="16" height="2" />
-              </svg>
-            </button>
+              <Menu />
+            </Button>
             <div>
-              <Logo />
+              <Logo className="md:hidden" />
             </div>
           </div>
 
