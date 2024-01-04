@@ -29,8 +29,8 @@ function Header({ sidebarOpen, setSidebarOpen }: SidebarOpenProps) {
               <Menu />
             </Button>
             <div>
-              <Link href="/">
-                <Logo className="lg:hidden" />
+              <Link className="lg:hidden" href="/">
+                <Logo />
               </Link>
             </div>
           </div>
