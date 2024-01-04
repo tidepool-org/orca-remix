@@ -8,4 +8,14 @@ export type User = {
   username: string;
 };
 
-export type RecentUser = Pick<User, 'username' | 'userid'>;
+export type Profile = {
+  email: string;
+  fullName?: string;
+  patient?: {
+    birthday: string;
+    emails: string[];
+  };
+};
+
+export type RecentUser = Pick<User, 'username' | 'userid'> &
+  Pick<Profile, 'fullName'>;

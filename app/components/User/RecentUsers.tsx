@@ -22,8 +22,8 @@ export default function RecentUsers({ rows }: UserProfileProps) {
 
   const columns = [
     {
-      key: 'userid',
-      label: 'User ID',
+      key: 'fullName',
+      label: 'Name',
     },
     {
       key: 'username',
@@ -42,9 +42,7 @@ export default function RecentUsers({ rows }: UserProfileProps) {
     </div>
   );
 
-  const EmptyContent = (
-    <span>There are no recently viewed clinics to show</span>
-  );
+  const EmptyContent = <span>There are no recently viewed users to show</span>;
 
   return (
     <Table

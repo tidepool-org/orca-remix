@@ -5,14 +5,13 @@ import {
 } from '@remix-run/node';
 
 import UserProfile from '~/components/User/UserProfile';
-import type { User, RecentUser } from '~/components/User/types';
-import { apiRequest, apiRoutes } from '~/api.server';
+import type { User, Profile, RecentUser } from '~/components/User/types';
+import { apiRequests, apiRoutes } from '~/api.server';
 import { usersSession } from '~/sessions.server';
 import { useLoaderData } from '@remix-run/react';
 import isArray from 'lodash/isArray';
 import pick from 'lodash/pick';
 import uniqBy from 'lodash/uniqBy';
-import { BreadcrumbItem } from '@nextui-org/react';
 
 export const meta: MetaFunction = () => {
   return [
@@ -32,19 +31,25 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     ? recentlyViewed.get('users')
     : [];
 
-  const user: User = await apiRequest(
+  const results = await apiRequests([
     apiRoutes.user.get(params.userId as string),
-  );
+    apiRoutes.user.getMetadata(params.userId as string, 'profile'),
+  ]);
 
-  if (user) {
-    recentUsers.unshift(pick(user, ['userid', 'username']));
+  const user: User = await results?.[0];
+  const profile: Profile = await results?.[1];
+
+  if (user?.userid) {
+    const recentUser: RecentUser = pick(user, ['userid', 'username']);
+    if (profile?.fullName) recentUser.fullName = profile?.fullName;
+    recentUsers.unshift(recentUser);
     recentlyViewed.set(
       'users',
       uniqBy(recentUsers, 'userid').slice(0, recentUsersMax),
     );
 
     return json(
-      { user },
+      { user, profile },
       {
         headers: {
           'Cache-Control': 'public, s-maxage=60',
@@ -54,15 +59,15 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     );
   }
 
-  return { user: null };
+  return { user: null, profile: null };
 }
 
 export default function Users() {
-  const { user } = useLoaderData<typeof loader>();
+  const { user, profile } = useLoaderData<typeof loader>();
 
   return (
     <div className="flex flex-col gap-4 md:gap-6 lg:gap-8">
-      {user && <UserProfile user={user} />}
+      {user && profile && <UserProfile user={user} profile={profile} />}
     </div>
   );
 }

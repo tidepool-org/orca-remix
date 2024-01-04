@@ -23,7 +23,7 @@ export default function RecentClinics({ rows }: UserProfileProps) {
   const columns = [
     {
       key: 'name',
-      label: 'Clinic Name',
+      label: 'Name',
     },
     {
       key: 'shareCode',
