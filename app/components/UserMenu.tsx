@@ -17,18 +17,19 @@ export default function UserMenu() {
       <DropdownTrigger>
         <Avatar
           isBordered
+          showFallback
           as="button"
           className="transition-transform"
           color="primary"
-          name={agent?.name}
           size="sm"
           src={agent?.picture}
         />
       </DropdownTrigger>
       <DropdownMenu aria-label="Profile Actions" variant="flat">
         <DropdownItem key="profile" className="h-14 gap-2">
-          <p className="font-semibold">Signed in as</p>
-          <p className="font-semibold">{agent?.email}</p>
+          <p>Signed in as</p>
+          <p className="font-semibold">{agent?.name}</p>
+          <em>{agent?.email}</em>
         </DropdownItem>
         <DropdownItem key="settings">My Settings</DropdownItem>
         <DropdownItem key="logout" color="danger">
