@@ -1,9 +1,8 @@
 import { Theme, useTheme } from 'remix-themes';
+import { Image, type ImageProps } from '@nextui-org/react';
+
 import LightLogo from './Tidepool_Logo_Light.svg';
 import DarkLogo from './Tidepool_Logo_Dark.svg';
-
-import type { ImageProps } from '@nextui-org/react';
-import { Image } from '@nextui-org/react';
 
 type LogoProps = ImageProps & {
   theme?: Theme;

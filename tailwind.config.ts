@@ -1,8 +1,7 @@
-import type { Config } from 'tailwindcss';
+import { type Config } from 'tailwindcss';
 import plugin from 'tailwindcss/plugin';
-import { nextui } from '@nextui-org/react';
+import { nextui, semanticColors } from '@nextui-org/react';
 import defaultTheme from 'tailwindcss/defaultTheme';
-import { PluginCreator } from 'tailwindcss/types/config';
 
 const brandColors = {
   primary: {
@@ -84,11 +83,17 @@ const brandColors = {
 };
 
 const text = {
-  link: '#6784FA',
-  primary: '#4F6A92',
-  primaryGrey: '#66788A',
-  primaryDisabled: '#A5ADBA',
-  primarySubdued: '#7E98C3',
+  light: {
+    link: brandColors.primary.DEFAULT,
+    primary: '#4F6A92',
+    primaryGrey: '#66788A',
+    primaryDisabled: '#A5ADBA',
+    primarySubdued: '#7E98C3',
+  },
+  dark: {
+    link: brandColors.primary[600],
+    primary: semanticColors.dark.default[700],
+  },
 };
 
 export default {
@@ -114,13 +119,18 @@ export default {
             )}`,
         );
       });
+      addVariant('darkTheme', ({ modifySelectors, separator }) => {
+        modifySelectors(
+          ({ className }) => `.dark .${e(`darkTheme${separator}${className}`)}`,
+        );
+      });
     }),
     nextui({
       themes: {
         light: {
           colors: {
             ...brandColors,
-            foreground: text.primary,
+            foreground: text.light.primary,
             content1: '#F6F6F6',
             content2: '#EDEDED',
             content3: '#D3D3D3',
@@ -130,6 +140,7 @@ export default {
         dark: {
           colors: {
             ...brandColors,
+            foreground: text.dark.primary,
             content1: '#0A0A0A',
             content2: '#131313',
             content3: '#2C2C2C',

@@ -1,5 +1,4 @@
-import type { LoaderFunctionArgs } from '@remix-run/node';
-import type { ClientLoaderFunctionArgs } from '@remix-run/react';
+import { type LoaderFunctionArgs } from '@remix-run/node';
 import {
   Links,
   LiveReload,
@@ -8,6 +7,7 @@ import {
   ScrollRestoration,
   useNavigate,
   useLoaderData,
+  type ClientLoaderFunctionArgs,
 } from '@remix-run/react';
 
 import './tailwind.css';
@@ -19,6 +19,7 @@ import {
   PreventFlashOnWrongTheme,
 } from 'remix-themes';
 import { themeSessionResolver } from './sessions.server';
+import { authorizeServer } from './auth.server';
 
 import Dashboard from './layouts/Dashboard';
 import { Agent } from './routes/action.get-agent';
@@ -26,6 +27,8 @@ import { Agent } from './routes/action.get-agent';
 // Return the theme from the session storage using the loader
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { getTheme } = await themeSessionResolver(request);
+  authorizeServer();
+
   return {
     theme: getTheme(),
   };
@@ -73,6 +76,7 @@ function App() {
   const data = useLoaderData<typeof clientLoader>();
   const navigate = useNavigate();
   const [theme] = useTheme();
+
   return (
     <html lang="en" data-theme={theme ?? ''}>
       <head>
@@ -82,7 +86,11 @@ function App() {
         <PreventFlashOnWrongTheme ssrTheme={Boolean(data.theme)} />
         <Links />
       </head>
-      <body className="sidebar-expanded">
+      <body
+        className={`sidebar-expanded ${
+          theme ?? ''
+        } text-foreground bg-background`}
+      >
         <NextUIProvider navigate={navigate}>
           <Dashboard />
           <ScrollRestoration />

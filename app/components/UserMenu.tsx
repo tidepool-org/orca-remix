@@ -6,7 +6,7 @@ import {
   Avatar,
 } from '@nextui-org/react';
 
-import type { RootLoaderType } from '~/root';
+import { type RootLoaderType } from '~/root';
 import { useLoaderData } from '@remix-run/react';
 
 export default function UserMenu() {

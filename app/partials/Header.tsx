@@ -1,10 +1,10 @@
-import { Button } from '@nextui-org/react';
+import { Button, Link } from '@nextui-org/react';
 import Logo from '~/components/Logo/Logo';
 import ThemeSwitcher from '~/components/ThemeSwitcher';
 import UserMenu from '~/components/UserMenu';
 import { Menu } from 'lucide-react';
 
-import type { SidebarOpenProps } from '~/layouts/Dashboard';
+import { type SidebarOpenProps } from '~/layouts/Dashboard';
 
 function Header({ sidebarOpen, setSidebarOpen }: SidebarOpenProps) {
   return (
@@ -29,7 +29,9 @@ function Header({ sidebarOpen, setSidebarOpen }: SidebarOpenProps) {
               <Menu />
             </Button>
             <div>
-              <Logo className="lg:hidden" />
+              <Link href="/">
+                <Logo className="lg:hidden" />
+              </Link>
             </div>
           </div>
 
