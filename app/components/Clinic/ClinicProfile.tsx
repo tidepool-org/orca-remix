@@ -5,10 +5,13 @@ export type UserProfileProps = {
 };
 
 export default function ClinicProfile({ clinic }: UserProfileProps) {
-  const { id, shareCode } = clinic;
+  const { id, shareCode, name } = clinic;
   return (
     <div className="flex flex-col p-6 lg:p-8 bg-content1 text-content1-foreground rounded-xl gap-4">
       <ul>
+        <li>
+          <strong>Clinic Name:</strong> {name}
+        </li>
         <li>
           <strong>Clinic ID:</strong> {id}
         </li>

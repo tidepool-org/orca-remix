@@ -22,8 +22,8 @@ export default function RecentClinics({ rows }: UserProfileProps) {
 
   const columns = [
     {
-      key: 'id',
-      label: 'Clinic ID',
+      key: 'name',
+      label: 'Clinic Name',
     },
     {
       key: 'shareCode',

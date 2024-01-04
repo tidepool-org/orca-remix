@@ -35,8 +35,8 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     apiRoutes.clinic.get(params.clinicId as string),
   );
 
-  if (clinic) {
-    recentClinics.unshift(pick(clinic, ['id', 'shareCode']));
+  if (clinic?.id) {
+    recentClinics.unshift(pick(clinic, ['id', 'shareCode', 'name']));
     recentlyViewed.set(
       'clinics',
       uniqBy(recentClinics, 'id').slice(0, recentClinicsMax),
