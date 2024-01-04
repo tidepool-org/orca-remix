@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-import { Outlet, useMatches, Params } from '@remix-run/react';
+import { Outlet, useMatches } from '@remix-run/react';
 import { Breadcrumbs, BreadcrumbItem } from '@nextui-org/react';
 import { Home } from 'lucide-react';
 import filter from 'lodash/filter';
