@@ -21,7 +21,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const { getSession } = usersSession;
   const recentlyViewedUsers = await getSession(request.headers.get('Cookie'));
 
-  // We store recently viewd users in session storage for easy retrieval
+  // We store recently viewed users in session storage for easy retrieval
   const recentUsers: RecentUser[] = isArray(recentlyViewedUsers.get('users'))
     ? recentlyViewedUsers.get('users')
     : [];
@@ -31,7 +31,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
     request.headers.get('Cookie'),
   );
 
-  // We store recently viewd clinics in session storage for easy retrieval
+  // We store recently viewed clinics in session storage for easy retrieval
   const recentClinics: RecentClinic[] = isArray(
     recentlyViewedClinics.get('clinics'),
   )

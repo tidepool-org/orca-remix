@@ -26,7 +26,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   const { getSession, commitSession } = usersSession;
   const recentlyViewed = await getSession(request.headers.get('Cookie'));
 
-  // We store recently viewd users in session storage for easy retrieval
+  // We store recently viewed users in session storage for easy retrieval
   const recentUsers: RecentUser[] = isArray(recentlyViewed.get('users'))
     ? recentlyViewed.get('users')
     : [];
