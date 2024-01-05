@@ -23,6 +23,7 @@ import { authorizeServer } from './auth.server';
 
 import Dashboard from './layouts/Dashboard';
 import { Agent } from './routes/action.get-agent';
+import ErrorStack from './components/ErrorStack';
 
 // Return the theme from the session storage using the loader
 export const loader = async ({ request }: LoaderFunctionArgs) => {
@@ -94,6 +95,30 @@ function App() {
         <NextUIProvider navigate={navigate}>
           <Dashboard />
           <ScrollRestoration />
+          <Scripts />
+          {process.env.NODE_ENV === 'development' && <LiveReload />}
+        </NextUIProvider>
+      </body>
+    </html>
+  );
+}
+
+export function ErrorBoundary() {
+  const data = useLoaderData<typeof loader>();
+  const theme = data?.theme || 'dark';
+
+  return (
+    <html lang="en" data-theme={theme ?? ''}>
+      <head>
+        <title>Error | Tidepool ORCA</title>
+        <Meta />
+        <Links />
+      </head>
+      <body className={`${theme ?? ''} text-foreground bg-background`}>
+        <NextUIProvider>
+          <div className="p-4">
+            <ErrorStack />
+          </div>
           <Scripts />
           {process.env.NODE_ENV === 'development' && <LiveReload />}
         </NextUIProvider>

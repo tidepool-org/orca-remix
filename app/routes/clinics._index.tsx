@@ -11,7 +11,6 @@ import { apiRequest, apiRoutes } from '~/api.server';
 import { clinicsSession } from '~/sessions.server';
 import { useLoaderData } from '@remix-run/react';
 import isArray from 'lodash/isArray';
-import { BreadcrumbItem } from '@nextui-org/react';
 
 export const meta: MetaFunction = () => {
   return [

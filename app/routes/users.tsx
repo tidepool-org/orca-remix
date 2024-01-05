@@ -1,5 +1,5 @@
 import { Outlet } from '@remix-run/react';
-import { Link } from '@nextui-org/react';
+import ErrorStack from '~/components/ErrorStack';
 
 export async function loader() {
   return null;
@@ -12,3 +12,7 @@ export default function Users() {
 export const handle = {
   breadcrumb: { href: '/users', label: 'User Management' },
 };
+
+export function ErrorBoundary() {
+  return <ErrorStack />;
+}
