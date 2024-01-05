@@ -124,6 +124,12 @@ export default {
           ({ className }) => `.dark .${e(`darkTheme${separator}${className}`)}`,
         );
       });
+      addVariant('lightTheme', ({ modifySelectors, separator }) => {
+        modifySelectors(
+          ({ className }) =>
+            `.light .${e(`lightTheme${separator}${className}`)}`,
+        );
+      });
     }),
     nextui({
       themes: {
