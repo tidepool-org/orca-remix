@@ -66,7 +66,7 @@ export default function Users() {
   const { user, profile } = useLoaderData<typeof loader>();
 
   return (
-    <div className="flex flex-col gap-4 md:gap-6 lg:gap-8">
+    <div className="flex">
       {user && profile && <UserProfile user={user} profile={profile} />}
     </div>
   );

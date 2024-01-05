@@ -15,6 +15,9 @@ export type Profile = {
     birthday: string;
     emails: string[];
   };
+  clinic?: {
+    role: string;
+  };
 };
 
 export type RecentUser = Pick<User, 'username' | 'userid'> &

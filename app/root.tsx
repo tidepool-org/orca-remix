@@ -12,14 +12,17 @@ import {
 
 import './tailwind.css';
 import { NextUIProvider } from '@nextui-org/react';
+import acceptLanguage from 'accept-language-parser';
 
 import {
   ThemeProvider,
   useTheme,
   PreventFlashOnWrongTheme,
 } from 'remix-themes';
+
 import { themeSessionResolver } from './sessions.server';
 import { authorizeServer } from './auth.server';
+import { LocaleProvider } from '~/hooks/useLocale';
 
 import Dashboard from './layouts/Dashboard';
 import { Agent } from './routes/action.get-agent';
@@ -30,8 +33,21 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { getTheme } = await themeSessionResolver(request);
   authorizeServer();
 
+  const languages = acceptLanguage.parse(
+    request.headers.get('Accept-Language') as string,
+  );
+
+  let locale = 'en-us';
+
+  if (languages?.length > 0) {
+    locale = !languages[0].region
+      ? languages[0].code
+      : `${languages[0].code}-${languages[0].region}`;
+  }
+
   return {
     theme: getTheme(),
+    locale,
   };
 };
 
@@ -64,7 +80,9 @@ export default function AppWithProviders() {
   const data = useLoaderData<typeof clientLoader>();
   return (
     <ThemeProvider specifiedTheme={data.theme} themeAction="/action/set-theme">
-      <App />
+      <LocaleProvider locale={data.locale}>
+        <App />
+      </LocaleProvider>
     </ThemeProvider>
   );
 }
