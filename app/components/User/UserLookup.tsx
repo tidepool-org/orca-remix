@@ -4,6 +4,7 @@ import { UserCircle2Icon } from 'lucide-react';
 import find from 'lodash/find';
 import map from 'lodash/map';
 import React from 'react';
+import Well from '~/partials/Well';
 
 type searchOption = {
   key: 'email' | 'userId';
@@ -53,46 +54,49 @@ export default function UserLookup() {
   };
 
   return (
-    <Form
-      action="/users"
-      className="flex flex-col p-6 lg:p-8 bg-content1 text-content1-foreground rounded-xl gap-4"
-    >
-      <div className="flex gap-2">
-        <UserCircle2Icon />
-        <h2 className="text-lg font-semibold">User Lookup</h2>
-      </div>
+    <Form action="/users">
+      <Well>
+        <div className="flex gap-2">
+          <UserCircle2Icon />
+          <h2 className="text-lg font-semibold">User Lookup</h2>
+        </div>
 
-      <RadioGroup
-        label="Search By:"
-        orientation="horizontal"
-        value={searchBy}
-        onChange={handleSearchByChange}
-        name="userSearchBy"
-        classNames={{ base: 'flex-row' }}
-      >
-        {map(searchOptions, ({ label, key }) => (
-          <Radio key={key} value={key}>
-            {label}
-          </Radio>
-        ))}
-      </RadioGroup>
+        <RadioGroup
+          label="Search By:"
+          orientation="horizontal"
+          value={searchBy}
+          onChange={handleSearchByChange}
+          name="userSearchBy"
+          classNames={{ base: 'flex-row' }}
+        >
+          {map(searchOptions, ({ label, key }) => (
+            <Radio
+              key={key}
+              value={key}
+              classNames={{ wrapper: 'bg-background' }}
+            >
+              {label}
+            </Radio>
+          ))}
+        </RadioGroup>
 
-      <div className="flex items-center gap-4">
-        <Input
-          {...inputProps}
-          className="max-w-xs"
-          classNames={{
-            inputWrapper: 'bg-white darkTheme:bg-content3',
-            input: 'group-data-[has-value=true]:text-content1-foreground',
-          }}
-        />
-      </div>
+        <div className="flex items-center gap-4">
+          <Input
+            {...inputProps}
+            className="max-w-xs"
+            classNames={{
+              inputWrapper: 'lightTheme:bg-background',
+              input: 'group-data-[has-value=true]:text-content1-foreground',
+            }}
+          />
+        </div>
 
-      <div>
-        <Button type="submit" color="primary">
-          Search
-        </Button>
-      </div>
+        <div>
+          <Button type="submit" color="primary">
+            Search
+          </Button>
+        </div>
+      </Well>
     </Form>
   );
 }

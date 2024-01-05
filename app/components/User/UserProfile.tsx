@@ -1,3 +1,4 @@
+import Well from '~/partials/Well';
 import type { User, Profile } from './types';
 
 export type UserProfileProps = {
@@ -8,8 +9,9 @@ export type UserProfileProps = {
 export default function UserProfile({ user, profile }: UserProfileProps) {
   const { emailVerified, userid: userId, username } = user;
   const { fullName } = profile;
+
   return (
-    <div className="flex flex-col p-6 lg:p-8 bg-content1 text-content1-foreground rounded-xl gap-4">
+    <Well>
       <ul>
         <li>
           <strong>Name:</strong> {fullName}
@@ -24,6 +26,6 @@ export default function UserProfile({ user, profile }: UserProfileProps) {
           <strong>Email Verified:</strong> {emailVerified.toString()}
         </li>
       </ul>
-    </div>
+    </Well>
   );
 }

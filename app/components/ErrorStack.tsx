@@ -9,7 +9,7 @@ export default function ErrorStack() {
   stack.shift();
 
   return (
-    <div className="bg-content1 text-content1-foreground rounded-lg px-2 border-1 border-content3">
+    <div className="bg-content1 text-content1-foreground rounded-lg px-2 border-1 border-content2">
       <Accordion>
         <AccordionItem
           key="1"

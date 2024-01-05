@@ -55,6 +55,9 @@ export default function RecentClinics({ rows }: UserProfileProps) {
       shadow="none"
       topContent={TableHeading}
       removeWrapper
+      classNames={{
+        th: 'bg-content1',
+      }}
     >
       <TableHeader>
         {columns.map((column) => (
