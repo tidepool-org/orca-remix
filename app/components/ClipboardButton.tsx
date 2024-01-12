@@ -53,5 +53,6 @@ ClipboardButton.defaultProps = {
   spinner: <CopyCheck />,
   isIconOnly: true,
   size: 'sm',
+  radius: 'sm',
   variant: 'light',
 };

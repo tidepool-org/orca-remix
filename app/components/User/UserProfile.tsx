@@ -1,7 +1,7 @@
 import Well from '~/partials/Well';
-import type { User, Profile } from './types';
 import { intlFormat } from 'date-fns';
 
+import type { User, Profile } from './types';
 import useLocale from '~/hooks/useLocale';
 import ClipboardButton from '../ClipboardButton';
 

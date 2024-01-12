@@ -60,9 +60,7 @@ export default function Clinics() {
   const { clinic } = useLoaderData<typeof loader>();
 
   return (
-    <div className="flex flex-col gap-4 md:gap-6 lg:gap-8">
-      {clinic && <ClinicProfile clinic={clinic} />}
-    </div>
+    <div className="flex">{clinic && <ClinicProfile clinic={clinic} />}</div>
   );
 }
 

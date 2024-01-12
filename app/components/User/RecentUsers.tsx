@@ -13,11 +13,11 @@ import { useNavigate } from '@remix-run/react';
 
 import type { RecentUser } from './types';
 
-export type UserProfileProps = {
+export type RecentUsersProps = {
   rows: RecentUser[];
 };
 
-export default function RecentUsers({ rows }: UserProfileProps) {
+export default function RecentUsers({ rows }: RecentUsersProps) {
   const navigate = useNavigate();
 
   const columns = [
