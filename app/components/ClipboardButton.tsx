@@ -39,7 +39,7 @@ export default function ClipboardButton(props: ClipboardButtonProps) {
   return (
     <Button
       onPress={() => copyContent(clipboardText)}
-      className="text-lg"
+      className="text-foreground/80"
       isLoading={isLoading}
       {...buttonProps}
     />
