@@ -12,7 +12,6 @@ import {
 
 import './tailwind.css';
 import { NextUIProvider } from '@nextui-org/react';
-import acceptLanguage from 'accept-language-parser';
 
 import {
   ThemeProvider,
@@ -22,32 +21,22 @@ import {
 
 import { themeSessionResolver } from './sessions.server';
 import { authorizeServer } from './auth.server';
-import { LocaleProvider } from '~/hooks/useLocale';
+import { default as useLocale, LocaleProvider } from './hooks/useLocale';
 
 import Dashboard from './layouts/Dashboard';
 import { Agent } from './routes/action.get-agent';
 import ErrorStack from './components/ErrorStack';
+import getLocale from './routes/action.get-locale';
 
 // Return the theme from the session storage using the loader
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { getTheme } = await themeSessionResolver(request);
   authorizeServer();
-
-  const languages = acceptLanguage.parse(
-    request.headers.get('Accept-Language') as string,
-  );
-
-  let locale = 'en-us';
-
-  if (languages?.length > 0) {
-    locale = !languages[0].region
-      ? languages[0].code
-      : `${languages[0].code}-${languages[0].region}`;
-  }
+  const locale = getLocale(request);
 
   return {
-    theme: getTheme(),
     locale,
+    theme: getTheme(),
   };
 };
 
@@ -77,10 +66,11 @@ export type RootLoaderType = typeof clientLoader;
 // `specifiedTheme` is the stored theme in the session storage.
 // `themeAction` is the action name that's used to change the theme in the session storage.
 export default function AppWithProviders() {
-  const data = useLoaderData<typeof clientLoader>();
+  const { theme, locale } = useLoaderData<typeof clientLoader>();
+
   return (
-    <ThemeProvider specifiedTheme={data.theme} themeAction="/action/set-theme">
-      <LocaleProvider locale={data.locale}>
+    <ThemeProvider specifiedTheme={theme} themeAction="/action/set-theme">
+      <LocaleProvider locale={locale}>
         <App />
       </LocaleProvider>
     </ThemeProvider>
@@ -95,9 +85,10 @@ function App() {
   const data = useLoaderData<typeof clientLoader>();
   const navigate = useNavigate();
   const [theme] = useTheme();
+  const { locale, direction } = useLocale();
 
   return (
-    <html lang="en" data-theme={theme ?? ''}>
+    <html lang={locale} dir={direction} data-theme={theme ?? ''}>
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width,initial-scale=1" />
