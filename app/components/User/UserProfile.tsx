@@ -3,6 +3,7 @@ import type { User, Profile } from './types';
 import { intlFormat } from 'date-fns';
 
 import useLocale from '~/hooks/useLocale';
+import ClipboardButton from '../ClipboardButton';
 
 export type UserProfileProps = {
   user: User;
@@ -12,43 +13,51 @@ export type UserProfileProps = {
 export default function UserProfile({ user, profile }: UserProfileProps) {
   const { emailVerified, userid: userId, username, termsAccepted } = user;
   const { fullName, clinic } = profile;
-  const locale = useLocale();
-  console.log('locale', locale);
+  const { locale } = useLocale();
+
+  const userDetails = [
+    {
+      label: 'Email',
+      value: username,
+      copy: true,
+    },
+    {
+      label: 'User ID',
+      value: userId,
+      copy: true,
+    },
+    {
+      label: 'Account Type',
+      value: clinic ? `clinician (${clinic.role})` : 'patient',
+    },
+    { label: 'Account Verified', value: emailVerified.toString() },
+    {
+      label: 'Member Since',
+      value: intlFormat(
+        new Date(termsAccepted),
+        {
+          year: 'numeric',
+          month: 'numeric',
+          day: 'numeric',
+        },
+        { locale },
+      ),
+    },
+  ];
 
   return (
     <Well>
       <p className="text-xl">{fullName}</p>
-      <ul className="text-sm">
-        <li>
-          <strong>User ID:</strong> {userId}
-        </li>
-        <li>
-          <strong>Email:</strong> {username}
-        </li>
-        <li>
-          <strong>Account Type:</strong> {clinic ? 'clinician' : 'patient'}
-        </li>
-        {clinic && (
-          <li>
-            <strong>Clinic Role:</strong> {clinic.role}
-          </li>
-        )}
-        <li>
-          <strong>Account Verified:</strong> {emailVerified.toString()}
-        </li>
-        <li>
-          <strong>Member Since:</strong>{' '}
-          {intlFormat(
-            new Date(termsAccepted),
-            {
-              year: 'numeric',
-              month: 'numeric',
-              day: 'numeric',
-            },
-            { locale },
-          )}
-        </li>
-      </ul>
+
+      <div className="text-small">
+        {userDetails.map(({ label, value, copy }, i) => (
+          <div key={i} className="flex justify-start flex-nowrap gap-3">
+            <strong>{label}:</strong>
+            <p>{value}</p>
+            {copy && <ClipboardButton clipboardText={value} />}
+          </div>
+        ))}
+      </div>
     </Well>
   );
 }
