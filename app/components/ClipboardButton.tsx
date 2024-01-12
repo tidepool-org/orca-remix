@@ -39,7 +39,7 @@ export default function ClipboardButton(props: ClipboardButtonProps) {
   return (
     <Button
       onPress={() => copyContent(clipboardText)}
-      className="text-foreground/80"
+      className="text-foreground/80 h-unit-7 min-w-unit-7 w-unit-7"
       isLoading={isLoading}
       {...buttonProps}
     />
@@ -47,10 +47,10 @@ export default function ClipboardButton(props: ClipboardButtonProps) {
 }
 
 ClipboardButton.defaultProps = {
-  children: <Copy />,
+  children: <Copy className="w-4" />,
   title: 'Copy to clipboard',
   clipboardText: 'Sorry, there was nothing to copy.',
-  spinner: <CopyCheck />,
+  spinner: <CopyCheck className=" w-4" />,
   isIconOnly: true,
   size: 'sm',
   radius: 'sm',

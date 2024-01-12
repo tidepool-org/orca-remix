@@ -43,9 +43,12 @@ export default function ClinicProfile({ clinic }: ClinicProfileProps) {
     <Well>
       <p className="text-xl">{name}</p>
 
-      <div className="text-small">
+      <div className="text-sm">
         {clinicDetails.map(({ label, value, copy }, i) => (
-          <div key={i} className="flex justify-start flex-nowrap gap-3">
+          <div
+            key={i}
+            className="flex justify-start flex-nowrap gap-2 items-center min-h-unit-8"
+          >
             <strong>{label}:</strong>
             <p>{value}</p>
             {copy && <ClipboardButton clipboardText={value} />}

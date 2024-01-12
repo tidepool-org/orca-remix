@@ -51,7 +51,10 @@ export default function UserProfile({ user, profile }: UserProfileProps) {
 
       <div className="text-small">
         {userDetails.map(({ label, value, copy }, i) => (
-          <div key={i} className="flex justify-start flex-nowrap gap-3">
+          <div
+            key={i}
+            className="flex justify-start flex-nowrap gap-2 items-center min-h-unit-8"
+          >
             <strong>{label}:</strong>
             <p>{value}</p>
             {copy && <ClipboardButton clipboardText={value} />}
