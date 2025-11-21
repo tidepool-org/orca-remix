@@ -24,6 +24,7 @@ export const meta: MetaFunction = () => {
 
 const recentClinicsMax = 10;
 const defaultPageSize = 10;
+const cliniciansFetchLimit = 1000;
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
   const { getSession, commitSession } = clinicsSession;
@@ -75,7 +76,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
       apiRoutes.clinic.get(clinicId),
       apiRoutes.clinic.getPatients(clinicId, { limit, offset, search, sort }),
       apiRoutes.clinic.getPatientInvites(clinicId),
-      apiRoutes.clinic.getClinicians(clinicId, { limit: cliniciansLimit, offset: cliniciansOffset }),
+      apiRoutes.clinic.getClinicians(clinicId, { limit: cliniciansFetchLimit.toString(), offset: cliniciansOffset }),
     ]);
 
     const clinic: Clinic = results?.[0];
@@ -96,7 +97,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     // Process clinicians data
     const clinicians = cliniciansResponse || [];
     const totalClinicians = cliniciansResponse.length;
-    const cliniciansTotalPages = Math.ceil(totalClinicians / cliniciansLimit);
+    const cliniciansTotalPages = Math.ceil(totalClinicians / defaultPageSize);
 
     if (clinic?.id) {
       recentClinics.unshift(pick(clinic, ['id', 'shareCode', 'name']));
@@ -233,14 +234,6 @@ export default function Clinics() {
     submit(newSearchParams, { method: 'GET', replace: true });
   }, [searchParams, submit]);
 
-  const handleCliniciansSort = useCallback((column: string, direction: 'asc' | 'desc') => {
-    const newSearchParams = new URLSearchParams(searchParams);
-    newSearchParams.set('cliniciansSortBy', column);
-    newSearchParams.set('cliniciansSortOrder', direction);
-    newSearchParams.set('cliniciansPage', '1'); // Reset to first page when sorting
-    submit(newSearchParams, { method: 'GET', replace: true });
-  }, [searchParams, submit]);
-
   // If we're on a nested route, render the outlet
   if (isNestedRoute) {
     return (
@@ -279,7 +272,6 @@ export default function Clinics() {
             currentSort={sorting.sort}
             currentSearch={sorting.search}
             onCliniciansPageChange={handleCliniciansPageChange}
-            onCliniciansSort={handleCliniciansSort}
           />
         )}
       </div>

@@ -22,7 +22,6 @@ export type PatientInvitesTableProps = {
   currentPage?: number;
   pageSize?: number;
   onPageChange?: (page: number) => void;
-  onSort?: (column: string, direction: 'asc' | 'desc') => void;
 };
 
 type Column = {
@@ -32,11 +31,11 @@ type Column = {
 };
 
 const columns: Column[] = [
-  { key: 'patientName', label: 'PATIENT NAME', sortable: true },
-  { key: 'birthday', label: 'BIRTHDAY', sortable: true },
-  { key: 'userId', label: 'USER ID', sortable: true },
-  { key: 'created', label: 'INVITED', sortable: true },
-  { key: 'expiresAt', label: 'EXPIRES', sortable: true },
+  { key: 'patientName', label: 'PATIENT NAME', sortable: false },
+  { key: 'birthday', label: 'BIRTHDAY', sortable: false },
+  { key: 'userId', label: 'USER ID', sortable: false },
+  { key: 'created', label: 'INVITED', sortable: false },
+  { key: 'expiresAt', label: 'EXPIRES', sortable: false },
 ];
 
 type SortDescriptor = {
@@ -52,7 +51,6 @@ export default function PatientInvitesTable({
   currentPage = 1,
   pageSize,
   onPageChange,
-  onSort,
 }: PatientInvitesTableProps) {
   const { locale } = useLocale();
   const [sortDescriptor, setSortDescriptor] = React.useState<SortDescriptor>({
@@ -75,17 +73,6 @@ export default function PatientInvitesTable({
   const headerText = isExpanded && pendingInvites.length > 0
     ? `(showing ${firstInviteOnPage}-${lastInviteOnPage} of ${pendingInvites.length} pending patient invites)`
     : `Pending Patient Invites (${pendingInvites.length})`;
-
-  const handleSortChange = React.useCallback(
-    (descriptor: any) => {
-      setSortDescriptor(descriptor);
-      if (onSort && descriptor.column) {
-        const direction = descriptor.direction === 'descending' ? 'desc' : 'asc';
-        onSort(descriptor.column, direction);
-      }
-    },
-    [onSort],
-  );
 
   const renderCell = React.useCallback(
     (invite: PatientInvite, columnKey: keyof PatientInvite | 'actions' | 'patientName' | 'birthday' | 'userId') => {
@@ -141,15 +128,6 @@ export default function PatientInvitesTable({
     [locale],
   );
 
-  const SortIcon = ({ column }: { column: string }) => {
-    if (sortDescriptor.column !== column) return null;
-    return sortDescriptor.direction === 'ascending' ? (
-      <ChevronDown className="w-4 h-4 rotate-180" />
-    ) : (
-      <ChevronDown className="w-4 h-4" />
-    );
-  };
-
   const TableHeading = (
     <button
       onClick={() => setIsExpanded(!isExpanded)}
@@ -193,8 +171,6 @@ export default function PatientInvitesTable({
             className="flex flex-1 flex-col text-content1-foreground gap-4"
             shadow="none"
             removeWrapper
-            sortDescriptor={sortDescriptor}
-            onSortChange={handleSortChange}
             classNames={{
               th: 'bg-content1',
             }}
@@ -203,13 +179,9 @@ export default function PatientInvitesTable({
               {(column) => (
                 <TableColumn
                   key={column.key}
-                  allowsSorting={column.sortable}
                   className="bg-content1 text-content1-foreground font-medium"
                 >
-                  <div className="flex items-center gap-2">
-                    {column.label}
-                    {column.sortable && <SortIcon column={column.key} />}
-                  </div>
+                  {column.label}
                 </TableColumn>
               )}
             </TableHeader>

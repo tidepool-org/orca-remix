@@ -35,7 +35,6 @@ export type ClinicProfileProps = {
   currentSort?: string;
   currentSearch?: string;
   onCliniciansPageChange?: (page: number) => void;
-  onCliniciansSort?: (column: string, direction: 'asc' | 'desc') => void;
 };
 
 export default function ClinicProfile({
@@ -63,7 +62,6 @@ export default function ClinicProfile({
   currentSort,
   currentSearch,
   onCliniciansPageChange,
-  onCliniciansSort,
 }: ClinicProfileProps) {
   const { id, shareCode, name, createdTime, canMigrate, tier } = clinic;
   const { locale } = useLocale();
@@ -135,7 +133,6 @@ export default function ClinicProfile({
           invites={patientInvites}
           isLoading={invitesLoading}
           totalInvites={totalInvites}
-          onSort={onSort}
         />
       </Well>
 
@@ -148,7 +145,6 @@ export default function ClinicProfile({
           currentPage={cliniciansCurrentPage}
           pageSize={cliniciansPageSize}
           onPageChange={onCliniciansPageChange}
-          onSort={onCliniciansSort}
         />
       </Well>
 

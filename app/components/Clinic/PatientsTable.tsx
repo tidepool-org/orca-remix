@@ -87,17 +87,17 @@ export default function PatientsTable({
     {
       key: 'email',
       label: 'Email',
-      sortable: true,
+      sortable: false,
     },
     {
       key: 'birthDate',
       label: 'Birth Date',
-      sortable: true,
+      sortable: false,
     },
     {
       key: 'mrn',
       label: 'MRN',
-      sortable: true,
+      sortable: false,
     },
     {
       key: 'tags',
@@ -107,7 +107,7 @@ export default function PatientsTable({
     {
       key: 'createdTime',
       label: 'Added',
-      sortable: true,
+      sortable: false,
     },
     {
       key: 'actions',

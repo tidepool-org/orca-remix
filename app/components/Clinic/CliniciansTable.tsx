@@ -11,9 +11,8 @@ import {
   Spinner,
   Chip,
   Button,
-  SortDescriptor,
 } from '@nextui-org/react';
-import { UserCheck, ChevronUp, ChevronDown } from 'lucide-react';
+import { UserCheck, ChevronDown } from 'lucide-react';
 import { intlFormat } from 'date-fns';
 import useLocale from '~/hooks/useLocale';
 import type { Clinician } from './types';
@@ -26,7 +25,6 @@ export type CliniciansTableProps = {
   currentPage?: number;
   pageSize?: number;
   onPageChange?: (page: number) => void;
-  onSort?: (column: string, direction: 'asc' | 'desc') => void;
 };
 
 type Column = {
@@ -43,15 +41,10 @@ export default function CliniciansTable({
   currentPage = 1,
   pageSize,
   onPageChange,
-  onSort,
 }: CliniciansTableProps) {
   const { locale } = useLocale();
   const navigate = useNavigate();
   const params = useParams();
-  const [sortDescriptor, setSortDescriptor] = React.useState<SortDescriptor>({
-    column: 'name',
-    direction: 'ascending',
-  });
   const [isExpanded, setIsExpanded] = React.useState(false);
 
   // Calculate pagination details
@@ -68,22 +61,22 @@ export default function CliniciansTable({
     {
       key: 'name',
       label: 'Clinician Name',
-      sortable: true,
+      sortable: false,
     },
     {
       key: 'email',
       label: 'Email',
-      sortable: true,
+      sortable: false,
     },
     {
       key: 'roles',
       label: 'Role',
-      sortable: true,
+      sortable: false,
     },
     {
       key: 'createdTime',
       label: 'Added',
-      sortable: true,
+      sortable: false,
     },
     {
       key: 'actions',
@@ -91,14 +84,6 @@ export default function CliniciansTable({
       sortable: false,
     },
   ];
-
-  const handleSortChange = (descriptor: SortDescriptor) => {
-    setSortDescriptor(descriptor);
-    if (onSort && descriptor.column) {
-      const direction = descriptor.direction === 'ascending' ? 'asc' : 'desc';
-      onSort(descriptor.column.toString(), direction);
-    }
-  };
 
   const renderCell = React.useCallback(
     (clinician: Clinician, columnKey: keyof Clinician | 'actions') => {
@@ -169,17 +154,6 @@ export default function CliniciansTable({
     [locale, navigate, params.clinicId]
   );
 
-  const SortIcon = ({ column }: { column: keyof Clinician | 'actions' }) => {
-    if (sortDescriptor.column !== column) {
-      return null;
-    }
-    return sortDescriptor.direction === 'ascending' ? (
-      <ChevronUp className="w-4 h-4" />
-    ) : (
-      <ChevronDown className="w-4 h-4" />
-    );
-  };
-
   const TableHeading = (
     <button
       className="flex justify-between items-center w-full p-4 bg-content2 rounded-lg hover:bg-content3 transition-colors cursor-pointer"
@@ -223,8 +197,6 @@ export default function CliniciansTable({
             className="flex flex-1 flex-col text-content1-foreground gap-4"
             shadow="none"
             removeWrapper
-            sortDescriptor={sortDescriptor}
-            onSortChange={handleSortChange}
             classNames={{
               th: 'bg-content1',
             }}
@@ -233,13 +205,9 @@ export default function CliniciansTable({
               {(column) => (
                 <TableColumn
                   key={column.key}
-                  allowsSorting={column.sortable}
                   className="text-left"
                 >
-                  <div className="flex items-center gap-1">
-                    {column.label}
-                    {column.sortable && <SortIcon column={column.key} />}
-                  </div>
+                  {column.label}
                 </TableColumn>
               )}
             </TableHeader>
