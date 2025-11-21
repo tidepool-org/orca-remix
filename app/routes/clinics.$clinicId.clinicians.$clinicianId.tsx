@@ -92,3 +92,7 @@ export default function ClinicianRoute() {
 
   return <ClinicianProfile clinician={clinician} />;
 }
+
+export const handle = {
+  breadcrumb: { href: '#', label: 'Clinician Profile' },
+};
