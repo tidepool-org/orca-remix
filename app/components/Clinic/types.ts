@@ -89,31 +89,15 @@ export type PatientInvite = {
 
 export type Clinician = {
   id: string;
-  userId: string;
-  fullName: string;
-  email: string;
-  role: string;
-  createdTime: string;
-  updatedTime: string;
-  permissions?: {
-    view?: boolean;
-    upload?: boolean;
-    note?: boolean;
-  };
-};
-
-export type RecentClinician = Pick<Clinician, 'id' | 'fullName' | 'email' | 'role'> & {
-  lastViewedAt: string;
-};
-
-export type RecentPatient = Pick<Patient, 'id' | 'fullName' | 'email'>;
-
-// Type for clinicians as returned by the API when fetching all clinicians for a clinic
-export type ListClinician = {
-  id: string;
   email: string;
   name: string;
   roles: string[];
   createdTime: string;
   updatedTime: string;
 };
+
+export type RecentClinician = Pick<Clinician, 'id' | 'name' | 'email' | 'roles'> & {
+  lastViewedAt: string;
+};
+
+export type RecentPatient = Pick<Patient, 'id' | 'fullName' | 'email'>;

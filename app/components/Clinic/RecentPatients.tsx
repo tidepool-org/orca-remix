@@ -61,7 +61,6 @@ export default function RecentPatients({ rows }: RecentPatientsProps) {
       topContent={TableHeading}
       classNames={{
         th: 'bg-content1',
-        table: 'min-h-[120px]',
       }}
     >
       <TableHeader columns={columns}>

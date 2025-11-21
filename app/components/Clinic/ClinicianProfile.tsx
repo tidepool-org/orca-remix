@@ -57,10 +57,7 @@ export default function ClinicianProfile({ clinician, isLoading }: ClinicianProf
     switch (role?.toLowerCase()) {
       case 'admin':
         return 'primary';
-      case 'clinician':
-        return 'secondary';
-      case 'support':
-        return 'warning';
+      case 'member':
       default:
         return 'default';
     }
@@ -90,7 +87,7 @@ export default function ClinicianProfile({ clinician, isLoading }: ClinicianProf
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="text-sm font-medium text-default-600">Full Name</label>
-                <p className="text-foreground">{clinician.fullName}</p>
+                <p className="text-foreground">{clinician.name}</p>
               </div>
 
               <div>
@@ -105,11 +102,11 @@ export default function ClinicianProfile({ clinician, isLoading }: ClinicianProf
                 <label className="text-sm font-medium text-default-600">Role</label>
                 <div className="pt-1">
                   <Chip
-                    color={getRoleColor(clinician.role)}
+                    color={getRoleColor(clinician.roles?.[0])}
                     variant="flat"
                     className="capitalize"
                   >
-                    {clinician.role}
+                    {clinician.roles?.[0]}
                   </Chip>
                 </div>
               </div>

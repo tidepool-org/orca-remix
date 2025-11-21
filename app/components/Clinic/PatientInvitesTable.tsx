@@ -197,7 +197,6 @@ export default function PatientInvitesTable({
             onSortChange={handleSortChange}
             classNames={{
               th: 'bg-content1',
-              table: 'min-h-[400px]',
             }}
           >
             <TableHeader columns={columns}>

@@ -5,7 +5,7 @@ import {
 } from '@remix-run/node';
 
 import ClinicProfile from '~/components/Clinic/ClinicProfile';
-import type { Clinic, RecentClinic, Patient, RecentPatient, RecentClinician, ListClinician } from '~/components/Clinic/types';
+import type { Clinic, RecentClinic, Patient, RecentPatient, RecentClinician, Clinician } from '~/components/Clinic/types';
 import { RecentItemsProvider } from '~/components/Clinic/RecentItemsContext';
 import { apiRequests, apiRoutes } from '~/api.server';
 import { clinicsSession, patientsSession, cliniciansSession } from '~/sessions.server';

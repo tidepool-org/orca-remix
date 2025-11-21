@@ -16,10 +16,10 @@ import {
 import { UserCheck, ChevronUp, ChevronDown } from 'lucide-react';
 import { intlFormat } from 'date-fns';
 import useLocale from '~/hooks/useLocale';
-import type { ListClinician } from './types';
+import type { Clinician } from './types';
 
 export type CliniciansTableProps = {
-  clinicians: ListClinician[];
+  clinicians: Clinician[];
   totalClinicians: number;
   isLoading?: boolean;
   totalPages?: number;
@@ -30,7 +30,7 @@ export type CliniciansTableProps = {
 };
 
 type Column = {
-  key: keyof ListClinician | 'actions';
+  key: keyof Clinician | 'actions';
   label: string;
   sortable?: boolean;
 };
@@ -101,8 +101,8 @@ export default function CliniciansTable({
   };
 
   const renderCell = React.useCallback(
-    (clinician: ListClinician, columnKey: keyof ListClinician | 'actions') => {
-      const cellValue = clinician[columnKey as keyof ListClinician];
+    (clinician: Clinician, columnKey: keyof Clinician | 'actions') => {
+      const cellValue = clinician[columnKey as keyof Clinician];
 
       console.log('clinician', clinician);
       switch (columnKey) {
@@ -170,7 +170,7 @@ export default function CliniciansTable({
     [locale, navigate, params.clinicId]
   );
 
-  const SortIcon = ({ column }: { column: keyof ListClinician | 'actions' }) => {
+  const SortIcon = ({ column }: { column: keyof Clinician | 'actions' }) => {
     if (sortDescriptor.column !== column) {
       return null;
     }
@@ -228,7 +228,6 @@ export default function CliniciansTable({
             onSortChange={handleSortChange}
             classNames={{
               th: 'bg-content1',
-              table: 'min-h-[400px]',
             }}
           >
             <TableHeader columns={columns}>
@@ -253,7 +252,7 @@ export default function CliniciansTable({
               {clinicians.map((clinician) => (
                 <TableRow key={clinician.id}>
                   {(columnKey) => (
-                    <TableCell>{renderCell(clinician, columnKey as keyof ListClinician | 'actions')}</TableCell>
+                    <TableCell>{renderCell(clinician, columnKey as keyof Clinician | 'actions')}</TableCell>
                   )}
                 </TableRow>
               ))}
