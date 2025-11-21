@@ -1,10 +1,12 @@
 import type { LoaderFunctionArgs } from '@remix-run/node';
 import { json } from '@remix-run/node';
 import { useLoaderData } from '@remix-run/react';
+import { useRecentItems } from '~/components/Clinic/RecentItemsContext';
 import { apiRequest, apiRoutes } from '~/api.server';
 import { cliniciansSession } from '~/clinicians-sessions.server';
 import ClinicianProfile from '~/components/Clinic/ClinicianProfile';
 import type { RecentClinician } from '~/components/Clinic/types';
+import { useEffect } from 'react';
 
 export const loader = async ({ request, params }: LoaderFunctionArgs) => {
   const { clinicId, clinicianId } = params;
@@ -70,6 +72,21 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
 
 export default function ClinicianRoute() {
   const { clinician } = useLoaderData<typeof loader>();
+  const { addRecentClinician } = useRecentItems();
+
+  // Add clinician to recent list immediately when component mounts
+  useEffect(() => {
+    if (clinician) {
+      const recentClinician: RecentClinician = {
+        id: clinician.id,
+        fullName: clinician.fullName,
+        email: clinician.email,
+        role: clinician.role,
+        lastViewedAt: new Date().toISOString(),
+      };
+      addRecentClinician(recentClinician);
+    }
+  }, [clinician, addRecentClinician]);
 
   return <ClinicianProfile clinician={clinician} />;
 }

@@ -6,9 +6,11 @@ import {
 
 import PatientProfile from '~/components/Clinic/PatientProfile';
 import type { RecentPatient } from '~/components/Clinic/types';
+import { useRecentItems } from '~/components/Clinic/RecentItemsContext';
 import { apiRequest, apiRoutes } from '~/api.server';
 import { patientsSession } from '~/patients-sessions.server';
 import { useLoaderData } from '@remix-run/react';
+import { useEffect } from 'react';
 import isArray from 'lodash/isArray';
 import pick from 'lodash/pick';
 import uniqBy from 'lodash/uniqBy';
@@ -63,6 +65,19 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 
 export default function PatientDetails() {
   const { patient } = useLoaderData<typeof loader>();
+  const { addRecentPatient } = useRecentItems();
+
+  // Add patient to recent list immediately when component mounts
+  useEffect(() => {
+    if (patient) {
+      const recentPatient: RecentPatient = {
+        id: patient.id,
+        fullName: patient.fullName,
+        email: patient.email,
+      };
+      addRecentPatient(recentPatient);
+    }
+  }, [patient, addRecentPatient]);
 
   return (
     <div className="flex">

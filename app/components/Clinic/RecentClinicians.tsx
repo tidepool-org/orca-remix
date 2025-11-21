@@ -1,16 +1,21 @@
 import { Link, useParams } from '@remix-run/react';
 import { Card, CardBody, Avatar } from '@nextui-org/react';
 import { UserCheck, Clock } from 'lucide-react';
+import { useRecentItems } from './RecentItemsContext';
 import type { RecentClinician } from './types';
 
 export type RecentCliniciansProps = {
-  recentClinicians: RecentClinician[];
+  recentClinicians?: RecentClinician[]; // Keep for backward compatibility but use context
 };
 
-export default function RecentClinicians({ recentClinicians }: RecentCliniciansProps) {
+export default function RecentClinicians({ recentClinicians: propClinicians }: RecentCliniciansProps) {
   const params = useParams();
+  const { recentClinicians } = useRecentItems();
 
-  if (recentClinicians.length === 0) {
+  // Use context data if available, fallback to props
+  const clinicians = recentClinicians.length > 0 ? recentClinicians : (propClinicians || []);
+
+  if (clinicians.length === 0) {
     return (
       <Card className="w-full">
         <CardBody className="p-6">
@@ -35,7 +40,7 @@ export default function RecentClinicians({ recentClinicians }: RecentCliniciansP
           <h3 className="text-lg font-semibold">Recent Clinicians</h3>
         </div>
         <div className="space-y-3">
-          {recentClinicians.map((clinician) => (
+          {clinicians.map((clinician) => (
             <Link
               key={clinician.id}
               to={`/clinics/${params.clinicId}/clinicians/${clinician.id}`}

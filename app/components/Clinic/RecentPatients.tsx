@@ -10,16 +10,21 @@ import {
 
 import { History } from 'lucide-react';
 import { useNavigate, useParams } from '@remix-run/react';
+import { useRecentItems } from './RecentItemsContext';
 
 import type { RecentPatient } from './types';
 
 export type RecentPatientsProps = {
-  rows: RecentPatient[];
+  rows?: RecentPatient[]; // Keep for backward compatibility but use context
 };
 
 export default function RecentPatients({ rows }: RecentPatientsProps) {
   const navigate = useNavigate();
   const params = useParams();
+  const { recentPatients } = useRecentItems();
+
+  // Use context data if available, fallback to props
+  const patients = recentPatients.length > 0 ? recentPatients : (rows || []);
 
   const columns = [
     {
@@ -32,7 +37,7 @@ export default function RecentPatients({ rows }: RecentPatientsProps) {
     },
   ];
 
-  const handleSelection = (e) => {
+  const handleSelection = (e: any) => {
     navigate(`/clinics/${params.clinicId}/patients/${e.currentKey}`);
   };
 

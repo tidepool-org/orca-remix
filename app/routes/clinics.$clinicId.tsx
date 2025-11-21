@@ -6,6 +6,7 @@ import {
 
 import ClinicProfile from '~/components/Clinic/ClinicProfile';
 import type { Clinic, RecentClinic, Patient, RecentPatient, RecentClinician } from '~/components/Clinic/types';
+import { RecentItemsProvider } from '~/components/Clinic/RecentItemsContext';
 import { apiRequests, apiRoutes } from '~/api.server';
 import { clinicsSession } from '~/sessions.server';
 import { patientsSession } from '~/patients-sessions.server';
@@ -236,39 +237,43 @@ export default function Clinics() {
   // If we're on a nested route, render the outlet
   if (isNestedRoute) {
     return (
-      <div className="flex w-full">
-        <Outlet />
-      </div>
+      <RecentItemsProvider initialPatients={(recentPatients as RecentPatient[]) || []} initialClinicians={(recentClinicians as RecentClinician[]) || []}>
+        <div className="flex w-full">
+          <Outlet />
+        </div>
+      </RecentItemsProvider>
     );
   }
 
   // Otherwise, render the clinic profile
   return (
-    <div className="flex w-full">
-      {clinic && (
-        <ClinicProfile
-          clinic={clinic}
-          patients={patients}
-          totalPatients={pagination.totalPatients}
-          totalPages={pagination.totalPages}
-          currentPage={pagination.currentPage}
-          pageSize={pagination.pageSize}
-          patientInvites={patientInvites}
-          totalInvites={invitesPagination.totalInvites}
-          clinicians={clinicians}
-          totalClinicians={cliniciansPagination.totalClinicians}
-          cliniciansTotalPages={cliniciansPagination.totalPages}
-          cliniciansCurrentPage={cliniciansPagination.currentPage}
-          cliniciansPageSize={cliniciansPagination.pageSize}
-          recentPatients={recentPatients}
-          recentClinicians={recentClinicians}
-          onPageChange={handlePageChange}
-          onSort={handleSort}
-          onCliniciansPageChange={handleCliniciansPageChange}
-          onCliniciansSort={handleCliniciansSort}
-        />
-      )}
-    </div>
+    <RecentItemsProvider initialPatients={(recentPatients as RecentPatient[]) || []} initialClinicians={(recentClinicians as RecentClinician[]) || []}>
+      <div className="flex w-full">
+        {clinic && (
+          <ClinicProfile
+            clinic={clinic}
+            patients={patients}
+            totalPatients={pagination.totalPatients}
+            totalPages={pagination.totalPages}
+            currentPage={pagination.currentPage}
+            pageSize={pagination.pageSize}
+            patientInvites={patientInvites}
+            totalInvites={invitesPagination.totalInvites}
+            clinicians={clinicians}
+            totalClinicians={cliniciansPagination.totalClinicians}
+            cliniciansTotalPages={cliniciansPagination.totalPages}
+            cliniciansCurrentPage={cliniciansPagination.currentPage}
+            cliniciansPageSize={cliniciansPagination.pageSize}
+            recentPatients={recentPatients}
+            recentClinicians={recentClinicians}
+            onPageChange={handlePageChange}
+            onSort={handleSort}
+            onCliniciansPageChange={handleCliniciansPageChange}
+            onCliniciansSort={handleCliniciansSort}
+          />
+        )}
+      </div>
+    </RecentItemsProvider>
   );
 }
 
