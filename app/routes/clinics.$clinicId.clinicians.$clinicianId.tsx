@@ -4,7 +4,7 @@ import { useLoaderData } from '@remix-run/react';
 import { apiRequest, apiRoutes } from '~/api.server';
 import { cliniciansSession } from '~/clinicians-sessions.server';
 import ClinicianProfile from '~/components/Clinic/ClinicianProfile';
-import type { Clinician, RecentClinician } from '~/components/Clinic/types';
+import type { RecentClinician } from '~/components/Clinic/types';
 
 export const loader = async ({ request, params }: LoaderFunctionArgs) => {
   const { clinicId, clinicianId } = params;
@@ -14,19 +14,14 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
   }
 
   try {
-    // Get all clinicians for this clinic to find the specific clinician
-    const cliniciansResponse = await apiRequest(
-      apiRoutes.clinic.getClinicians(clinicId, { limit: 1000 })
+    // Get the specific clinician directly
+    const clinician = await apiRequest(
+      apiRoutes.clinic.getClinician(clinicId, clinicianId)
     );
-
-    // Find the specific clinician
-    const clinician = cliniciansResponse?.data?.find((c: Clinician) => c.id === clinicianId);
 
     if (!clinician) {
       throw new Response('Clinician not found', { status: 404 });
-    }
-
-    // Update recent clinicians session
+    }    // Update recent clinicians session
     const { getSession, commitSession } = cliniciansSession;
     const cliniciansSessionData = await getSession(request.headers.get('Cookie'));
     const recentCliniciansData = cliniciansSessionData.get('recentClinicians');

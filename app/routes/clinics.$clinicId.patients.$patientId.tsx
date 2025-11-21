@@ -5,7 +5,7 @@ import {
 } from '@remix-run/node';
 
 import PatientProfile from '~/components/Clinic/PatientProfile';
-import type { Patient, RecentPatient } from '~/components/Clinic/types';
+import type { RecentPatient } from '~/components/Clinic/types';
 import { apiRequest, apiRoutes } from '~/api.server';
 import { patientsSession } from '~/patients-sessions.server';
 import { useLoaderData } from '@remix-run/react';
@@ -34,14 +34,10 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   const clinicId = params.clinicId as string;
   const patientId = params.patientId as string;
 
-  // Get all patients for this clinic to find the specific patient
-  const patientsResponse = await apiRequest(
-    apiRoutes.clinic.getPatients(clinicId, { limit: 1000 })
+  // Get the specific patient directly
+  const patient = await apiRequest(
+    apiRoutes.clinic.getPatient(clinicId, patientId)
   );
-
-  // Find the specific patient by ID
-  const patients: Patient[] = patientsResponse?.data || [];
-  const patient = patients.find(p => p.id === patientId);
 
   if (patient) {
     const recentPatient: RecentPatient = pick(patient, ['id', 'fullName', 'email']);

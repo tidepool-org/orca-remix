@@ -27,6 +27,10 @@ export const apiRoutes = {
         ...(options.offset && { offset: options.offset.toString() }),
       })}` : ''}`,
     }),
+    getPatient: (clinicId: string, patientId: string) => ({
+      method: 'get',
+      path: `/v1/clinics/${clinicId}/patients/${patientId}`,
+    }),
     getPatientInvites: (clinicId: string) => ({
       method: 'get',
       path: `/v1/clinics/${clinicId}/invites/patients`,
@@ -37,6 +41,10 @@ export const apiRoutes = {
         ...(options.limit && { limit: options.limit.toString() }),
         ...(options.offset && { offset: options.offset.toString() }),
       })}` : ''}`,
+    }),
+    getClinician: (clinicId: string, clinicianId: string) => ({
+      method: 'get',
+      path: `/v1/clinics/${clinicId}/clinicians/${clinicianId}`,
     }),
   },
 };
