@@ -18,7 +18,7 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
     const cliniciansResponse = await apiRequest(
       apiRoutes.clinic.getClinicians(clinicId, { limit: 1000 })
     );
-    
+
     // Find the specific clinician
     const clinician = cliniciansResponse?.data?.find((c: Clinician) => c.id === clinicianId);
 

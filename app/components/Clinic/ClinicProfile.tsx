@@ -147,7 +147,7 @@ export default function ClinicProfile({
         <Well>
           <RecentPatients rows={recentPatients} />
         </Well>
-        
+
         <Well>
           <RecentClinicians recentClinicians={recentClinicians} />
         </Well>

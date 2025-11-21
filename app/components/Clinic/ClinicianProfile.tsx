@@ -86,13 +86,13 @@ export default function ClinicianProfile({ clinician, isLoading }: ClinicianProf
               <User className="w-5 h-5" />
               Basic Information
             </h2>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="text-sm font-medium text-default-600">Full Name</label>
                 <p className="text-foreground">{clinician.fullName}</p>
               </div>
-              
+
               <div>
                 <label className="text-sm font-medium text-default-600 flex items-center gap-1">
                   <Mail className="w-4 h-4" />
@@ -100,7 +100,7 @@ export default function ClinicianProfile({ clinician, isLoading }: ClinicianProf
                 </label>
                 <p className="text-foreground">{clinician.email}</p>
               </div>
-              
+
               <div>
                 <label className="text-sm font-medium text-default-600">Role</label>
                 <div className="pt-1">
@@ -113,12 +113,12 @@ export default function ClinicianProfile({ clinician, isLoading }: ClinicianProf
                   </Chip>
                 </div>
               </div>
-              
+
               <div>
                 <label className="text-sm font-medium text-default-600">Clinician ID</label>
                 <p className="text-foreground font-mono text-sm">{clinician.id}</p>
               </div>
-              
+
               <div>
                 <label className="text-sm font-medium text-default-600">User ID</label>
                 <p className="text-foreground font-mono text-sm">{clinician.userId}</p>
@@ -155,13 +155,13 @@ export default function ClinicianProfile({ clinician, isLoading }: ClinicianProf
               <Calendar className="w-5 h-5" />
               Timeline
             </h3>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="text-sm font-medium text-default-600">Added to Clinic</label>
                 <p className="text-foreground">{formatDate(clinician.createdTime)}</p>
               </div>
-              
+
               <div>
                 <label className="text-sm font-medium text-default-600">Last Updated</label>
                 <p className="text-foreground">{formatDate(clinician.updatedTime)}</p>

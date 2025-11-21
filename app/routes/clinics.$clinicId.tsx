@@ -84,6 +84,8 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     const patientInvitesResponse = results?.[2];
     const cliniciansResponse = results?.[3];
 
+    console.log('cliniciansResponse', cliniciansResponse);
+
     console.log('patientInvitesResponse', patientInvitesResponse?.[0]?.creator?.profile);
     // Mock patient data structure for now since the actual API structure may vary
     // In a real implementation, you'd parse the actual API response
@@ -96,8 +98,8 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     const totalInvites = patientInvites.length;
 
     // Process clinicians data
-    const clinicians = cliniciansResponse?.data || [];
-    const totalClinicians = cliniciansResponse?.meta?.count || 0;
+    const clinicians = cliniciansResponse || [];
+    const totalClinicians = cliniciansResponse.length;
     const cliniciansTotalPages = Math.ceil(totalClinicians / cliniciansLimit);
 
     if (clinic?.id) {
@@ -185,16 +187,16 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 }
 
 export default function Clinics() {
-  const { 
-    clinic, 
-    patients, 
-    patientInvites, 
-    clinicians, 
-    recentPatients, 
-    recentClinicians, 
-    pagination, 
-    cliniciansPagination, 
-    invitesPagination 
+  const {
+    clinic,
+    patients,
+    patientInvites,
+    clinicians,
+    recentPatients,
+    recentClinicians,
+    pagination,
+    cliniciansPagination,
+    invitesPagination
   } = useLoaderData<typeof loader>();
   const [searchParams] = useSearchParams();
   const submit = useSubmit();
