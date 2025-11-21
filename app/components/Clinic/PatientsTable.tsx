@@ -37,6 +37,10 @@ export type PatientsTableProps = {
       id: string;
       name: string;
     }[];
+    sites?: {
+      id: string;
+      name: string;
+    }[];
   };
 };
 
@@ -64,11 +68,19 @@ export default function PatientsTable({
   const navigate = useNavigate();
   const params = useParams();
 
+  const clinicData = clinic;
+
   // Helper function to map tag ID to tag name
   const getTagName = useCallback((tagId: string): string => {
-    const tag = clinic?.patientTags?.find(t => t.id === tagId);
+    const tag = clinicData?.patientTags?.find(t => t.id === tagId);
     return tag?.name || tagId; // Fallback to ID if name not found
-  }, [clinic?.patientTags]);
+  }, [clinicData?.patientTags]);
+
+  // Helper function to map site ID to site name
+  const getSiteName = useCallback((siteId: string): string => {
+    const site = clinicData?.sites?.find(s => s.id === siteId);
+    return site?.name || siteId; // Fallback to ID if name not found
+  }, [clinicData?.sites]);
   // Parse current sort to set initial sort descriptor
   const parseSortString = (sortStr?: string) => {
     if (!sortStr) return { column: 'fullName', direction: 'ascending' as const };
@@ -116,6 +128,11 @@ export default function PatientsTable({
     {
       key: 'tags',
       label: 'Tags',
+      sortable: false,
+    },
+    {
+      key: 'sites',
+      label: 'Sites',
       sortable: false,
     },
     {
@@ -210,6 +227,39 @@ export default function PatientsTable({
           ) : (
             <span className="text-default-400">—</span>
           );
+        case 'sites':
+          return patient.sites && patient.sites.length > 0 ? (
+            <div className="flex gap-1 flex-wrap">
+              {patient.sites.slice(0, 2).map((site, index: number) => (
+                <Chip key={index} size="sm" variant="flat" color="secondary">
+                  {getSiteName(site.id || site.name || String(site))}
+                </Chip>
+              ))}
+              {patient.sites.length > 2 && (
+                <Tooltip
+                  content={
+                    <div className="px-1 py-2">
+                      <div className="text-small font-bold mb-2">Additional Sites:</div>
+                      <div className="flex gap-1 flex-wrap max-w-xs">
+                        {patient.sites.slice(2).map((site, index: number) => (
+                          <Chip key={index} size="sm" variant="flat" color="secondary">
+                            {getSiteName(site.id || site.name || String(site))}
+                          </Chip>
+                        ))}
+                      </div>
+                    </div>
+                  }
+                  placement="top"
+                >
+                  <Chip size="sm" variant="flat" color="default" className="cursor-help">
+                    +{patient.sites.length - 2}
+                  </Chip>
+                </Tooltip>
+              )}
+            </div>
+          ) : (
+            <span className="text-default-400">—</span>
+          );
         case 'createdTime':
           return (
             <p className="text-sm">
@@ -243,7 +293,7 @@ export default function PatientsTable({
           return null;
       }
     },
-    [locale, navigate, params.clinicId, getTagName]
+    [locale, navigate, params.clinicId, getTagName, getSiteName]
   );
 
   const SortIcon = ({ column }: { column: string }) => {

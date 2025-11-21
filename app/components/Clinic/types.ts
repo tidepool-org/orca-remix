@@ -9,6 +9,10 @@ export type Clinic = {
     id: string;
     name: string;
   }[];
+  sites?: {
+    id: string;
+    name: string;
+  }[];
 };
 
 export type RecentClinic = Pick<Clinic, 'shareCode' | 'id' | 'name'>;

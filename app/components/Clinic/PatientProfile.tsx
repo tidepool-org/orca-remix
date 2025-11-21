@@ -14,6 +14,10 @@ export type PatientProfileProps = {
       id: string;
       name: string;
     }[];
+    sites?: {
+      id: string;
+      name: string;
+    }[];
   };
 };
 
@@ -22,7 +26,7 @@ export default function PatientProfile({ patient, clinic }: PatientProfileProps)
   const { locale } = useLocale();
 
   // Try to get clinic data from parent route if not provided as prop
-  const parentRouteData = useRouteLoaderData('routes/clinics.$clinicId') as { clinic?: { patientTags?: { id: string; name: string; }[]; } } | undefined;
+  const parentRouteData = useRouteLoaderData('routes/clinics.$clinicId') as { clinic?: { patientTags?: { id: string; name: string; }[]; sites?: { id: string; name: string; }[]; } } | undefined;
   const clinicData = clinic || parentRouteData?.clinic;
 
   // Helper function to map tag ID to tag name
@@ -30,6 +34,12 @@ export default function PatientProfile({ patient, clinic }: PatientProfileProps)
     const tag = clinicData?.patientTags?.find(t => t.id === tagId);
     return tag?.name || tagId; // Fallback to ID if name not found
   }, [clinicData?.patientTags]);
+
+  // Helper function to map site ID to site name
+  const getSiteName = useCallback((siteId: string): string => {
+    const site = clinicData?.sites?.find(s => s.id === siteId);
+    return site?.name || siteId; // Fallback to ID if name not found
+  }, [clinicData?.sites]);
 
   const patientDetails = [
     {
@@ -117,6 +127,24 @@ export default function PatientProfile({ patient, clinic }: PatientProfileProps)
                     className="px-2 py-1 bg-primary/10 text-primary rounded-md text-xs"
                   >
                     {getTagName(tagId)}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {patient.sites && patient.sites.length > 0 && (
+            <div className="flex flex-col gap-2">
+              <p className="text-sm font-medium text-content2-foreground">
+                Sites
+              </p>
+              <div className="flex gap-2 flex-wrap">
+                {patient.sites.map((site, index) => (
+                  <span
+                    key={index}
+                    className="px-2 py-1 bg-secondary/10 text-secondary rounded-md text-xs"
+                  >
+                    {getSiteName(site.id || site.name || String(site))}
                   </span>
                 ))}
               </div>
