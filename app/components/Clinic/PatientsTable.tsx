@@ -12,6 +12,7 @@ import {
   Chip,
   Button,
   SortDescriptor,
+  Tooltip,
 } from '@nextui-org/react';
 import { Users, ChevronUp, ChevronDown } from 'lucide-react';
 import { intlFormat } from 'date-fns';
@@ -185,9 +186,25 @@ export default function PatientsTable({
                 </Chip>
               ))}
               {patient.tags.length > 2 && (
-                <Chip size="sm" variant="flat" color="default">
-                  +{patient.tags.length - 2}
-                </Chip>
+                <Tooltip
+                  content={
+                    <div className="px-1 py-2">
+                      <div className="text-small font-bold mb-2">Additional Tags:</div>
+                      <div className="flex gap-1 flex-wrap max-w-xs">
+                        {patient.tags.slice(2).map((tagId: string, index: number) => (
+                          <Chip key={index} size="sm" variant="flat" color="primary">
+                            {getTagName(tagId)}
+                          </Chip>
+                        ))}
+                      </div>
+                    </div>
+                  }
+                  placement="top"
+                >
+                  <Chip size="sm" variant="flat" color="default" className="cursor-help">
+                    +{patient.tags.length - 2}
+                  </Chip>
+                </Tooltip>
               )}
             </div>
           ) : (

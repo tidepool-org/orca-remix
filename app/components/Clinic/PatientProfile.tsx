@@ -20,11 +20,11 @@ export type PatientProfileProps = {
 export default function PatientProfile({ patient, clinic }: PatientProfileProps) {
   const { id, fullName, email, birthDate, mrn, createdTime, updatedTime, tags, permissions } = patient;
   const { locale } = useLocale();
-  
+
   // Try to get clinic data from parent route if not provided as prop
   const parentRouteData = useRouteLoaderData('routes/clinics.$clinicId') as { clinic?: { patientTags?: { id: string; name: string; }[]; } } | undefined;
   const clinicData = clinic || parentRouteData?.clinic;
-  
+
   // Helper function to map tag ID to tag name
   const getTagName = useCallback((tagId: string): string => {
     const tag = clinicData?.patientTags?.find(t => t.id === tagId);
