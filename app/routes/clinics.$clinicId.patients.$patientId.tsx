@@ -28,13 +28,13 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   const { getSession, commitSession } = patientsSession;
   const recentlyViewed = await getSession(request.headers.get('Cookie'));
 
-  // We store recently viewed patients in session storage for persistence across browser sessions
-  const recentPatients: RecentPatient[] = isArray(recentlyViewed.get('patients'))
-    ? recentlyViewed.get('patients')
-    : [];
-
   const clinicId = params.clinicId as string;
   const patientId = params.patientId as string;
+
+  // We store recently viewed patients in session storage for persistence across browser sessions
+  const recentPatients: RecentPatient[] = isArray(recentlyViewed.get(`patients-${clinicId}`))
+    ? recentlyViewed.get(`patients-${clinicId}`)
+    : [];
 
   // Get the specific patient directly
   const patient = await apiRequest(
@@ -45,12 +45,12 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     const recentPatient: RecentPatient = pick(patient, ['id', 'fullName', 'email']);
     recentPatients.unshift(recentPatient);
     recentlyViewed.set(
-      'patients',
+      `patients-${clinicId}`,
       uniqBy(recentPatients, 'id').slice(0, recentPatientsMax),
     );
 
     return json(
-      { patient, recentPatients: recentlyViewed.get('patients') },
+      { patient, recentPatients: recentlyViewed.get(`patients-${clinicId}`) },
       {
         headers: {
           'Cache-Control': 'public, s-maxage=60',

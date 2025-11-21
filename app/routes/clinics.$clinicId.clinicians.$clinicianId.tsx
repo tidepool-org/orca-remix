@@ -28,7 +28,7 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
     // Update recent clinicians session
     const { getSession, commitSession } = cliniciansSession;
     const cliniciansSessionData = await getSession(request.headers.get('Cookie'));
-    const recentCliniciansData = cliniciansSessionData.get('recentClinicians');
+    const recentCliniciansData = cliniciansSessionData.get(`recentClinicians-${clinicId}`);
     let recentClinicians: RecentClinician[] = [];
 
     if (recentCliniciansData && typeof recentCliniciansData === 'string') {
@@ -56,7 +56,7 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
     recentClinicians = recentClinicians.slice(0, 10);
 
     // Update session
-    cliniciansSessionData.set('recentClinicians', JSON.stringify(recentClinicians));
+    cliniciansSessionData.set(`recentClinicians-${clinicId}`, JSON.stringify(recentClinicians));
 
     return json(
       { clinician, recentClinicians },

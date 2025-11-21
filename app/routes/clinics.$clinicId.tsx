@@ -47,26 +47,26 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   const cliniciansLimit = Math.max(1, Math.min(100, parseInt(url.searchParams.get('cliniciansLimit') || defaultPageSize.toString())));
   const cliniciansSearch = url.searchParams.get('cliniciansSearch') || undefined;
 
+  const clinicId = params.clinicId as string;
+
   // We store recently viewed clinics, patients, and clinicians in session storage
   const recentClinics: RecentClinic[] = isArray(recentlyViewed.get('clinics'))
     ? recentlyViewed.get('clinics')
     : [];
 
-  const recentPatients: RecentPatient[] = isArray(recentPatientsData.get('patients'))
-    ? recentPatientsData.get('patients')
+  const recentPatients: RecentPatient[] = isArray(recentPatientsData.get(`patients-${clinicId}`))
+    ? recentPatientsData.get(`patients-${clinicId}`)
     : [];
 
   let recentClinicians: RecentClinician[] = [];
   try {
-    const recentCliniciansString = recentCliniciansData.get('recentClinicians');
+    const recentCliniciansString = recentCliniciansData.get(`recentClinicians-${clinicId}`);
     if (recentCliniciansString && typeof recentCliniciansString === 'string') {
       recentClinicians = JSON.parse(recentCliniciansString);
     }
   } catch {
     recentClinicians = [];
   }
-
-  const clinicId = params.clinicId as string;
 
   try {
     // Fetch clinic data, patients, patient invites, and clinicians in parallel
