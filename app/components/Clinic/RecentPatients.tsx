@@ -67,7 +67,7 @@ export default function RecentPatients({ rows }: RecentPatientsProps) {
       <TableHeader columns={columns}>
         {(column) => <TableColumn key={column.key}>{column.label}</TableColumn>}
       </TableHeader>
-      <TableBody emptyContent={EmptyContent} items={rows}>
+      <TableBody emptyContent={EmptyContent} items={patients}>
         {(item) => (
           <TableRow key={item.id}>
             {(columnKey) => <TableCell>{getKeyValue(item, columnKey)}</TableCell>}
