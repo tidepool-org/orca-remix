@@ -34,3 +34,40 @@ export const clinicsSession = createCookieSessionStorage({
     sameSite: 'lax',
   },
 });
+
+// Store recent patients and clinicians with explicit session management
+const patientsSessionStorage = createCookieSessionStorage({
+  cookie: {
+    name: '__patients_session',
+    httpOnly: true,
+    maxAge: 60 * 60 * 24 * 30, // 30 days
+    path: '/',
+    sameSite: 'lax',
+    secrets: [process.env.SESSION_SECRET || 'default-secret'],
+    secure: process.env.NODE_ENV === 'production',
+  },
+});
+
+const cliniciansSessionStorage = createCookieSessionStorage({
+  cookie: {
+    name: '__clinicians_session',
+    httpOnly: true,
+    maxAge: 60 * 60 * 24 * 30, // 30 days
+    path: '/',
+    sameSite: 'lax',
+    secrets: [process.env.SESSION_SECRET || 'default-secret'],
+    secure: process.env.NODE_ENV === 'production',
+  },
+});
+
+export const patientsSession = {
+  getSession: patientsSessionStorage.getSession,
+  commitSession: patientsSessionStorage.commitSession,
+  destroySession: patientsSessionStorage.destroySession,
+};
+
+export const cliniciansSession = {
+  getSession: cliniciansSessionStorage.getSession,
+  commitSession: cliniciansSessionStorage.commitSession,
+  destroySession: cliniciansSessionStorage.destroySession,
+};

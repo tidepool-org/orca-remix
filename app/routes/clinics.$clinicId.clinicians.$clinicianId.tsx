@@ -3,7 +3,7 @@ import { json } from '@remix-run/node';
 import { useLoaderData } from '@remix-run/react';
 import { useRecentItems } from '~/components/Clinic/RecentItemsContext';
 import { apiRequest, apiRoutes } from '~/api.server';
-import { cliniciansSession } from '~/clinicians-sessions.server';
+import { cliniciansSession } from '~/sessions.server';
 import ClinicianProfile from '~/components/Clinic/ClinicianProfile';
 import type { RecentClinician } from '~/components/Clinic/types';
 import { useEffect } from 'react';
@@ -23,7 +23,9 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
 
     if (!clinician) {
       throw new Response('Clinician not found', { status: 404 });
-    }    // Update recent clinicians session
+    }
+
+    // Update recent clinicians session
     const { getSession, commitSession } = cliniciansSession;
     const cliniciansSessionData = await getSession(request.headers.get('Cookie'));
     const recentCliniciansData = cliniciansSessionData.get('recentClinicians');
@@ -57,7 +59,7 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
     cliniciansSessionData.set('recentClinicians', JSON.stringify(recentClinicians));
 
     return json(
-      { clinician },
+      { clinician, recentClinicians },
       {
         headers: {
           'Set-Cookie': await commitSession(cliniciansSessionData),

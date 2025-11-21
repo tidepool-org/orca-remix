@@ -12,8 +12,8 @@ export default function RecentClinicians({ recentClinicians: propClinicians }: R
   const params = useParams();
   const { recentClinicians } = useRecentItems();
 
-  // Use context data if available, fallback to props
-  const clinicians = recentClinicians.length > 0 ? recentClinicians : (propClinicians || []);
+  // Always use context data for real-time updates
+  const clinicians = recentClinicians;
 
   if (clinicians.length === 0) {
     return (

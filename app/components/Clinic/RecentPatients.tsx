@@ -23,8 +23,8 @@ export default function RecentPatients({ rows }: RecentPatientsProps) {
   const params = useParams();
   const { recentPatients } = useRecentItems();
 
-  // Use context data if available, fallback to props
-  const patients = recentPatients.length > 0 ? recentPatients : (rows || []);
+  // Always use context data for real-time updates
+  const patients = recentPatients;
 
   const columns = [
     {
