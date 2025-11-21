@@ -31,6 +31,13 @@ export const apiRoutes = {
       method: 'get',
       path: `/v1/clinics/${clinicId}/invites/patients`,
     }),
+    getClinicians: (clinicId: string, options?: { limit?: number; offset?: number }) => ({
+      method: 'get',
+      path: `/v1/clinics/${clinicId}/clinicians${options ? `?${new URLSearchParams({
+        ...(options.limit && { limit: options.limit.toString() }),
+        ...(options.offset && { offset: options.offset.toString() }),
+      })}` : ''}`,
+    }),
   },
 };
 

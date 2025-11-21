@@ -20,6 +20,7 @@ type Breadcrumb = {
 };
 
 interface IMatch {
+  pathname: string;
   handle: {
     breadcrumb: Breadcrumb;
   };
@@ -31,7 +32,7 @@ function Dashboard() {
 
   const breadcrumbs: Breadcrumb[] = map(
     filter(matches, (match) => match.handle?.breadcrumb) as IMatch[],
-    (match) => match.handle?.breadcrumb,
+    (match) => ({ ...match.handle?.breadcrumb, href: match.pathname }),
   );
 
   return (
