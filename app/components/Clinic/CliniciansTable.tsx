@@ -11,14 +11,15 @@ import {
   Spinner,
   Chip,
   Button,
+  SortDescriptor,
 } from '@nextui-org/react';
 import { UserCheck, ChevronUp, ChevronDown } from 'lucide-react';
 import { intlFormat } from 'date-fns';
 import useLocale from '~/hooks/useLocale';
-import type { Clinician } from './types';
+import type { ListClinician } from './types';
 
 export type CliniciansTableProps = {
-  clinicians: Clinician[];
+  clinicians: ListClinician[];
   totalClinicians: number;
   isLoading?: boolean;
   totalPages?: number;
@@ -29,14 +30,9 @@ export type CliniciansTableProps = {
 };
 
 type Column = {
-  key: keyof Clinician | 'actions';
+  key: keyof ListClinician | 'actions';
   label: string;
   sortable?: boolean;
-};
-
-type SortDescriptor = {
-  column: string;
-  direction: 'ascending' | 'descending';
 };
 
 export default function CliniciansTable({
@@ -53,7 +49,7 @@ export default function CliniciansTable({
   const navigate = useNavigate();
   const params = useParams();
   const [sortDescriptor, setSortDescriptor] = React.useState<SortDescriptor>({
-    column: 'fullName',
+    column: 'name',
     direction: 'ascending',
   });
   const [isExpanded, setIsExpanded] = React.useState(false);
@@ -70,7 +66,7 @@ export default function CliniciansTable({
 
   const columns: Column[] = [
     {
-      key: 'fullName',
+      key: 'name',
       label: 'Clinician Name',
       sortable: true,
     },
@@ -80,7 +76,7 @@ export default function CliniciansTable({
       sortable: true,
     },
     {
-      key: 'role',
+      key: 'roles',
       label: 'Role',
       sortable: true,
     },
@@ -98,19 +94,19 @@ export default function CliniciansTable({
 
   const handleSortChange = (descriptor: SortDescriptor) => {
     setSortDescriptor(descriptor);
-    if (onSort) {
+    if (onSort && descriptor.column) {
       const direction = descriptor.direction === 'ascending' ? 'asc' : 'desc';
-      onSort(descriptor.column, direction);
+      onSort(descriptor.column.toString(), direction);
     }
   };
 
   const renderCell = React.useCallback(
-    (clinician: Clinician, columnKey: keyof Clinician | 'actions') => {
-      const cellValue = clinician[columnKey as keyof Clinician];
+    (clinician: ListClinician, columnKey: keyof ListClinician | 'actions') => {
+      const cellValue = clinician[columnKey as keyof ListClinician];
 
       console.log('clinician', clinician);
       switch (columnKey) {
-        case 'fullName':
+        case 'name':
           return (
             <div className="flex flex-col">
               <p className="text-bold text-sm capitalize">{cellValue}</p>
@@ -123,17 +119,21 @@ export default function CliniciansTable({
           return (
             <p className="text-sm text-default-600">{cellValue}</p>
           );
-        case 'role':
+        case 'roles': {
+          // Handle roles array - display the first role or join them
+          const rolesArray = cellValue as string[];
+          const primaryRole = rolesArray && rolesArray.length > 0 ? rolesArray[0] : 'Unknown';
           return (
             <Chip
               className="capitalize"
-              color={cellValue === 'admin' ? 'primary' : 'default'}
+              color={primaryRole.toLowerCase().includes('admin') ? 'primary' : 'default'}
               size="sm"
               variant="flat"
             >
-              {cellValue}
+              {primaryRole.replace('CLINIC_', '').toLowerCase()}
             </Chip>
           );
+        }
         case 'createdTime':
           return (
             <p className="text-sm">
@@ -170,7 +170,7 @@ export default function CliniciansTable({
     [locale, navigate, params.clinicId]
   );
 
-  const SortIcon = ({ column }: { column: string }) => {
+  const SortIcon = ({ column }: { column: keyof ListClinician | 'actions' }) => {
     if (sortDescriptor.column !== column) {
       return null;
     }
@@ -253,7 +253,7 @@ export default function CliniciansTable({
               {clinicians.map((clinician) => (
                 <TableRow key={clinician.id}>
                   {(columnKey) => (
-                    <TableCell>{renderCell(clinician, columnKey as keyof Clinician | 'actions')}</TableCell>
+                    <TableCell>{renderCell(clinician, columnKey as keyof ListClinician | 'actions')}</TableCell>
                   )}
                 </TableRow>
               ))}

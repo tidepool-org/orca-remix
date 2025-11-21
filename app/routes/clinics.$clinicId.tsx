@@ -5,7 +5,7 @@ import {
 } from '@remix-run/node';
 
 import ClinicProfile from '~/components/Clinic/ClinicProfile';
-import type { Clinic, RecentClinic, Patient, RecentPatient, RecentClinician } from '~/components/Clinic/types';
+import type { Clinic, RecentClinic, Patient, RecentPatient, RecentClinician, ListClinician } from '~/components/Clinic/types';
 import { RecentItemsProvider } from '~/components/Clinic/RecentItemsContext';
 import { apiRequests, apiRoutes } from '~/api.server';
 import { clinicsSession, patientsSession, cliniciansSession } from '~/sessions.server';
@@ -84,6 +84,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     const cliniciansResponse = results?.[3];
 
     console.log('cliniciansResponse', cliniciansResponse);
+    console.log('patientsResponse', patientsResponse);
 
     console.log('patientInvitesResponse', patientInvitesResponse?.[0]?.creator?.profile);
     // Mock patient data structure for now since the actual API structure may vary

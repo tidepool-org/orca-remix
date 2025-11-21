@@ -11,6 +11,7 @@ import {
   Spinner,
   Chip,
   Button,
+  SortDescriptor,
 } from '@nextui-org/react';
 import { Users, ChevronUp, ChevronDown } from 'lucide-react';
 import { intlFormat } from 'date-fns';
@@ -32,11 +33,6 @@ type Column = {
   key: keyof Patient | 'actions';
   label: string;
   sortable?: boolean;
-};
-
-type SortDescriptor = {
-  column: string;
-  direction: 'ascending' | 'descending';
 };
 
 export default function PatientsTable({
@@ -108,21 +104,19 @@ export default function PatientsTable({
 
   const handleSortChange = (descriptor: SortDescriptor) => {
     setSortDescriptor(descriptor);
-    if (onSort) {
+    if (onSort && descriptor.column) {
       const direction = descriptor.direction === 'ascending' ? 'asc' : 'desc';
-      onSort(descriptor.column, direction);
+      onSort(descriptor.column as string, direction);
     }
   };
 
   const renderCell = React.useCallback(
     (patient: Patient, columnKey: keyof Patient | 'actions') => {
-      const cellValue = patient[columnKey as keyof Patient];
-
       switch (columnKey) {
         case 'fullName':
           return (
             <div className="flex flex-col">
-              <p className="text-bold text-sm capitalize">{cellValue}</p>
+              <p className="text-bold text-sm capitalize">{patient.fullName}</p>
               <p className="text-tiny text-default-400 capitalize">
                 ID: {patient.id}
               </p>
@@ -130,13 +124,13 @@ export default function PatientsTable({
           );
         case 'email':
           return (
-            <p className="text-sm text-default-600">{cellValue}</p>
+            <p className="text-sm text-default-600">{patient.email}</p>
           );
         case 'birthDate':
-          return cellValue ? (
+          return patient.birthDate ? (
             <p className="text-sm">
               {intlFormat(
-                new Date(cellValue),
+                new Date(patient.birthDate),
                 {
                   year: 'numeric',
                   month: 'short',
@@ -149,15 +143,15 @@ export default function PatientsTable({
             <span className="text-default-400">—</span>
           );
         case 'mrn':
-          return cellValue ? (
-            <p className="text-sm font-mono">{cellValue}</p>
+          return patient.mrn ? (
+            <p className="text-sm font-mono">{patient.mrn}</p>
           ) : (
             <span className="text-default-400">—</span>
           );
         case 'tags':
           return patient.tags && patient.tags.length > 0 ? (
             <div className="flex gap-1 flex-wrap">
-              {patient.tags.slice(0, 2).map((tag, index) => (
+              {patient.tags.slice(0, 2).map((tag: string, index: number) => (
                 <Chip key={index} size="sm" variant="flat" color="primary">
                   {tag}
                 </Chip>
@@ -175,7 +169,7 @@ export default function PatientsTable({
           return (
             <p className="text-sm">
               {intlFormat(
-                new Date(cellValue),
+                new Date(patient.createdTime),
                 {
                   year: 'numeric',
                   month: 'short',
@@ -201,7 +195,7 @@ export default function PatientsTable({
             </div>
           );
         default:
-          return cellValue;
+          return null;
       }
     },
     [locale, navigate, params.clinicId]

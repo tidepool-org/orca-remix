@@ -11,19 +11,50 @@ export type RecentClinic = Pick<Clinic, 'shareCode' | 'id' | 'name'>;
 
 export type Patient = {
   id: string;
-  userId: string;
+  email?: string;
   fullName: string;
-  email: string;
-  birthDate?: string;
+  birthDate: string;
   mrn?: string;
+  tags?: string[] | null;
+  targetDevices?: string[];
+  permissions?: {
+    custodian?: Record<string, unknown>;
+    view?: Record<string, unknown>;
+    note?: Record<string, unknown>;
+    upload?: Record<string, unknown>;
+  };
   createdTime: string;
   updatedTime: string;
-  tags?: string[];
-  permissions?: {
-    view?: boolean;
-    upload?: boolean;
-    note?: boolean;
+  attestationSubmitted?: boolean;
+  dataSources?: {
+    state?: string;
+    providerName?: string;
+    modifiedTime?: string;
+    expirationTime?: string;
+  }[] | null;
+  lastUploadReminderTime?: string;
+  reviews?: {
+    clinicianId?: string;
+    time?: string;
+  }[] | null;
+  connectionRequests: {
+    twiist: {
+      createdTime: string;
+      providerName: 'dexcom' | 'twiist' | 'abbott';
+    }[];
+    dexcom: {
+      createdTime: string;
+      providerName: 'dexcom' | 'twiist' | 'abbott';
+    }[];
+    abbott: {
+      createdTime: string;
+      providerName: 'dexcom' | 'twiist' | 'abbott';
+    }[];
   };
+  sites?: {
+    id?: string;
+    name?: string;
+  }[];
 };
 
 export type PatientInvite = {
@@ -76,3 +107,13 @@ export type RecentClinician = Pick<Clinician, 'id' | 'fullName' | 'email' | 'rol
 };
 
 export type RecentPatient = Pick<Patient, 'id' | 'fullName' | 'email'>;
+
+// Type for clinicians as returned by the API when fetching all clinicians for a clinic
+export type ListClinician = {
+  id: string;
+  email: string;
+  name: string;
+  roles: string[];
+  createdTime: string;
+  updatedTime: string;
+};
