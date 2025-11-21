@@ -20,13 +20,23 @@ export const apiRoutes = {
       method: 'get',
       path: `/v1/clinics/share_code/${search}`,
     }),
-    getPatients: (clinicId: string, options?: { limit?: number; offset?: number }) => ({
-      method: 'get',
-      path: `/v1/clinics/${clinicId}/patients${options ? `?${new URLSearchParams({
-        ...(options.limit && { limit: options.limit.toString() }),
-        ...(options.offset && { offset: options.offset.toString() }),
-      })}` : ''}`,
-    }),
+    getPatients: (clinicId: string, options?: {
+      limit?: number;
+      offset?: number;
+      search?: string;
+      sort?: string;
+    }) => {
+      const params = new URLSearchParams();
+      if (options?.limit) params.set('limit', options.limit.toString());
+      if (options?.offset) params.set('offset', options.offset.toString());
+      if (options?.search) params.set('search', options.search);
+      if (options?.sort) params.set('sort', options.sort);
+
+      return {
+        method: 'get',
+        path: `/v1/clinics/${clinicId}/patients${params.toString() ? `?${params.toString()}` : ''}`,
+      };
+    },
     getPatient: (clinicId: string, patientId: string) => ({
       method: 'get',
       path: `/v1/clinics/${clinicId}/patients/${patientId}`,

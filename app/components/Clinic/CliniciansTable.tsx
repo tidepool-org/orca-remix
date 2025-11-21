@@ -104,7 +104,6 @@ export default function CliniciansTable({
     (clinician: Clinician, columnKey: keyof Clinician | 'actions') => {
       const cellValue = clinician[columnKey as keyof Clinician];
 
-      console.log('clinician', clinician);
       switch (columnKey) {
         case 'name':
           return (

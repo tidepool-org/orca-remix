@@ -30,7 +30,10 @@ export type ClinicProfileProps = {
   recentPatients?: RecentPatient[];
   recentClinicians?: RecentClinician[];
   onPageChange?: (page: number) => void;
-  onSort?: (column: string, direction: 'asc' | 'desc') => void;
+  onSort?: (sort: string) => void;
+  onSearch?: (search: string) => void;
+  currentSort?: string;
+  currentSearch?: string;
   onCliniciansPageChange?: (page: number) => void;
   onCliniciansSort?: (column: string, direction: 'asc' | 'desc') => void;
 };
@@ -56,6 +59,9 @@ export default function ClinicProfile({
   recentClinicians = [],
   onPageChange,
   onSort,
+  onSearch,
+  currentSort,
+  currentSearch,
   onCliniciansPageChange,
   onCliniciansSort,
 }: ClinicProfileProps) {
@@ -118,6 +124,9 @@ export default function ClinicProfile({
           pageSize={pageSize}
           onPageChange={onPageChange}
           onSort={onSort}
+          onSearch={onSearch}
+          currentSort={currentSort}
+          currentSearch={currentSearch}
         />
       </Well>
 

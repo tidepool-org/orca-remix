@@ -38,8 +38,8 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   const page = Math.max(1, parseInt(url.searchParams.get('page') || '1'));
   const limit = Math.max(1, Math.min(100, parseInt(url.searchParams.get('limit') || defaultPageSize.toString())));
   const offset = (page - 1) * limit;
-  const sortBy = url.searchParams.get('sortBy') || 'fullName';
-  const sortOrder = url.searchParams.get('sortOrder') || 'asc';
+  const search = url.searchParams.get('search') || undefined;
+  const sort = url.searchParams.get('sort') || undefined;
 
   // Parse pagination and sorting parameters for clinicians
   const cliniciansPage = Math.max(1, parseInt(url.searchParams.get('cliniciansPage') || '1'));
@@ -73,7 +73,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     // Fetch clinic data, patients, patient invites, and clinicians in parallel
     const results = await apiRequests([
       apiRoutes.clinic.get(clinicId),
-      apiRoutes.clinic.getPatients(clinicId, { limit, offset }),
+      apiRoutes.clinic.getPatients(clinicId, { limit, offset, search, sort }),
       apiRoutes.clinic.getPatientInvites(clinicId),
       apiRoutes.clinic.getClinicians(clinicId, { limit: cliniciansLimit, offset: cliniciansOffset }),
     ]);
@@ -83,10 +83,6 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     const patientInvitesResponse = results?.[2];
     const cliniciansResponse = results?.[3];
 
-    console.log('cliniciansResponse', cliniciansResponse);
-    console.log('patientsResponse', patientsResponse);
-
-    console.log('patientInvitesResponse', patientInvitesResponse?.[0]?.creator?.profile);
     // Mock patient data structure for now since the actual API structure may vary
     // In a real implementation, you'd parse the actual API response
     const patients: Patient[] = patientsResponse?.data || [];
@@ -133,8 +129,8 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
             totalInvites,
           },
           sorting: {
-            sortBy,
-            sortOrder,
+            sort,
+            search,
           },
           cliniciansSorting: {
             sortBy: cliniciansSortBy,
@@ -196,7 +192,9 @@ export default function Clinics() {
     recentClinicians,
     pagination,
     cliniciansPagination,
-    invitesPagination
+    invitesPagination,
+    sorting,
+    cliniciansSorting
   } = useLoaderData<typeof loader>();
   const [searchParams] = useSearchParams();
   const submit = useSubmit();
@@ -217,11 +215,21 @@ export default function Clinics() {
     submit(newSearchParams, { method: 'GET', replace: true });
   }, [searchParams, submit]);
 
-  const handleSort = useCallback((column: string, direction: 'asc' | 'desc') => {
+  const handleSort = useCallback((sort: string) => {
     const newSearchParams = new URLSearchParams(searchParams);
-    newSearchParams.set('sortBy', column);
-    newSearchParams.set('sortOrder', direction);
+    newSearchParams.set('sort', sort);
     newSearchParams.set('page', '1'); // Reset to first page when sorting
+    submit(newSearchParams, { method: 'GET', replace: true });
+  }, [searchParams, submit]);
+
+  const handleSearch = useCallback((search: string) => {
+    const newSearchParams = new URLSearchParams(searchParams);
+    if (search) {
+      newSearchParams.set('search', search);
+    } else {
+      newSearchParams.delete('search');
+    }
+    newSearchParams.set('page', '1'); // Reset to first page when searching
     submit(newSearchParams, { method: 'GET', replace: true });
   }, [searchParams, submit]);
 
@@ -267,6 +275,9 @@ export default function Clinics() {
             recentClinicians={recentClinicians}
             onPageChange={handlePageChange}
             onSort={handleSort}
+            onSearch={handleSearch}
+            currentSort={sorting.sort}
+            currentSearch={sorting.search}
             onCliniciansPageChange={handleCliniciansPageChange}
             onCliniciansSort={handleCliniciansSort}
           />

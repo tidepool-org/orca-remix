@@ -69,7 +69,7 @@ export default function ClinicianProfile({ clinician, isLoading }: ClinicianProf
       <div className="flex items-center gap-3">
         <UserCheck className="w-8 h-8 text-primary" />
         <div>
-          <h1 className="text-2xl font-bold text-foreground">{clinician.fullName}</h1>
+          <h1 className="text-2xl font-bold text-foreground">{clinician.name}</h1>
           <p className="text-default-600">Clinician Profile</p>
         </div>
       </div>
@@ -115,36 +115,9 @@ export default function ClinicianProfile({ clinician, isLoading }: ClinicianProf
                 <label className="text-sm font-medium text-default-600">Clinician ID</label>
                 <p className="text-foreground font-mono text-sm">{clinician.id}</p>
               </div>
-
-              <div>
-                <label className="text-sm font-medium text-default-600">User ID</label>
-                <p className="text-foreground font-mono text-sm">{clinician.userId}</p>
-              </div>
             </div>
           </div>
 
-          {/* Permissions */}
-          {clinician.permissions && Object.keys(clinician.permissions).length > 0 && (
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-foreground">Permissions</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                {Object.entries(clinician.permissions).map(([permission, granted]) => (
-                  <div key={permission} className="flex items-center justify-between p-3 bg-content1 rounded-lg">
-                    <span className="text-sm capitalize">
-                      {permission.replace(/([A-Z])/g, ' $1').trim()}
-                    </span>
-                    <Chip
-                      size="sm"
-                      color={granted ? 'success' : 'danger'}
-                      variant="flat"
-                    >
-                      {granted ? 'Granted' : 'Denied'}
-                    </Chip>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
 
           {/* Timestamps */}
           <div className="space-y-4">

@@ -17,6 +17,7 @@ import { Users, ChevronUp, ChevronDown } from 'lucide-react';
 import { intlFormat } from 'date-fns';
 import useLocale from '~/hooks/useLocale';
 import type { Patient } from './types';
+import DebouncedSearchInput from '../DebouncedSearchInput';
 
 export type PatientsTableProps = {
   patients: Patient[];
@@ -26,7 +27,10 @@ export type PatientsTableProps = {
   currentPage?: number;
   pageSize?: number;
   onPageChange?: (page: number) => void;
-  onSort?: (column: string, direction: 'asc' | 'desc') => void;
+  onSort?: (sort: string) => void;
+  onSearch?: (search: string) => void;
+  currentSort?: string;
+  currentSearch?: string;
 };
 
 type Column = {
@@ -44,14 +48,24 @@ export default function PatientsTable({
   pageSize,
   onPageChange,
   onSort,
+  onSearch,
+  currentSort,
+  currentSearch,
 }: PatientsTableProps) {
   const { locale } = useLocale();
   const navigate = useNavigate();
   const params = useParams();
-  const [sortDescriptor, setSortDescriptor] = React.useState<SortDescriptor>({
-    column: 'fullName',
-    direction: 'ascending',
-  });
+  // Parse current sort to set initial sort descriptor
+  const parseSortString = (sortStr?: string) => {
+    if (!sortStr) return { column: 'fullName', direction: 'ascending' as const };
+    const direction = sortStr.startsWith('-') ? 'descending' as const : 'ascending' as const;
+    const column = sortStr.replace(/^[+-]/, '');
+    return { column, direction };
+  };
+
+  const [sortDescriptor, setSortDescriptor] = React.useState<SortDescriptor>(
+    parseSortString(currentSort)
+  );
   const [isExpanded, setIsExpanded] = React.useState(false);
 
   // Calculate pagination details
@@ -105,8 +119,9 @@ export default function PatientsTable({
   const handleSortChange = (descriptor: SortDescriptor) => {
     setSortDescriptor(descriptor);
     if (onSort && descriptor.column) {
-      const direction = descriptor.direction === 'ascending' ? 'asc' : 'desc';
-      onSort(descriptor.column as string, direction);
+      const direction = descriptor.direction === 'ascending' ? '+' : '-';
+      const sortString = `${direction}${descriptor.column}`;
+      onSort(sortString);
     }
   };
 
@@ -250,6 +265,16 @@ export default function PatientsTable({
 
       {isExpanded && (
         <div id="patients-table-content" className="mt-4 transition-all duration-300">
+          {/* Search Controls */}
+          <div className="flex justify-start mb-4 p-4 bg-content1 rounded-lg">
+            <DebouncedSearchInput
+              placeholder="Search patients..."
+              value={currentSearch || ''}
+              onSearch={(value) => onSearch?.(value)}
+              debounceMs={1000}
+            />
+          </div>
+
           <Table
             aria-label="Clinic patients table"
             className="flex flex-1 flex-col text-content1-foreground gap-4"
