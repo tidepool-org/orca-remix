@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { useNavigate, useParams } from '@remix-run/react';
 import {
   Table,
@@ -31,6 +31,12 @@ export type PatientsTableProps = {
   onSearch?: (search: string) => void;
   currentSort?: string;
   currentSearch?: string;
+  clinic?: {
+    patientTags?: {
+      id: string;
+      name: string;
+    }[];
+  };
 };
 
 type Column = {
@@ -51,10 +57,17 @@ export default function PatientsTable({
   onSearch,
   currentSort,
   currentSearch,
+  clinic,
 }: PatientsTableProps) {
   const { locale } = useLocale();
   const navigate = useNavigate();
   const params = useParams();
+
+  // Helper function to map tag ID to tag name
+  const getTagName = useCallback((tagId: string): string => {
+    const tag = clinic?.patientTags?.find(t => t.id === tagId);
+    return tag?.name || tagId; // Fallback to ID if name not found
+  }, [clinic?.patientTags]);
   // Parse current sort to set initial sort descriptor
   const parseSortString = (sortStr?: string) => {
     if (!sortStr) return { column: 'fullName', direction: 'ascending' as const };
@@ -166,9 +179,9 @@ export default function PatientsTable({
         case 'tags':
           return patient.tags && patient.tags.length > 0 ? (
             <div className="flex gap-1 flex-wrap">
-              {patient.tags.slice(0, 2).map((tag: string, index: number) => (
+              {patient.tags.slice(0, 2).map((tagId: string, index: number) => (
                 <Chip key={index} size="sm" variant="flat" color="primary">
-                  {tag}
+                  {getTagName(tagId)}
                 </Chip>
               ))}
               {patient.tags.length > 2 && (
@@ -213,7 +226,7 @@ export default function PatientsTable({
           return null;
       }
     },
-    [locale, navigate, params.clinicId]
+    [locale, navigate, params.clinicId, getTagName]
   );
 
   const SortIcon = ({ column }: { column: string }) => {

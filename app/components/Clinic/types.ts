@@ -5,6 +5,10 @@ export type Clinic = {
   createdTime: string;
   canMigrate: boolean;
   tier: string;
+  patientTags?: {
+    id: string;
+    name: string;
+  }[];
 };
 
 export type RecentClinic = Pick<Clinic, 'shareCode' | 'id' | 'name'>;

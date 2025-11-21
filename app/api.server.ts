@@ -30,8 +30,11 @@ export const apiRoutes = {
       if (options?.limit) params.set('limit', options.limit.toString());
       if (options?.offset) params.set('offset', options.offset.toString());
       if (options?.search) params.set('search', options.search);
-      if (options?.sort) params.set('sort', options.sort);
-      if (options?.sort) params.set('sortType', 'cgm');
+
+      if (options?.sort) {
+        params.set('sort', options.sort);
+        params.set('sortType', 'cgm');
+      }
 
       return {
         method: 'get',

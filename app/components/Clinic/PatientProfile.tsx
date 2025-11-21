@@ -1,3 +1,5 @@
+import { useRouteLoaderData } from '@remix-run/react';
+import { useCallback } from 'react';
 import Well from '~/partials/Well';
 import { intlFormat } from 'date-fns';
 
@@ -7,11 +9,27 @@ import ClipboardButton from '../ClipboardButton';
 
 export type PatientProfileProps = {
   patient: Patient;
+  clinic?: {
+    patientTags?: {
+      id: string;
+      name: string;
+    }[];
+  };
 };
 
-export default function PatientProfile({ patient }: PatientProfileProps) {
+export default function PatientProfile({ patient, clinic }: PatientProfileProps) {
   const { id, fullName, email, birthDate, mrn, createdTime, updatedTime, tags, permissions } = patient;
   const { locale } = useLocale();
+  
+  // Try to get clinic data from parent route if not provided as prop
+  const parentRouteData = useRouteLoaderData('routes/clinics.$clinicId') as { clinic?: { patientTags?: { id: string; name: string; }[]; } } | undefined;
+  const clinicData = clinic || parentRouteData?.clinic;
+  
+  // Helper function to map tag ID to tag name
+  const getTagName = useCallback((tagId: string): string => {
+    const tag = clinicData?.patientTags?.find(t => t.id === tagId);
+    return tag?.name || tagId; // Fallback to ID if name not found
+  }, [clinicData?.patientTags]);
 
   const patientDetails = [
     {
@@ -93,12 +111,12 @@ export default function PatientProfile({ patient }: PatientProfileProps) {
                 Tags
               </p>
               <div className="flex gap-2 flex-wrap">
-                {tags.map((tag, index) => (
+                {tags.map((tagId, index) => (
                   <span
                     key={index}
                     className="px-2 py-1 bg-primary/10 text-primary rounded-md text-xs"
                   >
-                    {tag}
+                    {getTagName(tagId)}
                   </span>
                 ))}
               </div>

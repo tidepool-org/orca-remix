@@ -129,6 +129,7 @@ export default function ClinicProfile({
           onSearch={onSearch}
           currentSort={currentSort}
           currentSearch={currentSearch}
+          clinic={clinic}
         />
       </Well>
 
