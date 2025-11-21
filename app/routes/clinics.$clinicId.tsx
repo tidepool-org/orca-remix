@@ -42,12 +42,9 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   const search = url.searchParams.get('search') || undefined;
   const sort = url.searchParams.get('sort') || undefined;
 
-  // Parse pagination and sorting parameters for clinicians
+  // Parse pagination parameters for clinicians (frontend pagination only)
   const cliniciansPage = Math.max(1, parseInt(url.searchParams.get('cliniciansPage') || '1'));
   const cliniciansLimit = Math.max(1, Math.min(100, parseInt(url.searchParams.get('cliniciansLimit') || defaultPageSize.toString())));
-  const cliniciansOffset = (cliniciansPage - 1) * cliniciansLimit;
-  const cliniciansSortBy = url.searchParams.get('cliniciansSortBy') || 'fullName';
-  const cliniciansSortOrder = url.searchParams.get('cliniciansSortOrder') || 'asc';
 
   // We store recently viewed clinics, patients, and clinicians in session storage
   const recentClinics: RecentClinic[] = isArray(recentlyViewed.get('clinics'))
@@ -76,7 +73,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
       apiRoutes.clinic.get(clinicId),
       apiRoutes.clinic.getPatients(clinicId, { limit, offset, search, sort }),
       apiRoutes.clinic.getPatientInvites(clinicId),
-      apiRoutes.clinic.getClinicians(clinicId, { limit: cliniciansFetchLimit.toString(), offset: cliniciansOffset }),
+      apiRoutes.clinic.getClinicians(clinicId, { limit: cliniciansFetchLimit }),
     ]);
 
     const clinic: Clinic = results?.[0];
@@ -94,10 +91,15 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     const patientInvites = patientInvitesResponse || [];
     const totalInvites = patientInvites.length;
 
-    // Process clinicians data
-    const clinicians = cliniciansResponse || [];
-    const totalClinicians = cliniciansResponse.length;
-    const cliniciansTotalPages = Math.ceil(totalClinicians / defaultPageSize);
+    // Process clinicians data - we fetch all clinicians and paginate on frontend
+    const allClinicians = cliniciansResponse || [];
+    const totalClinicians = allClinicians.length;
+    const cliniciansTotalPages = Math.ceil(totalClinicians / cliniciansLimit);
+
+    // Slice clinicians for current page (frontend pagination)
+    const startIndex = (cliniciansPage - 1) * cliniciansLimit;
+    const endIndex = startIndex + cliniciansLimit;
+    const clinicians = allClinicians.slice(startIndex, endIndex);
 
     if (clinic?.id) {
       recentClinics.unshift(pick(clinic, ['id', 'shareCode', 'name']));
@@ -132,10 +134,6 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
           sorting: {
             sort,
             search,
-          },
-          cliniciansSorting: {
-            sortBy: cliniciansSortBy,
-            sortOrder: cliniciansSortOrder,
           },
         },
         {
@@ -173,12 +171,8 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
       totalInvites: 0,
     },
     sorting: {
-      sortBy: 'fullName',
-      sortOrder: 'asc',
-    },
-    cliniciansSorting: {
-      sortBy: 'fullName',
-      sortOrder: 'asc',
+      sort: undefined,
+      search: undefined,
     },
   };
 }
@@ -195,7 +189,6 @@ export default function Clinics() {
     cliniciansPagination,
     invitesPagination,
     sorting,
-    cliniciansSorting
   } = useLoaderData<typeof loader>();
   const [searchParams] = useSearchParams();
   const submit = useSubmit();
