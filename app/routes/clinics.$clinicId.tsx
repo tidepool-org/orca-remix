@@ -45,6 +45,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   // Parse pagination parameters for clinicians (frontend pagination only)
   const cliniciansPage = Math.max(1, parseInt(url.searchParams.get('cliniciansPage') || '1'));
   const cliniciansLimit = Math.max(1, Math.min(100, parseInt(url.searchParams.get('cliniciansLimit') || defaultPageSize.toString())));
+  const cliniciansSearch = url.searchParams.get('cliniciansSearch') || undefined;
 
   // We store recently viewed clinics, patients, and clinicians in session storage
   const recentClinics: RecentClinic[] = isArray(recentlyViewed.get('clinics'))
@@ -93,15 +94,22 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 
     // Process clinicians data - we fetch all clinicians and paginate on frontend
     const allClinicians = cliniciansResponse || [];
-    const totalClinicians = allClinicians.length;
+
+    // Filter clinicians by search term (frontend search)
+    const filteredClinicians = cliniciansSearch
+      ? allClinicians.filter(clinician =>
+          clinician.name?.toLowerCase().includes(cliniciansSearch.toLowerCase()) ||
+          clinician.email?.toLowerCase().includes(cliniciansSearch.toLowerCase())
+        )
+      : allClinicians;
+
+    const totalClinicians = filteredClinicians.length;
     const cliniciansTotalPages = Math.ceil(totalClinicians / cliniciansLimit);
 
     // Slice clinicians for current page (frontend pagination)
     const startIndex = (cliniciansPage - 1) * cliniciansLimit;
     const endIndex = startIndex + cliniciansLimit;
-    const clinicians = allClinicians.slice(startIndex, endIndex);
-
-    if (clinic?.id) {
+    const clinicians = filteredClinicians.slice(startIndex, endIndex);    if (clinic?.id) {
       recentClinics.unshift(pick(clinic, ['id', 'shareCode', 'name']));
       recentlyViewed.set(
         'clinics',
@@ -134,6 +142,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
           sorting: {
             sort,
             search,
+            cliniciansSearch,
           },
         },
         {
@@ -173,6 +182,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     sorting: {
       sort: undefined,
       search: undefined,
+      cliniciansSearch: undefined,
     },
   };
 }
@@ -227,6 +237,17 @@ export default function Clinics() {
     submit(newSearchParams, { method: 'GET', replace: true });
   }, [searchParams, submit]);
 
+  const handleCliniciansSearch = useCallback((search: string) => {
+    const newSearchParams = new URLSearchParams(searchParams);
+    if (search) {
+      newSearchParams.set('cliniciansSearch', search);
+    } else {
+      newSearchParams.delete('cliniciansSearch');
+    }
+    newSearchParams.set('cliniciansPage', '1'); // Reset to first page when searching
+    submit(newSearchParams, { method: 'GET', replace: true });
+  }, [searchParams, submit]);
+
   // If we're on a nested route, render the outlet
   if (isNestedRoute) {
     return (
@@ -265,6 +286,8 @@ export default function Clinics() {
             currentSort={sorting.sort}
             currentSearch={sorting.search}
             onCliniciansPageChange={handleCliniciansPageChange}
+            onCliniciansSearch={handleCliniciansSearch}
+            currentCliniciansSearch={sorting.cliniciansSearch}
           />
         )}
       </div>

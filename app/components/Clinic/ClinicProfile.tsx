@@ -35,6 +35,8 @@ export type ClinicProfileProps = {
   currentSort?: string;
   currentSearch?: string;
   onCliniciansPageChange?: (page: number) => void;
+  onCliniciansSearch?: (search: string) => void;
+  currentCliniciansSearch?: string;
 };
 
 export default function ClinicProfile({
@@ -62,6 +64,8 @@ export default function ClinicProfile({
   currentSort,
   currentSearch,
   onCliniciansPageChange,
+  onCliniciansSearch,
+  currentCliniciansSearch,
 }: ClinicProfileProps) {
   const { id, shareCode, name, createdTime, canMigrate, tier } = clinic;
   const { locale } = useLocale();
@@ -145,6 +149,8 @@ export default function ClinicProfile({
           currentPage={cliniciansCurrentPage}
           pageSize={cliniciansPageSize}
           onPageChange={onCliniciansPageChange}
+          onSearch={onCliniciansSearch}
+          currentSearch={currentCliniciansSearch}
         />
       </Well>
 

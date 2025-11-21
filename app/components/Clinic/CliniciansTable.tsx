@@ -16,7 +16,7 @@ import { UserCheck, ChevronDown } from 'lucide-react';
 import { intlFormat } from 'date-fns';
 import useLocale from '~/hooks/useLocale';
 import type { Clinician } from './types';
-
+import DebouncedSearchInput from '../DebouncedSearchInput';
 export type CliniciansTableProps = {
   clinicians: Clinician[];
   totalClinicians: number;
@@ -25,6 +25,8 @@ export type CliniciansTableProps = {
   currentPage?: number;
   pageSize?: number;
   onPageChange?: (page: number) => void;
+  onSearch?: (search: string) => void;
+  currentSearch?: string;
 };
 
 type Column = {
@@ -41,6 +43,8 @@ export default function CliniciansTable({
   currentPage = 1,
   pageSize,
   onPageChange,
+  onSearch,
+  currentSearch,
 }: CliniciansTableProps) {
   const { locale } = useLocale();
   const navigate = useNavigate();
@@ -192,6 +196,16 @@ export default function CliniciansTable({
 
       {isExpanded && (
         <div id="clinicians-table-content" className="mt-4 transition-all duration-300">
+          {/* Search Controls */}
+          <div className="flex justify-start mb-4 p-4 bg-content1 rounded-lg">
+            <DebouncedSearchInput
+              placeholder="Search clinicians..."
+              value={currentSearch || ''}
+              onSearch={(value) => onSearch?.(value)}
+              debounceMs={1000}
+            />
+          </div>
+
           <Table
             aria-label="Clinic clinicians table"
             className="flex flex-1 flex-col text-content1-foreground gap-4"
