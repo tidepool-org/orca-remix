@@ -60,12 +60,22 @@ export const apiRoutes = {
       method: 'get',
       path: `/v1/clinics/${clinicId}/clinicians/${clinicianId}`,
     }),
+    updateTier: (clinicId: string) => ({
+      method: 'post',
+      path: `/v1/clinics/${clinicId}/tier`,
+    }),
   },
 };
 
 type apiRequestArgs = {
   path: string;
   method: string;
+};
+
+type apiPostRequestArgs = {
+  path: string;
+  method: string;
+  body?: Record<string, unknown>;
 };
 
 export const apiRequest = async ({ path, method }: apiRequestArgs) => {
@@ -80,6 +90,30 @@ export const apiRequest = async ({ path, method }: apiRequestArgs) => {
     return await result.json();
   } catch (e) {
     console.error(e);
+  }
+};
+
+export const apiPostRequest = async ({ path, method, body }: apiPostRequestArgs) => {
+  try {
+    const result = await fetch(`${process.env.API_HOST}${path}`, {
+      method,
+      headers: {
+        'x-tidepool-session-token': serverAuth.serverSessionToken,
+        'Content-Type': 'application/json',
+      },
+      ...(body && { body: JSON.stringify(body) }),
+    });
+
+    if (result.ok) {
+      // Try to parse JSON response, but don't fail if it's empty
+      const text = await result.text();
+      return text ? JSON.parse(text) : {};
+    } else {
+      throw new Error(`API request failed with status ${result.status}`);
+    }
+  } catch (e) {
+    console.error(e);
+    throw e;
   }
 };
 

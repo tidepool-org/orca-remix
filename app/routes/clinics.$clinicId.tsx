@@ -1,15 +1,16 @@
 import {
   json,
   type LoaderFunctionArgs,
+  type ActionFunctionArgs,
   type MetaFunction,
 } from '@remix-run/node';
 
 import ClinicProfile from '~/components/Clinic/ClinicProfile';
-import type { Clinic, RecentClinic, Patient, RecentPatient, RecentClinician, Clinician } from '~/components/Clinic/types';
+import type { Clinic, RecentClinic, Patient, RecentPatient, RecentClinician } from '~/components/Clinic/types';
 import { RecentItemsProvider } from '~/components/Clinic/RecentItemsContext';
-import { apiRequests, apiRoutes } from '~/api.server';
+import { apiRequests, apiRoutes, apiPostRequest } from '~/api.server';
 import { clinicsSession, patientsSession, cliniciansSession } from '~/sessions.server';
-import { useLoaderData, useSearchParams, useSubmit, Outlet, useLocation } from '@remix-run/react';
+import { useLoaderData, useSearchParams, useSubmit, useNavigation, Outlet, useLocation } from '@remix-run/react';
 import { useCallback } from 'react';
 import isArray from 'lodash/isArray';
 import pick from 'lodash/pick';
@@ -21,6 +22,32 @@ export const meta: MetaFunction = () => {
     { name: 'description', content: 'Tidepool ORCA Clinic Profile' },
   ];
 };
+
+export async function action({ request, params }: ActionFunctionArgs) {
+  const formData = await request.formData();
+  const actionType = formData.get('actionType');
+  const clinicId = params.clinicId as string;
+
+  if (actionType === 'updateTier') {
+    const tier = formData.get('tier') as string;
+
+    try {
+      const route = apiRoutes.clinic.updateTier(clinicId);
+      await apiPostRequest({
+        path: route.path,
+        method: route.method,
+        body: { tier }
+      });
+
+      return json({ success: true });
+    } catch (error) {
+      console.error('Failed to update clinic tier:', error);
+      return json({ error: 'Failed to update tier' }, { status: 500 });
+    }
+  }
+
+  return json({ error: 'Invalid action' }, { status: 400 });
+}
 
 const recentClinicsMax = 10;
 const defaultPageSize = 10;
@@ -202,6 +229,7 @@ export default function Clinics() {
   } = useLoaderData<typeof loader>();
   const [searchParams] = useSearchParams();
   const submit = useSubmit();
+  const navigation = useNavigation();
   const location = useLocation();
 
   // Check if we're on a nested route (like patient or clinician details)
@@ -248,6 +276,18 @@ export default function Clinics() {
     submit(newSearchParams, { method: 'GET', replace: true });
   }, [searchParams, submit]);
 
+  const handleTierUpdate = useCallback((clinicId: string, newTier: string) => {
+    const formData = new FormData();
+    formData.append('actionType', 'updateTier');
+    formData.append('tier', newTier);
+
+    submit(formData, { method: 'post' });
+  }, [submit]);
+
+  // Check if we're currently submitting a tier update
+  const isSubmitting = navigation.state === 'submitting' &&
+    navigation.formData?.get('actionType') === 'updateTier';
+
   // If we're on a nested route, render the outlet
   if (isNestedRoute) {
     return (
@@ -288,6 +328,8 @@ export default function Clinics() {
             onCliniciansPageChange={handleCliniciansPageChange}
             onCliniciansSearch={handleCliniciansSearch}
             currentCliniciansSearch={sorting.cliniciansSearch}
+            onTierUpdate={handleTierUpdate}
+            isSubmitting={isSubmitting}
           />
         )}
       </div>

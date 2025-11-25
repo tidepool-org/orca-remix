@@ -1,5 +1,8 @@
 import Well from '~/partials/Well';
 import { intlFormat } from 'date-fns';
+import { useState, useEffect } from 'react';
+import { Select, SelectItem, Button } from '@nextui-org/react';
+import { Edit2, X } from 'lucide-react';
 
 import type { Clinic, Patient, PatientInvite, RecentPatient, Clinician, RecentClinician } from './types';
 import useLocale from '~/hooks/useLocale';
@@ -37,6 +40,8 @@ export type ClinicProfileProps = {
   onCliniciansPageChange?: (page: number) => void;
   onCliniciansSearch?: (search: string) => void;
   currentCliniciansSearch?: string;
+  onTierUpdate?: (clinicId: string, newTier: string) => void;
+  isSubmitting?: boolean;
 };
 
 export default function ClinicProfile({
@@ -66,9 +71,34 @@ export default function ClinicProfile({
   onCliniciansPageChange,
   onCliniciansSearch,
   currentCliniciansSearch,
+  onTierUpdate,
+  isSubmitting = false,
 }: ClinicProfileProps) {
   const { id, shareCode, name, createdTime, canMigrate, tier } = clinic;
   const { locale } = useLocale();
+
+  const [isEditingTier, setIsEditingTier] = useState(false);
+  const [selectedTier, setSelectedTier] = useState(tier);
+
+  // Reset editing state when tier changes (after successful update)
+  useEffect(() => {
+    if (!isSubmitting && selectedTier !== tier) {
+      setSelectedTier(tier);
+      setIsEditingTier(false);
+    }
+  }, [tier, selectedTier, isSubmitting]);
+
+  const tierOptions = [
+    { key: 'tier0100', label: 'Tier 0100' },
+    { key: 'tier0200', label: 'Tier 0200' },
+    { key: 'tier0300', label: 'Tier 0300' },
+    { key: 'tier0400', label: 'Tier 0400' },
+  ];
+
+  const handleCancelEdit = () => {
+    setSelectedTier(tier);
+    setIsEditingTier(false);
+  };
 
   const clinicDetails = [
     {
@@ -81,7 +111,64 @@ export default function ClinicProfile({
       value: id,
       copy: true,
     },
-    { label: 'Clinic Tier', value: tier },
+    {
+      label: 'Clinic Tier',
+      value: tier,
+      editable: true,
+      component: (
+        <div className="flex items-center gap-2">
+          {isEditingTier ? (
+            <div className="flex items-center gap-2">
+              <Select
+                size="sm"
+                selectedKeys={[selectedTier]}
+                onSelectionChange={(keys) => {
+                  const key = Array.from(keys)[0] as string;
+                  if (key && key !== tier) {
+                    setSelectedTier(key);
+                    // Auto-submit when selection changes
+                    if (onTierUpdate) {
+                      onTierUpdate(id, key);
+                    }
+                  }
+                }}
+                className="min-w-32"
+                isDisabled={isSubmitting}
+                placeholder="Select tier..."
+              >
+                {tierOptions.map((option) => (
+                  <SelectItem key={option.key} value={option.key}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </Select>
+              <Button
+                isIconOnly
+                size="sm"
+                color="danger"
+                variant="light"
+                onPress={handleCancelEdit}
+                isDisabled={isSubmitting}
+              >
+                <X size={14} />
+              </Button>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2">
+              <span>{tier}</span>
+              <Button
+                isIconOnly
+                size="sm"
+                variant="light"
+                onPress={() => setIsEditingTier(true)}
+              >
+                <Edit2 size={14} />
+              </Button>
+            </div>
+          )}
+        </div>
+      ),
+    },
     { label: 'Can Migrate', value: canMigrate.toString() },
     {
       label: 'Created On',
@@ -103,14 +190,20 @@ export default function ClinicProfile({
         <p className="text-xl">{name}</p>
 
         <div className="text-sm">
-          {clinicDetails.map(({ label, value, copy }, i) => (
+          {clinicDetails.map(({ label, value, copy, component }, i) => (
             <div
               key={i}
               className="flex justify-start flex-nowrap gap-2 items-center min-h-unit-8"
             >
               <strong>{label}:</strong>
-              <p>{value}</p>
-              {copy && <ClipboardButton clipboardText={value} />}
+              {component ? (
+                component
+              ) : (
+                <>
+                  <p>{value}</p>
+                  {copy && <ClipboardButton clipboardText={value} />}
+                </>
+              )}
             </div>
           ))}
         </div>
