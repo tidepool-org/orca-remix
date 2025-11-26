@@ -75,11 +75,7 @@ export default function PatientDetails() {
     }
   }, [patient, addRecentPatient]);
 
-  return (
-    <div className="flex">
-      {patient && <PatientProfile patient={patient} />}
-    </div>
-  );
+  return patient ? <PatientProfile patient={patient} /> : null;
 }
 
 export const handle = {

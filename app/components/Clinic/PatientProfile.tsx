@@ -41,7 +41,12 @@ export default function PatientProfile({ patient, clinic }: PatientProfileProps)
     return site?.name || siteId; // Fallback to ID if name not found
   }, [clinicData?.sites]);
 
-  const patientDetails = [
+  const patientDetails: Array<{
+    label: string;
+    value?: string;
+    copy?: boolean;
+    component?: React.ReactNode;
+  }> = [
     {
       label: 'Email',
       value: email,
@@ -88,93 +93,85 @@ export default function PatientProfile({ patient, clinic }: PatientProfileProps)
     },
   ];
 
+  // Add tags to the details array if they exist
+  if (tags && tags.length > 0) {
+    patientDetails.push({
+      label: 'Tags',
+      component: (
+        <div className="flex gap-2 flex-wrap">
+          {tags.map((tagId, index) => (
+            <span
+              key={index}
+              className="px-2 py-1 bg-primary/10 text-primary rounded-md text-xs"
+            >
+              {getTagName(tagId)}
+            </span>
+          ))}
+        </div>
+      ),
+    });
+  }
+
+  // Add sites to the details array if they exist
+  if (patient.sites && patient.sites.length > 0) {
+    patientDetails.push({
+      label: 'Sites',
+      component: (
+        <div className="flex gap-2 flex-wrap">
+          {patient.sites.map((site, index) => (
+            <span
+              key={index}
+              className="px-2 py-1 bg-secondary/10 text-secondary rounded-md text-xs"
+            >
+              {getSiteName(site.id || site.name || String(site))}
+            </span>
+          ))}
+        </div>
+      ),
+    });
+  }
+
+  // Add permissions to the details array if they exist
+  if (permissions) {
+    patientDetails.push({
+      label: 'Permissions',
+      component: (
+        <div className="flex gap-2 flex-wrap">
+          {permissions.view && (
+            <span className="px-2 py-1 bg-success/10 text-success rounded-md text-xs">
+              View
+            </span>
+          )}
+          {permissions.upload && (
+            <span className="px-2 py-1 bg-warning/10 text-warning rounded-md text-xs">
+              Upload
+            </span>
+          )}
+          {permissions.note && (
+            <span className="px-2 py-1 bg-secondary/10 text-secondary rounded-md text-xs">
+              Note
+            </span>
+          )}
+        </div>
+      ),
+    });
+  }
+
   return (
-    <div className="flex flex-col gap-4 md:gap-6 lg:gap-8">
+    <div className="flex flex-col gap-8 w-full">
       <Well>
-        <div className="flex flex-col gap-4">
-          <div className="border-b border-content2 pb-4">
-            <h1 className="text-2xl font-bold text-content1-foreground">
-              {fullName}
-            </h1>
-            <p className="text-content2-foreground">Patient Profile</p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {patientDetails.map(({ label, value, copy }) => (
-              <div key={label} className="flex flex-col gap-1">
-                <p className="text-sm font-medium text-content2-foreground">
-                  {label}
-                </p>
-                <div className="flex items-center gap-2">
-                  <p className="text-content1-foreground font-mono text-sm">
-                    {value}
-                  </p>
-                  {copy && <ClipboardButton clipboardText={value} />}
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {tags && tags.length > 0 && (
-            <div className="flex flex-col gap-2">
-              <p className="text-sm font-medium text-content2-foreground">
-                Tags
-              </p>
-              <div className="flex gap-2 flex-wrap">
-                {tags.map((tagId, index) => (
-                  <span
-                    key={index}
-                    className="px-2 py-1 bg-primary/10 text-primary rounded-md text-xs"
-                  >
-                    {getTagName(tagId)}
-                  </span>
-                ))}
-              </div>
+        <p className="text-xl">{fullName}</p>
+        <div className="text-sm">
+          {patientDetails.map(({ label, value, copy, component }) => (
+            <div
+              key={label}
+              className="flex justify-start flex-nowrap gap-2 items-center min-h-unit-8"
+            >
+              <strong>{label}:</strong>
+              {component || <p>{value}</p>}
+              {copy && <ClipboardButton clipboardText={value} />}
             </div>
-          )}
-
-          {patient.sites && patient.sites.length > 0 && (
-            <div className="flex flex-col gap-2">
-              <p className="text-sm font-medium text-content2-foreground">
-                Sites
-              </p>
-              <div className="flex gap-2 flex-wrap">
-                {patient.sites.map((site, index) => (
-                  <span
-                    key={index}
-                    className="px-2 py-1 bg-secondary/10 text-secondary rounded-md text-xs"
-                  >
-                    {getSiteName(site.id || site.name || String(site))}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {permissions && (
-            <div className="flex flex-col gap-2">
-              <p className="text-sm font-medium text-content2-foreground">
-                Permissions
-              </p>
-              <div className="flex gap-2 flex-wrap">
-                {permissions.view && (
-                  <span className="px-2 py-1 bg-success/10 text-success rounded-md text-xs">
-                    View
-                  </span>
-                )}
-                {permissions.upload && (
-                  <span className="px-2 py-1 bg-warning/10 text-warning rounded-md text-xs">
-                    Upload
-                  </span>
-                )}
-                {permissions.note && (
-                  <span className="px-2 py-1 bg-secondary/10 text-secondary rounded-md text-xs">
-                    Note
-                  </span>
-                )}
-              </div>
-            </div>
-          )}
+          ))}
         </div>
       </Well>
     </div>

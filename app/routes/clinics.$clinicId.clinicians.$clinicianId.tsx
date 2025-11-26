@@ -4,7 +4,6 @@ import { useRecentItems } from '~/components/Clinic/RecentItemsContext';
 import { apiRequest, apiRoutes } from '~/api.server';
 import { cliniciansSession } from '~/sessions.server';
 import ClinicianProfile from '~/components/Clinic/ClinicianProfile';
-import ClinicsTable from '~/components/Clinic/ClinicsTable';
 import type { RecentClinician } from '~/components/Clinic/types';
 import { useEffect } from 'react';
 
@@ -104,15 +103,11 @@ export default function ClinicianRoute() {
   }, [clinician, addRecentClinician]);
 
   return (
-    <div className="space-y-6">
-      <ClinicianProfile clinician={clinician} />
-      <ClinicsTable
-        clinics={clinics}
-        totalClinics={totalClinics}
-        totalPages={1}
-        currentPage={1}
-      />
-    </div>
+    <ClinicianProfile
+      clinician={clinician}
+      clinics={clinics}
+      totalClinics={totalClinics}
+    />
   );
 }
 
