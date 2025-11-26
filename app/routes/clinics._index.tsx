@@ -23,7 +23,6 @@ export async function loader({ request }: LoaderFunctionArgs) {
   let clinic: Clinic;
   const url = new URL(request.url);
   const search = url.searchParams.get('search') || '';
-  const searchBy = url.searchParams.get('clinicSearchBy') || '';
   const { getSession } = clinicsSession;
   const recentlyViewed = await getSession(request.headers.get('Cookie'));
 
@@ -33,10 +32,13 @@ export async function loader({ request }: LoaderFunctionArgs) {
     : [];
 
   if (search) {
-    const apiRoute =
-      searchBy === 'shareCode'
-        ? apiRoutes.clinic.getByShareCode
-        : apiRoutes.clinic.get;
+    // Share code format: XXXX-XXXX-XXXX (uppercase letters and numbers, no vowels or 0/1)
+    const shareCodePattern = /^[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{4}-[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{4}-[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{4}$/;
+    const isShareCode = shareCodePattern.test(search);
+
+    const apiRoute = isShareCode
+      ? apiRoutes.clinic.getByShareCode
+      : apiRoutes.clinic.get;
 
     clinic = await apiRequest(apiRoute(search));
     const { id: clinicId } = clinic;
