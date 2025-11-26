@@ -1,4 +1,4 @@
-import { LoaderFunctionArgs } from '@remix-run/node';
+import { LoaderFunctionArgs, json } from '@remix-run/node';
 import { jwtDecode } from 'jwt-decode';
 
 export type Agent = {
@@ -13,9 +13,9 @@ export async function loader({ request }: LoaderFunctionArgs) {
   const { name, picture, email }: Agent =
     typeof pomeriumJWT === 'string' ? jwtDecode(pomeriumJWT) : {};
 
-  return {
+  return json({
     name,
     picture,
     email,
-  };
+  });
 }
