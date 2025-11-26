@@ -1,6 +1,14 @@
-import { Link, useParams } from '@remix-run/react';
-import { Card, CardBody, Avatar } from '@nextui-org/react';
-import { UserCheck, Clock } from 'lucide-react';
+import { useNavigate, useParams } from '@remix-run/react';
+import {
+  Table,
+  TableHeader,
+  TableColumn,
+  TableBody,
+  TableRow,
+  TableCell,
+  getKeyValue,
+} from '@nextui-org/react';
+import { History } from 'lucide-react';
 import { useRecentItems } from './RecentItemsContext';
 import type { RecentClinician } from './types';
 
@@ -8,73 +16,62 @@ export type RecentCliniciansProps = {
   recentClinicians?: RecentClinician[]; // Keep for backward compatibility but use context
 };
 
-export default function RecentClinicians({ recentClinicians: propClinicians }: RecentCliniciansProps) {
+export default function RecentClinicians() {
+  const navigate = useNavigate();
   const params = useParams();
   const { recentClinicians } = useRecentItems();
 
   // Always use context data for real-time updates
   const clinicians = recentClinicians;
 
-  if (clinicians.length === 0) {
-    return (
-      <Card className="w-full">
-        <CardBody className="p-6">
-          <div className="flex items-center gap-2 mb-4">
-            <UserCheck className="w-5 h-5 text-primary" />
-            <h3 className="text-lg font-semibold">Recent Clinicians</h3>
-          </div>
-          <div className="flex flex-col items-center justify-center py-8">
-            <Clock className="w-12 h-12 text-default-300 mb-4" />
-            <span className="text-default-500">No recently viewed clinicians</span>
-          </div>
-        </CardBody>
-      </Card>
-    );
-  }
+  const columns = [
+    {
+      key: 'name',
+      label: 'Name',
+    },
+    {
+      key: 'email',
+      label: 'Email Address',
+    },
+  ];
+
+  const handleSelection = (e: React.Key | Set<React.Key>) => {
+    const key = e instanceof Set ? Array.from(e)[0] : e;
+    navigate(`/clinics/${params.clinicId}/clinicians/${key}`);
+  };
+
+  const TableHeading = (
+    <div className="flex gap-2">
+      <History />
+      <h2 className="text-lg font-semibold">Recently Viewed Clinicians</h2>
+    </div>
+  );
+
+  const EmptyContent = <span>There are no recently viewed clinicians to show</span>;
 
   return (
-    <Card className="w-full">
-      <CardBody className="p-6">
-        <div className="flex items-center gap-2 mb-4">
-          <UserCheck className="w-5 h-5 text-primary" />
-          <h3 className="text-lg font-semibold">Recent Clinicians</h3>
-        </div>
-        <div className="space-y-3">
-          {clinicians.map((clinician) => (
-            <Link
-              key={clinician.id}
-              to={`/clinics/${params.clinicId}/clinicians/${clinician.id}`}
-              className="block p-3 rounded-lg bg-content1 hover:bg-content2 transition-colors"
-            >
-              <div className="flex items-center gap-3">
-                <Avatar
-                  name={clinician.fullName}
-                  size="sm"
-                  className="flex-shrink-0"
-                  classNames={{
-                    base: "bg-primary text-primary-foreground",
-                  }}
-                />
-                <div className="flex-1 min-w-0">
-                  <h4 className="font-medium text-foreground truncate">
-                    {clinician.fullName}
-                  </h4>
-                  <p className="text-sm text-default-600 truncate">
-                    {clinician.email}
-                  </p>
-                  <p className="text-xs text-default-500 capitalize">
-                    {clinician.role}
-                  </p>
-                </div>
-                <div className="text-xs text-default-400 flex items-center gap-1">
-                  <Clock className="w-3 h-3" />
-                  {new Date(clinician.lastViewedAt).toLocaleDateString()}
-                </div>
-              </div>
-            </Link>
-          ))}
-        </div>
-      </CardBody>
-    </Card>
+    <Table
+      className="flex flex-1 flex-col text-content1-foreground gap-4"
+      aria-label="Recently viewed clinicians"
+      shadow="none"
+      removeWrapper
+      selectionMode="single"
+      onSelectionChange={handleSelection}
+      topContent={TableHeading}
+      classNames={{
+        th: 'bg-content1',
+      }}
+    >
+      <TableHeader columns={columns}>
+        {(column) => <TableColumn key={column.key}>{column.label}</TableColumn>}
+      </TableHeader>
+      <TableBody emptyContent={EmptyContent} items={clinicians}>
+        {(item) => (
+          <TableRow key={item.id}>
+            {(columnKey) => <TableCell>{getKeyValue(item, columnKey)}</TableCell>}
+          </TableRow>
+        )}
+      </TableBody>
+    </Table>
   );
 }

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { Select, SelectItem, Button } from '@nextui-org/react';
 import { Edit2, X } from 'lucide-react';
 
-import type { Clinic, Patient, PatientInvite, RecentPatient, Clinician, RecentClinician } from './types';
+import type { Clinic, Patient, PatientInvite, Clinician } from './types';
 import useLocale from '~/hooks/useLocale';
 import ClipboardButton from '../ClipboardButton';
 import PatientsTable from './PatientsTable';
@@ -30,8 +30,6 @@ export type ClinicProfileProps = {
   cliniciansTotalPages?: number;
   cliniciansCurrentPage?: number;
   cliniciansPageSize?: number;
-  recentPatients?: RecentPatient[];
-  recentClinicians?: RecentClinician[];
   onPageChange?: (page: number) => void;
   onSort?: (sort: string) => void;
   onSearch?: (search: string) => void;
@@ -61,8 +59,6 @@ export default function ClinicProfile({
   cliniciansTotalPages = 1,
   cliniciansCurrentPage = 1,
   cliniciansPageSize,
-  recentPatients = [],
-  recentClinicians = [],
   onPageChange,
   onSort,
   onSearch,
@@ -249,13 +245,8 @@ export default function ClinicProfile({
       </Well>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <Well>
-          <RecentPatients rows={recentPatients} />
-        </Well>
-
-        <Well>
-          <RecentClinicians recentClinicians={recentClinicians} />
-        </Well>
+        <RecentPatients />
+        <RecentClinicians />
       </div>
     </div>
   );
