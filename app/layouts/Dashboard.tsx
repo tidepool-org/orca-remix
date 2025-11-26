@@ -49,7 +49,16 @@ function Dashboard() {
           <div className="px-4 sm:px-6 lg:px-8 py-8 w-full max-w-9xl mx-auto">
             {/* Breadcrumbs */}
             {!!breadcrumbs.length && (
-              <Breadcrumbs className="mb-4">
+              <Breadcrumbs
+                className="mb-4"
+                classNames={{
+                  list: 'gap-2',
+                }}
+                itemClasses={{
+                  item: 'text-foreground/80 data-[current=true]:text-foreground',
+                  separator: 'text-foreground/40',
+                }}
+              >
                 <BreadcrumbItem href="/">
                   <Home className="w-4" />
                 </BreadcrumbItem>
