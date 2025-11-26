@@ -1,6 +1,5 @@
-import type { LoaderFunctionArgs } from '@remix-run/node';
-import { json } from '@remix-run/node';
-import { useLoaderData } from '@remix-run/react';
+import type { LoaderFunctionArgs } from 'react-router';
+import { useLoaderData } from 'react-router';
 import { useRecentItems } from '~/components/Clinic/RecentItemsContext';
 import { apiRequest, apiRoutes } from '~/api.server';
 import { cliniciansSession } from '~/sessions.server';
@@ -58,7 +57,7 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
     // Update session
     cliniciansSessionData.set(`recentClinicians-${clinicId}`, JSON.stringify(recentClinicians));
 
-    return json(
+    return Response.json(
       { clinician, recentClinicians },
       {
         headers: {

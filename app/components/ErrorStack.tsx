@@ -1,5 +1,5 @@
 import { Accordion, AccordionItem } from '@nextui-org/react';
-import { useRouteError } from '@remix-run/react';
+import { useRouteError } from 'react-router';
 import { AlertCircle } from 'lucide-react';
 
 export default function ErrorStack() {

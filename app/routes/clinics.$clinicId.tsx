@@ -1,16 +1,18 @@
-import {
-  json,
-  type LoaderFunctionArgs,
-  type ActionFunctionArgs,
-  type MetaFunction,
-} from '@remix-run/node';
+import { type LoaderFunctionArgs, type ActionFunctionArgs, type MetaFunction } from 'react-router';
 
 import ClinicProfile from '~/components/Clinic/ClinicProfile';
 import type { Clinic, RecentClinic, Patient, RecentPatient, RecentClinician } from '~/components/Clinic/types';
 import { RecentItemsProvider } from '~/components/Clinic/RecentItemsContext';
 import { apiRequests, apiRoutes, apiRequest } from '~/api.server';
 import { clinicsSession, patientsSession, cliniciansSession } from '~/sessions.server';
-import { useLoaderData, useSearchParams, useSubmit, useNavigation, Outlet, useLocation } from '@remix-run/react';
+import {
+  useLoaderData,
+  useSearchParams,
+  useSubmit,
+  useNavigation,
+  Outlet,
+  useLocation,
+} from 'react-router';
 import { useCallback } from 'react';
 import isArray from 'lodash/isArray';
 import pick from 'lodash/pick';
@@ -39,14 +41,14 @@ export async function action({ request, params }: ActionFunctionArgs) {
         body: { tier }
       });
 
-      return json({ success: true });
+      return Response.json({ success: true });
     } catch (error) {
       console.error('Failed to update clinic tier:', error);
-      return json({ error: 'Failed to update tier' }, { status: 500 });
+      return Response.json({ error: 'Failed to update tier' }, { status: 500 });
     }
   }
 
-  return json({ error: 'Invalid action' }, { status: 400 });
+  return Response.json({ error: 'Invalid action' }, { status: 400 });
 }
 
 const recentClinicsMax = 10;
@@ -143,7 +145,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
         uniqBy(recentClinics, 'id').slice(0, recentClinicsMax),
       );
 
-      return json(
+      return Response.json(
         {
           clinic,
           patients,

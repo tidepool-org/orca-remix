@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNavigate, useParams } from '@remix-run/react';
+import { useNavigate, useParams } from 'react-router';
 import {
   Table,
   TableHeader,

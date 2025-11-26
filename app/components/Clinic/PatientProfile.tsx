@@ -1,4 +1,4 @@
-import { useRouteLoaderData } from '@remix-run/react';
+import { useRouteLoaderData } from 'react-router';
 import { useCallback } from 'react';
 import Well from '~/partials/Well';
 import { intlFormat } from 'date-fns';

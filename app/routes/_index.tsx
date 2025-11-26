@@ -1,5 +1,5 @@
-import { LoaderFunctionArgs, type MetaFunction } from '@remix-run/node';
-import { useLoaderData } from '@remix-run/react';
+import { LoaderFunctionArgs, type MetaFunction } from 'react-router';
+import { useLoaderData } from 'react-router';
 import isArray from 'lodash/isArray';
 
 import ClinicLookup from '~/components/Clinic/ClinicLookup';

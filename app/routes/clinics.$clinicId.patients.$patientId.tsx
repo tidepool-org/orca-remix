@@ -1,15 +1,11 @@
-import {
-  json,
-  type LoaderFunctionArgs,
-  type MetaFunction,
-} from '@remix-run/node';
+import { type LoaderFunctionArgs, type MetaFunction } from 'react-router';
 
 import PatientProfile from '~/components/Clinic/PatientProfile';
 import type { RecentPatient } from '~/components/Clinic/types';
 import { useRecentItems } from '~/components/Clinic/RecentItemsContext';
 import { apiRequest, apiRoutes } from '~/api.server';
 import { patientsSession } from '~/sessions.server';
-import { useLoaderData } from '@remix-run/react';
+import { useLoaderData } from 'react-router';
 import { useEffect } from 'react';
 import isArray from 'lodash/isArray';
 import pick from 'lodash/pick';
@@ -49,7 +45,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
       uniqBy(recentPatients, 'id').slice(0, recentPatientsMax),
     );
 
-    return json(
+    return Response.json(
       { patient, recentPatients: recentlyViewed.get(`patients-${clinicId}`) },
       {
         headers: {

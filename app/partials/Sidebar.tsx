@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import { Theme } from 'remix-themes';
 import { Button, Link } from '@nextui-org/react';
-import { useLoaderData, NavLink } from '@remix-run/react';
+import { useLoaderData, NavLink } from 'react-router';
 
 import Logo from '~/components/Logo/Logo';
 import SmallLogo from '~/components/Logo/Tidepool_T_Icon_Dark.svg';

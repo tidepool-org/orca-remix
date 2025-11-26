@@ -1,4 +1,4 @@
-import { Outlet } from '@remix-run/react';
+import { Outlet } from 'react-router';
 import ErrorStack from '~/components/ErrorStack';
 
 export async function loader() {

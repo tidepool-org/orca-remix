@@ -1,15 +1,11 @@
-import {
-  redirect,
-  type LoaderFunctionArgs,
-  type MetaFunction,
-} from '@remix-run/node';
+import { redirect, type LoaderFunctionArgs, type MetaFunction } from 'react-router';
 
 import ClinicLookup from '~/components/Clinic/ClinicLookup';
 import RecentClinics from '~/components/Clinic/RecentClinics';
 import type { Clinic, RecentClinic } from '~/components/Clinic/types';
 import { apiRequest, apiRoutes } from '~/api.server';
 import { clinicsSession } from '~/sessions.server';
-import { useLoaderData } from '@remix-run/react';
+import { useLoaderData } from 'react-router';
 import isArray from 'lodash/isArray';
 
 export const meta: MetaFunction = () => {

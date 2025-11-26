@@ -1,22 +1,19 @@
-import { vitePlugin as remix } from '@remix-run/dev';
+import { reactRouter } from '@react-router/dev/vite';
 import { defineConfig } from 'vite';
-import { installGlobals } from '@remix-run/node';
 import tsconfigPaths from 'vite-tsconfig-paths';
 import localesPlugin from '@react-aria/optimize-locales-plugin';
 
-installGlobals();
+const isProd = process.env.NODE_ENV === 'production';
 
 export default defineConfig({
+  ssr: {
+    noExternal: isProd ? true : undefined,
+  },
+  optimizeDeps: {
+    include: ['react-router'],
+  },
   plugins: [
-    remix({
-      future: {
-        v3_fetcherPersist: true,
-        v3_relativeSplatPath: true,
-        v3_throwAbortReason: true,
-        v3_singleFetch: true,
-        v3_lazyRouteDiscovery: true,
-      },
-    }),
+    reactRouter(),
     tsconfigPaths(),
     // Don't include any locale strings in the client JS bundle.
     { ...localesPlugin.vite({ locales: [] }), enforce: 'pre' },

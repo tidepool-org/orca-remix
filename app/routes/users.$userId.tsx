@@ -1,14 +1,10 @@
-import {
-  json,
-  type LoaderFunctionArgs,
-  type MetaFunction,
-} from '@remix-run/node';
+import { type LoaderFunctionArgs, type MetaFunction } from 'react-router';
 
 import UserProfile from '~/components/User/UserProfile';
 import type { User, Profile, RecentUser } from '~/components/User/types';
 import { apiRequests, apiRoutes } from '~/api.server';
 import { usersSession } from '~/sessions.server';
-import { useLoaderData } from '@remix-run/react';
+import { useLoaderData } from 'react-router';
 import isArray from 'lodash/isArray';
 import pick from 'lodash/pick';
 import uniqBy from 'lodash/uniqBy';
@@ -48,7 +44,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
       uniqBy(recentUsers, 'userid').slice(0, recentUsersMax),
     );
 
-    return json(
+    return Response.json(
       { user, profile },
       {
         headers: {

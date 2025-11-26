@@ -8,7 +8,7 @@ import {
 import { useMemo } from 'react';
 
 import { type RootLoaderType } from '~/root';
-import { useLoaderData } from '@remix-run/react';
+import { useLoaderData } from 'react-router';
 
 export default function UserMenu() {
   const { agent } = useLoaderData<RootLoaderType>();

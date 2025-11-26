@@ -1,14 +1,13 @@
-import { type LoaderFunctionArgs } from '@remix-run/node';
 import {
+  type LoaderFunctionArgs,
   Links,
-  LiveReload,
   Meta,
   Scripts,
   ScrollRestoration,
   useNavigate,
   useLoaderData,
   type ClientLoaderFunctionArgs,
-} from '@remix-run/react';
+} from 'react-router';
 
 import './tailwind.css';
 import { NextUIProvider } from '@nextui-org/react';
@@ -26,7 +25,7 @@ import { default as useLocale, LocaleProvider } from './hooks/useLocale';
 import Dashboard from './layouts/Dashboard';
 import { Agent } from './routes/action.get-agent';
 import ErrorStack from './components/ErrorStack';
-import getLocale from './routes/action.get-locale';
+import getLocale from './utils/getLocale';
 
 // Return the theme from the session storage using the loader
 export const loader = async ({ request }: LoaderFunctionArgs) => {
@@ -105,7 +104,6 @@ function App() {
           <Dashboard />
           <ScrollRestoration />
           <Scripts />
-          {process.env.NODE_ENV === 'development' && <LiveReload />}
         </NextUIProvider>
       </body>
     </html>
@@ -129,7 +127,6 @@ export function ErrorBoundary() {
             <ErrorStack />
           </div>
           <Scripts />
-          {process.env.NODE_ENV === 'development' && <LiveReload />}
         </NextUIProvider>
       </body>
     </html>

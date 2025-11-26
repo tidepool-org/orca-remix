@@ -1,15 +1,11 @@
-import {
-  redirect,
-  type LoaderFunctionArgs,
-  type MetaFunction,
-} from '@remix-run/node';
+import { redirect, type LoaderFunctionArgs, type MetaFunction } from 'react-router';
 
 import UserLookup from '~/components/User/UserLookup';
 import RecentUsers from '~/components/User/RecentUsers';
 import type { User, RecentUser } from '~/components/User/types';
 import { apiRequest, apiRoutes } from '~/api.server';
 import { usersSession } from '~/sessions.server';
-import { useLoaderData } from '@remix-run/react';
+import { useLoaderData } from 'react-router';
 import isArray from 'lodash/isArray';
 
 export const meta: MetaFunction = () => {

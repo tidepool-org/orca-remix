@@ -1,8 +1,5 @@
-import { createRequestHandler } from '@remix-run/express';
-import { installGlobals } from '@remix-run/node';
+import { createRequestHandler } from '@react-router/express';
 import express from 'express';
-
-installGlobals();
 
 const vite =
   process.env.NODE_ENV === 'production'
@@ -33,7 +30,7 @@ app.all(
   '*',
   createRequestHandler({
     build: vite
-      ? () => vite.ssrLoadModule('virtual:remix/server-build')
+      ? () => vite.ssrLoadModule('virtual:react-router/server-build')
       : await import('./build/server/index.js'),
   }),
 );

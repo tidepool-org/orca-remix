@@ -9,7 +9,7 @@ import {
 } from '@nextui-org/react';
 
 import { History } from 'lucide-react';
-import { useNavigate, useParams } from '@remix-run/react';
+import { useNavigate, useParams } from 'react-router';
 import { useRecentItems } from './RecentItemsContext';
 
 import type { RecentPatient } from './types';

@@ -1,4 +1,4 @@
-import { Form, useSearchParams } from '@remix-run/react';
+import { Form, useSearchParams } from 'react-router';
 import { Input, Button } from '@nextui-org/react';
 import { UserCircle2Icon } from 'lucide-react';
 import React from 'react';
