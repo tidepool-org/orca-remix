@@ -4,6 +4,7 @@ import { useRecentItems } from '~/components/Clinic/RecentItemsContext';
 import { apiRequest, apiRoutes } from '~/api.server';
 import { cliniciansSession } from '~/sessions.server';
 import ClinicianProfile from '~/components/Clinic/ClinicianProfile';
+import ClinicsTable from '~/components/Clinic/ClinicsTable';
 import type { RecentClinician } from '~/components/Clinic/types';
 import { useEffect } from 'react';
 
@@ -23,6 +24,19 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
     if (!clinician) {
       throw new Response('Clinician not found', { status: 404 });
     }
+
+    // Get clinics for this clinician
+    const clinicsResponse = await apiRequest(
+      apiRoutes.clinic.getClinicsForClinician(clinicianId, { limit: 1000, offset: 0 })
+    );
+
+    // Handle both array response and object with data property
+    const clinics = Array.isArray(clinicsResponse)
+      ? clinicsResponse
+      : (clinicsResponse?.data || []);
+    const totalClinics = Array.isArray(clinicsResponse)
+      ? clinicsResponse.length
+      : (clinicsResponse?.meta?.count || clinics.length);
 
     // Update recent clinicians session
     const { getSession, commitSession } = cliniciansSession;
@@ -58,7 +72,7 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
     cliniciansSessionData.set(`recentClinicians-${clinicId}`, JSON.stringify(recentClinicians));
 
     return Response.json(
-      { clinician, recentClinicians },
+      { clinician, recentClinicians, clinics, totalClinics },
       {
         headers: {
           'Set-Cookie': await commitSession(cliniciansSessionData),
@@ -72,7 +86,7 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
 };
 
 export default function ClinicianRoute() {
-  const { clinician } = useLoaderData<typeof loader>();
+  const { clinician, clinics, totalClinics } = useLoaderData<typeof loader>();
   const { addRecentClinician } = useRecentItems();
 
   // Add clinician to recent list immediately when component mounts
@@ -89,7 +103,17 @@ export default function ClinicianRoute() {
     }
   }, [clinician, addRecentClinician]);
 
-  return <ClinicianProfile clinician={clinician} />;
+  return (
+    <div className="space-y-6">
+      <ClinicianProfile clinician={clinician} />
+      <ClinicsTable
+        clinics={clinics}
+        totalClinics={totalClinics}
+        totalPages={1}
+        currentPage={1}
+      />
+    </div>
+  );
 }
 
 export const handle = {

@@ -60,6 +60,13 @@ export const apiRoutes = {
       method: 'get',
       path: `/v1/clinics/${clinicId}/clinicians/${clinicianId}`,
     }),
+    getClinicsForClinician: (clinicianId: string, options?: { limit?: number; offset?: number }) => ({
+      method: 'get',
+      path: `/v1/clinicians/${clinicianId}/clinics${options ? `?${new URLSearchParams({
+        ...(options.limit && { limit: options.limit.toString() }),
+        ...(options.offset && { offset: options.offset.toString() }),
+      })}` : ''}`,
+    }),
     updateTier: (clinicId: string) => ({
       method: 'post',
       path: `/v1/clinics/${clinicId}/tier`,
