@@ -35,7 +35,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
   return {
     locale,
-    theme: getTheme(),
+    theme: getTheme() || 'light', // Default to light theme if no cookie is set
   };
 };
 
