@@ -120,7 +120,7 @@ function Sidebar({ sidebarOpen, setSidebarOpen }: SidebarOpenProps) {
             <ArrowLeftFromLine />
           </Button>
 
-          <Link as={NavLink} to="/">
+          <NavLink to="/">
             <Logo
               className={`hidden md:block 2xl:hidden right-${
                 sidebarOpen || sidebarExpanded ? 3 : 0
@@ -130,7 +130,7 @@ function Sidebar({ sidebarOpen, setSidebarOpen }: SidebarOpenProps) {
               theme={Theme.DARK}
             />
             <Logo className="md:hidden 2xl:block right-2" theme={Theme.DARK} />
-          </Link>
+          </NavLink>
         </div>
 
         {/* Links */}
@@ -138,12 +138,11 @@ function Sidebar({ sidebarOpen, setSidebarOpen }: SidebarOpenProps) {
           <ul>
             {links.map(({ href, text, icon: Icon }, i) => (
               <li className="mx-3" key={i}>
-                <Link
-                  as={NavLink}
+                <NavLink
                   to={href}
-                  className="text-content4-foreground [&.active]:bg-primary-600 rounded-md p-2"
+                  className="text-content4-foreground hover:text-content4-foreground/80 [&.active]:bg-primary-600 [&.active]:text-content4-foreground rounded-md p-2 block"
                 >
-                  <div className="flex  gap-2">
+                  <div className="flex gap-2">
                     <div className="block sidebar-expanded:block">
                       <Icon />
                     </div>
@@ -151,7 +150,7 @@ function Sidebar({ sidebarOpen, setSidebarOpen }: SidebarOpenProps) {
                       {text}
                     </div>
                   </div>
-                </Link>
+                </NavLink>
               </li>
             ))}
           </ul>
