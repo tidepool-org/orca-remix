@@ -8,7 +8,7 @@ import {
 import ClinicProfile from '~/components/Clinic/ClinicProfile';
 import type { Clinic, RecentClinic, Patient, RecentPatient, RecentClinician } from '~/components/Clinic/types';
 import { RecentItemsProvider } from '~/components/Clinic/RecentItemsContext';
-import { apiRequests, apiRoutes, apiPostRequest } from '~/api.server';
+import { apiRequests, apiRoutes, apiRequest } from '~/api.server';
 import { clinicsSession, patientsSession, cliniciansSession } from '~/sessions.server';
 import { useLoaderData, useSearchParams, useSubmit, useNavigation, Outlet, useLocation } from '@remix-run/react';
 import { useCallback } from 'react';
@@ -33,7 +33,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
     try {
       const route = apiRoutes.clinic.updateTier(clinicId);
-      await apiPostRequest({
+      await apiRequest({
         path: route.path,
         method: route.method,
         body: { tier }

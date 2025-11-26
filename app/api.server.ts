@@ -70,47 +70,27 @@ export const apiRoutes = {
 type apiRequestArgs = {
   path: string;
   method: string;
-};
-
-type apiPostRequestArgs = {
-  path: string;
-  method: string;
   body?: Record<string, unknown>;
 };
 
-export const apiRequest = async ({ path, method }: apiRequestArgs) => {
+export const apiRequest = async ({ path, method, body }: apiRequestArgs) => {
   try {
     const result = await fetch(`${process.env.API_HOST}${path}`, {
       method,
       headers: {
         'x-tidepool-session-token': serverAuth.serverSessionToken,
-      },
-    });
-
-    return await result.json();
-  } catch (e) {
-    console.error(e);
-  }
-};
-
-export const apiPostRequest = async ({ path, method, body }: apiPostRequestArgs) => {
-  try {
-    const result = await fetch(`${process.env.API_HOST}${path}`, {
-      method,
-      headers: {
-        'x-tidepool-session-token': serverAuth.serverSessionToken,
-        'Content-Type': 'application/json',
+        ...(body && { 'Content-Type': 'application/json' }),
       },
       ...(body && { body: JSON.stringify(body) }),
     });
 
-    if (result.ok) {
-      // Try to parse JSON response, but don't fail if it's empty
-      const text = await result.text();
-      return text ? JSON.parse(text) : {};
-    } else {
+    if (!result.ok) {
       throw new Error(`API request failed with status ${result.status}`);
     }
+
+    // Try to parse JSON response, but don't fail if it's empty
+    const text = await result.text();
+    return text ? JSON.parse(text) : {};
   } catch (e) {
     console.error(e);
     throw e;
