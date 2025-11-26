@@ -55,9 +55,9 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
     // Add current clinician to recent list
     const recentClinician: RecentClinician = {
       id: clinician.id,
-      fullName: clinician.fullName,
+      name: clinician.name,
       email: clinician.email,
-      role: clinician.role,
+      roles: clinician.roles,
       lastViewedAt: new Date().toISOString(),
     };
 
@@ -94,9 +94,9 @@ export default function ClinicianRoute() {
     if (clinician) {
       const recentClinician: RecentClinician = {
         id: clinician.id,
-        fullName: clinician.fullName,
+        name: clinician.name,
         email: clinician.email,
-        role: clinician.role,
+        roles: clinician.roles,
         lastViewedAt: new Date().toISOString(),
       };
       addRecentClinician(recentClinician);
