@@ -12,6 +12,7 @@ import { History } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import Well from '~/partials/Well';
 import SectionHeader from '~/components/SectionHeader';
+import { recentTableClasses } from '~/utils/tableStyles';
 
 import type { RecentUser } from './types';
 
