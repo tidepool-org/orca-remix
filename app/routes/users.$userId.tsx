@@ -2,7 +2,7 @@ import { type LoaderFunctionArgs, type MetaFunction } from 'react-router';
 
 import UserProfile from '~/components/User/UserProfile';
 import type { User, Profile, RecentUser } from '~/components/User/types';
-import { apiRequests, apiRoutes } from '~/api.server';
+import { apiRequest, apiRequests, apiRoutes } from '~/api.server';
 import { usersSession } from '~/sessions.server';
 import { useLoaderData } from 'react-router';
 import isArray from 'lodash/isArray';
@@ -35,6 +35,32 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   const user: User = await results?.[0];
   const profile: Profile = await results?.[1];
 
+  // Fetch clinics if user is a clinician
+  let clinics: Array<{ clinic: { id: string; name: string; }; clinician: { roles: string[] } }> = [];
+  let totalClinics = 0;
+
+  if (user?.userid && profile?.clinic) {
+    try {
+      const clinicsResponse = await apiRequest(
+        apiRoutes.clinic.getClinicsForClinician(user.userid, {
+          limit: 1000,
+          offset: 0,
+        })
+      );
+
+      // Handle both array response and object with data property
+      clinics = Array.isArray(clinicsResponse)
+        ? clinicsResponse
+        : (clinicsResponse?.data || []);
+      totalClinics = Array.isArray(clinicsResponse)
+        ? clinicsResponse.length
+        : (clinicsResponse?.meta?.count || clinics.length);
+    } catch (error) {
+      console.error('Error fetching clinics for user:', error);
+      // Continue without clinics data
+    }
+  }
+
   if (user?.userid) {
     const recentUser: RecentUser = pick(user, ['userid', 'username']);
     if (profile?.fullName) recentUser.fullName = profile?.fullName;
@@ -45,7 +71,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     );
 
     return Response.json(
-      { user, profile },
+      { user, profile, clinics, totalClinics },
       {
         headers: {
           'Cache-Control': 'public, s-maxage=60',
@@ -59,13 +85,17 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 }
 
 export default function Users() {
-  const { user, profile } = useLoaderData<typeof loader>();
+  const { user, profile, clinics, totalClinics } =
+    useLoaderData<typeof loader>();
 
-  return (
-    <div className="flex">
-      {user && profile && <UserProfile user={user} profile={profile} />}
-    </div>
-  );
+  return user && profile ? (
+    <UserProfile
+      user={user}
+      profile={profile}
+      clinics={clinics}
+      totalClinics={totalClinics}
+    />
+  ) : null;
 }
 
 export const handle = {

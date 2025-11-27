@@ -1,5 +1,6 @@
 import Well from '~/partials/Well';
 import { intlFormat } from 'date-fns';
+import ClinicsTable from '../Clinic/ClinicsTable';
 
 import type { User, Profile } from './types';
 import useLocale from '~/hooks/useLocale';
@@ -8,12 +9,16 @@ import ClipboardButton from '../ClipboardButton';
 export type UserProfileProps = {
   user: User;
   profile: Profile;
+  clinics?: Array<{ clinic: { id: string; name: string; }; clinician: { roles: string[] } }>;
+  totalClinics?: number;
 };
 
-export default function UserProfile({ user, profile }: UserProfileProps) {
+export default function UserProfile({ user, profile, clinics = [], totalClinics = 0 }: UserProfileProps) {
   const { emailVerified, userid: userId, username, termsAccepted } = user;
   const { fullName, clinic } = profile;
   const { locale } = useLocale();
+
+  const isClinician = !!clinic;
 
   const userDetails = [
     {
@@ -46,21 +51,34 @@ export default function UserProfile({ user, profile }: UserProfileProps) {
   ];
 
   return (
-    <Well>
-      <p className="text-xl">{fullName}</p>
+    <div className="flex flex-col gap-8 w-full">
+      <Well>
+        <p className="text-xl">{fullName}</p>
 
-      <div className="text-small">
-        {userDetails.map(({ label, value, copy }, i) => (
-          <div
-            key={i}
-            className="flex justify-start flex-nowrap gap-2 items-center min-h-unit-8"
-          >
-            <strong>{label}:</strong>
-            <p>{value}</p>
-            {copy && <ClipboardButton clipboardText={value} />}
-          </div>
-        ))}
-      </div>
-    </Well>
+        <div className="text-small">
+          {userDetails.map(({ label, value, copy }, i) => (
+            <div
+              key={i}
+              className="flex justify-start flex-nowrap gap-2 items-center min-h-unit-8"
+            >
+              <strong>{label}:</strong>
+              <p>{value}</p>
+              {copy && <ClipboardButton clipboardText={value} />}
+            </div>
+          ))}
+        </div>
+      </Well>
+
+      {isClinician && (
+        <Well>
+          <ClinicsTable
+            clinics={clinics}
+            totalClinics={totalClinics}
+            totalPages={1}
+            currentPage={1}
+          />
+        </Well>
+      )}
+    </div>
   );
 }

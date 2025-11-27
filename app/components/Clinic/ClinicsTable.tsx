@@ -12,7 +12,7 @@ import {
   Chip,
   Button,
 } from '@nextui-org/react';
-import { Building2, ChevronDown, ExternalLink } from 'lucide-react';
+import { Building2, ChevronDown } from 'lucide-react';
 import { intlFormat } from 'date-fns';
 import useLocale from '~/hooks/useLocale';
 import type { Clinic } from './types';
@@ -119,15 +119,15 @@ export default function ClinicsTable({
           );
         case 'actions':
           return (
-            <Button
-              size="sm"
-              variant="flat"
-              color="primary"
-              onPress={() => navigate(`/clinics/${clinic.id}`)}
-              startContent={<ExternalLink className="w-4 h-4" />}
-            >
-              View Clinic
-            </Button>
+            <div className="relative flex items-center gap-2">
+              <Button
+                size="sm"
+                variant="light"
+                onPress={() => navigate(`/clinics/${clinic.id}`)}
+              >
+                View Clinic
+              </Button>
+            </div>
           );
         default:
           return clinic[columnKey as keyof Clinic];
