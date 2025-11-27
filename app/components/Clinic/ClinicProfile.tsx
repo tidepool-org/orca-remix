@@ -130,7 +130,7 @@ export default function ClinicProfile({
                 }}
                 className="w-40"
                 classNames={{
-                  trigger: "h-8 min-h-8",
+                  trigger: 'h-8 min-h-8',
                 }}
                 isDisabled={isSubmitting}
                 placeholder="Select tier..."

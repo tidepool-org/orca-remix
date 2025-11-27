@@ -34,17 +34,21 @@ export type Patient = {
   createdTime: string;
   updatedTime: string;
   attestationSubmitted?: boolean;
-  dataSources?: {
-    state?: string;
-    providerName?: string;
-    modifiedTime?: string;
-    expirationTime?: string;
-  }[] | null;
+  dataSources?:
+    | {
+        state?: string;
+        providerName?: string;
+        modifiedTime?: string;
+        expirationTime?: string;
+      }[]
+    | null;
   lastUploadReminderTime?: string;
-  reviews?: {
-    clinicianId?: string;
-    time?: string;
-  }[] | null;
+  reviews?:
+    | {
+        clinicianId?: string;
+        time?: string;
+      }[]
+    | null;
   connectionRequests: {
     twiist: {
       createdTime: string;
@@ -104,7 +108,10 @@ export type Clinician = {
   updatedTime: string;
 };
 
-export type RecentClinician = Pick<Clinician, 'id' | 'name' | 'email' | 'roles'> & {
+export type RecentClinician = Pick<
+  Clinician,
+  'id' | 'name' | 'email' | 'roles'
+> & {
   lastViewedAt: string;
 };
 

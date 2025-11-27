@@ -61,44 +61,62 @@ export default function PatientInvitesTable({
 
   // Filter to pending invites only
   const pendingInvites = React.useMemo(() => {
-    return invites.filter(invite => invite.status === 'pending');
+    return invites.filter((invite) => invite.status === 'pending');
   }, [invites]);
 
   // Calculate pagination details
-  const effectivePageSize = pageSize ?? (pendingInvites.length > 0 ? Math.ceil(totalInvites / totalPages) : 25);
-  const firstInviteOnPage = pendingInvites.length > 0 ? (currentPage - 1) * effectivePageSize + 1 : 0;
-  const lastInviteOnPage = Math.min(currentPage * effectivePageSize, pendingInvites.length);
+  const effectivePageSize =
+    pageSize ??
+    (pendingInvites.length > 0 ? Math.ceil(totalInvites / totalPages) : 25);
+  const firstInviteOnPage =
+    pendingInvites.length > 0 ? (currentPage - 1) * effectivePageSize + 1 : 0;
+  const lastInviteOnPage = Math.min(
+    currentPage * effectivePageSize,
+    pendingInvites.length,
+  );
 
   // Generate header text based on expanded state
-  const headerText = isExpanded && pendingInvites.length > 0
-    ? `(showing ${firstInviteOnPage}-${lastInviteOnPage} of ${pendingInvites.length} pending patient invites)`
-    : `Pending Patient Invites (${pendingInvites.length})`;
+  const headerText =
+    isExpanded && pendingInvites.length > 0
+      ? `(showing ${firstInviteOnPage}-${lastInviteOnPage} of ${pendingInvites.length} pending patient invites)`
+      : `Pending Patient Invites (${pendingInvites.length})`;
 
   const renderCell = React.useCallback(
-    (invite: PatientInvite, columnKey: keyof PatientInvite | 'actions' | 'patientName' | 'birthday' | 'userId') => {
+    (
+      invite: PatientInvite,
+      columnKey:
+        | keyof PatientInvite
+        | 'actions'
+        | 'patientName'
+        | 'birthday'
+        | 'userId',
+    ) => {
       const cellValue = invite[columnKey as keyof PatientInvite];
 
       switch (columnKey) {
         case 'patientName':
           return (
             <div className="flex flex-col">
-              <p className="text-bold text-sm">{invite.creator.profile.patient.fullName || invite.creator.profile.fullName}</p>
+              <p className="text-bold text-sm">
+                {invite.creator.profile.patient.fullName ||
+                  invite.creator.profile.fullName}
+              </p>
             </div>
           );
         case 'birthday':
           return (
             <p className="text-sm text-default-600">
-              {invite.creator.profile.patient.birthday ? intlFormat(
-                new Date(invite.creator.profile.patient.birthday),
-                { year: 'numeric', month: 'short', day: 'numeric' },
-                { locale },
-              ) : '—'}
+              {invite.creator.profile.patient.birthday
+                ? intlFormat(
+                    new Date(invite.creator.profile.patient.birthday),
+                    { year: 'numeric', month: 'short', day: 'numeric' },
+                    { locale },
+                  )
+                : '—'}
             </p>
           );
         case 'userId':
-          return (
-            <p className="text-sm font-mono">{invite.creator.userid}</p>
-          );
+          return <p className="text-sm font-mono">{invite.creator.userid}</p>;
         case 'created':
           if (!cellValue) return <span className="text-default-400">—</span>;
           return (
@@ -141,7 +159,9 @@ export default function PatientInvitesTable({
       </div>
       <div className="flex items-center gap-2">
         <ChevronDown
-          className={`w-5 h-5 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+          className={`w-5 h-5 transition-transform ${
+            isExpanded ? 'rotate-180' : ''
+          }`}
         />
       </div>
     </button>
@@ -150,7 +170,9 @@ export default function PatientInvitesTable({
   const EmptyContent = (
     <div className="flex flex-col items-center justify-center py-8">
       <Mail className="w-12 h-12 text-default-300 mb-4" />
-      <span className="text-default-500">No pending patient invites found for this clinic</span>
+      <span className="text-default-500">
+        No pending patient invites found for this clinic
+      </span>
     </div>
   );
 
@@ -165,7 +187,10 @@ export default function PatientInvitesTable({
       {TableHeading}
 
       {isExpanded && (
-        <div id="patient-invites-table-content" className="mt-4 transition-all duration-300">
+        <div
+          id="patient-invites-table-content"
+          className="mt-4 transition-all duration-300"
+        >
           <Table
             aria-label="Clinic patient invites table"
             className="flex flex-1 flex-col text-content1-foreground gap-4"
@@ -194,7 +219,17 @@ export default function PatientInvitesTable({
               {(invite) => (
                 <TableRow key={invite.key}>
                   {(columnKey) => (
-                    <TableCell>{renderCell(invite, columnKey as keyof PatientInvite | 'actions' | 'patientName' | 'birthday' | 'userId')}</TableCell>
+                    <TableCell>
+                      {renderCell(
+                        invite,
+                        columnKey as
+                          | keyof PatientInvite
+                          | 'actions'
+                          | 'patientName'
+                          | 'birthday'
+                          | 'userId',
+                      )}
+                    </TableCell>
                   )}
                 </TableRow>
               )}

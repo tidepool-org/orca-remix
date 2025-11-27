@@ -71,38 +71,54 @@ export default function PatientsTable({
   const clinicData = clinic;
 
   // Helper function to map tag ID to tag name
-  const getTagName = useCallback((tagId: string): string => {
-    const tag = clinicData?.patientTags?.find(t => t.id === tagId);
-    return tag?.name || tagId; // Fallback to ID if name not found
-  }, [clinicData?.patientTags]);
+  const getTagName = useCallback(
+    (tagId: string): string => {
+      const tag = clinicData?.patientTags?.find((t) => t.id === tagId);
+      return tag?.name || tagId; // Fallback to ID if name not found
+    },
+    [clinicData?.patientTags],
+  );
 
   // Helper function to map site ID to site name
-  const getSiteName = useCallback((siteId: string): string => {
-    const site = clinicData?.sites?.find(s => s.id === siteId);
-    return site?.name || siteId; // Fallback to ID if name not found
-  }, [clinicData?.sites]);
+  const getSiteName = useCallback(
+    (siteId: string): string => {
+      const site = clinicData?.sites?.find((s) => s.id === siteId);
+      return site?.name || siteId; // Fallback to ID if name not found
+    },
+    [clinicData?.sites],
+  );
   // Parse current sort to set initial sort descriptor
   const parseSortString = (sortStr?: string) => {
-    if (!sortStr) return { column: 'fullName', direction: 'ascending' as const };
-    const direction = sortStr.startsWith('-') ? 'descending' as const : 'ascending' as const;
+    if (!sortStr)
+      return { column: 'fullName', direction: 'ascending' as const };
+    const direction = sortStr.startsWith('-')
+      ? ('descending' as const)
+      : ('ascending' as const);
     const column = sortStr.replace(/^[+-]/, '');
     return { column, direction };
   };
 
   const [sortDescriptor, setSortDescriptor] = React.useState<SortDescriptor>(
-    parseSortString(currentSort)
+    parseSortString(currentSort),
   );
   const [isExpanded, setIsExpanded] = React.useState(false);
 
   // Calculate pagination details
-  const effectivePageSize = pageSize ?? (patients.length > 0 ? Math.ceil(totalPatients / totalPages) : 25);
-  const firstPatientOnPage = totalPatients > 0 ? (currentPage - 1) * effectivePageSize + 1 : 0;
-  const lastPatientOnPage = Math.min(currentPage * effectivePageSize, totalPatients);
+  const effectivePageSize =
+    pageSize ??
+    (patients.length > 0 ? Math.ceil(totalPatients / totalPages) : 25);
+  const firstPatientOnPage =
+    totalPatients > 0 ? (currentPage - 1) * effectivePageSize + 1 : 0;
+  const lastPatientOnPage = Math.min(
+    currentPage * effectivePageSize,
+    totalPatients,
+  );
 
   // Generate header text based on expanded state
-  const headerText = isExpanded && totalPatients > 0
-    ? `Patients (showing ${firstPatientOnPage}-${lastPatientOnPage} of ${totalPatients})`
-    : `Patients (${totalPatients})`;
+  const headerText =
+    isExpanded && totalPatients > 0
+      ? `Patients (showing ${firstPatientOnPage}-${lastPatientOnPage} of ${totalPatients})`
+      : `Patients (${totalPatients})`;
 
   const columns: Column[] = [
     {
@@ -169,9 +185,7 @@ export default function PatientsTable({
             </div>
           );
         case 'email':
-          return (
-            <p className="text-sm text-default-600">{patient.email}</p>
-          );
+          return <p className="text-sm text-default-600">{patient.email}</p>;
         case 'birthDate':
           return patient.birthDate ? (
             <p className="text-sm">
@@ -182,7 +196,7 @@ export default function PatientsTable({
                   month: 'short',
                   day: 'numeric',
                 },
-                { locale }
+                { locale },
               )}
             </p>
           ) : (
@@ -206,19 +220,33 @@ export default function PatientsTable({
                 <Tooltip
                   content={
                     <div className="px-1 py-2">
-                      <div className="text-small font-bold mb-2">Additional Tags:</div>
+                      <div className="text-small font-bold mb-2">
+                        Additional Tags:
+                      </div>
                       <div className="flex gap-1 flex-wrap max-w-xs">
-                        {patient.tags.slice(2).map((tagId: string, index: number) => (
-                          <Chip key={index} size="sm" variant="flat" color="primary">
-                            {getTagName(tagId)}
-                          </Chip>
-                        ))}
+                        {patient.tags
+                          .slice(2)
+                          .map((tagId: string, index: number) => (
+                            <Chip
+                              key={index}
+                              size="sm"
+                              variant="flat"
+                              color="primary"
+                            >
+                              {getTagName(tagId)}
+                            </Chip>
+                          ))}
                       </div>
                     </div>
                   }
                   placement="top"
                 >
-                  <Chip size="sm" variant="flat" color="default" className="cursor-help">
+                  <Chip
+                    size="sm"
+                    variant="flat"
+                    color="default"
+                    className="cursor-help"
+                  >
                     +{patient.tags.length - 2}
                   </Chip>
                 </Tooltip>
@@ -239,10 +267,17 @@ export default function PatientsTable({
                 <Tooltip
                   content={
                     <div className="px-1 py-2">
-                      <div className="text-small font-bold mb-2">Additional Sites:</div>
+                      <div className="text-small font-bold mb-2">
+                        Additional Sites:
+                      </div>
                       <div className="flex gap-1 flex-wrap max-w-xs">
                         {patient.sites.slice(2).map((site, index: number) => (
-                          <Chip key={index} size="sm" variant="flat" color="secondary">
+                          <Chip
+                            key={index}
+                            size="sm"
+                            variant="flat"
+                            color="secondary"
+                          >
                             {getSiteName(site.id || site.name || String(site))}
                           </Chip>
                         ))}
@@ -251,7 +286,12 @@ export default function PatientsTable({
                   }
                   placement="top"
                 >
-                  <Chip size="sm" variant="flat" color="default" className="cursor-help">
+                  <Chip
+                    size="sm"
+                    variant="flat"
+                    color="default"
+                    className="cursor-help"
+                  >
                     +{patient.sites.length - 2}
                   </Chip>
                 </Tooltip>
@@ -270,7 +310,7 @@ export default function PatientsTable({
                   month: 'short',
                   day: 'numeric',
                 },
-                { locale }
+                { locale },
               )}
             </p>
           );
@@ -282,7 +322,9 @@ export default function PatientsTable({
                 variant="light"
                 onPress={() => {
                   // Navigate to patient profile page
-                  navigate(`/clinics/${params.clinicId}/patients/${patient.id}`);
+                  navigate(
+                    `/clinics/${params.clinicId}/patients/${patient.id}`,
+                  );
                 }}
               >
                 View User
@@ -293,7 +335,7 @@ export default function PatientsTable({
           return null;
       }
     },
-    [locale, navigate, params.clinicId, getTagName, getSiteName]
+    [locale, navigate, params.clinicId, getTagName, getSiteName],
   );
 
   const SortIcon = ({ column }: { column: string }) => {
@@ -320,7 +362,9 @@ export default function PatientsTable({
       </div>
       <div className="flex items-center gap-2">
         <ChevronDown
-          className={`w-5 h-5 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+          className={`w-5 h-5 transition-transform ${
+            isExpanded ? 'rotate-180' : ''
+          }`}
         />
       </div>
     </button>
@@ -329,7 +373,9 @@ export default function PatientsTable({
   const EmptyContent = (
     <div className="flex flex-col items-center justify-center py-8">
       <Users className="w-12 h-12 text-default-300 mb-4" />
-      <span className="text-default-500">No patients found for this clinic</span>
+      <span className="text-default-500">
+        No patients found for this clinic
+      </span>
     </div>
   );
 
@@ -344,7 +390,10 @@ export default function PatientsTable({
       {TableHeading}
 
       {isExpanded && (
-        <div id="patients-table-content" className="mt-4 transition-all duration-300">
+        <div
+          id="patients-table-content"
+          className="mt-4 transition-all duration-300"
+        >
           {/* Search Controls */}
           <div className="flex justify-start mb-4 p-4 bg-content1 rounded-lg">
             <DebouncedSearchInput
@@ -388,7 +437,12 @@ export default function PatientsTable({
               {patients.map((patient) => (
                 <TableRow key={patient.id}>
                   {(columnKey) => (
-                    <TableCell>{renderCell(patient, columnKey as keyof Patient | 'actions')}</TableCell>
+                    <TableCell>
+                      {renderCell(
+                        patient,
+                        columnKey as keyof Patient | 'actions',
+                      )}
+                    </TableCell>
                   )}
                 </TableRow>
               ))}

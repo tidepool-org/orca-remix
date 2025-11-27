@@ -20,12 +20,15 @@ export const apiRoutes = {
       method: 'get',
       path: `/v1/clinics/share_code/${search}`,
     }),
-    getPatients: (clinicId: string, options?: {
-      limit?: number;
-      offset?: number;
-      search?: string;
-      sort?: string;
-    }) => {
+    getPatients: (
+      clinicId: string,
+      options?: {
+        limit?: number;
+        offset?: number;
+        search?: string;
+        sort?: string;
+      },
+    ) => {
       const params = new URLSearchParams();
       if (options?.limit) params.set('limit', options.limit.toString());
       if (options?.offset) params.set('offset', options.offset.toString());
@@ -38,7 +41,9 @@ export const apiRoutes = {
 
       return {
         method: 'get',
-        path: `/v1/clinics/${clinicId}/patients${params.toString() ? `?${params.toString()}` : ''}`,
+        path: `/v1/clinics/${clinicId}/patients${
+          params.toString() ? `?${params.toString()}` : ''
+        }`,
       };
     },
     getPatient: (clinicId: string, patientId: string) => ({
@@ -49,23 +54,37 @@ export const apiRoutes = {
       method: 'get',
       path: `/v1/clinics/${clinicId}/invites/patients`,
     }),
-    getClinicians: (clinicId: string, options?: { limit?: number; offset?: number }) => ({
+    getClinicians: (
+      clinicId: string,
+      options?: { limit?: number; offset?: number },
+    ) => ({
       method: 'get',
-      path: `/v1/clinics/${clinicId}/clinicians${options ? `?${new URLSearchParams({
-        ...(options.limit && { limit: options.limit.toString() }),
-        ...(options.offset && { offset: options.offset.toString() }),
-      })}` : ''}`,
+      path: `/v1/clinics/${clinicId}/clinicians${
+        options
+          ? `?${new URLSearchParams({
+              ...(options.limit && { limit: options.limit.toString() }),
+              ...(options.offset && { offset: options.offset.toString() }),
+            })}`
+          : ''
+      }`,
     }),
     getClinician: (clinicId: string, clinicianId: string) => ({
       method: 'get',
       path: `/v1/clinics/${clinicId}/clinicians/${clinicianId}`,
     }),
-    getClinicsForClinician: (clinicianId: string, options?: { limit?: number; offset?: number }) => ({
+    getClinicsForClinician: (
+      clinicianId: string,
+      options?: { limit?: number; offset?: number },
+    ) => ({
       method: 'get',
-      path: `/v1/clinicians/${clinicianId}/clinics${options ? `?${new URLSearchParams({
-        ...(options.limit && { limit: options.limit.toString() }),
-        ...(options.offset && { offset: options.offset.toString() }),
-      })}` : ''}`,
+      path: `/v1/clinicians/${clinicianId}/clinics${
+        options
+          ? `?${new URLSearchParams({
+              ...(options.limit && { limit: options.limit.toString() }),
+              ...(options.offset && { offset: options.offset.toString() }),
+            })}`
+          : ''
+      }`,
     }),
     updateTier: (clinicId: string) => ({
       method: 'post',

@@ -1,10 +1,24 @@
-import { type LoaderFunctionArgs, type ActionFunctionArgs, type MetaFunction } from 'react-router';
+import {
+  type LoaderFunctionArgs,
+  type ActionFunctionArgs,
+  type MetaFunction,
+} from 'react-router';
 
 import ClinicProfile from '~/components/Clinic/ClinicProfile';
-import type { Clinic, RecentClinic, Patient, RecentPatient, RecentClinician } from '~/components/Clinic/types';
+import type {
+  Clinic,
+  RecentClinic,
+  Patient,
+  RecentPatient,
+  RecentClinician,
+} from '~/components/Clinic/types';
 import { RecentItemsProvider } from '~/components/Clinic/RecentItemsContext';
 import { apiRequests, apiRoutes, apiRequest } from '~/api.server';
-import { clinicsSession, patientsSession, cliniciansSession } from '~/sessions.server';
+import {
+  clinicsSession,
+  patientsSession,
+  cliniciansSession,
+} from '~/sessions.server';
 import {
   useLoaderData,
   useSearchParams,
@@ -38,7 +52,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
       await apiRequest({
         path: route.path,
         method: route.method,
-        body: { tier }
+        body: { tier },
       });
 
       return Response.json({ success: true });
@@ -60,21 +74,43 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   const { getSession: getRecentPatientsSession } = patientsSession;
   const { getSession: getRecentCliniciansSession } = cliniciansSession;
   const recentlyViewed = await getSession(request.headers.get('Cookie'));
-  const recentPatientsData = await getRecentPatientsSession(request.headers.get('Cookie'));
-  const recentCliniciansData = await getRecentCliniciansSession(request.headers.get('Cookie'));
+  const recentPatientsData = await getRecentPatientsSession(
+    request.headers.get('Cookie'),
+  );
+  const recentCliniciansData = await getRecentCliniciansSession(
+    request.headers.get('Cookie'),
+  );
   const url = new URL(request.url);
 
   // Parse pagination and sorting parameters for patients
   const page = Math.max(1, parseInt(url.searchParams.get('page') || '1'));
-  const limit = Math.max(1, Math.min(100, parseInt(url.searchParams.get('limit') || defaultPageSize.toString())));
+  const limit = Math.max(
+    1,
+    Math.min(
+      100,
+      parseInt(url.searchParams.get('limit') || defaultPageSize.toString()),
+    ),
+  );
   const offset = (page - 1) * limit;
   const search = url.searchParams.get('search') || undefined;
   const sort = url.searchParams.get('sort') || undefined;
 
   // Parse pagination parameters for clinicians (frontend pagination only)
-  const cliniciansPage = Math.max(1, parseInt(url.searchParams.get('cliniciansPage') || '1'));
-  const cliniciansLimit = Math.max(1, Math.min(100, parseInt(url.searchParams.get('cliniciansLimit') || defaultPageSize.toString())));
-  const cliniciansSearch = url.searchParams.get('cliniciansSearch') || undefined;
+  const cliniciansPage = Math.max(
+    1,
+    parseInt(url.searchParams.get('cliniciansPage') || '1'),
+  );
+  const cliniciansLimit = Math.max(
+    1,
+    Math.min(
+      100,
+      parseInt(
+        url.searchParams.get('cliniciansLimit') || defaultPageSize.toString(),
+      ),
+    ),
+  );
+  const cliniciansSearch =
+    url.searchParams.get('cliniciansSearch') || undefined;
 
   const clinicId = params.clinicId as string;
 
@@ -83,13 +119,17 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     ? recentlyViewed.get('clinics')
     : [];
 
-  const recentPatients: RecentPatient[] = isArray(recentPatientsData.get(`patients-${clinicId}`))
+  const recentPatients: RecentPatient[] = isArray(
+    recentPatientsData.get(`patients-${clinicId}`),
+  )
     ? recentPatientsData.get(`patients-${clinicId}`)
     : [];
 
   let recentClinicians: RecentClinician[] = [];
   try {
-    const recentCliniciansString = recentCliniciansData.get(`recentClinicians-${clinicId}`);
+    const recentCliniciansString = recentCliniciansData.get(
+      `recentClinicians-${clinicId}`,
+    );
     if (recentCliniciansString && typeof recentCliniciansString === 'string') {
       recentClinicians = JSON.parse(recentCliniciansString);
     }
@@ -126,9 +166,14 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 
     // Filter clinicians by search term (frontend search)
     const filteredClinicians = cliniciansSearch
-      ? allClinicians.filter(clinician =>
-          clinician.name?.toLowerCase().includes(cliniciansSearch.toLowerCase()) ||
-          clinician.email?.toLowerCase().includes(cliniciansSearch.toLowerCase())
+      ? allClinicians.filter(
+          (clinician) =>
+            clinician.name
+              ?.toLowerCase()
+              .includes(cliniciansSearch.toLowerCase()) ||
+            clinician.email
+              ?.toLowerCase()
+              .includes(cliniciansSearch.toLowerCase()),
         )
       : allClinicians;
 
@@ -138,7 +183,8 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     // Slice clinicians for current page (frontend pagination)
     const startIndex = (cliniciansPage - 1) * cliniciansLimit;
     const endIndex = startIndex + cliniciansLimit;
-    const clinicians = filteredClinicians.slice(startIndex, endIndex);    if (clinic?.id) {
+    const clinicians = filteredClinicians.slice(startIndex, endIndex);
+    if (clinic?.id) {
       recentClinics.unshift(pick(clinic, ['id', 'shareCode', 'name']));
       recentlyViewed.set(
         'clinics',
@@ -235,65 +281,89 @@ export default function Clinics() {
   const location = useLocation();
 
   // Check if we're on a nested route (like patient or clinician details)
-  const isNestedRoute = location.pathname.includes('/patients/') || location.pathname.includes('/clinicians/');
+  const isNestedRoute =
+    location.pathname.includes('/patients/') ||
+    location.pathname.includes('/clinicians/');
 
-  const handlePageChange = useCallback((page: number) => {
-    const newSearchParams = new URLSearchParams(searchParams);
-    newSearchParams.set('page', page.toString());
-    submit(newSearchParams, { method: 'GET', replace: true });
-  }, [searchParams, submit]);
+  const handlePageChange = useCallback(
+    (page: number) => {
+      const newSearchParams = new URLSearchParams(searchParams);
+      newSearchParams.set('page', page.toString());
+      submit(newSearchParams, { method: 'GET', replace: true });
+    },
+    [searchParams, submit],
+  );
 
-  const handleCliniciansPageChange = useCallback((page: number) => {
-    const newSearchParams = new URLSearchParams(searchParams);
-    newSearchParams.set('cliniciansPage', page.toString());
-    submit(newSearchParams, { method: 'GET', replace: true });
-  }, [searchParams, submit]);
+  const handleCliniciansPageChange = useCallback(
+    (page: number) => {
+      const newSearchParams = new URLSearchParams(searchParams);
+      newSearchParams.set('cliniciansPage', page.toString());
+      submit(newSearchParams, { method: 'GET', replace: true });
+    },
+    [searchParams, submit],
+  );
 
-  const handleSort = useCallback((sort: string) => {
-    const newSearchParams = new URLSearchParams(searchParams);
-    newSearchParams.set('sort', sort);
-    newSearchParams.set('page', '1'); // Reset to first page when sorting
-    submit(newSearchParams, { method: 'GET', replace: true });
-  }, [searchParams, submit]);
+  const handleSort = useCallback(
+    (sort: string) => {
+      const newSearchParams = new URLSearchParams(searchParams);
+      newSearchParams.set('sort', sort);
+      newSearchParams.set('page', '1'); // Reset to first page when sorting
+      submit(newSearchParams, { method: 'GET', replace: true });
+    },
+    [searchParams, submit],
+  );
 
-  const handleSearch = useCallback((search: string) => {
-    const newSearchParams = new URLSearchParams(searchParams);
-    if (search) {
-      newSearchParams.set('search', search);
-    } else {
-      newSearchParams.delete('search');
-    }
-    newSearchParams.set('page', '1'); // Reset to first page when searching
-    submit(newSearchParams, { method: 'GET', replace: true });
-  }, [searchParams, submit]);
+  const handleSearch = useCallback(
+    (search: string) => {
+      const newSearchParams = new URLSearchParams(searchParams);
+      if (search) {
+        newSearchParams.set('search', search);
+      } else {
+        newSearchParams.delete('search');
+      }
+      newSearchParams.set('page', '1'); // Reset to first page when searching
+      submit(newSearchParams, { method: 'GET', replace: true });
+    },
+    [searchParams, submit],
+  );
 
-  const handleCliniciansSearch = useCallback((search: string) => {
-    const newSearchParams = new URLSearchParams(searchParams);
-    if (search) {
-      newSearchParams.set('cliniciansSearch', search);
-    } else {
-      newSearchParams.delete('cliniciansSearch');
-    }
-    newSearchParams.set('cliniciansPage', '1'); // Reset to first page when searching
-    submit(newSearchParams, { method: 'GET', replace: true });
-  }, [searchParams, submit]);
+  const handleCliniciansSearch = useCallback(
+    (search: string) => {
+      const newSearchParams = new URLSearchParams(searchParams);
+      if (search) {
+        newSearchParams.set('cliniciansSearch', search);
+      } else {
+        newSearchParams.delete('cliniciansSearch');
+      }
+      newSearchParams.set('cliniciansPage', '1'); // Reset to first page when searching
+      submit(newSearchParams, { method: 'GET', replace: true });
+    },
+    [searchParams, submit],
+  );
 
-  const handleTierUpdate = useCallback((clinicId: string, newTier: string) => {
-    const formData = new FormData();
-    formData.append('actionType', 'updateTier');
-    formData.append('tier', newTier);
+  const handleTierUpdate = useCallback(
+    (clinicId: string, newTier: string) => {
+      const formData = new FormData();
+      formData.append('actionType', 'updateTier');
+      formData.append('tier', newTier);
 
-    submit(formData, { method: 'post' });
-  }, [submit]);
+      submit(formData, { method: 'post' });
+    },
+    [submit],
+  );
 
   // Check if we're currently submitting a tier update
-  const isSubmitting = navigation.state === 'submitting' &&
+  const isSubmitting =
+    navigation.state === 'submitting' &&
     navigation.formData?.get('actionType') === 'updateTier';
 
   // If we're on a nested route, render the outlet
   if (isNestedRoute) {
     return (
-      <RecentItemsProvider initialPatients={(recentPatients as RecentPatient[]) || []} initialClinicians={(recentClinicians as RecentClinician[]) || []}>
+      <RecentItemsProvider
+        initialPatients={(recentPatients as RecentPatient[]) || []}
+        initialClinicians={(recentClinicians as RecentClinician[]) || []}
+      >
         <div className="flex w-full">
           <Outlet />
         </div>
@@ -303,7 +373,10 @@ export default function Clinics() {
 
   // Otherwise, render the clinic profile
   return (
-    <RecentItemsProvider initialPatients={(recentPatients as RecentPatient[]) || []} initialClinicians={(recentClinicians as RecentClinician[]) || []}>
+    <RecentItemsProvider
+      initialPatients={(recentPatients as RecentPatient[]) || []}
+      initialClinicians={(recentClinicians as RecentClinician[]) || []}
+    >
       <div className="flex w-full">
         {clinic && (
           <ClinicProfile

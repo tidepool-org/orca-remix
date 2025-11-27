@@ -28,17 +28,23 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   const patientId = params.patientId as string;
 
   // We store recently viewed patients in session storage for persistence across browser sessions
-  const recentPatients: RecentPatient[] = isArray(recentlyViewed.get(`patients-${clinicId}`))
+  const recentPatients: RecentPatient[] = isArray(
+    recentlyViewed.get(`patients-${clinicId}`),
+  )
     ? recentlyViewed.get(`patients-${clinicId}`)
     : [];
 
   // Get the specific patient directly
   const patient = await apiRequest(
-    apiRoutes.clinic.getPatient(clinicId, patientId)
+    apiRoutes.clinic.getPatient(clinicId, patientId),
   );
 
   if (patient) {
-    const recentPatient: RecentPatient = pick(patient, ['id', 'fullName', 'email']);
+    const recentPatient: RecentPatient = pick(patient, [
+      'id',
+      'fullName',
+      'email',
+    ]);
     recentPatients.unshift(recentPatient);
     recentlyViewed.set(
       `patients-${clinicId}`,

@@ -10,7 +10,9 @@ type RecentItemsContextType = {
   updateRecentClinicians: (clinicians: RecentClinician[]) => void;
 };
 
-const RecentItemsContext = createContext<RecentItemsContextType | undefined>(undefined);
+const RecentItemsContext = createContext<RecentItemsContextType | undefined>(
+  undefined,
+);
 
 export function useRecentItems() {
   const context = useContext(RecentItemsContext);
@@ -29,24 +31,26 @@ type RecentItemsProviderProps = {
 export function RecentItemsProvider({
   children,
   initialPatients = [],
-  initialClinicians = []
+  initialClinicians = [],
 }: RecentItemsProviderProps) {
-  const [recentPatients, setRecentPatients] = useState<RecentPatient[]>(initialPatients);
-  const [recentClinicians, setRecentClinicians] = useState<RecentClinician[]>(initialClinicians);
+  const [recentPatients, setRecentPatients] =
+    useState<RecentPatient[]>(initialPatients);
+  const [recentClinicians, setRecentClinicians] =
+    useState<RecentClinician[]>(initialClinicians);
 
   const addRecentPatient = useCallback((patient: RecentPatient) => {
-    setRecentPatients(prev => {
+    setRecentPatients((prev) => {
       // Remove existing entry if present
-      const filtered = prev.filter(p => p.id !== patient.id);
+      const filtered = prev.filter((p) => p.id !== patient.id);
       // Add to beginning and keep only last 10
       return [patient, ...filtered].slice(0, 10);
     });
   }, []);
 
   const addRecentClinician = useCallback((clinician: RecentClinician) => {
-    setRecentClinicians(prev => {
+    setRecentClinicians((prev) => {
       // Remove existing entry if present
-      const filtered = prev.filter(c => c.id !== clinician.id);
+      const filtered = prev.filter((c) => c.id !== clinician.id);
       // Add to beginning and keep only last 10
       return [clinician, ...filtered].slice(0, 10);
     });
@@ -56,9 +60,12 @@ export function RecentItemsProvider({
     setRecentPatients(patients);
   }, []);
 
-  const updateRecentClinicians = useCallback((clinicians: RecentClinician[]) => {
-    setRecentClinicians(clinicians);
-  }, []);
+  const updateRecentClinicians = useCallback(
+    (clinicians: RecentClinician[]) => {
+      setRecentClinicians(clinicians);
+    },
+    [],
+  );
 
   return (
     <RecentItemsContext.Provider

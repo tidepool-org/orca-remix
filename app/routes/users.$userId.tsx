@@ -36,7 +36,10 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   const profile: Profile = await results?.[1];
 
   // Fetch clinics if user is a clinician
-  let clinics: Array<{ clinic: { id: string; name: string; }; clinician: { roles: string[] } }> = [];
+  let clinics: Array<{
+    clinic: { id: string; name: string };
+    clinician: { roles: string[] };
+  }> = [];
   let totalClinics = 0;
 
   if (user?.userid && profile?.clinic) {
@@ -45,16 +48,16 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
         apiRoutes.clinic.getClinicsForClinician(user.userid, {
           limit: 1000,
           offset: 0,
-        })
+        }),
       );
 
       // Handle both array response and object with data property
       clinics = Array.isArray(clinicsResponse)
         ? clinicsResponse
-        : (clinicsResponse?.data || []);
+        : clinicsResponse?.data || [];
       totalClinics = Array.isArray(clinicsResponse)
         ? clinicsResponse.length
-        : (clinicsResponse?.meta?.count || clinics.length);
+        : clinicsResponse?.meta?.count || clinics.length;
     } catch (error) {
       console.error('Error fetching clinics for user:', error);
       // Continue without clinics data

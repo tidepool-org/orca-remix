@@ -6,6 +6,8 @@
   "scripts": {
     "build": "react-router build",
     "dev": "node ./server.mjs",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "lint": "eslint --ignore-path .gitignore --cache --cache-location ./node_modules/.cache/eslint .",
     "start": "cross-env NODE_ENV=production node ./server.mjs",
     "typecheck": "react-router typegen && tsc"

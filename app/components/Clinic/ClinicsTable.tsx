@@ -47,14 +47,21 @@ export default function ClinicsTable({
   const [isExpanded, setIsExpanded] = React.useState(false);
 
   // Calculate pagination details
-  const effectivePageSize = pageSize ?? (clinics.length > 0 ? Math.ceil(totalClinics / totalPages) : 25);
-  const firstClinicOnPage = totalClinics > 0 ? (currentPage - 1) * effectivePageSize + 1 : 0;
-  const lastClinicOnPage = Math.min(currentPage * effectivePageSize, totalClinics);
+  const effectivePageSize =
+    pageSize ??
+    (clinics.length > 0 ? Math.ceil(totalClinics / totalPages) : 25);
+  const firstClinicOnPage =
+    totalClinics > 0 ? (currentPage - 1) * effectivePageSize + 1 : 0;
+  const lastClinicOnPage = Math.min(
+    currentPage * effectivePageSize,
+    totalClinics,
+  );
 
   // Generate header text based on expanded state
-  const headerText = isExpanded && totalClinics > 0
-    ? `Clinics (showing ${firstClinicOnPage}-${lastClinicOnPage} of ${totalClinics})`
-    : `Clinics (${totalClinics})`;
+  const headerText =
+    isExpanded && totalClinics > 0
+      ? `Clinics (showing ${firstClinicOnPage}-${lastClinicOnPage} of ${totalClinics})`
+      : `Clinics (${totalClinics})`;
 
   const columns: Column[] = [
     {
@@ -80,7 +87,10 @@ export default function ClinicsTable({
   ];
 
   const renderCell = React.useCallback(
-    (item: { clinic: Clinic; clinician: unknown }, columnKey: keyof Clinic | 'actions') => {
+    (
+      item: { clinic: Clinic; clinician: unknown },
+      columnKey: keyof Clinic | 'actions',
+    ) => {
       const clinic = item.clinic;
 
       switch (columnKey) {
@@ -112,7 +122,7 @@ export default function ClinicsTable({
                       month: 'short',
                       day: 'numeric',
                     },
-                    { locale }
+                    { locale },
                   )
                 : 'N/A'}
             </div>
@@ -133,7 +143,7 @@ export default function ClinicsTable({
           return clinic[columnKey as keyof Clinic];
       }
     },
-    [locale, navigate]
+    [locale, navigate],
   );
 
   const handleToggleExpand = () => {
@@ -153,7 +163,9 @@ export default function ClinicsTable({
       </div>
       <div className="flex items-center gap-2">
         <ChevronDown
-          className={`w-5 h-5 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+          className={`w-5 h-5 transition-transform ${
+            isExpanded ? 'rotate-180' : ''
+          }`}
         />
       </div>
     </button>
@@ -162,7 +174,9 @@ export default function ClinicsTable({
   const EmptyContent = (
     <div className="flex flex-col items-center justify-center py-8">
       <Building2 className="w-12 h-12 text-default-300 mb-4" />
-      <span className="text-default-500">No clinics found for this clinician</span>
+      <span className="text-default-500">
+        No clinics found for this clinician
+      </span>
     </div>
   );
 
@@ -177,7 +191,10 @@ export default function ClinicsTable({
       {TableHeading}
 
       {isExpanded && (
-        <div id="clinics-table-content" className="mt-4 transition-all duration-300">
+        <div
+          id="clinics-table-content"
+          className="mt-4 transition-all duration-300"
+        >
           <Table
             aria-label="Clinics table"
             classNames={{

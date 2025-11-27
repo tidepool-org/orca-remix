@@ -1,4 +1,8 @@
-import { redirect, type LoaderFunctionArgs, type MetaFunction } from 'react-router';
+import {
+  redirect,
+  type LoaderFunctionArgs,
+  type MetaFunction,
+} from 'react-router';
 
 import ClinicLookup from '~/components/Clinic/ClinicLookup';
 import RecentClinics from '~/components/Clinic/RecentClinics';
@@ -29,7 +33,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   if (search) {
     // Share code format: XXXX-XXXX-XXXX (uppercase letters and numbers, no vowels or 0/1)
-    const shareCodePattern = /^[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{4}-[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{4}-[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{4}$/;
+    const shareCodePattern =
+      /^[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{4}-[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{4}-[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{4}$/;
     const isShareCode = shareCodePattern.test(search);
 
     const apiRoute = isShareCode

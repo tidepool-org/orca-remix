@@ -21,25 +21,51 @@ export type PatientProfileProps = {
   };
 };
 
-export default function PatientProfile({ patient, clinic }: PatientProfileProps) {
-  const { id, fullName, email, birthDate, mrn, createdTime, updatedTime, tags, permissions } = patient;
+export default function PatientProfile({
+  patient,
+  clinic,
+}: PatientProfileProps) {
+  const {
+    id,
+    fullName,
+    email,
+    birthDate,
+    mrn,
+    createdTime,
+    updatedTime,
+    tags,
+    permissions,
+  } = patient;
   const { locale } = useLocale();
 
   // Try to get clinic data from parent route if not provided as prop
-  const parentRouteData = useRouteLoaderData('routes/clinics.$clinicId') as { clinic?: { patientTags?: { id: string; name: string; }[]; sites?: { id: string; name: string; }[]; } } | undefined;
+  const parentRouteData = useRouteLoaderData('routes/clinics.$clinicId') as
+    | {
+        clinic?: {
+          patientTags?: { id: string; name: string }[];
+          sites?: { id: string; name: string }[];
+        };
+      }
+    | undefined;
   const clinicData = clinic || parentRouteData?.clinic;
 
   // Helper function to map tag ID to tag name
-  const getTagName = useCallback((tagId: string): string => {
-    const tag = clinicData?.patientTags?.find(t => t.id === tagId);
-    return tag?.name || tagId; // Fallback to ID if name not found
-  }, [clinicData?.patientTags]);
+  const getTagName = useCallback(
+    (tagId: string): string => {
+      const tag = clinicData?.patientTags?.find((t) => t.id === tagId);
+      return tag?.name || tagId; // Fallback to ID if name not found
+    },
+    [clinicData?.patientTags],
+  );
 
   // Helper function to map site ID to site name
-  const getSiteName = useCallback((siteId: string): string => {
-    const site = clinicData?.sites?.find(s => s.id === siteId);
-    return site?.name || siteId; // Fallback to ID if name not found
-  }, [clinicData?.sites]);
+  const getSiteName = useCallback(
+    (siteId: string): string => {
+      const site = clinicData?.sites?.find((s) => s.id === siteId);
+      return site?.name || siteId; // Fallback to ID if name not found
+    },
+    [clinicData?.sites],
+  );
 
   const patientDetails: Array<{
     label: string;
@@ -68,7 +94,7 @@ export default function PatientProfile({ patient, clinic }: PatientProfileProps)
         ? intlFormat(
             new Date(birthDate),
             { year: 'numeric', month: 'long', day: 'numeric' },
-            { locale }
+            { locale },
           )
         : '—',
       copy: false,
@@ -78,7 +104,7 @@ export default function PatientProfile({ patient, clinic }: PatientProfileProps)
       value: intlFormat(
         new Date(createdTime),
         { year: 'numeric', month: 'long', day: 'numeric' },
-        { locale }
+        { locale },
       ),
       copy: false,
     },
@@ -87,7 +113,7 @@ export default function PatientProfile({ patient, clinic }: PatientProfileProps)
       value: intlFormat(
         new Date(updatedTime),
         { year: 'numeric', month: 'long', day: 'numeric' },
-        { locale }
+        { locale },
       ),
       copy: false,
     },

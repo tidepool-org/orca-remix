@@ -83,9 +83,9 @@
   }
   @font-face {
     font-family: 'Basis Mono';
-    src: url('../fonts/basis/basis-grotesque-mono-bold-italic.woff') format('woff');
+    src: url('../fonts/basis/basis-grotesque-mono-bold-italic.woff')
+      format('woff');
     font-style: italic;
     font-weight: 700;
   }
 }
-

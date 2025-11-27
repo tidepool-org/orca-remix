@@ -28,28 +28,29 @@ export default function UserMenu() {
   }, [agent?.picture]);
 
   // Memoize the Avatar component to only re-render when avatarSrc changes
-  const memoizedAvatar = useMemo(() => (
-    <Avatar
-      isBordered
-      showFallback
-      as="button"
-      className="transition-transform"
-      color="primary"
-      size="sm"
-      src={avatarSrc}
-      // Add loading strategy to prevent excessive requests
-      imgProps={{
-        loading: 'lazy',
-        referrerPolicy: 'no-referrer',
-      }}
-    />
-  ), [avatarSrc]);
+  const memoizedAvatar = useMemo(
+    () => (
+      <Avatar
+        isBordered
+        showFallback
+        as="button"
+        className="transition-transform"
+        color="primary"
+        size="sm"
+        src={avatarSrc}
+        // Add loading strategy to prevent excessive requests
+        imgProps={{
+          loading: 'lazy',
+          referrerPolicy: 'no-referrer',
+        }}
+      />
+    ),
+    [avatarSrc],
+  );
 
   return (
     <Dropdown placement="bottom-end">
-      <DropdownTrigger>
-        {memoizedAvatar}
-      </DropdownTrigger>
+      <DropdownTrigger>{memoizedAvatar}</DropdownTrigger>
       <DropdownMenu aria-label="Profile Actions" variant="flat">
         <DropdownItem key="profile" className="h-14 gap-2">
           <p>Signed in as</p>

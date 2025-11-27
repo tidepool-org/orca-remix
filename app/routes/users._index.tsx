@@ -1,4 +1,8 @@
-import { redirect, type LoaderFunctionArgs, type MetaFunction } from 'react-router';
+import {
+  redirect,
+  type LoaderFunctionArgs,
+  type MetaFunction,
+} from 'react-router';
 
 import UserLookup from '~/components/User/UserLookup';
 import RecentUsers from '~/components/User/RecentUsers';

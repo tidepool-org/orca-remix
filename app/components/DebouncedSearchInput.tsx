@@ -18,19 +18,25 @@ export default function DebouncedSearchInput({
   const [localValue, setLocalValue] = useState(value);
   const timeoutRef = useRef<NodeJS.Timeout>();
 
-  const debouncedSearch = useCallback((searchValue: string) => {
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-    }
-    timeoutRef.current = setTimeout(() => {
-      onSearch(searchValue);
-    }, debounceMs);
-  }, [onSearch, debounceMs]);
+  const debouncedSearch = useCallback(
+    (searchValue: string) => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+      timeoutRef.current = setTimeout(() => {
+        onSearch(searchValue);
+      }, debounceMs);
+    },
+    [onSearch, debounceMs],
+  );
 
-  const handleChange = useCallback((newValue: string) => {
-    setLocalValue(newValue);
-    debouncedSearch(newValue);
-  }, [debouncedSearch]);
+  const handleChange = useCallback(
+    (newValue: string) => {
+      setLocalValue(newValue);
+      debouncedSearch(newValue);
+    },
+    [debouncedSearch],
+  );
 
   // Update local value when prop changes (e.g., from URL params)
   useEffect(() => {

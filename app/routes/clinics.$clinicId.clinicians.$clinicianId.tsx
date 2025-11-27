@@ -17,7 +17,7 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
   try {
     // Get the specific clinician directly
     const clinician = await apiRequest(
-      apiRoutes.clinic.getClinician(clinicId, clinicianId)
+      apiRoutes.clinic.getClinician(clinicId, clinicianId),
     );
 
     if (!clinician) {
@@ -26,21 +26,28 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
 
     // Get clinics for this clinician
     const clinicsResponse = await apiRequest(
-      apiRoutes.clinic.getClinicsForClinician(clinicianId, { limit: 1000, offset: 0 })
+      apiRoutes.clinic.getClinicsForClinician(clinicianId, {
+        limit: 1000,
+        offset: 0,
+      }),
     );
 
     // Handle both array response and object with data property
     const clinics = Array.isArray(clinicsResponse)
       ? clinicsResponse
-      : (clinicsResponse?.data || []);
+      : clinicsResponse?.data || [];
     const totalClinics = Array.isArray(clinicsResponse)
       ? clinicsResponse.length
-      : (clinicsResponse?.meta?.count || clinics.length);
+      : clinicsResponse?.meta?.count || clinics.length;
 
     // Update recent clinicians session
     const { getSession, commitSession } = cliniciansSession;
-    const cliniciansSessionData = await getSession(request.headers.get('Cookie'));
-    const recentCliniciansData = cliniciansSessionData.get(`recentClinicians-${clinicId}`);
+    const cliniciansSessionData = await getSession(
+      request.headers.get('Cookie'),
+    );
+    const recentCliniciansData = cliniciansSessionData.get(
+      `recentClinicians-${clinicId}`,
+    );
     let recentClinicians: RecentClinician[] = [];
 
     if (recentCliniciansData && typeof recentCliniciansData === 'string') {
@@ -61,14 +68,17 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
     };
 
     // Remove existing entry if present
-    recentClinicians = recentClinicians.filter(c => c.id !== clinician.id);
+    recentClinicians = recentClinicians.filter((c) => c.id !== clinician.id);
     // Add to beginning of array
     recentClinicians.unshift(recentClinician);
     // Keep only last 10
     recentClinicians = recentClinicians.slice(0, 10);
 
     // Update session
-    cliniciansSessionData.set(`recentClinicians-${clinicId}`, JSON.stringify(recentClinicians));
+    cliniciansSessionData.set(
+      `recentClinicians-${clinicId}`,
+      JSON.stringify(recentClinicians),
+    );
 
     return Response.json(
       { clinician, recentClinicians, clinics, totalClinics },
@@ -76,7 +86,7 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
         headers: {
           'Set-Cookie': await commitSession(cliniciansSessionData),
         },
-      }
+      },
     );
   } catch (error) {
     console.error('Error loading clinician:', error);

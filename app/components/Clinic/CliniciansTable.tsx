@@ -52,14 +52,21 @@ export default function CliniciansTable({
   const [isExpanded, setIsExpanded] = React.useState(false);
 
   // Calculate pagination details
-  const effectivePageSize = pageSize ?? (clinicians.length > 0 ? Math.ceil(totalClinicians / totalPages) : 25);
-  const firstClinicianOnPage = totalClinicians > 0 ? (currentPage - 1) * effectivePageSize + 1 : 0;
-  const lastClinicianOnPage = Math.min(currentPage * effectivePageSize, totalClinicians);
+  const effectivePageSize =
+    pageSize ??
+    (clinicians.length > 0 ? Math.ceil(totalClinicians / totalPages) : 25);
+  const firstClinicianOnPage =
+    totalClinicians > 0 ? (currentPage - 1) * effectivePageSize + 1 : 0;
+  const lastClinicianOnPage = Math.min(
+    currentPage * effectivePageSize,
+    totalClinicians,
+  );
 
   // Generate header text based on expanded state
-  const headerText = isExpanded && totalClinicians > 0
-    ? `Clinicians (showing ${firstClinicianOnPage}-${lastClinicianOnPage} of ${totalClinicians})`
-    : `Clinicians (${totalClinicians})`;
+  const headerText =
+    isExpanded && totalClinicians > 0
+      ? `Clinicians (showing ${firstClinicianOnPage}-${lastClinicianOnPage} of ${totalClinicians})`
+      : `Clinicians (${totalClinicians})`;
 
   const columns: Column[] = [
     {
@@ -104,17 +111,20 @@ export default function CliniciansTable({
             </div>
           );
         case 'email':
-          return (
-            <p className="text-sm text-default-600">{cellValue}</p>
-          );
+          return <p className="text-sm text-default-600">{cellValue}</p>;
         case 'roles': {
           // Handle roles array - display the first role or join them
           const rolesArray = cellValue as string[];
-          const primaryRole = rolesArray && rolesArray.length > 0 ? rolesArray[0] : 'Unknown';
+          const primaryRole =
+            rolesArray && rolesArray.length > 0 ? rolesArray[0] : 'Unknown';
           return (
             <Chip
               className="capitalize"
-              color={primaryRole.toLowerCase().includes('admin') ? 'primary' : 'default'}
+              color={
+                primaryRole.toLowerCase().includes('admin')
+                  ? 'primary'
+                  : 'default'
+              }
               size="sm"
               variant="flat"
             >
@@ -132,7 +142,7 @@ export default function CliniciansTable({
                   month: 'short',
                   day: 'numeric',
                 },
-                { locale }
+                { locale },
               )}
             </p>
           );
@@ -144,7 +154,9 @@ export default function CliniciansTable({
                 variant="light"
                 onPress={() => {
                   // Navigate to clinician profile page
-                  navigate(`/clinics/${params.clinicId}/clinicians/${clinician.id}`);
+                  navigate(
+                    `/clinics/${params.clinicId}/clinicians/${clinician.id}`,
+                  );
                 }}
               >
                 View
@@ -155,7 +167,7 @@ export default function CliniciansTable({
           return cellValue;
       }
     },
-    [locale, navigate, params.clinicId]
+    [locale, navigate, params.clinicId],
   );
 
   const TableHeading = (
@@ -171,7 +183,9 @@ export default function CliniciansTable({
       </div>
       <div className="flex items-center gap-2">
         <ChevronDown
-          className={`w-5 h-5 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+          className={`w-5 h-5 transition-transform ${
+            isExpanded ? 'rotate-180' : ''
+          }`}
         />
       </div>
     </button>
@@ -180,7 +194,9 @@ export default function CliniciansTable({
   const EmptyContent = (
     <div className="flex flex-col items-center justify-center py-8">
       <UserCheck className="w-12 h-12 text-default-300 mb-4" />
-      <span className="text-default-500">No clinicians found for this clinic</span>
+      <span className="text-default-500">
+        No clinicians found for this clinic
+      </span>
     </div>
   );
 
@@ -195,7 +211,10 @@ export default function CliniciansTable({
       {TableHeading}
 
       {isExpanded && (
-        <div id="clinicians-table-content" className="mt-4 transition-all duration-300">
+        <div
+          id="clinicians-table-content"
+          className="mt-4 transition-all duration-300"
+        >
           {/* Search Controls */}
           <div className="flex justify-start mb-4 p-4 bg-content1 rounded-lg">
             <DebouncedSearchInput
@@ -217,10 +236,7 @@ export default function CliniciansTable({
           >
             <TableHeader columns={columns}>
               {(column) => (
-                <TableColumn
-                  key={column.key}
-                  className="text-left"
-                >
+                <TableColumn key={column.key} className="text-left">
                   {column.label}
                 </TableColumn>
               )}
@@ -233,7 +249,12 @@ export default function CliniciansTable({
               {clinicians.map((clinician) => (
                 <TableRow key={clinician.id}>
                   {(columnKey) => (
-                    <TableCell>{renderCell(clinician, columnKey as keyof Clinician | 'actions')}</TableCell>
+                    <TableCell>
+                      {renderCell(
+                        clinician,
+                        columnKey as keyof Clinician | 'actions',
+                      )}
+                    </TableCell>
                   )}
                 </TableRow>
               ))}

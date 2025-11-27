@@ -9,11 +9,19 @@ import ClipboardButton from '../ClipboardButton';
 export type UserProfileProps = {
   user: User;
   profile: Profile;
-  clinics?: Array<{ clinic: { id: string; name: string; }; clinician: { roles: string[] } }>;
+  clinics?: Array<{
+    clinic: { id: string; name: string };
+    clinician: { roles: string[] };
+  }>;
   totalClinics?: number;
 };
 
-export default function UserProfile({ user, profile, clinics = [], totalClinics = 0 }: UserProfileProps) {
+export default function UserProfile({
+  user,
+  profile,
+  clinics = [],
+  totalClinics = 0,
+}: UserProfileProps) {
   const { emailVerified, userid: userId, username, termsAccepted } = user;
   const { fullName, clinic } = profile;
   const { locale } = useLocale();

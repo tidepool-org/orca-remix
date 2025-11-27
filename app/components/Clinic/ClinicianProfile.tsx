@@ -9,7 +9,10 @@ import type { Clinician } from './types';
 export type ClinicianProfileProps = {
   clinician: Clinician | null;
   isLoading?: boolean;
-  clinics?: Array<{ clinic: { id: string; name: string; }; clinician: { roles: string[] } }>;
+  clinics?: Array<{
+    clinic: { id: string; name: string };
+    clinician: { roles: string[] };
+  }>;
   totalClinics?: number;
   clinicsLoading?: boolean;
 };
@@ -56,7 +59,7 @@ export default function ClinicianProfile({
         hour: 'numeric',
         minute: '2-digit',
       },
-      { locale }
+      { locale },
     );
   };
 

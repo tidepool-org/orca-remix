@@ -47,7 +47,9 @@ export default function RecentClinicians() {
     </div>
   );
 
-  const EmptyContent = <span>There are no recently viewed clinicians to show</span>;
+  const EmptyContent = (
+    <span>There are no recently viewed clinicians to show</span>
+  );
 
   return (
     <Table
@@ -68,7 +70,9 @@ export default function RecentClinicians() {
       <TableBody emptyContent={EmptyContent} items={clinicians}>
         {(item) => (
           <TableRow key={item.id}>
-            {(columnKey) => <TableCell>{getKeyValue(item, columnKey)}</TableCell>}
+            {(columnKey) => (
+              <TableCell>{getKeyValue(item, columnKey)}</TableCell>
+            )}
           </TableRow>
         )}
       </TableBody>
