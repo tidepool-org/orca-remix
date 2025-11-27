@@ -45,7 +45,7 @@ export type PatientsTableProps = {
 };
 
 type Column = {
-  key: keyof Patient | 'actions';
+  key: keyof Patient;
   label: string;
   sortable?: boolean;
 };
@@ -156,11 +156,6 @@ export default function PatientsTable({
       label: 'Added',
       sortable: false,
     },
-    {
-      key: 'actions',
-      label: 'Actions',
-      sortable: false,
-    },
   ];
 
   const handleSortChange = (descriptor: SortDescriptor) => {
@@ -173,7 +168,7 @@ export default function PatientsTable({
   };
 
   const renderCell = React.useCallback(
-    (patient: Patient, columnKey: keyof Patient | 'actions') => {
+    (patient: Patient, columnKey: keyof Patient) => {
       switch (columnKey) {
         case 'fullName':
           return (
@@ -314,24 +309,6 @@ export default function PatientsTable({
               )}
             </p>
           );
-        case 'actions':
-          return (
-            <div className="relative flex items-center gap-2">
-              <Button
-                size="sm"
-                variant="light"
-                onPress={() => {
-                  // Navigate to patient profile page
-                  navigate(
-                    `/clinics/${params.clinicId}/patients/${patient.id}`,
-                  );
-                }}
-                aria-label={`View patient ${patient.fullName}`}
-              >
-                View User
-              </Button>
-            </div>
-          );
         default:
           return null;
       }
@@ -410,10 +387,16 @@ export default function PatientsTable({
             className="flex flex-1 flex-col text-content1-foreground gap-4"
             shadow="none"
             removeWrapper
+            selectionMode="single"
+            onSelectionChange={(keys) => {
+              const key = keys instanceof Set ? Array.from(keys)[0] : keys;
+              if (key) navigate(`/clinics/${params.clinicId}/patients/${key}`);
+            }}
             sortDescriptor={sortDescriptor}
             onSortChange={handleSortChange}
             classNames={{
               th: 'bg-content1',
+              tr: 'data-[hover=true]:cursor-pointer',
             }}
           >
             <TableHeader columns={columns}>
@@ -439,10 +422,7 @@ export default function PatientsTable({
                 <TableRow key={patient.id}>
                   {(columnKey) => (
                     <TableCell>
-                      {renderCell(
-                        patient,
-                        columnKey as keyof Patient | 'actions',
-                      )}
+                      {renderCell(patient, columnKey as keyof Patient)}
                     </TableCell>
                   )}
                 </TableRow>

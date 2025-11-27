@@ -28,7 +28,7 @@ export type ClinicsTableProps = {
 };
 
 type Column = {
-  key: keyof Clinic | 'actions';
+  key: keyof Clinic;
   label: string;
   sortable?: boolean;
 };
@@ -79,15 +79,10 @@ export default function ClinicsTable({
       label: 'Created',
       sortable: false,
     },
-    {
-      key: 'actions',
-      label: 'Actions',
-      sortable: false,
-    },
   ];
 
   const renderCell = React.useCallback(
-    (item: ClinicianClinicMembership, columnKey: keyof Clinic | 'actions') => {
+    (item: ClinicianClinicMembership, columnKey: keyof Clinic) => {
       const clinic = item.clinic;
 
       switch (columnKey) {
@@ -122,19 +117,6 @@ export default function ClinicsTable({
                     { locale },
                   )
                 : 'N/A'}
-            </div>
-          );
-        case 'actions':
-          return (
-            <div className="relative flex items-center gap-2">
-              <Button
-                size="sm"
-                variant="light"
-                onPress={() => navigate(`/clinics/${clinic.id}`)}
-                aria-label={`View clinic ${clinic.name}`}
-              >
-                View Clinic
-              </Button>
             </div>
           );
         default:
@@ -195,18 +177,19 @@ export default function ClinicsTable({
         >
           <Table
             aria-label="Clinics table"
+            selectionMode="single"
+            onSelectionChange={(keys) => {
+              const key = keys instanceof Set ? Array.from(keys)[0] : keys;
+              if (key) navigate(`/clinics/${key}`);
+            }}
             classNames={{
               wrapper: 'min-h-[200px]',
+              tr: 'data-[hover=true]:cursor-pointer',
             }}
           >
             <TableHeader columns={columns}>
               {(column) => (
-                <TableColumn
-                  key={column.key}
-                  align={column.key === 'actions' ? 'center' : 'start'}
-                >
-                  {column.label}
-                </TableColumn>
+                <TableColumn key={column.key}>{column.label}</TableColumn>
               )}
             </TableHeader>
             <TableBody
@@ -218,7 +201,7 @@ export default function ClinicsTable({
                 <TableRow key={item.clinic?.id || Math.random()}>
                   {(columnKey) => (
                     <TableCell>
-                      {renderCell(item, columnKey as keyof Clinic | 'actions')}
+                      {renderCell(item, columnKey as keyof Clinic)}
                     </TableCell>
                   )}
                 </TableRow>

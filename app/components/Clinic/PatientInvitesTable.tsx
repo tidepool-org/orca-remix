@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router';
 import {
   Table,
   TableHeader,
@@ -53,6 +54,7 @@ export default function PatientInvitesTable({
   onPageChange,
 }: PatientInvitesTableProps) {
   const { locale } = useLocale();
+  const navigate = useNavigate();
   const [sortDescriptor, setSortDescriptor] = React.useState<SortDescriptor>({
     column: 'created',
     direction: 'descending',
@@ -196,8 +198,19 @@ export default function PatientInvitesTable({
             className="flex flex-1 flex-col text-content1-foreground gap-4"
             shadow="none"
             removeWrapper
+            selectionMode="single"
+            onSelectionChange={(keys) => {
+              const invite = pendingInvites.find(
+                (inv) =>
+                  inv.key ===
+                  (keys instanceof Set ? Array.from(keys)[0] : keys),
+              );
+              if (invite?.creator?.userid)
+                navigate(`/users/${invite.creator.userid}`);
+            }}
             classNames={{
               th: 'bg-content1',
+              tr: 'data-[hover=true]:cursor-pointer',
             }}
           >
             <TableHeader columns={columns}>

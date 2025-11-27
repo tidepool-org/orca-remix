@@ -30,7 +30,7 @@ export type CliniciansTableProps = {
 };
 
 type Column = {
-  key: keyof Clinician | 'actions';
+  key: keyof Clinician;
   label: string;
   sortable?: boolean;
 };
@@ -89,15 +89,10 @@ export default function CliniciansTable({
       label: 'Added',
       sortable: false,
     },
-    {
-      key: 'actions',
-      label: 'Actions',
-      sortable: false,
-    },
   ];
 
   const renderCell = React.useCallback(
-    (clinician: Clinician, columnKey: keyof Clinician | 'actions') => {
+    (clinician: Clinician, columnKey: keyof Clinician) => {
       const cellValue = clinician[columnKey as keyof Clinician];
 
       switch (columnKey) {
@@ -145,23 +140,6 @@ export default function CliniciansTable({
                 { locale },
               )}
             </p>
-          );
-        case 'actions':
-          return (
-            <div className="relative flex items-center gap-2">
-              <Button
-                size="sm"
-                variant="light"
-                onPress={() => {
-                  // Navigate to clinician profile page
-                  navigate(
-                    `/clinics/${params.clinicId}/clinicians/${clinician.id}`,
-                  );
-                }}
-              >
-                View
-              </Button>
-            </div>
           );
         default:
           return cellValue;
@@ -230,8 +208,15 @@ export default function CliniciansTable({
             className="flex flex-1 flex-col text-content1-foreground gap-4"
             shadow="none"
             removeWrapper
+            selectionMode="single"
+            onSelectionChange={(keys) => {
+              const key = keys instanceof Set ? Array.from(keys)[0] : keys;
+              if (key)
+                navigate(`/clinics/${params.clinicId}/clinicians/${key}`);
+            }}
             classNames={{
               th: 'bg-content1',
+              tr: 'data-[hover=true]:cursor-pointer',
             }}
           >
             <TableHeader columns={columns}>
@@ -250,10 +235,7 @@ export default function CliniciansTable({
                 <TableRow key={clinician.id}>
                   {(columnKey) => (
                     <TableCell>
-                      {renderCell(
-                        clinician,
-                        columnKey as keyof Clinician | 'actions',
-                      )}
+                      {renderCell(clinician, columnKey as keyof Clinician)}
                     </TableCell>
                   )}
                 </TableRow>
