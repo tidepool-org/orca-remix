@@ -186,7 +186,7 @@ export default function PatientProfile({
   return (
     <div className="flex flex-col gap-8 w-full">
       <Well>
-        <p className="text-xl">{fullName}</p>
+        <h1 className="text-xl">{fullName}</h1>
         <div className="text-sm">
           {patientDetails.map(({ label, value, copy, component }) => (
             <div

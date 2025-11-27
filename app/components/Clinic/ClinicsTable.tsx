@@ -131,6 +131,7 @@ export default function ClinicsTable({
                 size="sm"
                 variant="light"
                 onPress={() => navigate(`/clinics/${clinic.id}`)}
+                aria-label={`View clinic ${clinic.name}`}
               >
                 View Clinic
               </Button>
@@ -179,7 +180,7 @@ export default function ClinicsTable({
 
   const LoadingContent = (
     <div className="flex justify-center py-8">
-      <Spinner size="lg" />
+      <Spinner size="lg" label="Loading clinics..." />
     </div>
   );
 

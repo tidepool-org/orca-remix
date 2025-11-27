@@ -108,7 +108,7 @@ export default function ClinicianProfile({
   return (
     <div className="flex flex-col gap-8 w-full">
       <Well>
-        <p className="text-xl">{clinician.name}</p>
+        <h1 className="text-xl">{name}</h1>
 
         <div className="text-sm">
           {clinicianDetails.map(({ label, value, copy, component }, i) => (

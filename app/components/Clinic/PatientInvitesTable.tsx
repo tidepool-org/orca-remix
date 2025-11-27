@@ -178,7 +178,7 @@ export default function PatientInvitesTable({
 
   const LoadingContent = (
     <div className="flex justify-center py-8">
-      <Spinner size="lg" />
+      <Spinner size="lg" label="Loading patient invites..." />
     </div>
   );
 

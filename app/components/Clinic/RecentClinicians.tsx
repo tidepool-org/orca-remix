@@ -11,6 +11,7 @@ import {
 import { History } from 'lucide-react';
 import { useRecentItems } from './RecentItemsContext';
 import Well from '~/partials/Well';
+import SectionHeader from '~/components/SectionHeader';
 import type { RecentClinician } from './types';
 
 export type RecentCliniciansProps = {

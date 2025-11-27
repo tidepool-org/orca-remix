@@ -326,6 +326,7 @@ export default function PatientsTable({
                     `/clinics/${params.clinicId}/patients/${patient.id}`,
                   );
                 }}
+                aria-label={`View patient ${patient.fullName}`}
               >
                 View User
               </Button>
@@ -381,7 +382,7 @@ export default function PatientsTable({
 
   const LoadingContent = (
     <div className="flex justify-center py-8">
-      <Spinner size="lg" />
+      <Spinner size="lg" label="Loading patients..." />
     </div>
   );
 

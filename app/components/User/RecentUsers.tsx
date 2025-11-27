@@ -11,6 +11,7 @@ import {
 import { History } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import Well from '~/partials/Well';
+import SectionHeader from '~/components/SectionHeader';
 
 import type { RecentUser } from './types';
 
@@ -38,13 +39,14 @@ export default function RecentUsers({ rows }: RecentUsersProps) {
   };
 
   const TableHeading = (
-    <div className="flex gap-2">
-      <History />
-      <h2 className="text-lg font-semibold">Recently Viewed Users</h2>
-    </div>
+    <SectionHeader icon={History} title="Recently Viewed Users" />
   );
 
-  const EmptyContent = <span>There are no recently viewed users to show</span>;
+  const EmptyContent = (
+    <p className="text-center text-default-400 py-4">
+      There are no recently viewed users to show
+    </p>
+  );
 
   return (
     <Well className="bg-transparent">

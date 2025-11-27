@@ -147,6 +147,7 @@ export default function ClinicProfile({
                 variant="light"
                 onPress={handleCancelEdit}
                 isDisabled={isSubmitting}
+                aria-label="Cancel tier edit"
               >
                 <X size={14} />
               </Button>
@@ -159,6 +160,7 @@ export default function ClinicProfile({
                 size="sm"
                 variant="light"
                 onPress={() => setIsEditingTier(true)}
+                aria-label="Edit clinic tier"
               >
                 <Edit2 size={14} />
               </Button>
@@ -185,7 +187,7 @@ export default function ClinicProfile({
   return (
     <div className="flex flex-col gap-8 w-full">
       <Well>
-        <p className="text-xl">{name}</p>
+        <h1 className="text-xl">{name}</h1>
 
         <div className="text-sm">
           {clinicDetails.map(({ label, value, copy, component }, i) => (

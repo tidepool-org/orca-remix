@@ -59,7 +59,7 @@ export default function UserProfile({
   return (
     <div className="flex flex-col gap-8 w-full">
       <Well>
-        <p className="text-xl">{fullName}</p>
+        <h1 className="text-xl">{fullName}</h1>
 
         <div className="text-small">
           {userDetails.map(({ label, value, copy }, i) => (

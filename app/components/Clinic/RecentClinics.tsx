@@ -11,6 +11,7 @@ import {
 import { History } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import Well from '~/partials/Well';
+import SectionHeader from '~/components/SectionHeader';
 
 import type { RecentClinic } from './types';
 
@@ -38,14 +39,13 @@ export default function RecentClinics({ rows }: UserProfileProps) {
   };
 
   const TableHeading = (
-    <div className="flex gap-2">
-      <History />
-      <h2 className="text-lg font-semibold">Recently Viewed Clinics</h2>
-    </div>
+    <SectionHeader icon={History} title="Recently Viewed Clinics" />
   );
 
   const EmptyContent = (
-    <span>There are no recently viewed clinics to show</span>
+    <p className="text-center text-default-400 py-4">
+      There are no recently viewed clinics to show
+    </p>
   );
 
   return (

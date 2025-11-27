@@ -51,6 +51,7 @@ export default function ToastContainer() {
             size="sm"
             variant="light"
             onPress={() => hideToast(toast.id)}
+            aria-label="Close notification"
           >
             <X className="w-4 h-4" />
           </Button>
