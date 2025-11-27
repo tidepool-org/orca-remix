@@ -4,15 +4,12 @@ import useLocale from '~/hooks/useLocale';
 import Well from '~/partials/Well';
 import ClipboardButton from '../ClipboardButton';
 import ClinicsTable from './ClinicsTable';
-import type { Clinician } from './types';
+import type { Clinician, ClinicianClinicMembership } from './types';
 
 export type ClinicianProfileProps = {
   clinician: Clinician | null;
   isLoading?: boolean;
-  clinics?: Array<{
-    clinic: { id: string; name: string };
-    clinician: { roles: string[] };
-  }>;
+  clinics?: ClinicianClinicMembership[];
   totalClinics?: number;
   clinicsLoading?: boolean;
 };

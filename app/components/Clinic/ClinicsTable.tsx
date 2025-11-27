@@ -15,10 +15,10 @@ import {
 import { Building2, ChevronDown } from 'lucide-react';
 import { intlFormat } from 'date-fns';
 import useLocale from '~/hooks/useLocale';
-import type { Clinic } from './types';
+import type { Clinic, ClinicianClinicMembership } from './types';
 
 export type ClinicsTableProps = {
-  clinics: Clinic[];
+  clinics: ClinicianClinicMembership[];
   totalClinics: number;
   isLoading?: boolean;
   totalPages?: number;
@@ -87,10 +87,7 @@ export default function ClinicsTable({
   ];
 
   const renderCell = React.useCallback(
-    (
-      item: { clinic: Clinic; clinician: unknown },
-      columnKey: keyof Clinic | 'actions',
-    ) => {
+    (item: ClinicianClinicMembership, columnKey: keyof Clinic | 'actions') => {
       const clinic = item.clinic;
 
       switch (columnKey) {

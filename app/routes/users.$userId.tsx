@@ -2,6 +2,7 @@ import { type LoaderFunctionArgs, type MetaFunction } from 'react-router';
 
 import UserProfile from '~/components/User/UserProfile';
 import type { User, Profile, RecentUser } from '~/components/User/types';
+import type { ClinicianClinicMembership } from '~/components/Clinic/types';
 import { apiRequest, apiRequests, apiRoutes } from '~/api.server';
 import { usersSession } from '~/sessions.server';
 import { useLoaderData } from 'react-router';
@@ -36,10 +37,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   const profile: Profile = await results?.[1];
 
   // Fetch clinics if user is a clinician
-  let clinics: Array<{
-    clinic: { id: string; name: string };
-    clinician: { roles: string[] };
-  }> = [];
+  let clinics: ClinicianClinicMembership[] = [];
   let totalClinics = 0;
 
   if (user?.userid && profile?.clinic) {

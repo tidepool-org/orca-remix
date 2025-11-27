@@ -32,8 +32,9 @@ export default function RecentClinics({ rows }: UserProfileProps) {
     },
   ];
 
-  const handleSelection = (e) => {
-    navigate(`/clinics/${e.currentKey}`);
+  const handleSelection = (e: React.Key | Set<React.Key>) => {
+    const key = e instanceof Set ? Array.from(e)[0] : e;
+    navigate(`/clinics/${key}`);
   };
 
   const TableHeading = (

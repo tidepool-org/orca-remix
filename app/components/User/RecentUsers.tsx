@@ -32,8 +32,9 @@ export default function RecentUsers({ rows }: RecentUsersProps) {
     },
   ];
 
-  const handleSelection = (e) => {
-    navigate(`/users/${e.currentKey}`);
+  const handleSelection = (e: React.Key | Set<React.Key>) => {
+    const key = e instanceof Set ? Array.from(e)[0] : e;
+    navigate(`/users/${key}`);
   };
 
   const TableHeading = (

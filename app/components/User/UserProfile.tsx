@@ -1,6 +1,7 @@
 import Well from '~/partials/Well';
 import { intlFormat } from 'date-fns';
 import ClinicsTable from '../Clinic/ClinicsTable';
+import type { ClinicianClinicMembership } from '../Clinic/types';
 
 import type { User, Profile } from './types';
 import useLocale from '~/hooks/useLocale';
@@ -9,10 +10,7 @@ import ClipboardButton from '../ClipboardButton';
 export type UserProfileProps = {
   user: User;
   profile: Profile;
-  clinics?: Array<{
-    clinic: { id: string; name: string };
-    clinician: { roles: string[] };
-  }>;
+  clinics?: ClinicianClinicMembership[];
   totalClinics?: number;
 };
 

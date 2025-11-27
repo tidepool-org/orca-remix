@@ -116,3 +116,12 @@ export type RecentClinician = Pick<
 };
 
 export type RecentPatient = Pick<Patient, 'id' | 'fullName' | 'email'>;
+
+// API response types for clinician-clinic relationships
+export type ClinicianClinicMembership = {
+  clinic: Clinic;
+  clinician: {
+    id: string;
+    roles: string[];
+  };
+};
