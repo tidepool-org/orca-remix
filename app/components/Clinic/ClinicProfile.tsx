@@ -226,7 +226,7 @@ export default function ClinicProfile({
         />
       </Well>
 
-      <Well className="bg-content1 border border-content2 p-0">
+      <Well>
         <PatientInvitesTable
           invites={patientInvites}
           isLoading={invitesLoading}

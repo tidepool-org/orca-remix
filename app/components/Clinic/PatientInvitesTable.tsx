@@ -151,7 +151,7 @@ export default function PatientInvitesTable({
   const TableHeading = (
     <button
       onClick={() => setIsExpanded(!isExpanded)}
-      className="w-full p-4 rounded-lg border border-content2 bg-content1 hover:bg-content2 transition-colors duration-200 flex justify-between items-center"
+      className="flex justify-between items-center w-full p-4 bg-content2 rounded-lg hover:bg-content3 transition-colors cursor-pointer"
       aria-expanded={isExpanded}
       aria-controls="patient-invites-table-content"
     >
