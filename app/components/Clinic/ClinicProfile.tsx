@@ -73,6 +73,13 @@ export default function ClinicProfile({
   const { id, shareCode, name, createdTime, canMigrate, tier } = clinic;
   const { locale } = useLocale();
 
+  console.log(
+    'ClinicProfile createdTime:',
+    createdTime,
+    'type:',
+    typeof createdTime,
+  );
+
   const [isEditingTier, setIsEditingTier] = useState(false);
   const [selectedTier, setSelectedTier] = useState(tier);
 
@@ -172,15 +179,22 @@ export default function ClinicProfile({
     { label: 'Can Migrate', value: canMigrate.toString() },
     {
       label: 'Created On',
-      value: intlFormat(
-        new Date(createdTime),
-        {
-          year: 'numeric',
-          month: 'numeric',
-          day: 'numeric',
-        },
-        { locale },
-      ),
+      value: createdTime
+        ? (() => {
+            const date = new Date(createdTime);
+            return isNaN(date.getTime())
+              ? createdTime
+              : intlFormat(
+                  date,
+                  {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                  },
+                  { locale },
+                );
+          })()
+        : '—',
     },
   ];
 

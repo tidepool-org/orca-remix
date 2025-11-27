@@ -48,7 +48,7 @@ export default function UserProfile({
         new Date(termsAccepted),
         {
           year: 'numeric',
-          month: 'numeric',
+          month: 'long',
           day: 'numeric',
         },
         { locale },
