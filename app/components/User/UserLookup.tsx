@@ -3,16 +3,35 @@ import { Input, Button } from '@nextui-org/react';
 import { UserCircle2Icon } from 'lucide-react';
 import React from 'react';
 import Well from '~/partials/Well';
+import { useToast } from '~/contexts/ToastContext';
 
-export default function UserLookup() {
+type UserLookupProps = {
+  error?: string;
+  errorType?: 'validation' | 'api';
+};
+
+export default function UserLookup({
+  error,
+  errorType = 'validation',
+}: UserLookupProps) {
   const [searchParams] = useSearchParams();
+  const { showToast } = useToast();
 
   const search = searchParams.get('search');
   const [searchValue, setSearchValue] = React.useState(search);
+  const lastErrorRef = React.useRef<string | undefined>();
 
   React.useEffect(() => {
     setSearchValue(search || '');
   }, [search]);
+
+  // Show toast only for API errors
+  React.useEffect(() => {
+    if (error && errorType === 'api' && error !== lastErrorRef.current) {
+      showToast(error, 'error');
+      lastErrorRef.current = error;
+    }
+  }, [error, errorType, showToast]);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchValue(e.target.value);
@@ -38,6 +57,8 @@ export default function UserLookup() {
               inputWrapper: 'lightTheme:bg-background',
               input: 'group-data-[has-value=true]:text-content1-foreground',
             }}
+            isInvalid={!!error && errorType === 'validation'}
+            errorMessage={errorType === 'validation' ? error : undefined}
           />
         </div>
 

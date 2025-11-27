@@ -1,4 +1,6 @@
 import { serverAuth } from './auth.server';
+import { z } from 'zod';
+import { APIError } from './utils/errors';
 
 export const apiRoutes = {
   user: {
@@ -99,7 +101,16 @@ type apiRequestArgs = {
   body?: Record<string, unknown>;
 };
 
-export const apiRequest = async ({ path, method, body }: apiRequestArgs) => {
+type apiRequestWithSchemaArgs<T> = apiRequestArgs & {
+  schema?: z.ZodSchema<T>;
+};
+
+export const apiRequest = async <T = unknown>({
+  path,
+  method,
+  body,
+  schema,
+}: apiRequestWithSchemaArgs<T>): Promise<T> => {
   try {
     const result = await fetch(`${process.env.API_HOST}${path}`, {
       method,
@@ -111,14 +122,30 @@ export const apiRequest = async ({ path, method, body }: apiRequestArgs) => {
     });
 
     if (!result.ok) {
-      throw new Error(`API request failed with status ${result.status}`);
+      const errorText = await result.text();
+      const statusText = result.statusText || 'Request failed';
+      const message = errorText
+        ? `${statusText} (${result.status}): ${errorText}`
+        : `${statusText} (${result.status})`;
+
+      throw new APIError(message, result.status);
     }
 
     // Try to parse JSON response, but don't fail if it's empty
     const text = await result.text();
-    return text ? JSON.parse(text) : {};
+    const data = text ? JSON.parse(text) : {};
+
+    // Validate with schema if provided
+    if (schema) {
+      return schema.parse(data);
+    }
+
+    return data as T;
   } catch (e) {
-    console.error(e);
+    // Re-throw APIError as-is, don't wrap it
+    if (e instanceof APIError) {
+      throw e;
+    }
     throw e;
   }
 };

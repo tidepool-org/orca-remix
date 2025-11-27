@@ -10,6 +10,7 @@ import { useEffect } from 'react';
 import isArray from 'lodash/isArray';
 import pick from 'lodash/pick';
 import uniqBy from 'lodash/uniqBy';
+import { PatientSchema } from '~/schemas';
 
 export const meta: MetaFunction = () => {
   return [
@@ -35,9 +36,10 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     : [];
 
   // Get the specific patient directly
-  const patient = await apiRequest(
-    apiRoutes.clinic.getPatient(clinicId, patientId),
-  );
+  const patient = await apiRequest({
+    ...apiRoutes.clinic.getPatient(clinicId, patientId),
+    schema: PatientSchema,
+  });
 
   if (patient) {
     const recentPatient: RecentPatient = pick(patient, [

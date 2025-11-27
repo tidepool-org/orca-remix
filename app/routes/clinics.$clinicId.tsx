@@ -26,11 +26,15 @@ import {
   useNavigation,
   Outlet,
   useLocation,
+  useActionData,
 } from 'react-router';
-import { useCallback } from 'react';
+import { useCallback, useEffect } from 'react';
 import isArray from 'lodash/isArray';
 import pick from 'lodash/pick';
 import uniqBy from 'lodash/uniqBy';
+import { UpdateTierSchema, ClinicSchema } from '~/schemas';
+import { errorResponse } from '~/utils/errors';
+import { useToast } from '~/contexts/ToastContext';
 
 export const meta: MetaFunction = () => {
   return [
@@ -45,24 +49,28 @@ export async function action({ request, params }: ActionFunctionArgs) {
   const clinicId = params.clinicId as string;
 
   if (actionType === 'updateTier') {
-    const tier = formData.get('tier') as string;
+    const tier = formData.get('tier');
 
     try {
-      const route = apiRoutes.clinic.updateTier(clinicId);
+      // Validate input
+      const validated = UpdateTierSchema.parse({ tier });
+
+      // Make API request (no schema validation - tier update returns empty response)
       await apiRequest({
-        path: route.path,
-        method: route.method,
-        body: { tier },
+        ...apiRoutes.clinic.updateTier(clinicId),
+        body: { tier: validated.tier },
       });
 
-      return Response.json({ success: true });
+      return Response.json({
+        success: true,
+        message: 'Clinic tier updated successfully',
+      });
     } catch (error) {
-      console.error('Failed to update clinic tier:', error);
-      return Response.json({ error: 'Failed to update tier' }, { status: 500 });
+      return errorResponse(error, 500);
     }
   }
 
-  return Response.json({ error: 'Invalid action' }, { status: 400 });
+  return errorResponse('Invalid action', 400);
 }
 
 const recentClinicsMax = 10;
@@ -275,10 +283,26 @@ export default function Clinics() {
     invitesPagination,
     sorting,
   } = useLoaderData<typeof loader>();
+  const actionData = useActionData<typeof action>();
   const [searchParams] = useSearchParams();
   const submit = useSubmit();
   const navigation = useNavigation();
   const location = useLocation();
+  const { showToast } = useToast();
+
+  // Show toast on action result
+  useEffect(() => {
+    if (actionData) {
+      if ('error' in actionData) {
+        showToast(actionData.error, 'error');
+      } else if ('success' in actionData && actionData.success) {
+        showToast(
+          actionData.message || 'Clinic tier updated successfully',
+          'success',
+        );
+      }
+    }
+  }, [actionData, showToast]);
 
   // Check if we're on a nested route (like patient or clinician details)
   const isNestedRoute =

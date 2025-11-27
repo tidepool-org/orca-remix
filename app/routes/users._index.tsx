@@ -11,6 +11,8 @@ import { apiRequest, apiRoutes } from '~/api.server';
 import { usersSession } from '~/sessions.server';
 import { useLoaderData } from 'react-router';
 import isArray from 'lodash/isArray';
+import { UserSchema, UserSearchSchema } from '~/schemas';
+import { getErrorMessage, APIError } from '~/utils/errors';
 
 export const meta: MetaFunction = () => {
   return [
@@ -20,7 +22,6 @@ export const meta: MetaFunction = () => {
 };
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  let user: User;
   const url = new URL(request.url);
   const search = url.searchParams.get('search') || '';
   const { getSession } = usersSession;
@@ -32,11 +33,38 @@ export async function loader({ request }: LoaderFunctionArgs) {
     : [];
 
   if (search) {
-    user = await apiRequest(apiRoutes.user.get(search));
-    const { userid: userId } = user;
+    try {
+      // Validate search input
+      const validated = UserSearchSchema.parse({ search });
 
-    if (userId) {
-      return redirect(`/users/${userId}`);
+      // Fetch user with schema validation
+      const user = await apiRequest({
+        ...apiRoutes.user.get(validated.search),
+        schema: UserSchema,
+      });
+
+      const { userid: userId } = user;
+
+      if (userId) {
+        return redirect(`/users/${userId}`);
+      }
+    } catch (error) {
+      // Determine error type:
+      // - APIError = server error (show in toast)
+      // - ZodError with 'search' path = input validation (show inline)
+      // - Other ZodError = response validation failure (show in toast)
+      const isAPIError = error instanceof APIError;
+      const isInputValidation =
+        !isAPIError &&
+        error instanceof Error &&
+        error.name === 'ZodError' &&
+        error.message.includes('search');
+
+      return {
+        recentUsers,
+        error: getErrorMessage(error),
+        errorType: isInputValidation ? 'validation' : ('api' as const),
+      };
     }
   }
 
@@ -44,11 +72,15 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export default function Users() {
-  const { recentUsers } = useLoaderData<typeof loader>();
+  const data = useLoaderData<typeof loader>();
+  const { recentUsers } = data;
 
   return (
     <div className="flex flex-col gap-4 md:gap-6 lg:gap-8">
-      <UserLookup />
+      <UserLookup
+        error={'error' in data ? data.error : undefined}
+        errorType={'errorType' in data ? data.errorType : 'validation'}
+      />
       <RecentUsers rows={recentUsers} />
     </div>
   );

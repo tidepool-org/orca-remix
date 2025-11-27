@@ -25,6 +25,11 @@ if (vite) {
 }
 app.use(express.static('build/client', { maxAge: '1h' }));
 
+// Ignore Chrome DevTools requests
+app.get('/.well-known/appspecific/*', (req, res) => {
+  res.status(404).end();
+});
+
 // handle SSR requests
 app.all(
   '*',

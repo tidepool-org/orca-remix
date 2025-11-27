@@ -26,6 +26,8 @@ import Dashboard from './layouts/Dashboard';
 import { Agent } from './routes/action.get-agent';
 import ErrorStack from './components/ErrorStack';
 import getLocale from './utils/getLocale';
+import { ToastProvider } from './contexts/ToastContext';
+import ToastContainer from './components/ToastContainer';
 
 // Return the theme from the session storage using the loader
 export const loader = async ({ request }: LoaderFunctionArgs) => {
@@ -100,11 +102,14 @@ function App() {
           theme ?? ''
         } text-foreground bg-background`}
       >
-        <NextUIProvider navigate={navigate}>
-          <Dashboard />
-          <ScrollRestoration />
-          <Scripts />
-        </NextUIProvider>
+        <ToastProvider>
+          <NextUIProvider navigate={navigate}>
+            <Dashboard />
+            <ToastContainer />
+            <ScrollRestoration />
+            <Scripts />
+          </NextUIProvider>
+        </ToastProvider>
       </body>
     </html>
   );
