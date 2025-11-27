@@ -10,6 +10,7 @@ import {
 
 import { History } from 'lucide-react';
 import { useNavigate } from 'react-router';
+import Well from '~/partials/Well';
 
 import type { RecentClinic } from './types';
 
@@ -47,33 +48,35 @@ export default function RecentClinics({ rows }: UserProfileProps) {
   );
 
   return (
-    <Table
-      className="flex flex-1 flex-col text-content1-foreground gap-4"
-      aria-label="Recently viewed users"
-      selectionMode="single"
-      onSelectionChange={handleSelection}
-      shadow="none"
-      topContent={TableHeading}
-      removeWrapper
-      classNames={{
-        th: 'bg-content1',
-      }}
-    >
-      <TableHeader>
-        {columns.map((column) => (
-          <TableColumn key={column.key}>{column.label}</TableColumn>
-        ))}
-      </TableHeader>
+    <Well className="bg-transparent">
+      <Table
+        className="flex flex-1 flex-col text-content1-foreground gap-4"
+        aria-label="Recently viewed users"
+        selectionMode="single"
+        onSelectionChange={handleSelection}
+        shadow="none"
+        topContent={TableHeading}
+        removeWrapper
+        classNames={{
+          th: 'bg-content1',
+        }}
+      >
+        <TableHeader>
+          {columns.map((column) => (
+            <TableColumn key={column.key}>{column.label}</TableColumn>
+          ))}
+        </TableHeader>
 
-      <TableBody emptyContent={EmptyContent}>
-        {rows.map((row) => (
-          <TableRow key={row.id}>
-            {(columnKey) => (
-              <TableCell>{getKeyValue(row, columnKey)}</TableCell>
-            )}
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
+        <TableBody emptyContent={EmptyContent}>
+          {rows.map((row) => (
+            <TableRow key={row.id}>
+              {(columnKey) => (
+                <TableCell>{getKeyValue(row, columnKey)}</TableCell>
+              )}
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </Well>
   );
 }

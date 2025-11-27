@@ -10,6 +10,7 @@ import {
 } from '@nextui-org/react';
 import { History } from 'lucide-react';
 import { useRecentItems } from './RecentItemsContext';
+import Well from '~/partials/Well';
 import type { RecentClinician } from './types';
 
 export type RecentCliniciansProps = {
@@ -52,30 +53,34 @@ export default function RecentClinicians() {
   );
 
   return (
-    <Table
-      className="flex flex-1 flex-col text-content1-foreground gap-4"
-      aria-label="Recently viewed clinicians"
-      shadow="none"
-      removeWrapper
-      selectionMode="single"
-      onSelectionChange={handleSelection}
-      topContent={TableHeading}
-      classNames={{
-        th: 'bg-content1',
-      }}
-    >
-      <TableHeader columns={columns}>
-        {(column) => <TableColumn key={column.key}>{column.label}</TableColumn>}
-      </TableHeader>
-      <TableBody emptyContent={EmptyContent} items={clinicians}>
-        {(item) => (
-          <TableRow key={item.id}>
-            {(columnKey) => (
-              <TableCell>{getKeyValue(item, columnKey)}</TableCell>
-            )}
-          </TableRow>
-        )}
-      </TableBody>
-    </Table>
+    <Well className="bg-transparent">
+      <Table
+        className="flex flex-1 flex-col text-content1-foreground gap-4"
+        aria-label="Recently viewed clinicians"
+        shadow="none"
+        removeWrapper
+        selectionMode="single"
+        onSelectionChange={handleSelection}
+        topContent={TableHeading}
+        classNames={{
+          th: 'bg-content1',
+        }}
+      >
+        <TableHeader columns={columns}>
+          {(column) => (
+            <TableColumn key={column.key}>{column.label}</TableColumn>
+          )}
+        </TableHeader>
+        <TableBody emptyContent={EmptyContent} items={clinicians}>
+          {(item) => (
+            <TableRow key={item.id}>
+              {(columnKey) => (
+                <TableCell>{getKeyValue(item, columnKey)}</TableCell>
+              )}
+            </TableRow>
+          )}
+        </TableBody>
+      </Table>
+    </Well>
   );
 }
