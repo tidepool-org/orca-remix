@@ -59,7 +59,8 @@ export default function RecentUsers({ rows }: RecentUsersProps) {
         topContent={TableHeading}
         removeWrapper
         classNames={{
-          th: 'bg-content1',
+          th: recentTableClasses.th,
+          tr: recentTableClasses.tr,
         }}
       >
         <TableHeader>

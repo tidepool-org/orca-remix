@@ -4,6 +4,8 @@ import { Cross } from 'lucide-react';
 import React from 'react';
 import Well from '~/partials/Well';
 import { useToast } from '~/contexts/ToastContext';
+import SectionHeader from '~/components/SectionHeader';
+import { searchInputClasses } from '~/utils/tableStyles';
 
 type ClinicLookupProps = {
   error?: string;
@@ -40,10 +42,7 @@ export default function ClinicLookup({
   return (
     <Form action="/clinics">
       <Well>
-        <div className="flex gap-2">
-          <Cross />
-          <h2 className="text-lg font-semibold">Clinic Lookup</h2>
-        </div>
+        <SectionHeader icon={Cross} title="Clinic Lookup" />
 
         <div className="flex items-center gap-4">
           <Input
@@ -53,10 +52,7 @@ export default function ClinicLookup({
             value={searchValue || ''}
             onChange={handleSearchChange}
             className="max-w-xs"
-            classNames={{
-              inputWrapper: 'lightTheme:bg-background',
-              input: 'group-data-[has-value=true]:text-content1-foreground',
-            }}
+            classNames={searchInputClasses}
             isInvalid={!!error && errorType === 'validation'}
             errorMessage={errorType === 'validation' ? error : undefined}
           />

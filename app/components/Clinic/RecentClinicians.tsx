@@ -12,6 +12,7 @@ import { History } from 'lucide-react';
 import { useRecentItems } from './RecentItemsContext';
 import Well from '~/partials/Well';
 import SectionHeader from '~/components/SectionHeader';
+import { recentTableClasses } from '~/utils/tableStyles';
 import type { RecentClinician } from './types';
 
 export type RecentCliniciansProps = {
@@ -43,14 +44,13 @@ export default function RecentClinicians() {
   };
 
   const TableHeading = (
-    <div className="flex gap-2">
-      <History />
-      <h2 className="text-lg font-semibold">Recently Viewed Clinicians</h2>
-    </div>
+    <SectionHeader icon={History} title="Recently Viewed Clinicians" />
   );
 
   const EmptyContent = (
-    <span>There are no recently viewed clinicians to show</span>
+    <p className="text-center text-default-400 py-4">
+      There are no recently viewed clinicians to show
+    </p>
   );
 
   return (
@@ -64,7 +64,8 @@ export default function RecentClinicians() {
         onSelectionChange={handleSelection}
         topContent={TableHeading}
         classNames={{
-          th: 'bg-content1',
+          th: recentTableClasses.th,
+          tr: recentTableClasses.tr,
         }}
       >
         <TableHeader columns={columns}>

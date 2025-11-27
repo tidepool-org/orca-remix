@@ -4,6 +4,8 @@ import { UserCircle2Icon } from 'lucide-react';
 import React from 'react';
 import Well from '~/partials/Well';
 import { useToast } from '~/contexts/ToastContext';
+import SectionHeader from '~/components/SectionHeader';
+import { searchInputClasses } from '~/utils/tableStyles';
 
 type UserLookupProps = {
   error?: string;
@@ -40,10 +42,7 @@ export default function UserLookup({
   return (
     <Form action="/users">
       <Well>
-        <div className="flex gap-2">
-          <UserCircle2Icon />
-          <h2 className="text-lg font-semibold">User Lookup</h2>
-        </div>
+        <SectionHeader icon={UserCircle2Icon} title="User Lookup" />
 
         <div className="flex items-center gap-4">
           <Input
@@ -53,10 +52,7 @@ export default function UserLookup({
             value={searchValue || ''}
             onChange={handleSearchChange}
             className="max-w-xs"
-            classNames={{
-              inputWrapper: 'lightTheme:bg-background',
-              input: 'group-data-[has-value=true]:text-content1-foreground',
-            }}
+            classNames={searchInputClasses}
             isInvalid={!!error && errorType === 'validation'}
             errorMessage={errorType === 'validation' ? error : undefined}
           />

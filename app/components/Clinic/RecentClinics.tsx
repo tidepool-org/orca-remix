@@ -12,6 +12,7 @@ import { History } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import Well from '~/partials/Well';
 import SectionHeader from '~/components/SectionHeader';
+import { recentTableClasses } from '~/utils/tableStyles';
 
 import type { RecentClinic } from './types';
 
@@ -59,7 +60,8 @@ export default function RecentClinics({ rows }: UserProfileProps) {
         topContent={TableHeading}
         removeWrapper
         classNames={{
-          th: 'bg-content1',
+          th: recentTableClasses.th,
+          tr: recentTableClasses.tr,
         }}
       >
         <TableHeader>

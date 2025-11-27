@@ -5,6 +5,7 @@
 export const recentTableClasses = {
   base: 'flex flex-1 flex-col text-content1-foreground gap-4',
   th: 'bg-content1',
+  tr: 'data-[hover=true]:cursor-pointer',
 };
 
 export const searchInputClasses = {

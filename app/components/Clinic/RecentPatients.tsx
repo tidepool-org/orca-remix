@@ -13,6 +13,7 @@ import { useNavigate, useParams } from 'react-router';
 import { useRecentItems } from './RecentItemsContext';
 import Well from '~/partials/Well';
 import SectionHeader from '~/components/SectionHeader';
+import { recentTableClasses } from '~/utils/tableStyles';
 
 import type { RecentPatient } from './types';
 
@@ -65,7 +66,8 @@ export default function RecentPatients() {
         onSelectionChange={handleSelection}
         topContent={TableHeading}
         classNames={{
-          th: 'bg-content1',
+          th: recentTableClasses.th,
+          tr: recentTableClasses.tr,
         }}
       >
         <TableHeader columns={columns}>
