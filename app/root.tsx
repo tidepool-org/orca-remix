@@ -10,7 +10,7 @@ import {
 } from 'react-router';
 
 import './tailwind.css';
-import { NextUIProvider } from '@nextui-org/react';
+import { HeroUIProvider } from "@heroui/react";
 
 import {
   ThemeProvider,
@@ -103,12 +103,12 @@ function App() {
         } text-foreground bg-background`}
       >
         <ToastProvider>
-          <NextUIProvider navigate={navigate}>
+          <HeroUIProvider navigate={navigate}>
             <Dashboard />
             <ToastContainer />
             <ScrollRestoration />
             <Scripts />
-          </NextUIProvider>
+          </HeroUIProvider>
         </ToastProvider>
       </body>
     </html>
@@ -127,12 +127,12 @@ export function ErrorBoundary() {
         <Links />
       </head>
       <body className={`${theme ?? ''} text-foreground bg-background`}>
-        <NextUIProvider>
+        <HeroUIProvider>
           <div className="p-4">
             <ErrorStack />
           </div>
           <Scripts />
-        </NextUIProvider>
+        </HeroUIProvider>
       </body>
     </html>
   );

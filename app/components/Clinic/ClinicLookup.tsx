@@ -1,5 +1,5 @@
 import { Form, useSearchParams } from 'react-router';
-import { Input, Button } from '@nextui-org/react';
+import { Input, Button } from "@heroui/react";
 import { Cross } from 'lucide-react';
 import React from 'react';
 import Well from '~/partials/Well';

@@ -4,7 +4,7 @@ import {
   Dropdown,
   DropdownMenu,
   Avatar,
-} from '@nextui-org/react';
+} from "@heroui/react";
 import { useMemo } from 'react';
 
 import { type RootLoaderType } from '~/root';

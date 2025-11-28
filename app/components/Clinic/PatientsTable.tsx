@@ -13,7 +13,7 @@ import {
   Chip,
   SortDescriptor,
   Tooltip,
-} from '@nextui-org/react';
+} from "@heroui/react";
 import { Users, ChevronUp, ChevronDown } from 'lucide-react';
 import { intlFormat } from 'date-fns';
 import useLocale from '~/hooks/useLocale';

@@ -1,7 +1,7 @@
 import Well from '~/partials/Well';
 import { intlFormat } from 'date-fns';
 import { useState, useEffect } from 'react';
-import { Select, SelectItem, Button } from '@nextui-org/react';
+import { Select, SelectItem, Button } from "@heroui/react";
 import { Edit2, X } from 'lucide-react';
 
 import type { Clinic, Patient, PatientInvite, Clinician } from './types';

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 
 import { Outlet, useMatches } from 'react-router';
-import { Breadcrumbs, BreadcrumbItem } from '@nextui-org/react';
+import { Breadcrumbs, BreadcrumbItem } from "@heroui/react";
 import { Home } from 'lucide-react';
 import filter from 'lodash/filter';
 import map from 'lodash/map';

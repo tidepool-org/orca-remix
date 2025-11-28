@@ -1,5 +1,5 @@
 import { Theme, useTheme } from 'remix-themes';
-import { Image, type ImageProps } from '@nextui-org/react';
+import { Image, type ImageProps } from "@heroui/react";
 
 import LightLogo from './Tidepool_Logo_Light.svg';
 import DarkLogo from './Tidepool_Logo_Dark.svg';

@@ -10,7 +10,7 @@ import {
   Pagination,
   Spinner,
   Chip,
-} from '@nextui-org/react';
+} from "@heroui/react";
 import { UserCheck } from 'lucide-react';
 import { intlFormat } from 'date-fns';
 import useLocale from '~/hooks/useLocale';

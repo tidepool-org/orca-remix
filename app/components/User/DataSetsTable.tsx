@@ -8,7 +8,7 @@ import {
   TableCell,
   Chip,
   Spinner,
-} from '@nextui-org/react';
+} from "@heroui/react";
 import { Upload } from 'lucide-react';
 import { intlFormat } from 'date-fns';
 import useLocale from '~/hooks/useLocale';

@@ -1,6 +1,6 @@
 import { type Config } from 'tailwindcss';
 import plugin from 'tailwindcss/plugin';
-import { nextui, semanticColors } from '@nextui-org/react';
+import { heroui, semanticColors } from "@heroui/react";
 import defaultTheme from 'tailwindcss/defaultTheme';
 
 const brandColors = {
@@ -99,7 +99,7 @@ const text = {
 export default {
   content: [
     './app/**/*.{js,jsx,ts,tsx}',
-    './node_modules/@nextui-org/theme/dist/**/*.{js,ts,jsx,tsx}',
+    "./node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
     extend: {
@@ -131,7 +131,7 @@ export default {
         );
       });
     }),
-    nextui({
+    heroui({
       themes: {
         light: {
           colors: {

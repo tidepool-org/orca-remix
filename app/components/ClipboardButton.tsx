@@ -1,4 +1,4 @@
-import { Button, ButtonProps } from '@nextui-org/react';
+import { Button, ButtonProps } from "@heroui/react";
 import { DebouncedFunc } from 'lodash';
 import debounce from 'lodash/debounce';
 import { Copy, CopyCheck } from 'lucide-react';

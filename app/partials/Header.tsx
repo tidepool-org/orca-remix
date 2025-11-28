@@ -1,4 +1,4 @@
-import { Button, Link } from '@nextui-org/react';
+import { Button, Link } from "@heroui/react";
 import Logo from '~/components/Logo/Logo';
 import ThemeSwitcher from '~/components/ThemeSwitcher';
 import UserMenu from '~/components/UserMenu';
