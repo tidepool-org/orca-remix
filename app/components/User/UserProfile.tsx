@@ -24,8 +24,6 @@ export default function UserProfile({
   const { fullName, clinic } = profile;
   const { locale } = useLocale();
 
-  const isClinician = !!clinic;
-
   const userDetails = [
     {
       label: 'Email',
@@ -75,7 +73,7 @@ export default function UserProfile({
         </div>
       </Well>
 
-      {isClinician && (
+      {clinics.length > 0 && (
         <Well>
           <ClinicsTable
             clinics={clinics}

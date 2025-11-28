@@ -36,17 +36,22 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   const user: User = await results?.[0];
   const profile: Profile = await results?.[1];
 
-  // Fetch clinics if user is a clinician
+  // Fetch clinics for both clinician and patient users
   let clinics: ClinicianClinicMembership[] = [];
   let totalClinics = 0;
 
-  if (user?.userid && profile?.clinic) {
+  if (user?.userid) {
     try {
       const clinicsResponse = await apiRequest(
-        apiRoutes.clinic.getClinicsForClinician(user.userid, {
-          limit: 1000,
-          offset: 0,
-        }),
+        profile?.clinic
+          ? apiRoutes.clinic.getClinicsForClinician(user.userid, {
+              limit: 1000,
+              offset: 0,
+            })
+          : apiRoutes.clinic.getClinicsForPatient(user.userid, {
+              limit: 1000,
+              offset: 0,
+            }),
       );
 
       // Handle both array response and object with data property
