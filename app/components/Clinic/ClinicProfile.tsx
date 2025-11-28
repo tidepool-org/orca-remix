@@ -72,14 +72,6 @@ export default function ClinicProfile({
 }: ClinicProfileProps) {
   const { id, shareCode, name, createdTime, canMigrate, tier } = clinic;
   const { locale } = useLocale();
-
-  console.log(
-    'ClinicProfile createdTime:',
-    createdTime,
-    'type:',
-    typeof createdTime,
-  );
-
   const [isEditingTier, setIsEditingTier] = useState(false);
   const [selectedTier, setSelectedTier] = useState(tier);
 
