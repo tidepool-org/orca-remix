@@ -13,6 +13,16 @@ export const apiRoutes = {
       path: `/metadata/${userId}/${collection}`,
     }),
   },
+  data: {
+    getDataSets: (userId: string) => ({
+      method: 'get',
+      path: `/v1/users/${userId}/datasets`,
+    }),
+    getDataSources: (userId: string) => ({
+      method: 'get',
+      path: `/v1/users/${userId}/data_sources`,
+    }),
+  },
   clinic: {
     get: (search: string) => ({
       method: 'get',

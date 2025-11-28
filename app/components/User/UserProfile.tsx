@@ -1,9 +1,11 @@
 import Well from '~/partials/Well';
 import { intlFormat } from 'date-fns';
 import ClinicsTable from '../Clinic/ClinicsTable';
+import DataSetsTable from './DataSetsTable';
+import DataSourcesTable from './DataSourcesTable';
 import type { ClinicianClinicMembership } from '../Clinic/types';
 
-import type { User, Profile } from './types';
+import type { User, Profile, DataSet, DataSource } from './types';
 import useLocale from '~/hooks/useLocale';
 import ClipboardButton from '../ClipboardButton';
 
@@ -12,6 +14,10 @@ export type UserProfileProps = {
   profile: Profile;
   clinics?: ClinicianClinicMembership[];
   totalClinics?: number;
+  dataSets?: DataSet[];
+  totalDataSets?: number;
+  dataSources?: DataSource[];
+  totalDataSources?: number;
 };
 
 export default function UserProfile({
@@ -19,6 +25,10 @@ export default function UserProfile({
   profile,
   clinics = [],
   totalClinics = 0,
+  dataSets = [],
+  totalDataSets = 0,
+  dataSources = [],
+  totalDataSources = 0,
 }: UserProfileProps) {
   const { emailVerified, userid: userId, username, termsAccepted } = user;
   const { fullName, clinic } = profile;
@@ -73,13 +83,26 @@ export default function UserProfile({
         </div>
       </Well>
 
-      {clinics.length > 0 && (
+      <Well>
+        <ClinicsTable
+          clinics={clinics}
+          totalClinics={totalClinics}
+          totalPages={1}
+          currentPage={1}
+        />
+      </Well>
+
+      {!clinic && (
         <Well>
-          <ClinicsTable
-            clinics={clinics}
-            totalClinics={totalClinics}
-            totalPages={1}
-            currentPage={1}
+          <DataSetsTable dataSets={dataSets} totalDataSets={totalDataSets} />
+        </Well>
+      )}
+
+      {!clinic && (
+        <Well>
+          <DataSourcesTable
+            dataSources={dataSources}
+            totalDataSources={totalDataSources}
           />
         </Well>
       )}
