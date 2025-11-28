@@ -3,7 +3,7 @@ import { PassThrough } from 'node:stream';
 import type { EntryContext } from 'react-router';
 import { createReadableStreamFromReadable } from '@react-router/node';
 import { ServerRouter } from 'react-router';
-import isbot from 'isbot';
+import { isbot } from 'isbot';
 import { renderToPipeableStream } from 'react-dom/server';
 import { getLocalizationScript } from 'react-aria/i18n';
 
