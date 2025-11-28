@@ -5,11 +5,20 @@ import { Copy, CopyCheck } from 'lucide-react';
 import React from 'react';
 
 type ClipboardButtonProps = ButtonProps & {
-  clipboardText: string;
+  clipboardText?: string;
 };
 
-export default function ClipboardButton(props: ClipboardButtonProps) {
-  const { clipboardText, ...buttonProps } = props;
+export default function ClipboardButton({
+  clipboardText = 'Sorry, there was nothing to copy.',
+  children = <Copy className="w-4" />,
+  title = 'Copy to clipboard',
+  spinner = <CopyCheck className="w-4" />,
+  isIconOnly = true,
+  size = 'sm',
+  radius = 'sm',
+  variant = 'light',
+  ...buttonProps
+}: ClipboardButtonProps) {
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
 
   const [debouncedButtonTextUpdate, setDebouncedButtonTextUpdate] =
@@ -41,18 +50,15 @@ export default function ClipboardButton(props: ClipboardButtonProps) {
       onPress={() => copyContent(clipboardText)}
       className="text-foreground/80 h-unit-7 min-w-unit-7 w-unit-7"
       isLoading={isLoading}
+      title={title}
+      spinner={spinner}
+      isIconOnly={isIconOnly}
+      size={size}
+      radius={radius}
+      variant={variant}
       {...buttonProps}
-    />
+    >
+      {children}
+    </Button>
   );
 }
-
-ClipboardButton.defaultProps = {
-  children: <Copy className="w-4" />,
-  title: 'Copy to clipboard',
-  clipboardText: 'Sorry, there was nothing to copy.',
-  spinner: <CopyCheck className=" w-4" />,
-  isIconOnly: true,
-  size: 'sm',
-  radius: 'sm',
-  variant: 'light',
-};

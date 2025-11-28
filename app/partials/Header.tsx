@@ -20,7 +20,7 @@ function Header({ sidebarOpen, setSidebarOpen }: SidebarOpenProps) {
               isIconOnly
               aria-controls="sidebar"
               aria-expanded={sidebarOpen}
-              onClick={(e) => {
+              onPress={(e) => {
                 e.stopPropagation();
                 setSidebarOpen(!sidebarOpen);
               }}
