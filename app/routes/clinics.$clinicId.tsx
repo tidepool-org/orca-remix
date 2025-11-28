@@ -32,7 +32,7 @@ import { useCallback, useEffect } from 'react';
 import isArray from 'lodash/isArray';
 import pick from 'lodash/pick';
 import uniqBy from 'lodash/uniqBy';
-import { UpdateTierSchema, ClinicSchema } from '~/schemas';
+import { UpdateTierSchema } from '~/schemas';
 import { errorResponse } from '~/utils/errors';
 import { useToast } from '~/contexts/ToastContext';
 

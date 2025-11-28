@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 import React, { useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import {
@@ -389,6 +390,7 @@ export default function PatientsTable({
             </TableColumn>
           )}
         </TableHeader>
+        {/* eslint-disable-next-line react/prop-types */}
         <TableBody
           emptyContent={EmptyContent}
           loadingContent={LoadingContent}

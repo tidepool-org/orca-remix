@@ -6,7 +6,7 @@ import {
 
 import UserLookup from '~/components/User/UserLookup';
 import RecentUsers from '~/components/User/RecentUsers';
-import type { User, RecentUser } from '~/components/User/types';
+import type { RecentUser } from '~/components/User/types';
 import { apiRequest, apiRoutes } from '~/api.server';
 import { usersSession } from '~/sessions.server';
 import { useLoaderData } from 'react-router';
