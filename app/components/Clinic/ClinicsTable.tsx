@@ -10,11 +10,12 @@ import {
   Pagination,
   Spinner,
   Chip,
-  Button,
 } from '@nextui-org/react';
-import { Building2, ChevronDown } from 'lucide-react';
+import { Building2 } from 'lucide-react';
 import { intlFormat } from 'date-fns';
 import useLocale from '~/hooks/useLocale';
+import CollapsibleTableWrapper from '../CollapsibleTableWrapper';
+import { collapsibleTableClasses } from '~/utils/tableStyles';
 import type { Clinic, ClinicianClinicMembership } from './types';
 
 export type ClinicsTableProps = {
@@ -57,12 +58,6 @@ export default function ClinicsTable({
     totalClinics,
   );
 
-  // Generate header text based on expanded state
-  const headerText =
-    isExpanded && totalClinics > 0
-      ? `Clinics (showing ${firstClinicOnPage}-${lastClinicOnPage} of ${totalClinics})`
-      : `Clinics (${totalClinics})`;
-
   const columns: Column[] = [
     {
       key: 'name',
@@ -82,7 +77,10 @@ export default function ClinicsTable({
   ];
 
   const renderCell = React.useCallback(
-    (item: ClinicianClinicMembership, columnKey: keyof Clinic) => {
+    (
+      item: ClinicianClinicMembership,
+      columnKey: keyof Clinic,
+    ): React.ReactNode => {
       const clinic = item.clinic;
 
       switch (columnKey) {
@@ -120,36 +118,15 @@ export default function ClinicsTable({
             </div>
           );
         default:
-          return clinic[columnKey as keyof Clinic];
+          return String(clinic[columnKey as keyof Clinic] || '');
       }
     },
-    [locale, navigate],
+    [locale],
   );
 
   const handleToggleExpand = () => {
     setIsExpanded(!isExpanded);
   };
-
-  const TableHeading = (
-    <button
-      className="flex justify-between items-center w-full p-4 bg-content2 rounded-lg hover:bg-content3 transition-colors cursor-pointer"
-      onClick={handleToggleExpand}
-      aria-expanded={isExpanded}
-      aria-controls="clinics-table-content"
-    >
-      <div className="flex gap-2 items-center">
-        <Building2 />
-        <h2 className="text-lg font-semibold">{headerText}</h2>
-      </div>
-      <div className="flex items-center gap-2">
-        <ChevronDown
-          className={`w-5 h-5 transition-transform ${
-            isExpanded ? 'rotate-180' : ''
-          }`}
-        />
-      </div>
-    </button>
-  );
 
   const EmptyContent = (
     <div className="flex flex-col items-center justify-center py-8">
@@ -167,60 +144,61 @@ export default function ClinicsTable({
   );
 
   return (
-    <div className="w-full">
-      {TableHeading}
-
-      {isExpanded && (
-        <div
-          id="clinics-table-content"
-          className="mt-4 transition-all duration-300"
-        >
-          <Table
-            aria-label="Clinics table"
-            selectionMode="single"
-            onSelectionChange={(keys) => {
-              const key = keys instanceof Set ? Array.from(keys)[0] : keys;
-              if (key) navigate(`/clinics/${key}`);
-            }}
-            classNames={{
-              wrapper: 'min-h-[200px]',
-              tr: 'data-[hover=true]:cursor-pointer',
-            }}
-          >
-            <TableHeader columns={columns}>
-              {(column) => (
-                <TableColumn key={column.key}>{column.label}</TableColumn>
-              )}
-            </TableHeader>
-            <TableBody
-              emptyContent={EmptyContent}
-              loadingContent={LoadingContent}
-              loadingState={isLoading ? 'loading' : 'idle'}
-            >
-              {clinics.map((item) => (
-                <TableRow key={item.clinic?.id || Math.random()}>
-                  {(columnKey) => (
-                    <TableCell>
-                      {renderCell(item, columnKey as keyof Clinic)}
-                    </TableCell>
-                  )}
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-
-          {totalPages > 1 && onPageChange && (
-            <div className="flex justify-center mt-4">
-              <Pagination
-                showControls
-                total={totalPages}
-                page={currentPage}
-                onChange={onPageChange}
-              />
-            </div>
+    <CollapsibleTableWrapper
+      icon={<Building2 className="h-5 w-5" />}
+      title="Clinics"
+      totalItems={totalClinics}
+      isExpanded={isExpanded}
+      onToggle={handleToggleExpand}
+      showRange={{
+        firstItem: firstClinicOnPage,
+        lastItem: lastClinicOnPage,
+      }}
+      defaultExpanded={false}
+    >
+      <Table
+        aria-label="Clinics table"
+        selectionMode="single"
+        onSelectionChange={(keys: 'all' | Set<React.Key>) => {
+          const key = keys instanceof Set ? Array.from(keys)[0] : keys;
+          if (key && key !== 'all') navigate(`/clinics/${key}`);
+        }}
+        shadow="none"
+        removeWrapper
+        classNames={collapsibleTableClasses}
+      >
+        <TableHeader columns={columns}>
+          {(column) => (
+            <TableColumn key={column.key}>{column.label}</TableColumn>
           )}
+        </TableHeader>
+        <TableBody
+          emptyContent={EmptyContent}
+          loadingContent={LoadingContent}
+          loadingState={isLoading ? 'loading' : 'idle'}
+        >
+          {clinics.map((item) => (
+            <TableRow key={item.clinic?.id || Math.random()}>
+              {(columnKey) => (
+                <TableCell>
+                  {renderCell(item, columnKey as keyof Clinic)}
+                </TableCell>
+              )}
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+
+      {totalPages > 1 && onPageChange && (
+        <div className="flex justify-center mt-4">
+          <Pagination
+            showControls
+            total={totalPages}
+            page={currentPage}
+            onChange={onPageChange}
+          />
         </div>
       )}
-    </div>
+    </CollapsibleTableWrapper>
   );
 }

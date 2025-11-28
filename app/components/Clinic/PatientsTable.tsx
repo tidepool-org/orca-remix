@@ -10,13 +10,14 @@ import {
   Pagination,
   Spinner,
   Chip,
-  Button,
   SortDescriptor,
   Tooltip,
 } from '@nextui-org/react';
 import { Users, ChevronUp, ChevronDown } from 'lucide-react';
 import { intlFormat } from 'date-fns';
 import useLocale from '~/hooks/useLocale';
+import CollapsibleTableWrapper from '../CollapsibleTableWrapper';
+import { collapsibleTableClasses } from '~/utils/tableStyles';
 import type { Patient } from './types';
 import DebouncedSearchInput from '../DebouncedSearchInput';
 
@@ -113,12 +114,6 @@ export default function PatientsTable({
     currentPage * effectivePageSize,
     totalPatients,
   );
-
-  // Generate header text based on expanded state
-  const headerText =
-    isExpanded && totalPatients > 0
-      ? `Patients (showing ${firstPatientOnPage}-${lastPatientOnPage} of ${totalPatients})`
-      : `Patients (${totalPatients})`;
 
   const columns: Column[] = [
     {
@@ -313,7 +308,7 @@ export default function PatientsTable({
           return null;
       }
     },
-    [locale, navigate, params.clinicId, getTagName, getSiteName],
+    [locale, getTagName, getSiteName],
   );
 
   const SortIcon = ({ column }: { column: string }) => {
@@ -326,27 +321,6 @@ export default function PatientsTable({
       <ChevronDown className="w-4 h-4" />
     );
   };
-
-  const TableHeading = (
-    <button
-      className="flex justify-between items-center w-full p-4 bg-content2 rounded-lg hover:bg-content3 transition-colors cursor-pointer"
-      onClick={() => setIsExpanded(!isExpanded)}
-      aria-expanded={isExpanded}
-      aria-controls="patients-table-content"
-    >
-      <div className="flex gap-2 items-center">
-        <Users />
-        <h2 className="text-lg font-semibold">{headerText}</h2>
-      </div>
-      <div className="flex items-center gap-2">
-        <ChevronDown
-          className={`w-5 h-5 transition-transform ${
-            isExpanded ? 'rotate-180' : ''
-          }`}
-        />
-      </div>
-    </button>
-  );
 
   const EmptyContent = (
     <div className="flex flex-col items-center justify-center py-8">
@@ -364,85 +338,85 @@ export default function PatientsTable({
   );
 
   return (
-    <div className="w-full">
-      {TableHeading}
+    <CollapsibleTableWrapper
+      icon={<Users className="h-5 w-5" />}
+      title="Patients"
+      totalItems={totalPatients}
+      isExpanded={isExpanded}
+      onToggle={() => setIsExpanded(!isExpanded)}
+      showRange={{
+        firstItem: firstPatientOnPage,
+        lastItem: lastPatientOnPage,
+      }}
+      defaultExpanded={false}
+    >
+      {/* Search Controls */}
+      <div className="flex justify-start mb-4 p-4 bg-content1 rounded-lg">
+        <DebouncedSearchInput
+          placeholder="Search patients..."
+          value={currentSearch || ''}
+          onSearch={(value) => onSearch?.(value)}
+          debounceMs={1000}
+        />
+      </div>
 
-      {isExpanded && (
-        <div
-          id="patients-table-content"
-          className="mt-4 transition-all duration-300"
-        >
-          {/* Search Controls */}
-          <div className="flex justify-start mb-4 p-4 bg-content1 rounded-lg">
-            <DebouncedSearchInput
-              placeholder="Search patients..."
-              value={currentSearch || ''}
-              onSearch={(value) => onSearch?.(value)}
-              debounceMs={1000}
-            />
-          </div>
-
-          <Table
-            aria-label="Clinic patients table"
-            className="flex flex-1 flex-col text-content1-foreground gap-4"
-            shadow="none"
-            removeWrapper
-            selectionMode="single"
-            onSelectionChange={(keys) => {
-              const key = keys instanceof Set ? Array.from(keys)[0] : keys;
-              if (key) navigate(`/clinics/${params.clinicId}/patients/${key}`);
-            }}
-            sortDescriptor={sortDescriptor}
-            onSortChange={handleSortChange}
-            classNames={{
-              th: 'bg-content1',
-              tr: 'data-[hover=true]:cursor-pointer',
-            }}
-          >
-            <TableHeader columns={columns}>
-              {(column) => (
-                <TableColumn
-                  key={column.key}
-                  allowsSorting={column.sortable}
-                  className="text-left"
-                >
-                  <div className="flex items-center gap-1">
-                    {column.label}
-                    {column.sortable && <SortIcon column={column.key} />}
-                  </div>
-                </TableColumn>
-              )}
-            </TableHeader>
-            <TableBody
-              emptyContent={EmptyContent}
-              loadingContent={LoadingContent}
-              loadingState={isLoading ? 'loading' : 'idle'}
+      <Table
+        aria-label="Clinic patients table"
+        className="flex flex-1 flex-col text-content1-foreground gap-4"
+        shadow="none"
+        removeWrapper
+        selectionMode="single"
+        onSelectionChange={(keys: 'all' | Set<React.Key>) => {
+          const key = keys instanceof Set ? Array.from(keys)[0] : keys;
+          if (key && key !== 'all')
+            navigate(`/clinics/${params.clinicId}/patients/${key}`);
+        }}
+        sortDescriptor={sortDescriptor}
+        onSortChange={handleSortChange}
+        classNames={collapsibleTableClasses}
+      >
+        <TableHeader columns={columns}>
+          {(column) => (
+            <TableColumn
+              key={column.key}
+              allowsSorting={column.sortable}
+              className="text-left"
             >
-              {patients.map((patient) => (
-                <TableRow key={patient.id}>
-                  {(columnKey) => (
-                    <TableCell>
-                      {renderCell(patient, columnKey as keyof Patient)}
-                    </TableCell>
-                  )}
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-
-          {totalPages > 1 && (
-            <div className="flex justify-center mt-4">
-              <Pagination
-                page={currentPage}
-                total={totalPages}
-                onChange={onPageChange}
-                showControls
-                showShadow
-              />
-            </div>
+              <div className="flex items-center gap-1">
+                {column.label}
+                {column.sortable && <SortIcon column={column.key} />}
+              </div>
+            </TableColumn>
           )}
+        </TableHeader>
+        <TableBody
+          emptyContent={EmptyContent}
+          loadingContent={LoadingContent}
+          loadingState={isLoading ? 'loading' : 'idle'}
+        >
+          {patients.map((patient) => (
+            <TableRow key={patient.id}>
+              {(columnKey) => (
+                <TableCell>
+                  {renderCell(patient, columnKey as keyof Patient)}
+                </TableCell>
+              )}
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+
+      {totalPages > 1 && (
+        <div className="flex justify-center mt-4">
+          <Pagination
+            page={currentPage}
+            total={totalPages}
+            onChange={onPageChange}
+            showControls
+            showShadow
+          />
         </div>
       )}
-    </div>
+    </CollapsibleTableWrapper>
   );
 }

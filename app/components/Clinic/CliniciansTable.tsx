@@ -10,11 +10,12 @@ import {
   Pagination,
   Spinner,
   Chip,
-  Button,
 } from '@nextui-org/react';
-import { UserCheck, ChevronDown } from 'lucide-react';
+import { UserCheck } from 'lucide-react';
 import { intlFormat } from 'date-fns';
 import useLocale from '~/hooks/useLocale';
+import CollapsibleTableWrapper from '../CollapsibleTableWrapper';
+import { collapsibleTableClasses } from '~/utils/tableStyles';
 import type { Clinician } from './types';
 import DebouncedSearchInput from '../DebouncedSearchInput';
 export type CliniciansTableProps = {
@@ -61,12 +62,6 @@ export default function CliniciansTable({
     currentPage * effectivePageSize,
     totalClinicians,
   );
-
-  // Generate header text based on expanded state
-  const headerText =
-    isExpanded && totalClinicians > 0
-      ? `Clinicians (showing ${firstClinicianOnPage}-${lastClinicianOnPage} of ${totalClinicians})`
-      : `Clinicians (${totalClinicians})`;
 
   const columns: Column[] = [
     {
@@ -145,28 +140,7 @@ export default function CliniciansTable({
           return cellValue;
       }
     },
-    [locale, navigate, params.clinicId],
-  );
-
-  const TableHeading = (
-    <button
-      className="flex justify-between items-center w-full p-4 bg-content2 rounded-lg hover:bg-content3 transition-colors cursor-pointer"
-      onClick={() => setIsExpanded(!isExpanded)}
-      aria-expanded={isExpanded}
-      aria-controls="clinicians-table-content"
-    >
-      <div className="flex gap-2 items-center">
-        <UserCheck />
-        <h2 className="text-lg font-semibold">{headerText}</h2>
-      </div>
-      <div className="flex items-center gap-2">
-        <ChevronDown
-          className={`w-5 h-5 transition-transform ${
-            isExpanded ? 'rotate-180' : ''
-          }`}
-        />
-      </div>
-    </button>
+    [locale],
   );
 
   const EmptyContent = (
@@ -185,77 +159,76 @@ export default function CliniciansTable({
   );
 
   return (
-    <div className="w-full">
-      {TableHeading}
+    <CollapsibleTableWrapper
+      icon={<UserCheck className="h-5 w-5" />}
+      title="Clinicians"
+      totalItems={totalClinicians}
+      isExpanded={isExpanded}
+      onToggle={() => setIsExpanded(!isExpanded)}
+      showRange={{
+        firstItem: firstClinicianOnPage,
+        lastItem: lastClinicianOnPage,
+      }}
+      defaultExpanded={false}
+    >
+      {/* Search Controls */}
+      <div className="flex justify-start mb-4 p-4 bg-content1 rounded-lg">
+        <DebouncedSearchInput
+          placeholder="Search clinicians..."
+          value={currentSearch || ''}
+          onSearch={(value) => onSearch?.(value)}
+          debounceMs={1000}
+        />
+      </div>
 
-      {isExpanded && (
-        <div
-          id="clinicians-table-content"
-          className="mt-4 transition-all duration-300"
-        >
-          {/* Search Controls */}
-          <div className="flex justify-start mb-4 p-4 bg-content1 rounded-lg">
-            <DebouncedSearchInput
-              placeholder="Search clinicians..."
-              value={currentSearch || ''}
-              onSearch={(value) => onSearch?.(value)}
-              debounceMs={1000}
-            />
-          </div>
-
-          <Table
-            aria-label="Clinic clinicians table"
-            className="flex flex-1 flex-col text-content1-foreground gap-4"
-            shadow="none"
-            removeWrapper
-            selectionMode="single"
-            onSelectionChange={(keys) => {
-              const key = keys instanceof Set ? Array.from(keys)[0] : keys;
-              if (key)
-                navigate(`/clinics/${params.clinicId}/clinicians/${key}`);
-            }}
-            classNames={{
-              th: 'bg-content1',
-              tr: 'data-[hover=true]:cursor-pointer',
-            }}
-          >
-            <TableHeader columns={columns}>
-              {(column) => (
-                <TableColumn key={column.key} className="text-left">
-                  {column.label}
-                </TableColumn>
-              )}
-            </TableHeader>
-            <TableBody
-              emptyContent={EmptyContent}
-              loadingContent={LoadingContent}
-              loadingState={isLoading ? 'loading' : 'idle'}
-            >
-              {clinicians.map((clinician) => (
-                <TableRow key={clinician.id}>
-                  {(columnKey) => (
-                    <TableCell>
-                      {renderCell(clinician, columnKey as keyof Clinician)}
-                    </TableCell>
-                  )}
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-
-          {totalPages > 1 && (
-            <div className="flex justify-center mt-4">
-              <Pagination
-                page={currentPage}
-                total={totalPages}
-                onChange={onPageChange}
-                showControls
-                showShadow
-              />
-            </div>
+      <Table
+        aria-label="Clinic clinicians table"
+        className="flex flex-1 flex-col text-content1-foreground gap-4"
+        shadow="none"
+        removeWrapper
+        selectionMode="single"
+        onSelectionChange={(keys: 'all' | Set<React.Key>) => {
+          const key = keys instanceof Set ? Array.from(keys)[0] : keys;
+          if (key && key !== 'all')
+            navigate(`/clinics/${params.clinicId}/clinicians/${key}`);
+        }}
+        classNames={collapsibleTableClasses}
+      >
+        <TableHeader columns={columns}>
+          {(column) => (
+            <TableColumn key={column.key} className="text-left">
+              {column.label}
+            </TableColumn>
           )}
+        </TableHeader>
+        <TableBody
+          emptyContent={EmptyContent}
+          loadingContent={LoadingContent}
+          loadingState={isLoading ? 'loading' : 'idle'}
+        >
+          {clinicians.map((clinician) => (
+            <TableRow key={clinician.id}>
+              {(columnKey) => (
+                <TableCell>
+                  {renderCell(clinician, columnKey as keyof Clinician)}
+                </TableCell>
+              )}
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+
+      {totalPages > 1 && (
+        <div className="flex justify-center mt-4">
+          <Pagination
+            page={currentPage}
+            total={totalPages}
+            onChange={onPageChange}
+            showControls
+            showShadow
+          />
         </div>
       )}
-    </div>
+    </CollapsibleTableWrapper>
   );
 }

@@ -7,11 +7,13 @@ import {
   TableRow,
   TableCell,
   Chip,
-  Button,
+  Spinner,
 } from '@nextui-org/react';
-import { ChevronDown, Upload } from 'lucide-react';
+import { Upload } from 'lucide-react';
 import { intlFormat } from 'date-fns';
 import useLocale from '~/hooks/useLocale';
+import CollapsibleTableWrapper from '../CollapsibleTableWrapper';
+import { collapsibleTableClasses } from '~/utils/tableStyles';
 import type { DataSet } from './types';
 
 export type DataSetsTableProps = {
@@ -31,10 +33,6 @@ export default function DataSetsTable({
   isLoading = false,
 }: DataSetsTableProps) {
   const { locale } = useLocale();
-  const [isExpanded, setIsExpanded] = React.useState(false);
-
-  // Generate header text based on expanded state
-  const headerText = `Data Uploads (${totalDataSets})`;
 
   const columns: Column[] = [
     {
@@ -106,49 +104,31 @@ export default function DataSetsTable({
     [locale],
   );
 
-  if (totalDataSets === 0 && !isLoading) {
-    return (
-      <div>
-        <div className="flex items-center gap-2 mb-4">
-          <Upload className="h-5 w-5" />
-          <h2 className="text-lg font-semibold">{headerText}</h2>
-        </div>
-        <p className="text-default-400">No data uploads found</p>
-      </div>
-    );
-  }
+  const EmptyContent = (
+    <div className="flex flex-col items-center justify-center py-8">
+      <Upload className="w-12 h-12 text-default-300 mb-4" />
+      <span className="text-default-500">No data uploads found</span>
+    </div>
+  );
+
+  const LoadingContent = (
+    <div className="flex justify-center py-8">
+      <Spinner size="lg" label="Loading data uploads..." />
+    </div>
+  );
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
-          <Upload className="h-5 w-5" />
-          <h2 className="text-lg font-semibold">{headerText}</h2>
-        </div>
-        {totalDataSets > 5 && (
-          <Button
-            variant="light"
-            size="sm"
-            endContent={
-              <ChevronDown
-                className={`h-4 w-4 transition-transform ${
-                  isExpanded ? 'rotate-180' : ''
-                }`}
-              />
-            }
-            onPress={() => setIsExpanded(!isExpanded)}
-          >
-            {isExpanded ? 'Show Less' : 'Show All'}
-          </Button>
-        )}
-      </div>
-
+    <CollapsibleTableWrapper
+      icon={<Upload className="h-5 w-5" />}
+      title="Data Uploads"
+      totalItems={totalDataSets}
+      defaultExpanded={false}
+    >
       <Table
         aria-label="Data uploads table"
-        classNames={{
-          base: 'flex flex-1 flex-col text-content1-foreground gap-4',
-          th: 'bg-content1',
-        }}
+        shadow="none"
+        removeWrapper
+        classNames={collapsibleTableClasses}
       >
         <TableHeader columns={columns}>
           {(column) => (
@@ -156,11 +136,11 @@ export default function DataSetsTable({
           )}
         </TableHeader>
         <TableBody
-          items={isExpanded ? dataSets : dataSets.slice(0, 5)}
-          isLoading={isLoading}
-          emptyContent="No data uploads found"
+          emptyContent={EmptyContent}
+          loadingContent={LoadingContent}
+          loadingState={isLoading ? 'loading' : 'idle'}
         >
-          {(item) => (
+          {dataSets.map((item) => (
             <TableRow key={item.uploadId || item.time}>
               {(columnKey) => (
                 <TableCell>
@@ -168,9 +148,9 @@ export default function DataSetsTable({
                 </TableCell>
               )}
             </TableRow>
-          )}
+          ))}
         </TableBody>
       </Table>
-    </div>
+    </CollapsibleTableWrapper>
   );
 }

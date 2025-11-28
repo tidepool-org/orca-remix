@@ -7,11 +7,13 @@ import {
   TableRow,
   TableCell,
   Chip,
-  Button,
+  Spinner,
 } from '@nextui-org/react';
-import { ChevronDown, Database } from 'lucide-react';
+import { Database } from 'lucide-react';
 import { intlFormat } from 'date-fns';
 import useLocale from '~/hooks/useLocale';
+import CollapsibleTableWrapper from '../CollapsibleTableWrapper';
+import { collapsibleTableClasses } from '~/utils/tableStyles';
 import type { DataSource } from './types';
 
 export type DataSourcesTableProps = {
@@ -31,10 +33,6 @@ export default function DataSourcesTable({
   isLoading = false,
 }: DataSourcesTableProps) {
   const { locale } = useLocale();
-  const [isExpanded, setIsExpanded] = React.useState(false);
-
-  // Generate header text based on expanded state
-  const headerText = `Data Sources (${totalDataSources})`;
 
   const columns: Column[] = [
     {
@@ -138,49 +136,31 @@ export default function DataSourcesTable({
     [locale],
   );
 
-  if (totalDataSources === 0 && !isLoading) {
-    return (
-      <div>
-        <div className="flex items-center gap-2 mb-4">
-          <Database className="h-5 w-5" />
-          <h2 className="text-lg font-semibold">{headerText}</h2>
-        </div>
-        <p className="text-default-400">No data sources found</p>
-      </div>
-    );
-  }
+  const EmptyContent = (
+    <div className="flex flex-col items-center justify-center py-8">
+      <Database className="w-12 h-12 text-default-300 mb-4" />
+      <span className="text-default-500">No data sources found</span>
+    </div>
+  );
+
+  const LoadingContent = (
+    <div className="flex justify-center py-8">
+      <Spinner size="lg" label="Loading data sources..." />
+    </div>
+  );
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
-          <Database className="h-5 w-5" />
-          <h2 className="text-lg font-semibold">{headerText}</h2>
-        </div>
-        {totalDataSources > 5 && (
-          <Button
-            variant="light"
-            size="sm"
-            endContent={
-              <ChevronDown
-                className={`h-4 w-4 transition-transform ${
-                  isExpanded ? 'rotate-180' : ''
-                }`}
-              />
-            }
-            onPress={() => setIsExpanded(!isExpanded)}
-          >
-            {isExpanded ? 'Show Less' : 'Show All'}
-          </Button>
-        )}
-      </div>
-
+    <CollapsibleTableWrapper
+      icon={<Database className="h-5 w-5" />}
+      title="Data Sources"
+      totalItems={totalDataSources}
+      defaultExpanded={false}
+    >
       <Table
         aria-label="Data sources table"
-        classNames={{
-          base: 'flex flex-1 flex-col text-content1-foreground gap-4',
-          th: 'bg-content1',
-        }}
+        shadow="none"
+        removeWrapper
+        classNames={collapsibleTableClasses}
       >
         <TableHeader columns={columns}>
           {(column) => (
@@ -188,11 +168,11 @@ export default function DataSourcesTable({
           )}
         </TableHeader>
         <TableBody
-          items={isExpanded ? dataSources : dataSources.slice(0, 5)}
-          isLoading={isLoading}
-          emptyContent="No data sources found"
+          emptyContent={EmptyContent}
+          loadingContent={LoadingContent}
+          loadingState={isLoading ? 'loading' : 'idle'}
         >
-          {(item) => (
+          {dataSources.map((item) => (
             <TableRow key={item.dataSourceId || item.providerName}>
               {(columnKey) => (
                 <TableCell>
@@ -200,9 +180,9 @@ export default function DataSourcesTable({
                 </TableCell>
               )}
             </TableRow>
-          )}
+          ))}
         </TableBody>
       </Table>
-    </div>
+    </CollapsibleTableWrapper>
   );
 }

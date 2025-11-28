@@ -10,9 +10,11 @@ import {
   Pagination,
   Spinner,
 } from '@nextui-org/react';
-import { Mail, ChevronDown } from 'lucide-react';
+import { Mail } from 'lucide-react';
 import { intlFormat } from 'date-fns';
 import useLocale from '~/hooks/useLocale';
+import CollapsibleTableWrapper from '../CollapsibleTableWrapper';
+import { collapsibleTableClasses } from '~/utils/tableStyles';
 import type { PatientInvite } from './types';
 
 export type PatientInvitesTableProps = {
@@ -39,11 +41,6 @@ const columns: Column[] = [
   { key: 'expiresAt', label: 'EXPIRES', sortable: false },
 ];
 
-type SortDescriptor = {
-  column: string;
-  direction: 'ascending' | 'descending';
-};
-
 export default function PatientInvitesTable({
   invites,
   totalInvites = 0,
@@ -55,10 +52,6 @@ export default function PatientInvitesTable({
 }: PatientInvitesTableProps) {
   const { locale } = useLocale();
   const navigate = useNavigate();
-  const [sortDescriptor, setSortDescriptor] = React.useState<SortDescriptor>({
-    column: 'created',
-    direction: 'descending',
-  });
   const [isExpanded, setIsExpanded] = React.useState(false);
 
   // Filter to pending invites only
@@ -76,12 +69,6 @@ export default function PatientInvitesTable({
     currentPage * effectivePageSize,
     pendingInvites.length,
   );
-
-  // Generate header text based on expanded state
-  const headerText =
-    isExpanded && pendingInvites.length > 0
-      ? `(showing ${firstInviteOnPage}-${lastInviteOnPage} of ${pendingInvites.length} pending patient invites)`
-      : `Pending Patient Invites (${pendingInvites.length})`;
 
   const renderCell = React.useCallback(
     (
@@ -148,27 +135,6 @@ export default function PatientInvitesTable({
     [locale],
   );
 
-  const TableHeading = (
-    <button
-      onClick={() => setIsExpanded(!isExpanded)}
-      className="flex justify-between items-center w-full p-4 bg-content2 rounded-lg hover:bg-content3 transition-colors cursor-pointer"
-      aria-expanded={isExpanded}
-      aria-controls="patient-invites-table-content"
-    >
-      <div className="flex gap-2 items-center">
-        <Mail />
-        <h2 className="text-lg font-semibold">{headerText}</h2>
-      </div>
-      <div className="flex items-center gap-2">
-        <ChevronDown
-          className={`w-5 h-5 transition-transform ${
-            isExpanded ? 'rotate-180' : ''
-          }`}
-        />
-      </div>
-    </button>
-  );
-
   const EmptyContent = (
     <div className="flex flex-col items-center justify-center py-8">
       <Mail className="w-12 h-12 text-default-300 mb-4" />
@@ -185,83 +151,81 @@ export default function PatientInvitesTable({
   );
 
   return (
-    <div className="w-full">
-      {TableHeading}
-
-      {isExpanded && (
-        <div
-          id="patient-invites-table-content"
-          className="mt-4 transition-all duration-300"
-        >
-          <Table
-            aria-label="Clinic patient invites table"
-            className="flex flex-1 flex-col text-content1-foreground gap-4"
-            shadow="none"
-            removeWrapper
-            selectionMode="single"
-            onSelectionChange={(keys) => {
-              const invite = pendingInvites.find(
-                (inv) =>
-                  inv.key ===
-                  (keys instanceof Set ? Array.from(keys)[0] : keys),
-              );
-              if (invite?.creator?.userid)
-                navigate(`/users/${invite.creator.userid}`);
-            }}
-            classNames={{
-              th: 'bg-content1',
-              tr: 'data-[hover=true]:cursor-pointer',
-            }}
-          >
-            <TableHeader columns={columns}>
-              {(column) => (
-                <TableColumn
-                  key={column.key}
-                  className="bg-content1 text-content1-foreground font-medium"
-                >
-                  {column.label}
-                </TableColumn>
-              )}
-            </TableHeader>
-            <TableBody
-              emptyContent={EmptyContent}
-              loadingContent={LoadingContent}
-              isLoading={isLoading}
-              items={pendingInvites || []}
+    <CollapsibleTableWrapper
+      icon={<Mail className="h-5 w-5" />}
+      title="Pending Patient Invites"
+      totalItems={pendingInvites.length}
+      isExpanded={isExpanded}
+      onToggle={() => setIsExpanded(!isExpanded)}
+      showRange={{
+        firstItem: firstInviteOnPage,
+        lastItem: lastInviteOnPage,
+      }}
+      defaultExpanded={false}
+    >
+      <Table
+        aria-label="Clinic patient invites table"
+        className="flex flex-1 flex-col text-content1-foreground gap-4"
+        shadow="none"
+        removeWrapper
+        selectionMode="single"
+        onSelectionChange={(keys: 'all' | Set<React.Key>) => {
+          const invite = pendingInvites.find(
+            (inv) =>
+              inv.key === (keys instanceof Set ? Array.from(keys)[0] : keys),
+          );
+          if (invite?.creator?.userid)
+            navigate(`/users/${invite.creator.userid}`);
+        }}
+        classNames={collapsibleTableClasses}
+      >
+        <TableHeader columns={columns}>
+          {(column) => (
+            <TableColumn
+              key={column.key}
+              className="text-content1-foreground font-medium"
             >
-              {(invite) => (
-                <TableRow key={invite.key}>
-                  {(columnKey) => (
-                    <TableCell>
-                      {renderCell(
-                        invite,
-                        columnKey as
-                          | keyof PatientInvite
-                          | 'actions'
-                          | 'patientName'
-                          | 'birthday'
-                          | 'userId',
-                      )}
-                    </TableCell>
-                  )}
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-
-          {totalPages > 1 && (
-            <div className="flex justify-center mt-4">
-              <Pagination
-                page={currentPage}
-                total={totalPages}
-                onChange={onPageChange}
-                showControls
-                showShadow
-              />
-            </div>
+              {column.label}
+            </TableColumn>
           )}
+        </TableHeader>
+        <TableBody
+          emptyContent={EmptyContent}
+          loadingContent={LoadingContent}
+          isLoading={isLoading}
+          items={pendingInvites || []}
+        >
+          {(invite) => (
+            <TableRow key={invite.key}>
+              {(columnKey) => (
+                <TableCell>
+                  {renderCell(
+                    invite,
+                    columnKey as
+                      | keyof PatientInvite
+                      | 'actions'
+                      | 'patientName'
+                      | 'birthday'
+                      | 'userId',
+                  )}
+                </TableCell>
+              )}
+            </TableRow>
+          )}
+        </TableBody>
+      </Table>
+
+      {totalPages > 1 && (
+        <div className="flex justify-center mt-4">
+          <Pagination
+            page={currentPage}
+            total={totalPages}
+            onChange={onPageChange}
+            showControls
+            showShadow
+          />
         </div>
       )}
-    </div>
+    </CollapsibleTableWrapper>
   );
 }
