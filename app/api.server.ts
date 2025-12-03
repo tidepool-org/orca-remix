@@ -14,6 +14,7 @@ export const apiRoutes = {
     }),
   },
   data: {
+    // ref https://tidepool.redocly.app/reference/data.v1
     getDataSets: (userId: string) => ({
       method: 'get',
       path: `/v1/users/${userId}/datasets`,
@@ -24,6 +25,7 @@ export const apiRoutes = {
     }),
   },
   clinic: {
+    // ref https://tidepool.redocly.app/reference/clinic.v1
     get: (search: string) => ({
       method: 'get',
       path: `/v1/clinics/${search}`,

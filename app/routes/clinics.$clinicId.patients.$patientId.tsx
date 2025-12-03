@@ -35,11 +35,19 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     ? recentlyViewed.get(`patients-${clinicId}`)
     : [];
 
-  // Get the specific patient directly
-  const patient = await apiRequest({
-    ...apiRoutes.clinic.getPatient(clinicId, patientId),
-    schema: PatientSchema,
-  });
+  // Get the specific patient and their clinics in parallel
+  const [patient, patientClinicsResponse] = await Promise.all([
+    apiRequest({
+      ...apiRoutes.clinic.getPatient(clinicId, patientId),
+      schema: PatientSchema,
+    }),
+    apiRequest({
+      ...apiRoutes.clinic.getClinicsForPatient(patientId),
+    }).catch((err) => {
+      console.error('Error fetching patient clinics:', err);
+      return null;
+    }),
+  ]);
 
   if (patient) {
     const recentPatient: RecentPatient = pick(patient, [
@@ -53,8 +61,25 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
       uniqBy(recentPatients, 'id').slice(0, recentPatientsMax),
     );
 
+    // Handle both array response and object with data property
+    let clinicsData: unknown[] = [];
+    if (Array.isArray(patientClinicsResponse)) {
+      clinicsData = patientClinicsResponse;
+    } else if (
+      patientClinicsResponse &&
+      typeof patientClinicsResponse === 'object' &&
+      'data' in patientClinicsResponse &&
+      Array.isArray(patientClinicsResponse.data)
+    ) {
+      clinicsData = patientClinicsResponse.data;
+    }
+
     return Response.json(
-      { patient, recentPatients: recentlyViewed.get(`patients-${clinicId}`) },
+      {
+        patient,
+        patientClinics: clinicsData,
+        recentPatients: recentlyViewed.get(`patients-${clinicId}`),
+      },
       {
         headers: {
           'Cache-Control': 'public, s-maxage=60',
@@ -64,11 +89,11 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     );
   }
 
-  return { patient: null, recentPatients };
+  return { patient: null, patientClinics: [], recentPatients };
 }
 
 export default function PatientDetails() {
-  const { patient } = useLoaderData<typeof loader>();
+  const { patient, patientClinics } = useLoaderData<typeof loader>();
   const { addRecentPatient } = useRecentItems();
 
   // Add patient to recent list immediately when component mounts
@@ -83,7 +108,9 @@ export default function PatientDetails() {
     }
   }, [patient, addRecentPatient]);
 
-  return patient ? <PatientProfile patient={patient} /> : null;
+  return patient ? (
+    <PatientProfile patient={patient} patientClinics={patientClinics} />
+  ) : null;
 }
 
 export const handle = {

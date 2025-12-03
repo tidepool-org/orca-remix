@@ -125,3 +125,17 @@ export type ClinicianClinicMembership = {
     roles: string[];
   };
 };
+
+// API response types for patient-clinic relationships
+export type PatientClinicMembership = {
+  clinic: Clinic;
+  patient: {
+    id: string;
+    permissions?: {
+      custodian?: Record<string, unknown>;
+      view?: Record<string, unknown>;
+      note?: Record<string, unknown>;
+      upload?: Record<string, unknown>;
+    };
+  };
+};

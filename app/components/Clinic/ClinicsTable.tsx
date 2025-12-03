@@ -10,26 +10,31 @@ import {
   Pagination,
   Spinner,
   Chip,
-} from "@heroui/react";
+} from '@heroui/react';
 import { Building2 } from 'lucide-react';
 import { intlFormat } from 'date-fns';
 import useLocale from '~/hooks/useLocale';
 import CollapsibleTableWrapper from '../CollapsibleTableWrapper';
 import { collapsibleTableClasses } from '~/utils/tableStyles';
-import type { Clinic, ClinicianClinicMembership } from './types';
+import type {
+  Clinic,
+  ClinicianClinicMembership,
+  PatientClinicMembership,
+} from './types';
 
 export type ClinicsTableProps = {
-  clinics: ClinicianClinicMembership[];
+  clinics: ClinicianClinicMembership[] | PatientClinicMembership[];
   totalClinics: number;
   isLoading?: boolean;
   totalPages?: number;
   currentPage?: number;
   pageSize?: number;
   onPageChange?: (page: number) => void;
+  showPermissions?: boolean;
 };
 
 type Column = {
-  key: keyof Clinic;
+  key: keyof Clinic | 'permissions';
   label: string;
   sortable?: boolean;
 };
@@ -42,6 +47,7 @@ export default function ClinicsTable({
   currentPage = 1,
   pageSize,
   onPageChange,
+  showPermissions = false,
 }: ClinicsTableProps) {
   const { locale } = useLocale();
   const navigate = useNavigate();
@@ -69,6 +75,15 @@ export default function ClinicsTable({
       label: 'Tier',
       sortable: false,
     },
+    ...(showPermissions
+      ? [
+          {
+            key: 'permissions' as const,
+            label: 'Permissions',
+            sortable: false,
+          },
+        ]
+      : []),
     {
       key: 'createdTime',
       label: 'Created',
@@ -78,8 +93,8 @@ export default function ClinicsTable({
 
   const renderCell = React.useCallback(
     (
-      item: ClinicianClinicMembership,
-      columnKey: keyof Clinic,
+      item: ClinicianClinicMembership | PatientClinicMembership,
+      columnKey: keyof Clinic | 'permissions',
     ): React.ReactNode => {
       const clinic = item.clinic;
 
@@ -101,6 +116,35 @@ export default function ClinicsTable({
               {clinic.tier || 'N/A'}
             </Chip>
           );
+        case 'permissions':
+          // Type guard to check if item is PatientClinicMembership
+          if ('patient' in item && item.patient.permissions) {
+            return (
+              <div className="flex gap-1 flex-wrap">
+                {item.patient.permissions.view && (
+                  <Chip size="sm" variant="flat" color="success">
+                    View
+                  </Chip>
+                )}
+                {item.patient.permissions.upload && (
+                  <Chip size="sm" variant="flat" color="warning">
+                    Upload
+                  </Chip>
+                )}
+                {item.patient.permissions.note && (
+                  <Chip size="sm" variant="flat" color="secondary">
+                    Note
+                  </Chip>
+                )}
+                {item.patient.permissions.custodian && (
+                  <Chip size="sm" variant="flat" color="primary">
+                    Custodian
+                  </Chip>
+                )}
+              </div>
+            );
+          }
+          return <span className="text-default-400">—</span>;
         case 'createdTime':
           return (
             <div className="text-sm">
@@ -131,9 +175,7 @@ export default function ClinicsTable({
   const EmptyContent = (
     <div className="flex flex-col items-center justify-center py-8">
       <Building2 className="w-12 h-12 text-default-300 mb-4" />
-      <span className="text-default-500">
-        No clinics found for this clinician
-      </span>
+      <span className="text-default-500">No clinics found</span>
     </div>
   );
 
@@ -181,7 +223,7 @@ export default function ClinicsTable({
             <TableRow key={item.clinic?.id || Math.random()}>
               {(columnKey) => (
                 <TableCell>
-                  {renderCell(item, columnKey as keyof Clinic)}
+                  {renderCell(item, columnKey as keyof Clinic | 'permissions')}
                 </TableCell>
               )}
             </TableRow>

@@ -227,11 +227,17 @@ export const ClinicSearchSchema = z.object({
     .min(1, 'Search term is required')
     .refine(
       (val) => {
-        // Must be clinic ID (10 hex chars) or share code (uppercase letters/numbers, no vowels/0/1)
-        const clinicIdRegex = /^[0-9a-f]{10}$/;
+        // Must be clinic ID (UUID format or 10+ hex chars) or share code (uppercase letters/numbers, no vowels/0/1)
+        const clinicIdRegex = /^[0-9a-f]{10,}$/i; // 10 or more hex chars, case insensitive
+        const uuidRegex =
+          /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i; // UUID format
         const shareCodeRegex =
           /^[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{4}-[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{4}-[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{4}$/;
-        return clinicIdRegex.test(val) || shareCodeRegex.test(val);
+        return (
+          clinicIdRegex.test(val) ||
+          uuidRegex.test(val) ||
+          shareCodeRegex.test(val)
+        );
       },
       {
         message: 'Must be a valid clinic ID or share code',

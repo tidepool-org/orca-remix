@@ -3,12 +3,14 @@ import { useCallback } from 'react';
 import Well from '~/partials/Well';
 import { intlFormat } from 'date-fns';
 
-import type { Patient } from './types';
+import type { Patient, PatientClinicMembership } from './types';
 import useLocale from '~/hooks/useLocale';
 import ClipboardButton from '../ClipboardButton';
+import ClinicsTable from './ClinicsTable';
 
 export type PatientProfileProps = {
   patient: Patient;
+  patientClinics?: PatientClinicMembership[];
   clinic?: {
     patientTags?: {
       id: string;
@@ -23,6 +25,7 @@ export type PatientProfileProps = {
 
 export default function PatientProfile({
   patient,
+  patientClinics = [],
   clinic,
 }: PatientProfileProps) {
   const {
@@ -200,6 +203,12 @@ export default function PatientProfile({
           ))}
         </div>
       </Well>
+
+      <ClinicsTable
+        clinics={patientClinics}
+        totalClinics={patientClinics.length}
+        showPermissions={true}
+      />
     </div>
   );
 }
