@@ -13,8 +13,8 @@ import {
   Chip,
   SortDescriptor,
   Tooltip,
-} from "@heroui/react";
-import { Users, ChevronUp, ChevronDown } from 'lucide-react';
+} from '@heroui/react';
+import { Users } from 'lucide-react';
 import { intlFormat } from 'date-fns';
 import useLocale from '~/hooks/useLocale';
 import CollapsibleTableWrapper from '../CollapsibleTableWrapper';
@@ -312,17 +312,6 @@ export default function PatientsTable({
     [locale, getTagName, getSiteName],
   );
 
-  const SortIcon = ({ column }: { column: string }) => {
-    if (sortDescriptor.column !== column) {
-      return null;
-    }
-    return sortDescriptor.direction === 'ascending' ? (
-      <ChevronUp className="w-4 h-4" />
-    ) : (
-      <ChevronDown className="w-4 h-4" />
-    );
-  };
-
   const EmptyContent = (
     <div className="flex flex-col items-center justify-center py-8">
       <Users className="w-12 h-12 text-default-300 mb-4" />
@@ -383,10 +372,7 @@ export default function PatientsTable({
               allowsSorting={column.sortable}
               className="text-left"
             >
-              <div className="flex items-center gap-1">
-                {column.label}
-                {column.sortable && <SortIcon column={column.key} />}
-              </div>
+              {column.label}
             </TableColumn>
           )}
         </TableHeader>
