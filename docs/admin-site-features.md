@@ -1,0 +1,334 @@
+# Comprehensive Feature Breakdown: admin-site (Tidepool Orca Admin Site)
+
+This document provides a detailed analysis of the legacy admin-site repository features to track migration progress to orca-remix.
+
+## Overview
+
+The admin-site is an internal Tidepool tool for customer support and issue diagnosis. It enables Tidepool employees to view, retrieve, analyze, and potentially modify user data stored in Tidepool's cloud platform.
+
+**Technology Stack:**
+
+- **Backend:** Go (Golang) with Gorilla Mux router
+- **Frontend:** React with Redux, React-Bootstrap, React-Router-DOM
+- **Authentication:** Pomerium SSO integration with Tidepool token auth middleware
+
+---
+
+## Migration Progress Tracker
+
+| Category          | Feature              | Status | Notes |
+| ----------------- | -------------------- | ------ | ----- |
+| User Management   | User Lookup          | [ ]    |       |
+| User Management   | User Profile Display | [ ]    |       |
+| User Management   | Account Actions      | [ ]    |       |
+| Data Management   | Upload Viewing       | [ ]    |       |
+| Data Management   | Data Export          | [ ]    |       |
+| Device Management | Device Settings      | [ ]    |       |
+| Device Management | Connected Devices    | [ ]    |       |
+| Clinic Management | Clinic Viewing       | [ ]    |       |
+| Clinic Management | Clinician Management | [ ]    |       |
+| Clinic Management | Patient Management   | [ ]    |       |
+| Clinic Management | Clinic Reports       | [ ]    |       |
+| Agent Management  | Agent Info           | [ ]    |       |
+| Agent Management  | Action Logs          | [ ]    |       |
+
+---
+
+## 1. User Management
+
+### User Lookup & Profile Viewing
+
+| Feature                     | Description                                                                                      | API Endpoint                        | Migrated |
+| --------------------------- | ------------------------------------------------------------------------------------------------ | ----------------------------------- | -------- |
+| Search by Email/UserID      | Look up users by email address or Tidepool user ID                                               | `/api/v1/user/{userID}`             | [x]      |
+| User Profile Display        | View user's full name, email, account ID, account type (user/patient/clinician/legacy clinician) | `/api/v1/metadata/profile/{userID}` | [x]      |
+| Account Verification Status | View if email is verified, terms accepted date                                                   | User info response                  | [x]      |
+| Patient Info                | View birthday, diagnosis date, MRN for patient accounts                                          | Profile metadata                    | [x]      |
+| Account Role Detection      | Identifies account types: user, patient, clinician, migrated clinician, legacy clinician         | Based on roles array                | [x]      |
+
+### User Account Actions
+
+| Feature                   | Description                                     | API Endpoint                                   | Migrated |
+| ------------------------- | ----------------------------------------------- | ---------------------------------------------- | -------- |
+| Verify User Email         | Manually verify a user's email address          | `/api/v1/signup/confirm/{userID}/{confirmKey}` | [ ]      |
+| Password Reset            | Send password reset email to user               | `/api/v1/password/reset/{email}`               | [ ]      |
+| Resend Confirmation Email | Resend account confirmation email               | `/api/v1/resend/confirm/account/{email}`       | [ ]      |
+| Send Confirmation Email   | Send new account confirmation                   | `/api/v1/send/confirm/account/{userID}`        | [ ]      |
+| Delete User Account       | Permanently delete user account and all data    | `/api/v1/delete/user/{userID}`                 | [ ]      |
+| Delete User Data          | Delete all user upload data (preserves account) | `/api/v1/delete/data/{userID}`                 | [ ]      |
+
+### Data Sharing Management
+
+| Feature                        | Description                                              | API Endpoint                           | Migrated |
+| ------------------------------ | -------------------------------------------------------- | -------------------------------------- | -------- |
+| View Accounts Shared With User | See all accounts that share data with the looked-up user | `/api/v1/shared/users/{userID}`        | [ ]      |
+| View Accounts User Shares With | See all accounts the user shares their data with         | Part of shared users response          | [ ]      |
+| View Sent Invites              | See pending invites sent by user                         | `/api/v1/confirm/invite/{userID}`      | [ ]      |
+| View Received Invites          | See pending invites received by user                     | `/api/v1/confirm/invitations/{userID}` | [ ]      |
+| Custodial Account Count        | Displays count of custodial accounts                     | Calculated from shared data            | [ ]      |
+
+---
+
+## 2. Data & Uploads Management
+
+### Upload Viewing
+
+| Feature          | Description                                            | API Endpoint               | Migrated |
+| ---------------- | ------------------------------------------------------ | -------------------------- | -------- |
+| View All Uploads | List all user data uploads with details                | `/api/v1/uploads/{userID}` | [x]      |
+| Upload Details   | Device manufacturer, model, serial number, device type | Upload metadata            | [ ]      |
+| Upload Metadata  | Created time, upload ID, version, uploaded by          | Upload metadata            | [ ]      |
+| Upload Filtering | Filter uploads by Upload ID                            | Client-side filter         | [ ]      |
+
+### Upload Actions
+
+| Feature                   | Description                           | API Endpoint                                       | Migrated |
+| ------------------------- | ------------------------------------- | -------------------------------------------------- | -------- |
+| Delete Individual Dataset | Delete a specific upload/dataset      | `/api/v1/delete/dataset/{userID}/{dataSetID}`      | [ ]      |
+| Delete Data From Dataset  | Delete data from a continuous dataset | `/api/v1/delete/dataset/data/{userID}/{dataSetID}` | [ ]      |
+
+### Data Export
+
+| Feature              | Description                                   | API Endpoint              | Migrated |
+| -------------------- | --------------------------------------------- | ------------------------- | -------- |
+| Export User Data     | Export user data to file                      | `/api/v1/export/{userID}` | [ ]      |
+| Date Range Selection | All data, last 90/30/14 days, or custom range | Query params              | [ ]      |
+| Format Selection     | Excel (.xlsx) or JSON                         | `format` param            | [ ]      |
+| BG Units Selection   | mg/dL or mmol/L                               | `bgUnits` param           | [ ]      |
+| Data Anonymization   | Option to anonymize exported data (planned)   | `anonymizeData` param     | [ ]      |
+
+---
+
+## 3. Device Management
+
+### Device Settings
+
+| Feature             | Description                              | API Endpoint                       | Migrated |
+| ------------------- | ---------------------------------------- | ---------------------------------- | -------- |
+| View Pump Settings  | Display pump settings for user's devices | `/api/v1/device/settings/{userID}` | [ ]      |
+| Basal Schedules     | View basal rate schedules with times     | Parsed from pump settings          | [ ]      |
+| BG Targets          | View blood glucose target settings       | Parsed from pump settings          | [ ]      |
+| Carb Ratios         | View carbohydrate ratio settings         | Parsed from pump settings          | [ ]      |
+| Insulin Sensitivity | View insulin sensitivity factors         | Parsed from pump settings          | [ ]      |
+| Unit Conversion     | Toggle between mg/dL and mmol/L display  | Client-side                        | [ ]      |
+
+### Connected Devices
+
+| Feature                | Description                                    | API Endpoint                         | Migrated |
+| ---------------------- | ---------------------------------------------- | ------------------------------------ | -------- |
+| View Connected Devices | List all connected data sources                | `/api/v1/connected/devices/{userID}` | [x]      |
+| Connection Status      | Provider name, connection state, error details | Device connection data               | [ ]      |
+| Data Timing            | Earliest data, latest data, last import time   | Device connection data               | [ ]      |
+| Revision Tracking      | Connection revision count                      | Device connection data               | [ ]      |
+
+### Prescriptions
+
+| Feature              | Description                                       | API Endpoint                                    | Migrated |
+| -------------------- | ------------------------------------------------- | ----------------------------------------------- | -------- |
+| View Prescriptions   | Display prescriptions for user (table view)       | `/api/v1/prescription/{userID}` (commented out) | [ ]      |
+| Prescription Details | Patient ID, prescriber, status, activation number | Prescription data                               | [ ]      |
+| Prescription Dates   | Created date, modified date, expiration           | Prescription data                               | [ ]      |
+
+---
+
+## 4. Clinic Management
+
+### Clinic Viewing
+
+| Feature                    | Description                                   | API Endpoint                          | Migrated |
+| -------------------------- | --------------------------------------------- | ------------------------------------- | -------- |
+| View Clinics for Clinician | List clinics where user is a clinician        | `/api/v1/clinicians/{userID}/clinics` | [x]      |
+| View Clinics for Patient   | List clinics where user is a patient          | `/api/v1/patients/{userID}/clinics`   | [x]      |
+| Clinic Details             | Clinic ID, name, share code, user permissions | Clinic data                           | [x]      |
+| Clinic Selection           | Select clinic to view details                 | Client-side state                     | [x]      |
+
+### Clinician Management
+
+| Feature                | Description                          | API Endpoint                            | Migrated |
+| ---------------------- | ------------------------------------ | --------------------------------------- | -------- |
+| View Clinic Clinicians | List all clinicians in a clinic      | `/api/v1/clinics/{clinicID}/clinicians` | [x]      |
+| Clinician Details      | ID, name, email, role (Admin/Member) | Clinician data                          | [x]      |
+| View Clinician Invites | List pending clinician invites       | Filtered from clinicians                | [ ]      |
+
+### Patient Management
+
+| Feature              | Description                                   | API Endpoint                                  | Migrated |
+| -------------------- | --------------------------------------------- | --------------------------------------------- | -------- |
+| View Clinic Patients | Paginated list of clinic patients             | `/api/v1/clinics/{clinicID}/patients`         | [x]      |
+| Patient Details      | ID, name, email, birth date, custodial status | Patient data                                  | [x]      |
+| View Patient Invites | List patient -> clinic invites                | `/api/v1/clinics/{clinicID}/invites/patients` | [x]      |
+| Patient Count        | Total patient count for clinic                | Meta response                                 | [x]      |
+
+### Clinic Actions
+
+| Feature                   | Description                                  | API Endpoint                               | Migrated |
+| ------------------------- | -------------------------------------------- | ------------------------------------------ | -------- |
+| Migrate to Clinic Account | Migrate legacy clinic user to clinic account | `/api/v1/clinicians/{userID}/migrate`      | [ ]      |
+| Merge Patient List        | Merge patient list to a clinic               | `/api/v1/clinics/{clinicID}/migrations`    | [ ]      |
+| Update Clinic Tier        | Change clinic tier (tier0100-tier0400)       | `/api/v1/clinics/{clinicID}/tier`          | [x]      |
+| Generate Merge Report     | Create clinic merge report (Excel)           | `/api/v1/clinics/{clinicID}/reports/merge` | [ ]      |
+
+### Clinic Reports
+
+| Feature            | Description                                              | API Endpoint                      | Migrated |
+| ------------------ | -------------------------------------------------------- | --------------------------------- | -------- |
+| Clinic Report      | Generate Excel report of clinic users                    | `/api/v1/clinic/report`           | [ ]      |
+| Date Filtering     | Filter by creation date range                            | `createdFrom`, `createdTo` params | [ ]      |
+| Username Filtering | Ignore test/automated usernames                          | `ignoredUsernames` param          | [ ]      |
+| Report Contents    | User ID, username, Kissmetric ID, email, verified status | Excel columns                     | [ ]      |
+
+### Clinic Merge Report
+
+| Feature               | Description                        | Page                    | Migrated |
+| --------------------- | ---------------------------------- | ----------------------- | -------- |
+| Source/Target Input   | Enter source and target clinic IDs | `/clinic/reports/merge` | [ ]      |
+| Merge Report Download | Download merge analysis Excel file | POST to generate        | [ ]      |
+
+---
+
+## 5. Agent (Admin User) Management
+
+### Agent Information
+
+| Feature           | Description                                 | API Endpoint     | Migrated |
+| ----------------- | ------------------------------------------- | ---------------- | -------- |
+| Get Current Agent | Retrieve current admin user info            | `/api/v1/agent/` | [x]      |
+| Pomerium Headers  | Extract JWT assertion, email, name, picture | Request headers  | [x]      |
+
+### Agent Action Logging
+
+| Feature                   | Description                                            | Location              | Migrated |
+| ------------------------- | ------------------------------------------------------ | --------------------- | -------- |
+| Action Logs               | Link to Sumo Logic logs for agent actions              | `/agentInfo/logs`     | [ ]      |
+| Environment-Specific Logs | Different Sumo Logic URLs for QA2 vs Production        | Conditional rendering | [ ]      |
+| Logged Actions            | All API calls log agent email, action, and target user | Backend logging       | [ ]      |
+
+---
+
+## 6. Authentication & Security
+
+### Authentication
+
+| Feature                  | Description                                   | File                              | Migrated |
+| ------------------------ | --------------------------------------------- | --------------------------------- | -------- |
+| Tidepool Auth Middleware | Validates Tidepool authentication tokens      | `tidepoolAuthMiddleware.go`       | [x]      |
+| Server Token Management  | Auto-refreshes server token every 10 minutes  | `getServerToken.go`               | [x]      |
+| Pomerium SSO Integration | Uses Pomerium headers for user identification | Request headers                   | [x]      |
+| Permission Middleware    | Permission checking (partially implemented)   | `tidepoolPermissionMiddleware.go` | [x]      |
+
+---
+
+## 7. UI/Navigation Structure
+
+### Main Navigation (Sidebar)
+
+```
+- Homepage (Dashboard)
+- User Management
+  - User Profile Page
+  - Accounts Shared with User
+  - User Uploads
+  - Device Settings
+  - Connected Devices
+  - Prescriptions
+- Agent Management
+  - Agent Action Logs
+- Clinic Management
+  - Report
+  - Merge Report
+```
+
+### User Profile Sub-Navigation
+
+```
+- Uploads (data uploads list)
+- Device Settings (pump settings)
+- Connected Devices (data sources)
+- Prescriptions
+- Clinics (clinic associations)
+```
+
+---
+
+## 8. API Endpoints Summary
+
+### User APIs
+
+| Method | Endpoint                            | Description      | Migrated |
+| ------ | ----------------------------------- | ---------------- | -------- |
+| GET    | `/api/v1/user/{userID}`             | Get user info    | [ ]      |
+| GET    | `/api/v1/metadata/profile/{userID}` | Get user profile | [ ]      |
+| DELETE | `/api/v1/delete/user/{userID}`      | Delete user      | [ ]      |
+| DELETE | `/api/v1/delete/data/{userID}`      | Delete user data | [ ]      |
+| POST   | `/api/v1/password/reset/{email}`    | Password reset   | [ ]      |
+| POST   | `/api/v1/token/{userID}`            | Get user token   | [ ]      |
+| GET    | `/api/v1/export/{userID}`           | Export user data | [ ]      |
+
+### Upload/Device APIs
+
+| Method | Endpoint                                           | Description              | Migrated |
+| ------ | -------------------------------------------------- | ------------------------ | -------- |
+| GET    | `/api/v1/uploads/{userID}`                         | Get user uploads         | [ ]      |
+| DELETE | `/api/v1/delete/dataset/{userID}/{dataSetID}`      | Delete dataset           | [ ]      |
+| DELETE | `/api/v1/delete/dataset/data/{userID}/{dataSetID}` | Delete data from dataset | [ ]      |
+| GET    | `/api/v1/device/settings/{userID}`                 | Get device settings      | [ ]      |
+| GET    | `/api/v1/connected/devices/{userID}`               | Get connected devices    | [ ]      |
+
+### Sharing APIs
+
+| Method | Endpoint                               | Description          | Migrated |
+| ------ | -------------------------------------- | -------------------- | -------- |
+| GET    | `/api/v1/shared/users/{userID}`        | Get shared users     | [ ]      |
+| GET    | `/api/v1/shared/users/id/{userID}`     | Get shared user IDs  | [ ]      |
+| GET    | `/api/v1/confirm/invite/{userID}`      | Get sent invites     | [ ]      |
+| GET    | `/api/v1/confirm/invitations/{userID}` | Get received invites | [ ]      |
+
+### Clinic APIs
+
+| Method | Endpoint                                      | Description               | Migrated |
+| ------ | --------------------------------------------- | ------------------------- | -------- |
+| GET    | `/api/v1/clinicians/{userID}/clinics`         | Get clinics for clinician | [ ]      |
+| GET    | `/api/v1/patients/{userID}/clinics`           | Get clinics for patient   | [ ]      |
+| GET    | `/api/v1/clinics/{clinicID}/clinicians`       | Get clinicians for clinic | [ ]      |
+| GET    | `/api/v1/clinics/{clinicID}/patients`         | Get patients for clinic   | [ ]      |
+| GET    | `/api/v1/clinics/{clinicID}/invites/patients` | Get patient invites       | [ ]      |
+| POST   | `/api/v1/clinicians/{userID}/migrate`         | Migrate to clinic account | [ ]      |
+| POST   | `/api/v1/clinics/{clinicID}/migrations`       | Merge patient list        | [ ]      |
+| POST   | `/api/v1/clinics/{clinicID}/tier`             | Update clinic tier        | [ ]      |
+| GET    | `/api/v1/clinic/report`                       | Generate clinic report    | [ ]      |
+| POST   | `/api/v1/clinics/{clinicID}/reports/merge`    | Generate merge report     | [ ]      |
+
+### Auth/Agent APIs
+
+| Method | Endpoint                                       | Description            | Migrated |
+| ------ | ---------------------------------------------- | ---------------------- | -------- |
+| GET    | `/api/v1/agent/`                               | Get current agent info | [ ]      |
+| GET    | `/api/v1/signup/key/{userID}`                  | Get signup key         | [ ]      |
+| PUT    | `/api/v1/signup/confirm/{userID}/{confirmKey}` | Confirm signup         | [ ]      |
+| POST   | `/api/v1/send/confirm/account/{userID}`        | Send confirmation      | [ ]      |
+| POST   | `/api/v1/resend/confirm/account/{email}`       | Resend confirmation    | [ ]      |
+
+---
+
+## 9. Configuration & Environment
+
+| File                                 | Purpose                     | Migrated |
+| ------------------------------------ | --------------------------- | -------- |
+| `.env`                               | Environment variables       | [ ]      |
+| `.env.{environment}`                 | Environment-specific config | [ ]      |
+| `webpack.dev.js` / `webpack.prod.js` | Build configuration         | [ ]      |
+| `postcss.config.js`                  | CSS processing              | [ ]      |
+
+---
+
+## Notes
+
+- Features marked with `[ ]` are not yet migrated
+- Features marked with `[x]` have been migrated to orca-remix
+- Features marked with `[-]` are intentionally not being migrated (deprecated/not needed)
+
+## References
+
+- Legacy admin-site repository: `../admin-site`
+- Tidepool API documentation: <https://tidepool.redocly.app/tidepool-apis>
+- Clinic API: <https://tidepool.redocly.app/reference/clinic.v1>
