@@ -3,6 +3,7 @@ import { intlFormat } from 'date-fns';
 import ClinicsTable from '../Clinic/ClinicsTable';
 import DataSetsTable from './DataSetsTable';
 import DataSourcesTable from './DataSourcesTable';
+import UserActions from './UserActions';
 import type { ClinicianClinicMembership } from '../Clinic/types';
 
 import type { User, Profile, DataSet, DataSource } from './types';
@@ -81,6 +82,10 @@ export default function UserProfile({
             </div>
           ))}
         </div>
+      </Well>
+
+      <Well>
+        <UserActions user={user} />
       </Well>
 
       <Well>

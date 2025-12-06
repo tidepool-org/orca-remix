@@ -12,6 +12,38 @@ export const apiRoutes = {
       method: 'get',
       path: `/metadata/${userId}/${collection}`,
     }),
+    // Account verification
+    getSignupKey: (userId: string) => ({
+      method: 'get',
+      path: `/confirm/signup/${userId}`,
+    }),
+    confirmSignup: (userId: string, confirmKey: string) => ({
+      method: 'put',
+      path: `/confirm/accept/signup/${userId}`,
+      body: { key: confirmKey },
+    }),
+    sendConfirmation: (userId: string) => ({
+      method: 'post',
+      path: `/confirm/send/signup/${userId}`,
+    }),
+    resendConfirmation: (email: string) => ({
+      method: 'post',
+      path: `/confirm/resend/signup/${email}`,
+    }),
+    // Password reset
+    sendPasswordReset: (email: string) => ({
+      method: 'post',
+      path: `/confirm/send/forgot/${email}`,
+    }),
+    // Destructive actions
+    delete: (userId: string) => ({
+      method: 'delete',
+      path: `/v1/users/${userId}`,
+    }),
+    deleteData: (userId: string) => ({
+      method: 'delete',
+      path: `/v1/users/${userId}/data`,
+    }),
   },
   data: {
     // ref https://tidepool.redocly.app/reference/data.v1

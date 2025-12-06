@@ -1,4 +1,9 @@
-import { type LoaderFunctionArgs, type MetaFunction } from 'react-router';
+import {
+  type LoaderFunctionArgs,
+  type ActionFunctionArgs,
+  type MetaFunction,
+  redirect,
+} from 'react-router';
 
 import UserProfile from '~/components/User/UserProfile';
 import type {
@@ -17,6 +22,7 @@ import { useLoaderData } from 'react-router';
 import isArray from 'lodash/isArray';
 import pick from 'lodash/pick';
 import uniqBy from 'lodash/uniqBy';
+import { APIError } from '~/utils/errors';
 
 export const meta: MetaFunction = () => {
   return [
@@ -158,6 +164,117 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     dataSources: [],
     totalDataSources: 0,
   };
+}
+
+export async function action({ request, params }: ActionFunctionArgs) {
+  const formData = await request.formData();
+  const intent = formData.get('intent') as string;
+  const userId = params.userId as string;
+
+  // First, fetch the user to get their email for certain operations
+  let user: User | null = null;
+  try {
+    user = (await apiRequest(apiRoutes.user.get(userId))) as User;
+  } catch {
+    return Response.json(
+      { success: false, error: 'Failed to fetch user information' },
+      { status: 400 },
+    );
+  }
+
+  if (!user) {
+    return Response.json(
+      { success: false, error: 'User not found' },
+      { status: 404 },
+    );
+  }
+
+  try {
+    switch (intent) {
+      case 'verify-email': {
+        // Step 1: Get the signup key for the user
+        const signupKeyResponse = (await apiRequest(
+          apiRoutes.user.getSignupKey(userId),
+        )) as { key?: string };
+
+        if (!signupKeyResponse?.key) {
+          return Response.json(
+            {
+              success: false,
+              error: 'Could not retrieve signup key for user',
+            },
+            { status: 400 },
+          );
+        }
+
+        // Step 2: Use the key to confirm the signup
+        await apiRequest(
+          apiRoutes.user.confirmSignup(userId, signupKeyResponse.key),
+        );
+
+        return Response.json({
+          success: true,
+          action: 'verify-email',
+          message: 'User email verified successfully',
+        });
+      }
+
+      case 'password-reset': {
+        await apiRequest(apiRoutes.user.sendPasswordReset(user.username));
+        return Response.json({
+          success: true,
+          action: 'password-reset',
+          message: 'Password reset email sent successfully',
+        });
+      }
+
+      case 'send-confirmation': {
+        await apiRequest(apiRoutes.user.sendConfirmation(userId));
+        return Response.json({
+          success: true,
+          action: 'send-confirmation',
+          message: 'Confirmation email sent successfully',
+        });
+      }
+
+      case 'resend-confirmation': {
+        await apiRequest(apiRoutes.user.resendConfirmation(user.username));
+        return Response.json({
+          success: true,
+          action: 'resend-confirmation',
+          message: 'Confirmation email resent successfully',
+        });
+      }
+
+      case 'delete-data': {
+        await apiRequest(apiRoutes.user.deleteData(userId));
+        return Response.json({
+          success: true,
+          action: 'delete-data',
+          message: 'User data deleted successfully',
+        });
+      }
+
+      case 'delete-account': {
+        await apiRequest(apiRoutes.user.delete(userId));
+        // Redirect to users index after account deletion
+        return redirect('/users');
+      }
+
+      default:
+        return Response.json(
+          { success: false, error: `Unknown action: ${intent}` },
+          { status: 400 },
+        );
+    }
+  } catch (error) {
+    const message =
+      error instanceof APIError
+        ? error.message
+        : 'An unexpected error occurred';
+
+    return Response.json({ success: false, error: message }, { status: 500 });
+  }
 }
 
 export default function Users() {
