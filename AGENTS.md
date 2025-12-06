@@ -18,3 +18,8 @@
 - **React Router**: Routes in `app/routes/` with flat-file convention. Export `loader`/`action` for data, `meta` for metadata
 - **State**: Use React hooks, `useLoaderData`/`useActionData` for route data, `useSubmit` for form submissions
 - **Styling**: Tailwind CSS with HeroUI theme. Use `className` props for styling
+
+## API Documentation
+- **Full API docs**: https://tidepool.redocly.app/tidepool-apis
+- **Clinic API** (clinics, patients, clinicians): https://tidepool.redocly.app/reference/clinic.v1
+- **Export API**: https://tidepool.redocly.app/reference/export.v1
