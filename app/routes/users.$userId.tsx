@@ -159,7 +159,10 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
       );
       sentInvites = Array.isArray(sentResponse) ? sentResponse : [];
     } catch (error) {
-      console.error('Error fetching sent invites:', error);
+      // 404 is expected when user has no sent invites - not an error condition
+      if (!(error instanceof APIError && error.status === 404)) {
+        console.error('Error fetching sent invites:', error);
+      }
     }
 
     // Fetch pending invites received by this user
@@ -169,7 +172,10 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
       );
       receivedInvites = Array.isArray(receivedResponse) ? receivedResponse : [];
     } catch (error) {
-      console.error('Error fetching received invites:', error);
+      // 404 is expected when user has no received invites - not an error condition
+      if (!(error instanceof APIError && error.status === 404)) {
+        console.error('Error fetching received invites:', error);
+      }
     }
   }
 

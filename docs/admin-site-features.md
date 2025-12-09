@@ -61,11 +61,11 @@ The admin-site is an internal Tidepool tool for customer support and issue diagn
 
 | Feature                        | Description                                              | API Endpoint                           | Migrated |
 | ------------------------------ | -------------------------------------------------------- | -------------------------------------- | -------- |
-| View Accounts Shared With User | See all accounts that share data with the looked-up user | `/api/v1/shared/users/{userID}`        | [ ]      |
-| View Accounts User Shares With | See all accounts the user shares their data with         | Part of shared users response          | [ ]      |
-| View Sent Invites              | See pending invites sent by user                         | `/api/v1/confirm/invite/{userID}`      | [ ]      |
-| View Received Invites          | See pending invites received by user                     | `/api/v1/confirm/invitations/{userID}` | [ ]      |
-| Custodial Account Count        | Displays count of custodial accounts                     | Calculated from shared data            | [ ]      |
+| View Accounts Shared With User | See all accounts that share data with the looked-up user | `/api/v1/shared/users/{userID}`        | [x]      |
+| View Accounts User Shares With | See all accounts the user shares their data with         | Part of shared users response          | [x]      |
+| View Sent Invites              | See pending invites sent by user                         | `/api/v1/confirm/invite/{userID}`      | [x]      |
+| View Received Invites          | See pending invites received by user                     | `/api/v1/confirm/invitations/{userID}` | [x]      |
+| Custodial Account Count        | Displays count of custodial accounts                     | Calculated from shared data            | [x]      |
 
 ---
 
