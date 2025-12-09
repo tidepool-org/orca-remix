@@ -18,18 +18,18 @@ The admin-site is an internal Tidepool tool for customer support and issue diagn
 
 | Category          | Feature              | Status | Notes |
 | ----------------- | -------------------- | ------ | ----- |
-| User Management   | User Lookup          | [ ]    |       |
-| User Management   | User Profile Display | [ ]    |       |
-| User Management   | Account Actions      | [ ]    |       |
-| Data Management   | Upload Viewing       | [ ]    |       |
-| Data Management   | Data Export          | [ ]    |       |
+| User Management   | User Lookup          | [x]    |       |
+| User Management   | User Profile Display | [x]    |       |
+| User Management   | Account Actions      | [x]    |       |
+| Data Management   | Upload Viewing       | [x]    |       |
+| Data Management   | Data Export          | [x]    |       |
 | Device Management | Device Settings      | [ ]    |       |
-| Device Management | Connected Devices    | [ ]    |       |
-| Clinic Management | Clinic Viewing       | [ ]    |       |
-| Clinic Management | Clinician Management | [ ]    |       |
-| Clinic Management | Patient Management   | [ ]    |       |
+| Device Management | Connected Devices    | [x]    |       |
+| Clinic Management | Clinic Viewing       | [x]    |       |
+| Clinic Management | Clinician Management | [x]    |       |
+| Clinic Management | Patient Management   | [x]    |       |
 | Clinic Management | Clinic Reports       | [ ]    |       |
-| Agent Management  | Agent Info           | [ ]    |       |
+| Agent Management  | Agent Info           | [x]    |       |
 | Agent Management  | Action Logs          | [ ]    |       |
 
 ---
@@ -76,25 +76,25 @@ The admin-site is an internal Tidepool tool for customer support and issue diagn
 | Feature          | Description                                            | API Endpoint               | Migrated |
 | ---------------- | ------------------------------------------------------ | -------------------------- | -------- |
 | View All Uploads | List all user data uploads with details                | `/api/v1/uploads/{userID}` | [x]      |
-| Upload Details   | Device manufacturer, model, serial number, device type | Upload metadata            | [ ]      |
-| Upload Metadata  | Created time, upload ID, version, uploaded by          | Upload metadata            | [ ]      |
-| Upload Filtering | Filter uploads by Upload ID                            | Client-side filter         | [ ]      |
+| Upload Details   | Device manufacturer, model, serial number, device type | Upload metadata            | [x]      |
+| Upload Metadata  | Created time, upload ID, version, uploaded by          | Upload metadata            | [x]      |
+| Upload Filtering | Filter uploads by Upload ID                            | Client-side filter         | [x]      |
 
 ### Upload Actions
 
 | Feature                   | Description                           | API Endpoint                                       | Migrated |
 | ------------------------- | ------------------------------------- | -------------------------------------------------- | -------- |
-| Delete Individual Dataset | Delete a specific upload/dataset      | `/api/v1/delete/dataset/{userID}/{dataSetID}`      | [ ]      |
-| Delete Data From Dataset  | Delete data from a continuous dataset | `/api/v1/delete/dataset/data/{userID}/{dataSetID}` | [ ]      |
+| Delete Individual Dataset | Delete a specific upload/dataset      | `/api/v1/delete/dataset/{userID}/{dataSetID}`      | [x]      |
+| Delete Data From Dataset  | Delete data from a continuous dataset | `/api/v1/delete/dataset/data/{userID}/{dataSetID}` | [x]      |
 
 ### Data Export
 
 | Feature              | Description                                   | API Endpoint              | Migrated |
 | -------------------- | --------------------------------------------- | ------------------------- | -------- |
-| Export User Data     | Export user data to file                      | `/api/v1/export/{userID}` | [ ]      |
-| Date Range Selection | All data, last 90/30/14 days, or custom range | Query params              | [ ]      |
-| Format Selection     | Excel (.xlsx) or JSON                         | `format` param            | [ ]      |
-| BG Units Selection   | mg/dL or mmol/L                               | `bgUnits` param           | [ ]      |
+| Export User Data     | Export user data to file                      | `/api/v1/export/{userID}` | [x]      |
+| Date Range Selection | All data, last 90/30/14 days, or custom range | Query params              | [x]      |
+| Format Selection     | Excel (.xlsx) or JSON                         | `format` param            | [x]      |
+| BG Units Selection   | mg/dL or mmol/L                               | `bgUnits` param           | [x]      |
 | Data Anonymization   | Option to anonymize exported data (planned)   | `anonymizeData` param     | [ ]      |
 
 ---

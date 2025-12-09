@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   Table,
   TableHeader,
@@ -13,13 +13,15 @@ import {
   DropdownTrigger,
   DropdownMenu,
   DropdownItem,
+  Input,
 } from '@heroui/react';
-import { Upload, MoreVertical, Trash2, Database } from 'lucide-react';
+import { Upload, MoreVertical, Trash2, Database, Search } from 'lucide-react';
 import { intlFormat } from 'date-fns';
 import { useFetcher } from 'react-router';
 import useLocale from '~/hooks/useLocale';
 import CollapsibleTableWrapper from '../CollapsibleTableWrapper';
 import ConfirmationModal from '../ConfirmationModal';
+import ClipboardButton from '../ClipboardButton';
 import { collapsibleTableClasses } from '~/utils/tableStyles';
 import type { DataSet } from './types';
 import { useToast } from '~/contexts/ToastContext';
@@ -54,8 +56,21 @@ export default function DataSetsTable({
     dataSet: null,
     type: null,
   });
+  const [filterValue, setFilterValue] = useState('');
 
   const isDeleting = fetcher.state !== 'idle';
+
+  // Filter datasets by upload ID
+  const filteredDataSets = useMemo(() => {
+    if (!filterValue.trim()) return dataSets;
+    const searchTerm = filterValue.toLowerCase().trim();
+    return dataSets.filter(
+      (ds) =>
+        ds.uploadId?.toLowerCase().includes(searchTerm) ||
+        ds.deviceModel?.toLowerCase().includes(searchTerm) ||
+        ds.deviceSerialNumber?.toLowerCase().includes(searchTerm),
+    );
+  }, [dataSets, filterValue]);
 
   // Handle fetcher response
   React.useEffect(() => {
@@ -81,8 +96,12 @@ export default function DataSetsTable({
 
   const columns: Column[] = [
     {
+      key: 'uploadId',
+      label: 'Upload ID',
+    },
+    {
       key: 'deviceModel',
-      label: 'Device Model',
+      label: 'Device',
     },
     {
       key: 'deviceManufacturers',
@@ -95,6 +114,10 @@ export default function DataSetsTable({
     {
       key: 'time',
       label: 'Upload Time',
+    },
+    {
+      key: 'version',
+      label: 'Version',
     },
     {
       key: 'actions',
@@ -132,6 +155,22 @@ export default function DataSetsTable({
   const renderCell = React.useCallback(
     (item: DataSet, columnKey: string) => {
       switch (columnKey) {
+        case 'uploadId':
+          return (
+            <div className="flex items-center gap-1">
+              <span className="text-xs font-mono text-default-500 truncate max-w-[120px]">
+                {item.uploadId ? `${item.uploadId.slice(0, 8)}...` : 'N/A'}
+              </span>
+              {item.uploadId && (
+                <ClipboardButton
+                  clipboardText={item.uploadId}
+                  size="sm"
+                  variant="light"
+                  title="Copy Upload ID"
+                />
+              )}
+            </div>
+          );
         case 'deviceModel':
           return (
             <div className="flex flex-col">
@@ -140,6 +179,15 @@ export default function DataSetsTable({
                 <p className="text-xs text-default-400 font-mono">
                   SN: {item.deviceSerialNumber}
                 </p>
+              )}
+              {item.deviceTags && item.deviceTags.length > 0 && (
+                <div className="flex gap-1 mt-1">
+                  {item.deviceTags.map((tag) => (
+                    <Chip key={tag} size="sm" variant="flat" color="default">
+                      {tag}
+                    </Chip>
+                  ))}
+                </div>
               )}
             </div>
           );
@@ -151,26 +199,43 @@ export default function DataSetsTable({
           );
         case 'dataSetType':
           return (
-            <Chip color="primary" variant="flat" size="sm">
+            <Chip
+              color={item.dataSetType === 'continuous' ? 'success' : 'primary'}
+              variant="flat"
+              size="sm"
+            >
               {item.dataSetType}
             </Chip>
           );
         case 'time':
           return (
-            <span className="text-sm">
-              {item.time
-                ? intlFormat(
-                    new Date(item.time),
-                    {
-                      year: 'numeric',
-                      month: 'short',
-                      day: 'numeric',
-                      hour: 'numeric',
-                      minute: 'numeric',
-                    },
-                    { locale },
-                  )
-                : 'N/A'}
+            <div className="flex flex-col">
+              <span className="text-sm">
+                {item.time
+                  ? intlFormat(
+                      new Date(item.time),
+                      {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric',
+                        hour: 'numeric',
+                        minute: 'numeric',
+                      },
+                      { locale },
+                    )
+                  : 'N/A'}
+              </span>
+              {item.byUser && (
+                <p className="text-xs text-default-400">
+                  by: {item.byUser.slice(0, 8)}...
+                </p>
+              )}
+            </div>
+          );
+        case 'version':
+          return (
+            <span className="text-xs text-default-500">
+              {item.version || 'N/A'}
             </span>
           );
         case 'actions': {
@@ -264,6 +329,32 @@ export default function DataSetsTable({
 
   const modalContent = getModalContent();
 
+  const onClear = React.useCallback(() => {
+    setFilterValue('');
+  }, []);
+
+  const topContent = React.useMemo(() => {
+    return (
+      <div className="flex justify-between items-center mb-4">
+        <Input
+          isClearable
+          className="w-full sm:max-w-[300px]"
+          placeholder="Filter by Upload ID, Device, or Serial..."
+          startContent={<Search className="w-4 h-4 text-default-400" />}
+          value={filterValue}
+          onClear={onClear}
+          onValueChange={setFilterValue}
+          size="sm"
+        />
+        {filterValue && (
+          <span className="text-sm text-default-400">
+            Showing {filteredDataSets.length} of {totalDataSets} uploads
+          </span>
+        )}
+      </div>
+    );
+  }, [filterValue, onClear, filteredDataSets.length, totalDataSets]);
+
   return (
     <>
       <CollapsibleTableWrapper
@@ -272,6 +363,7 @@ export default function DataSetsTable({
         totalItems={totalDataSets}
         defaultExpanded={false}
       >
+        {topContent}
         <Table
           aria-label="Data uploads table"
           shadow="none"
@@ -288,7 +380,7 @@ export default function DataSetsTable({
             loadingContent={LoadingContent}
             loadingState={isLoading ? 'loading' : 'idle'}
           >
-            {dataSets.map((item) => (
+            {filteredDataSets.map((item) => (
               <TableRow key={item.uploadId || item.time}>
                 {(columnKey) => (
                   <TableCell>{renderCell(item, columnKey as string)}</TableCell>

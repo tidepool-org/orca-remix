@@ -64,6 +64,29 @@ export const apiRoutes = {
       path: `/v1/data_sets/${dataSetId}/data`,
     }),
   },
+  export: {
+    // ref https://tidepool.redocly.app/reference/export.v1
+    getData: (
+      userId: string,
+      options?: {
+        startDate?: string;
+        endDate?: string;
+        format?: 'json' | 'xlsx';
+        bgUnits?: 'mmol/L' | 'mg/dL';
+      },
+    ) => {
+      const params = new URLSearchParams();
+      if (options?.startDate) params.set('startDate', options.startDate);
+      if (options?.endDate) params.set('endDate', options.endDate);
+      if (options?.format) params.set('format', options.format);
+      if (options?.bgUnits) params.set('bgUnits', options.bgUnits);
+
+      return {
+        method: 'get',
+        path: `/export/${userId}${params.toString() ? `?${params.toString()}` : ''}`,
+      };
+    },
+  },
   sharing: {
     // ref https://tidepool.redocly.app/reference/access.v1
     // Get groups (accounts) that the user can access (accounts that share WITH user)
@@ -259,4 +282,29 @@ export const apiRequests = async (requests: apiRequestArgs[]) => {
   } catch (err) {
     console.log(err);
   }
+};
+
+// Special request function for file exports that returns raw Response
+export const apiRequestFile = async ({
+  path,
+  method,
+}: apiRequestArgs): Promise<Response> => {
+  const result = await fetch(`${process.env.API_HOST}${path}`, {
+    method,
+    headers: {
+      'x-tidepool-session-token': serverAuth.serverSessionToken,
+    },
+  });
+
+  if (!result.ok) {
+    const errorText = await result.text();
+    const statusText = result.statusText || 'Request failed';
+    const message = errorText
+      ? `${statusText} (${result.status}): ${errorText}`
+      : `${statusText} (${result.status})`;
+
+    throw new APIError(message, result.status);
+  }
+
+  return result;
 };

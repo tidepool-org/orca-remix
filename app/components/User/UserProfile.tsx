@@ -4,6 +4,7 @@ import ClinicsTable from '../Clinic/ClinicsTable';
 import DataSetsTable from './DataSetsTable';
 import DataSourcesTable from './DataSourcesTable';
 import DataSharingSection from './DataSharingSection';
+import DataExportSection from './DataExportSection';
 import UserActions from './UserActions';
 import type { ClinicianClinicMembership } from '../Clinic/types';
 
@@ -127,6 +128,12 @@ export default function UserProfile({
       {!clinic && (
         <Well>
           <DataSetsTable dataSets={dataSets} totalDataSets={totalDataSets} />
+        </Well>
+      )}
+
+      {!clinic && (
+        <Well>
+          <DataExportSection userId={userId} />
         </Well>
       )}
 
