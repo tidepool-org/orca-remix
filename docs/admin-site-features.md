@@ -144,11 +144,11 @@ The admin-site is an internal Tidepool tool for customer support and issue diagn
 
 ### Clinician Management
 
-| Feature                | Description                          | API Endpoint                            | Migrated |
-| ---------------------- | ------------------------------------ | --------------------------------------- | -------- |
-| View Clinic Clinicians | List all clinicians in a clinic      | `/api/v1/clinics/{clinicID}/clinicians` | [x]      |
-| Clinician Details      | ID, name, email, role (Admin/Member) | Clinician data                          | [x]      |
-| View Clinician Invites | List pending clinician invites       | Filtered from clinicians                | [ ]      |
+| Feature                | Description                          | API Endpoint                                    | Migrated |
+| ---------------------- | ------------------------------------ | ----------------------------------------------- | -------- |
+| View Clinic Clinicians | List all clinicians in a clinic      | `/api/v1/clinics/{clinicID}/clinicians`         | [x]      |
+| Clinician Details      | ID, name, email, role (Admin/Member) | Clinician data                                  | [x]      |
+| View Clinician Invites | List pending clinician invites       | `/api/v1/clinics/{clinicID}/invites/clinicians` | [x]      |
 
 ### Patient Management
 

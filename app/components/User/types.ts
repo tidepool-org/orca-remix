@@ -59,3 +59,45 @@ export type DataSetsResponse =
 export type DataSourcesResponse =
   | DataSource[]
   | { data: DataSource[]; meta?: { count: number } };
+
+// Data Sharing Types
+// Permissions object representing access rights
+export type Permissions = {
+  root?: Record<string, never>; // Owner
+  custodian?: Record<string, never>; // Custodian
+  view?: Record<string, never>; // View
+  note?: Record<string, never>; // Notes
+  upload?: Record<string, never>; // Upload
+};
+
+// Response from GET /access/groups/{userId} - accounts that share with user
+// Response from GET /access/{userId} - users who have access to this user's data
+export type AccessPermissionsMap = Record<string, Permissions>;
+
+// Care team invite (confirmation)
+export type ShareInvite = {
+  key: string;
+  type:
+    | 'password_reset'
+    | 'careteam_invitation'
+    | 'clinician_invitation'
+    | 'signup_confirmation'
+    | 'no_account';
+  status: 'pending' | 'completed' | 'canceled' | 'declined';
+  email: string;
+  creatorId: string;
+  created: string;
+  modified?: string;
+  creator?: {
+    userid: string;
+    profile?: {
+      fullName?: string;
+    };
+  };
+  context?: string;
+  restrictions?: {
+    canAccept?: boolean;
+    requiredIdp?: string;
+  };
+  expiresAt?: string;
+};

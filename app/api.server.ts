@@ -55,6 +55,40 @@ export const apiRoutes = {
       method: 'get',
       path: `/v1/users/${userId}/data_sources`,
     }),
+    deleteDataSet: (dataSetId: string) => ({
+      method: 'delete',
+      path: `/v1/datasets/${dataSetId}`,
+    }),
+    deleteDataFromDataSet: (dataSetId: string) => ({
+      method: 'delete',
+      path: `/v1/data_sets/${dataSetId}/data`,
+    }),
+  },
+  sharing: {
+    // ref https://tidepool.redocly.app/reference/access.v1
+    // Get groups (accounts) that the user can access (accounts that share WITH user)
+    getGroupsForUser: (userId: string) => ({
+      method: 'get',
+      path: `/access/groups/${userId}`,
+    }),
+    // Get users who have access to this user's data (accounts user shares WITH)
+    getUsersInGroup: (userId: string) => ({
+      method: 'get',
+      path: `/access/${userId}`,
+    }),
+  },
+  invites: {
+    // ref https://tidepool.redocly.app/reference/confirm.v1
+    // Get pending invites sent by this user (outbound)
+    getSentInvites: (userId: string) => ({
+      method: 'get',
+      path: `/confirm/invite/${userId}`,
+    }),
+    // Get pending invites received by this user (inbound)
+    getReceivedInvites: (userId: string) => ({
+      method: 'get',
+      path: `/confirm/invitations/${userId}`,
+    }),
   },
   clinic: {
     // ref https://tidepool.redocly.app/reference/clinic.v1
@@ -99,6 +133,13 @@ export const apiRoutes = {
     getPatientInvites: (clinicId: string) => ({
       method: 'get',
       path: `/v1/clinics/${clinicId}/invites/patients`,
+    }),
+    // Note: There is no API endpoint to list all clinician invites for a clinic
+    // GET /v1/clinics/{clinicId}/invites/clinicians only works with a specific {inviteId}
+    // Use getClinicianInvite(clinicId, inviteId) to get a specific invite instead
+    getClinicianInvite: (clinicId: string, inviteId: string) => ({
+      method: 'get',
+      path: `/v1/clinics/${clinicId}/invites/clinicians/${inviteId}`,
     }),
     getClinicians: (
       clinicId: string,

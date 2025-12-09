@@ -3,10 +3,18 @@ import { intlFormat } from 'date-fns';
 import ClinicsTable from '../Clinic/ClinicsTable';
 import DataSetsTable from './DataSetsTable';
 import DataSourcesTable from './DataSourcesTable';
+import DataSharingSection from './DataSharingSection';
 import UserActions from './UserActions';
 import type { ClinicianClinicMembership } from '../Clinic/types';
 
-import type { User, Profile, DataSet, DataSource } from './types';
+import type {
+  User,
+  Profile,
+  DataSet,
+  DataSource,
+  AccessPermissionsMap,
+  ShareInvite,
+} from './types';
 import useLocale from '~/hooks/useLocale';
 import ClipboardButton from '../ClipboardButton';
 
@@ -19,6 +27,10 @@ export type UserProfileProps = {
   totalDataSets?: number;
   dataSources?: DataSource[];
   totalDataSources?: number;
+  trustingAccounts?: AccessPermissionsMap;
+  trustedAccounts?: AccessPermissionsMap;
+  sentInvites?: ShareInvite[];
+  receivedInvites?: ShareInvite[];
 };
 
 export default function UserProfile({
@@ -30,6 +42,10 @@ export default function UserProfile({
   totalDataSets = 0,
   dataSources = [],
   totalDataSources = 0,
+  trustingAccounts = {},
+  trustedAccounts = {},
+  sentInvites = [],
+  receivedInvites = [],
 }: UserProfileProps) {
   const { emailVerified, userid: userId, username, termsAccepted } = user;
   const { fullName, clinic } = profile;
@@ -96,6 +112,17 @@ export default function UserProfile({
           currentPage={1}
         />
       </Well>
+
+      {!clinic && (
+        <Well>
+          <DataSharingSection
+            trustingAccounts={trustingAccounts}
+            trustedAccounts={trustedAccounts}
+            sentInvites={sentInvites}
+            receivedInvites={receivedInvites}
+          />
+        </Well>
+      )}
 
       {!clinic && (
         <Well>

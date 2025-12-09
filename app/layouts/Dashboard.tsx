@@ -1,7 +1,7 @@
 import { useState } from 'react';
 
 import { Outlet, useMatches } from 'react-router';
-import { Breadcrumbs, BreadcrumbItem } from "@heroui/react";
+import { Breadcrumbs, BreadcrumbItem } from '@heroui/react';
 import { Home } from 'lucide-react';
 import filter from 'lodash/filter';
 import map from 'lodash/map';
@@ -65,8 +65,8 @@ function Dashboard() {
                     <Home className="w-4" />
                   </BreadcrumbItem>
 
-                  {breadcrumbs.map(({ href, label }, index) => (
-                    <BreadcrumbItem key={index} href={href}>
+                  {breadcrumbs.map(({ href, label }) => (
+                    <BreadcrumbItem key={href} href={href}>
                       {label}
                     </BreadcrumbItem>
                   ))}

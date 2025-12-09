@@ -11,6 +11,7 @@ import type {
   Patient,
   RecentPatient,
   RecentClinician,
+  ClinicianInvite,
 } from '~/components/Clinic/types';
 import { RecentItemsProvider } from '~/components/Clinic/RecentItemsContext';
 import { apiRequests, apiRoutes, apiRequest } from '~/api.server';
@@ -147,6 +148,8 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 
   try {
     // Fetch clinic data, patients, patient invites, and clinicians in parallel
+    // Note: There is no API endpoint to list all clinician invites for a clinic
+    // (GET /v1/clinics/{clinicId}/invites/clinicians doesn't exist)
     const results = await apiRequests([
       apiRoutes.clinic.get(clinicId),
       apiRoutes.clinic.getPatients(clinicId, { limit, offset, search, sort }),
@@ -154,10 +157,14 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
       apiRoutes.clinic.getClinicians(clinicId, { limit: cliniciansFetchLimit }),
     ]);
 
-    const clinic: Clinic = results?.[0];
-    const patientsResponse = results?.[1];
-    const patientInvitesResponse = results?.[2];
-    const cliniciansResponse = results?.[3];
+    const clinic: Clinic = results?.[0] as Clinic;
+    const patientsResponse = results?.[1] as
+      | { data: Patient[]; meta?: { count: number } }
+      | undefined;
+    const patientInvitesResponse = results?.[2] as unknown[] | undefined;
+    const cliniciansResponse = results?.[3] as
+      | { name?: string; email?: string }[]
+      | undefined;
 
     // Mock patient data structure for now since the actual API structure may vary
     // In a real implementation, you'd parse the actual API response
@@ -168,6 +175,11 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     // Process patient invites data
     const patientInvites = patientInvitesResponse || [];
     const totalInvites = patientInvites.length;
+
+    // Clinician invites - not available via API (no list endpoint exists)
+    // Would need GET /v1/clinics/{clinicId}/invites/clinicians but only individual invite retrieval is supported
+    const clinicianInvites: ClinicianInvite[] = [];
+    const totalClinicianInvites = 0;
 
     // Process clinicians data - we fetch all clinicians and paginate on frontend
     const allClinicians = cliniciansResponse || [];
@@ -205,6 +217,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
           patients,
           patientInvites,
           clinicians,
+          clinicianInvites,
           recentPatients,
           recentClinicians,
           pagination: {
@@ -221,6 +234,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
           },
           invitesPagination: {
             totalInvites,
+            totalClinicianInvites,
           },
           sorting: {
             sort,
@@ -244,6 +258,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     clinic: null,
     patients: [],
     clinicians: [],
+    clinicianInvites: [],
     recentPatients: [],
     recentClinicians: [],
     pagination: {
@@ -261,6 +276,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     patientInvites: [],
     invitesPagination: {
       totalInvites: 0,
+      totalClinicianInvites: 0,
     },
     sorting: {
       sort: undefined,
@@ -276,6 +292,7 @@ export default function Clinics() {
     patients,
     patientInvites,
     clinicians,
+    clinicianInvites,
     recentPatients,
     recentClinicians,
     pagination,
@@ -417,8 +434,8 @@ export default function Clinics() {
             cliniciansTotalPages={cliniciansPagination.totalPages}
             cliniciansCurrentPage={cliniciansPagination.currentPage}
             cliniciansPageSize={cliniciansPagination.pageSize}
-            recentPatients={recentPatients}
-            recentClinicians={recentClinicians}
+            clinicianInvites={clinicianInvites}
+            totalClinicianInvites={invitesPagination.totalClinicianInvites}
             onPageChange={handlePageChange}
             onSort={handleSort}
             onSearch={handleSearch}

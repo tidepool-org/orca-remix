@@ -1,15 +1,22 @@
 import Well from '~/partials/Well';
 import { intlFormat } from 'date-fns';
 import { useState, useEffect } from 'react';
-import { Select, SelectItem, Button } from "@heroui/react";
+import { Select, SelectItem, Button } from '@heroui/react';
 import { Edit2, X } from 'lucide-react';
 
-import type { Clinic, Patient, PatientInvite, Clinician } from './types';
+import type {
+  Clinic,
+  Patient,
+  PatientInvite,
+  Clinician,
+  ClinicianInvite,
+} from './types';
 import useLocale from '~/hooks/useLocale';
 import ClipboardButton from '../ClipboardButton';
 import PatientsTable from './PatientsTable';
 import PatientInvitesTable from './PatientInvitesTable';
 import CliniciansTable from './CliniciansTable';
+import ClinicianInvitesTable from './ClinicianInvitesTable';
 import RecentPatients from './RecentPatients';
 import RecentClinicians from './RecentClinicians';
 
@@ -30,6 +37,9 @@ export type ClinicProfileProps = {
   cliniciansTotalPages?: number;
   cliniciansCurrentPage?: number;
   cliniciansPageSize?: number;
+  clinicianInvites?: ClinicianInvite[];
+  totalClinicianInvites?: number;
+  clinicianInvitesLoading?: boolean;
   onPageChange?: (page: number) => void;
   onSort?: (sort: string) => void;
   onSearch?: (search: string) => void;
@@ -59,6 +69,9 @@ export default function ClinicProfile({
   cliniciansTotalPages = 1,
   cliniciansCurrentPage = 1,
   cliniciansPageSize,
+  clinicianInvites = [],
+  totalClinicianInvites = 0,
+  clinicianInvitesLoading = false,
   onPageChange,
   onSort,
   onSearch,
@@ -135,9 +148,7 @@ export default function ClinicProfile({
                 placeholder="Select tier..."
               >
                 {tierOptions.map((option) => (
-                  <SelectItem key={option.key} value={option.key}>
-                    {option.label}
-                  </SelectItem>
+                  <SelectItem key={option.key}>{option.label}</SelectItem>
                 ))}
               </Select>
               <Button
@@ -251,6 +262,14 @@ export default function ClinicProfile({
           onPageChange={onCliniciansPageChange}
           onSearch={onCliniciansSearch}
           currentSearch={currentCliniciansSearch}
+        />
+      </Well>
+
+      <Well>
+        <ClinicianInvitesTable
+          invites={clinicianInvites}
+          isLoading={clinicianInvitesLoading}
+          totalInvites={totalClinicianInvites}
         />
       </Well>
 

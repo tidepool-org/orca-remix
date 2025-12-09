@@ -108,6 +108,18 @@ export type Clinician = {
   updatedTime: string;
 };
 
+export type ClinicianInvite = {
+  inviteId: string;
+  email: string;
+  roles: string[];
+  clinicId: string;
+  clinicName?: string;
+  invitedBy?: string;
+  createdTime: string;
+  modifiedTime?: string;
+  status: 'pending' | 'accepted' | 'declined' | 'expired';
+};
+
 export type RecentClinician = Pick<
   Clinician,
   'id' | 'name' | 'email' | 'roles'

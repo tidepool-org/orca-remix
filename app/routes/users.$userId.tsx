@@ -14,6 +14,8 @@ import type {
   DataSource,
   DataSetsResponse,
   DataSourcesResponse,
+  AccessPermissionsMap,
+  ShareInvite,
 } from '~/components/User/types';
 import type { ClinicianClinicMembership } from '~/components/Clinic/types';
 import { apiRequest, apiRequests, apiRoutes } from '~/api.server';
@@ -125,6 +127,52 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     }
   }
 
+  // Fetch data sharing information for non-clinician users
+  let trustingAccounts: AccessPermissionsMap = {};
+  let trustedAccounts: AccessPermissionsMap = {};
+  let sentInvites: ShareInvite[] = [];
+  let receivedInvites: ShareInvite[] = [];
+
+  if (user?.userid && !profile?.clinic) {
+    // Fetch accounts that share data WITH this user (user can view their data)
+    try {
+      trustingAccounts = await apiRequest<AccessPermissionsMap>(
+        apiRoutes.sharing.getGroupsForUser(user.userid),
+      );
+    } catch (error) {
+      console.error('Error fetching trusting accounts:', error);
+    }
+
+    // Fetch accounts that this user shares data WITH (they can view user's data)
+    try {
+      trustedAccounts = await apiRequest<AccessPermissionsMap>(
+        apiRoutes.sharing.getUsersInGroup(user.userid),
+      );
+    } catch (error) {
+      console.error('Error fetching trusted accounts:', error);
+    }
+
+    // Fetch pending invites sent by this user
+    try {
+      const sentResponse = await apiRequest<ShareInvite[]>(
+        apiRoutes.invites.getSentInvites(user.userid),
+      );
+      sentInvites = Array.isArray(sentResponse) ? sentResponse : [];
+    } catch (error) {
+      console.error('Error fetching sent invites:', error);
+    }
+
+    // Fetch pending invites received by this user
+    try {
+      const receivedResponse = await apiRequest<ShareInvite[]>(
+        apiRoutes.invites.getReceivedInvites(user.userid),
+      );
+      receivedInvites = Array.isArray(receivedResponse) ? receivedResponse : [];
+    } catch (error) {
+      console.error('Error fetching received invites:', error);
+    }
+  }
+
   if (user?.userid) {
     const recentUser: RecentUser = pick(user, ['userid', 'username']);
     if (profile?.fullName) recentUser.fullName = profile?.fullName;
@@ -144,6 +192,10 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
         totalDataSets,
         dataSources,
         totalDataSources,
+        trustingAccounts,
+        trustedAccounts,
+        sentInvites,
+        receivedInvites,
       },
       {
         headers: {
@@ -163,6 +215,10 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     totalDataSets: 0,
     dataSources: [],
     totalDataSources: 0,
+    trustingAccounts: {},
+    trustedAccounts: {},
+    sentInvites: [],
+    receivedInvites: [],
   };
 }
 
@@ -261,6 +317,38 @@ export async function action({ request, params }: ActionFunctionArgs) {
         return redirect('/users');
       }
 
+      case 'delete-dataset': {
+        const dataSetId = formData.get('dataSetId') as string;
+        if (!dataSetId) {
+          return Response.json(
+            { success: false, error: 'Dataset ID is required' },
+            { status: 400 },
+          );
+        }
+        await apiRequest(apiRoutes.data.deleteDataSet(dataSetId));
+        return Response.json({
+          success: true,
+          action: 'delete-dataset',
+          message: 'Dataset deleted successfully',
+        });
+      }
+
+      case 'delete-dataset-data': {
+        const dataSetId = formData.get('dataSetId') as string;
+        if (!dataSetId) {
+          return Response.json(
+            { success: false, error: 'Dataset ID is required' },
+            { status: 400 },
+          );
+        }
+        await apiRequest(apiRoutes.data.deleteDataFromDataSet(dataSetId));
+        return Response.json({
+          success: true,
+          action: 'delete-dataset-data',
+          message: 'Data deleted from dataset successfully',
+        });
+      }
+
       default:
         return Response.json(
           { success: false, error: `Unknown action: ${intent}` },
@@ -287,6 +375,10 @@ export default function Users() {
     totalDataSets,
     dataSources,
     totalDataSources,
+    trustingAccounts,
+    trustedAccounts,
+    sentInvites,
+    receivedInvites,
   } = useLoaderData<typeof loader>();
 
   return user && profile ? (
@@ -299,6 +391,10 @@ export default function Users() {
       totalDataSets={totalDataSets}
       dataSources={dataSources}
       totalDataSources={totalDataSources}
+      trustingAccounts={trustingAccounts}
+      trustedAccounts={trustedAccounts}
+      sentInvites={sentInvites}
+      receivedInvites={receivedInvites}
     />
   ) : null;
 }
