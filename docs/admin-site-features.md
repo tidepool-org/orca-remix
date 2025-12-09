@@ -50,12 +50,12 @@ The admin-site is an internal Tidepool tool for customer support and issue diagn
 
 | Feature                   | Description                                     | API Endpoint                                   | Migrated |
 | ------------------------- | ----------------------------------------------- | ---------------------------------------------- | -------- |
-| Verify User Email         | Manually verify a user's email address          | `/api/v1/signup/confirm/{userID}/{confirmKey}` | [ ]      |
-| Password Reset            | Send password reset email to user               | `/api/v1/password/reset/{email}`               | [ ]      |
-| Resend Confirmation Email | Resend account confirmation email               | `/api/v1/resend/confirm/account/{email}`       | [ ]      |
-| Send Confirmation Email   | Send new account confirmation                   | `/api/v1/send/confirm/account/{userID}`        | [ ]      |
-| Delete User Account       | Permanently delete user account and all data    | `/api/v1/delete/user/{userID}`                 | [ ]      |
-| Delete User Data          | Delete all user upload data (preserves account) | `/api/v1/delete/data/{userID}`                 | [ ]      |
+| Verify User Email         | Manually verify a user's email address          | `/api/v1/signup/confirm/{userID}/{confirmKey}` | [x]      |
+| Password Reset            | Send password reset email to user               | `/api/v1/password/reset/{email}`               | [x]      |
+| Resend Confirmation Email | Resend account confirmation email               | `/api/v1/resend/confirm/account/{email}`       | [x]      |
+| Send Confirmation Email   | Send new account confirmation                   | `/api/v1/send/confirm/account/{userID}`        | [x]      |
+| Delete User Account       | Permanently delete user account and all data    | `/api/v1/delete/user/{userID}`                 | [x]      |
+| Delete User Data          | Delete all user upload data (preserves account) | `/api/v1/delete/data/{userID}`                 | [x]      |
 
 ### Data Sharing Management
 
