@@ -8,7 +8,7 @@ import {
   TableCell,
   Chip,
   Spinner,
-} from "@heroui/react";
+} from '@heroui/react';
 import { Database } from 'lucide-react';
 import { intlFormat } from 'date-fns';
 import useLocale from '~/hooks/useLocale';
@@ -44,8 +44,12 @@ export default function DataSourcesTable({
       label: 'State',
     },
     {
-      key: 'modifiedTime',
-      label: 'Modified',
+      key: 'dataTimeRange',
+      label: 'Data Range',
+    },
+    {
+      key: 'lastImportTime',
+      label: 'Last Import',
     },
     {
       key: 'expirationTime',
@@ -68,8 +72,29 @@ export default function DataSourcesTable({
     }
   };
 
+  const formatDateTime = (dateStr: string | undefined, includeTime = true) => {
+    if (!dateStr) return null;
+    return intlFormat(
+      new Date(dateStr),
+      includeTime
+        ? {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            hour: 'numeric',
+            minute: 'numeric',
+          }
+        : {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+          },
+      { locale },
+    );
+  };
+
   const renderCell = React.useCallback(
-    (item: DataSource, columnKey: keyof DataSource) => {
+    (item: DataSource, columnKey: string) => {
       switch (columnKey) {
         case 'providerName':
           return (
@@ -95,21 +120,34 @@ export default function DataSourcesTable({
               {item.state || 'Unknown'}
             </Chip>
           );
-        case 'modifiedTime':
+        case 'dataTimeRange':
+          return (
+            <div className="flex flex-col gap-0.5 text-sm">
+              {item.earliestDataTime || item.latestDataTime ? (
+                <>
+                  {item.earliestDataTime && (
+                    <span className="text-default-500">
+                      <span className="text-default-400 text-xs">From:</span>{' '}
+                      {formatDateTime(item.earliestDataTime, false)}
+                    </span>
+                  )}
+                  {item.latestDataTime && (
+                    <span className="text-default-500">
+                      <span className="text-default-400 text-xs">To:</span>{' '}
+                      {formatDateTime(item.latestDataTime, false)}
+                    </span>
+                  )}
+                </>
+              ) : (
+                <span className="text-default-400">No data</span>
+              )}
+            </div>
+          );
+        case 'lastImportTime':
           return (
             <span className="text-sm">
-              {item.modifiedTime
-                ? intlFormat(
-                    new Date(item.modifiedTime),
-                    {
-                      year: 'numeric',
-                      month: 'short',
-                      day: 'numeric',
-                      hour: 'numeric',
-                      minute: 'numeric',
-                    },
-                    { locale },
-                  )
+              {item.lastImportTime
+                ? formatDateTime(item.lastImportTime)
                 : 'N/A'}
             </span>
           );
@@ -117,20 +155,16 @@ export default function DataSourcesTable({
           return (
             <span className="text-sm">
               {item.expirationTime
-                ? intlFormat(
-                    new Date(item.expirationTime),
-                    {
-                      year: 'numeric',
-                      month: 'short',
-                      day: 'numeric',
-                    },
-                    { locale },
-                  )
+                ? formatDateTime(item.expirationTime, false)
                 : 'N/A'}
             </span>
           );
         default:
-          return <span className="text-sm">{String(item[columnKey])}</span>;
+          return (
+            <span className="text-sm">
+              {String(item[columnKey as keyof DataSource] ?? 'N/A')}
+            </span>
+          );
       }
     },
     [locale],
@@ -175,9 +209,7 @@ export default function DataSourcesTable({
           {dataSources.map((item) => (
             <TableRow key={item.dataSourceId || item.providerName}>
               {(columnKey) => (
-                <TableCell>
-                  {renderCell(item, columnKey as keyof DataSource)}
-                </TableCell>
+                <TableCell>{renderCell(item, columnKey as string)}</TableCell>
               )}
             </TableRow>
           ))}

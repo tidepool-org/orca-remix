@@ -23,7 +23,7 @@ The admin-site is an internal Tidepool tool for customer support and issue diagn
 | User Management   | Account Actions      | [x]    |       |
 | Data Management   | Upload Viewing       | [x]    |       |
 | Data Management   | Data Export          | [x]    |       |
-| Device Management | Device Settings      | [ ]    |       |
+| Device Management | Device Settings      | [x]    |       |
 | Device Management | Connected Devices    | [x]    |       |
 | Clinic Management | Clinic Viewing       | [x]    |       |
 | Clinic Management | Clinician Management | [x]    |       |
@@ -105,21 +105,21 @@ The admin-site is an internal Tidepool tool for customer support and issue diagn
 
 | Feature             | Description                              | API Endpoint                       | Migrated |
 | ------------------- | ---------------------------------------- | ---------------------------------- | -------- |
-| View Pump Settings  | Display pump settings for user's devices | `/api/v1/device/settings/{userID}` | [ ]      |
-| Basal Schedules     | View basal rate schedules with times     | Parsed from pump settings          | [ ]      |
-| BG Targets          | View blood glucose target settings       | Parsed from pump settings          | [ ]      |
-| Carb Ratios         | View carbohydrate ratio settings         | Parsed from pump settings          | [ ]      |
-| Insulin Sensitivity | View insulin sensitivity factors         | Parsed from pump settings          | [ ]      |
-| Unit Conversion     | Toggle between mg/dL and mmol/L display  | Client-side                        | [ ]      |
+| View Pump Settings  | Display pump settings for user's devices | `/data/{userId}?type=pumpSettings` | [x]      |
+| Basal Schedules     | View basal rate schedules with times     | Parsed from pump settings          | [x]      |
+| BG Targets          | View blood glucose target settings       | Parsed from pump settings          | [x]      |
+| Carb Ratios         | View carbohydrate ratio settings         | Parsed from pump settings          | [x]      |
+| Insulin Sensitivity | View insulin sensitivity factors         | Parsed from pump settings          | [x]      |
+| Unit Conversion     | Toggle between mg/dL and mmol/L display  | Client-side                        | [x]      |
 
 ### Connected Devices
 
-| Feature                | Description                                    | API Endpoint                         | Migrated |
-| ---------------------- | ---------------------------------------------- | ------------------------------------ | -------- |
-| View Connected Devices | List all connected data sources                | `/api/v1/connected/devices/{userID}` | [x]      |
-| Connection Status      | Provider name, connection state, error details | Device connection data               | [ ]      |
-| Data Timing            | Earliest data, latest data, last import time   | Device connection data               | [ ]      |
-| Revision Tracking      | Connection revision count                      | Device connection data               | [ ]      |
+| Feature                | Description                                    | API Endpoint                      | Migrated |
+| ---------------------- | ---------------------------------------------- | --------------------------------- | -------- |
+| View Connected Devices | List all connected data sources                | `/v1/users/{userId}/data_sources` | [x]      |
+| Connection Status      | Provider name, connection state, error details | Device connection data            | [x]      |
+| Data Timing            | Earliest data, latest data, last import time   | Device connection data            | [x]      |
+| Revision Tracking      | Connection revision count                      | Device connection data            | [ ]      |
 
 ### Prescriptions
 

@@ -101,3 +101,64 @@ export type ShareInvite = {
   };
   expiresAt?: string;
 };
+
+// Pump Settings Types
+export type BasalScheduleEntry = {
+  start: number; // milliseconds from midnight
+  rate: number; // units per hour
+};
+
+export type BasalSchedules = Record<string, BasalScheduleEntry[]>;
+
+export type BGTargetEntry = {
+  start: number; // milliseconds from midnight
+  target?: number; // target BG value (mg/dL)
+  low?: number; // low target (mg/dL)
+  high?: number; // high target (mg/dL)
+  range?: number; // target range
+};
+
+export type BGTargets = Record<string, BGTargetEntry[]>;
+
+export type CarbRatioEntry = {
+  start: number; // milliseconds from midnight
+  amount: number; // grams of carbs per unit of insulin
+};
+
+export type CarbRatios = Record<string, CarbRatioEntry[]>;
+
+export type InsulinSensitivityEntry = {
+  start: number; // milliseconds from midnight
+  amount: number; // mg/dL drop per unit of insulin
+};
+
+export type InsulinSensitivities = Record<string, InsulinSensitivityEntry[]>;
+
+export type PumpSettings = {
+  id: string;
+  type: 'pumpSettings';
+  time: string;
+  uploadId?: string;
+  deviceId?: string;
+  deviceTime?: string;
+  timezoneOffset?: number;
+  activeSchedule?: string;
+  basalSchedules?: BasalSchedules;
+  bgTarget?: BGTargetEntry[];
+  bgTargets?: BGTargets;
+  carbRatio?: CarbRatioEntry[];
+  carbRatios?: CarbRatios;
+  insulinSensitivity?: InsulinSensitivityEntry[];
+  insulinSensitivities?: InsulinSensitivities;
+  units?: {
+    bg?: 'mg/dL' | 'mmol/L';
+    carb?: 'grams';
+  };
+  manufacturers?: string[];
+  model?: string;
+  serialNumber?: string;
+  // Additional device-specific fields
+  firmwareVersion?: string;
+  softwareVersion?: string;
+  name?: string;
+};

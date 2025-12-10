@@ -5,6 +5,7 @@ import DataSetsTable from './DataSetsTable';
 import DataSourcesTable from './DataSourcesTable';
 import DataSharingSection from './DataSharingSection';
 import DataExportSection from './DataExportSection';
+import PumpSettingsSection from './PumpSettingsSection';
 import UserActions from './UserActions';
 import type { ClinicianClinicMembership } from '../Clinic/types';
 
@@ -15,6 +16,7 @@ import type {
   DataSource,
   AccessPermissionsMap,
   ShareInvite,
+  PumpSettings,
 } from './types';
 import useLocale from '~/hooks/useLocale';
 import ClipboardButton from '../ClipboardButton';
@@ -32,6 +34,8 @@ export type UserProfileProps = {
   trustedAccounts?: AccessPermissionsMap;
   sentInvites?: ShareInvite[];
   receivedInvites?: ShareInvite[];
+  pumpSettings?: PumpSettings[];
+  isPumpSettingsLoading?: boolean;
 };
 
 export default function UserProfile({
@@ -47,6 +51,8 @@ export default function UserProfile({
   trustedAccounts = {},
   sentInvites = [],
   receivedInvites = [],
+  pumpSettings = [],
+  isPumpSettingsLoading = false,
 }: UserProfileProps) {
   const { emailVerified, userid: userId, username, termsAccepted } = user;
   const { fullName, clinic } = profile;
@@ -142,6 +148,15 @@ export default function UserProfile({
           <DataSourcesTable
             dataSources={dataSources}
             totalDataSources={totalDataSources}
+          />
+        </Well>
+      )}
+
+      {!clinic && (
+        <Well>
+          <PumpSettingsSection
+            pumpSettings={pumpSettings}
+            isLoading={isPumpSettingsLoading}
           />
         </Well>
       )}

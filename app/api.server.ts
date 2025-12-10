@@ -55,6 +55,42 @@ export const apiRoutes = {
       method: 'get',
       path: `/v1/users/${userId}/data_sources`,
     }),
+    getData: (
+      userId: string,
+      options?: {
+        type?: string | string[];
+        subType?: string | string[];
+        startDate?: string;
+        endDate?: string;
+        latest?: boolean;
+        uploadId?: string;
+        deviceId?: string;
+      },
+    ) => {
+      const params = new URLSearchParams();
+      if (options?.type) {
+        const types = Array.isArray(options.type)
+          ? options.type.join(',')
+          : options.type;
+        params.set('type', types);
+      }
+      if (options?.subType) {
+        const subTypes = Array.isArray(options.subType)
+          ? options.subType.join(',')
+          : options.subType;
+        params.set('subType', subTypes);
+      }
+      if (options?.startDate) params.set('startDate', options.startDate);
+      if (options?.endDate) params.set('endDate', options.endDate);
+      if (options?.latest) params.set('latest', 'true');
+      if (options?.uploadId) params.set('uploadId', options.uploadId);
+      if (options?.deviceId) params.set('deviceId', options.deviceId);
+
+      return {
+        method: 'get',
+        path: `/data/${userId}${params.toString() ? `?${params.toString()}` : ''}`,
+      };
+    },
     deleteDataSet: (dataSetId: string) => ({
       method: 'delete',
       path: `/v1/datasets/${dataSetId}`,

@@ -16,6 +16,7 @@ import type {
   DataSourcesResponse,
   AccessPermissionsMap,
   ShareInvite,
+  PumpSettings,
 } from '~/components/User/types';
 import type { ClinicianClinicMembership } from '~/components/Clinic/types';
 import { apiRequest, apiRequests, apiRoutes } from '~/api.server';
@@ -90,6 +91,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   let totalDataSets = 0;
   let dataSources: DataSource[] = [];
   let totalDataSources = 0;
+  let pumpSettings: PumpSettings[] = [];
 
   if (user?.userid && !profile?.clinic) {
     try {
@@ -124,6 +126,22 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     } catch (error) {
       console.error('Error fetching data sources for user:', error);
       // Continue without data sources
+    }
+
+    // Fetch pump settings (latest 10)
+    try {
+      const pumpSettingsResponse = await apiRequest<PumpSettings[]>(
+        apiRoutes.data.getData(user.userid, {
+          type: 'pumpSettings',
+          latest: true,
+        }),
+      );
+      pumpSettings = Array.isArray(pumpSettingsResponse)
+        ? pumpSettingsResponse.slice(0, 10)
+        : [];
+    } catch (error) {
+      console.error('Error fetching pump settings for user:', error);
+      // Continue without pump settings
     }
   }
 
@@ -202,6 +220,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
         trustedAccounts,
         sentInvites,
         receivedInvites,
+        pumpSettings,
       },
       {
         headers: {
@@ -225,6 +244,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     trustedAccounts: {},
     sentInvites: [],
     receivedInvites: [],
+    pumpSettings: [],
   };
 }
 
@@ -385,6 +405,7 @@ export default function Users() {
     trustedAccounts,
     sentInvites,
     receivedInvites,
+    pumpSettings,
   } = useLoaderData<typeof loader>();
 
   return user && profile ? (
@@ -401,6 +422,7 @@ export default function Users() {
       trustedAccounts={trustedAccounts}
       sentInvites={sentInvites}
       receivedInvites={receivedInvites}
+      pumpSettings={pumpSettings}
     />
   ) : null;
 }
