@@ -6,8 +6,9 @@ import DataSourcesTable from './DataSourcesTable';
 import DataSharingSection from './DataSharingSection';
 import DataExportSection from './DataExportSection';
 import PumpSettingsSection from './PumpSettingsSection';
+import PrescriptionsSection from './PrescriptionsSection';
 import UserActions from './UserActions';
-import type { ClinicianClinicMembership } from '../Clinic/types';
+import type { ClinicianClinicMembership, Prescription } from '../Clinic/types';
 
 import type {
   User,
@@ -36,6 +37,9 @@ export type UserProfileProps = {
   receivedInvites?: ShareInvite[];
   pumpSettings?: PumpSettings[];
   isPumpSettingsLoading?: boolean;
+  prescriptions?: Prescription[];
+  totalPrescriptions?: number;
+  prescriptionsLoading?: boolean;
 };
 
 export default function UserProfile({
@@ -53,6 +57,9 @@ export default function UserProfile({
   receivedInvites = [],
   pumpSettings = [],
   isPumpSettingsLoading = false,
+  prescriptions = [],
+  totalPrescriptions = 0,
+  prescriptionsLoading = false,
 }: UserProfileProps) {
   const { emailVerified, userid: userId, username, termsAccepted } = user;
   const { fullName, clinic } = profile;
@@ -157,6 +164,16 @@ export default function UserProfile({
           <PumpSettingsSection
             pumpSettings={pumpSettings}
             isLoading={isPumpSettingsLoading}
+          />
+        </Well>
+      )}
+
+      {!clinic && (
+        <Well>
+          <PrescriptionsSection
+            prescriptions={prescriptions}
+            totalPrescriptions={totalPrescriptions}
+            isLoading={prescriptionsLoading}
           />
         </Well>
       )}

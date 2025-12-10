@@ -3,14 +3,19 @@ import { useCallback } from 'react';
 import Well from '~/partials/Well';
 import { intlFormat } from 'date-fns';
 
-import type { Patient, PatientClinicMembership } from './types';
+import type { Patient, PatientClinicMembership, Prescription } from './types';
 import useLocale from '~/hooks/useLocale';
 import ClipboardButton from '../ClipboardButton';
 import ClinicsTable from './ClinicsTable';
+import PrescriptionsTable from './PrescriptionsTable';
 
 export type PatientProfileProps = {
   patient: Patient;
   patientClinics?: PatientClinicMembership[];
+  prescriptions?: Prescription[];
+  totalPrescriptions?: number;
+  prescriptionsLoading?: boolean;
+  clinicId?: string;
   clinic?: {
     patientTags?: {
       id: string;
@@ -26,6 +31,10 @@ export type PatientProfileProps = {
 export default function PatientProfile({
   patient,
   patientClinics = [],
+  prescriptions = [],
+  totalPrescriptions = 0,
+  prescriptionsLoading = false,
+  clinicId,
   clinic,
 }: PatientProfileProps) {
   const {
@@ -209,6 +218,15 @@ export default function PatientProfile({
         totalClinics={patientClinics.length}
         showPermissions={true}
       />
+
+      <Well>
+        <PrescriptionsTable
+          prescriptions={prescriptions}
+          totalPrescriptions={totalPrescriptions}
+          isLoading={prescriptionsLoading}
+          clinicId={clinicId}
+        />
+      </Well>
     </div>
   );
 }

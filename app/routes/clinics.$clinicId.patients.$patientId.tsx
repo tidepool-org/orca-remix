@@ -1,7 +1,12 @@
 import { type LoaderFunctionArgs, type MetaFunction } from 'react-router';
 
 import PatientProfile from '~/components/Clinic/PatientProfile';
-import type { RecentPatient } from '~/components/Clinic/types';
+import type {
+  RecentPatient,
+  Patient,
+  PatientClinicMembership,
+  Prescription,
+} from '~/components/Clinic/types';
 import { useRecentItems } from '~/components/Clinic/RecentItemsContext';
 import { apiRequest, apiRoutes } from '~/api.server';
 import { patientsSession } from '~/sessions.server';
@@ -11,6 +16,13 @@ import isArray from 'lodash/isArray';
 import pick from 'lodash/pick';
 import uniqBy from 'lodash/uniqBy';
 import { PatientSchema } from '~/schemas';
+
+type PatientLoaderData = {
+  patient: Patient | null;
+  patientClinics: PatientClinicMembership[];
+  prescriptions: Prescription[];
+  recentPatients: RecentPatient[];
+};
 
 export const meta: MetaFunction = () => {
   return [
@@ -35,19 +47,28 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     ? recentlyViewed.get(`patients-${clinicId}`)
     : [];
 
-  // Get the specific patient and their clinics in parallel
-  const [patient, patientClinicsResponse] = await Promise.all([
-    apiRequest({
-      ...apiRoutes.clinic.getPatient(clinicId, patientId),
-      schema: PatientSchema,
-    }),
-    apiRequest({
-      ...apiRoutes.clinic.getClinicsForPatient(patientId),
-    }).catch((err) => {
-      console.error('Error fetching patient clinics:', err);
-      return null;
-    }),
-  ]);
+  // Get the specific patient, their clinics, and prescriptions in parallel
+  const [patient, patientClinicsResponse, prescriptionsResponse] =
+    await Promise.all([
+      apiRequest({
+        ...apiRoutes.clinic.getPatient(clinicId, patientId),
+        schema: PatientSchema,
+      }),
+      apiRequest({
+        ...apiRoutes.clinic.getClinicsForPatient(patientId),
+      }).catch((err) => {
+        console.error('Error fetching patient clinics:', err);
+        return null;
+      }),
+      apiRequest({
+        ...apiRoutes.prescription.getClinicPrescriptions(clinicId, {
+          patientUserId: patientId,
+        }),
+      }).catch((err) => {
+        console.error('Error fetching patient prescriptions:', err);
+        return [];
+      }),
+    ]);
 
   if (patient) {
     const recentPatient: RecentPatient = pick(patient, [
@@ -74,10 +95,16 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
       clinicsData = patientClinicsResponse.data;
     }
 
+    // Handle prescriptions response
+    const prescriptions: Prescription[] = Array.isArray(prescriptionsResponse)
+      ? prescriptionsResponse
+      : [];
+
     return Response.json(
       {
         patient,
         patientClinics: clinicsData,
+        prescriptions,
         recentPatients: recentlyViewed.get(`patients-${clinicId}`),
       },
       {
@@ -89,11 +116,17 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     );
   }
 
-  return { patient: null, patientClinics: [], recentPatients };
+  return {
+    patient: null,
+    patientClinics: [],
+    prescriptions: [],
+    recentPatients,
+  };
 }
 
 export default function PatientDetails() {
-  const { patient, patientClinics } = useLoaderData<typeof loader>();
+  const { patient, patientClinics, prescriptions } =
+    useLoaderData<PatientLoaderData>();
   const { addRecentPatient } = useRecentItems();
 
   // Add patient to recent list immediately when component mounts
@@ -109,7 +142,11 @@ export default function PatientDetails() {
   }, [patient, addRecentPatient]);
 
   return patient ? (
-    <PatientProfile patient={patient} patientClinics={patientClinics} />
+    <PatientProfile
+      patient={patient}
+      patientClinics={patientClinics}
+      prescriptions={prescriptions}
+    />
   ) : null;
 }
 

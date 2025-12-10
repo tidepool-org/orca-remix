@@ -12,6 +12,7 @@ import type {
   RecentPatient,
   RecentClinician,
   ClinicianInvite,
+  Prescription,
 } from '~/components/Clinic/types';
 import { RecentItemsProvider } from '~/components/Clinic/RecentItemsContext';
 import { apiRequests, apiRoutes, apiRequest } from '~/api.server';
@@ -157,6 +158,20 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
       apiRoutes.clinic.getClinicians(clinicId, { limit: cliniciansFetchLimit }),
     ]);
 
+    // Fetch prescriptions separately to avoid breaking the page if the API is unavailable
+    let prescriptions: Prescription[] = [];
+    try {
+      const prescriptionsResponse = await apiRequest(
+        apiRoutes.prescription.getClinicPrescriptions(clinicId),
+      );
+      prescriptions = Array.isArray(prescriptionsResponse)
+        ? prescriptionsResponse
+        : [];
+    } catch (err) {
+      console.error('Error fetching prescriptions:', err);
+      // Continue without prescriptions
+    }
+
     const clinic: Clinic = results?.[0] as Clinic;
     const patientsResponse = results?.[1] as
       | { data: Patient[]; meta?: { count: number } }
@@ -218,6 +233,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
           patientInvites,
           clinicians,
           clinicianInvites,
+          prescriptions,
           recentPatients,
           recentClinicians,
           pagination: {
@@ -259,6 +275,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     patients: [],
     clinicians: [],
     clinicianInvites: [],
+    prescriptions: [],
     recentPatients: [],
     recentClinicians: [],
     pagination: {
@@ -293,6 +310,7 @@ export default function Clinics() {
     patientInvites,
     clinicians,
     clinicianInvites,
+    prescriptions,
     recentPatients,
     recentClinicians,
     pagination,
@@ -300,7 +318,11 @@ export default function Clinics() {
     invitesPagination,
     sorting,
   } = useLoaderData<typeof loader>();
-  const actionData = useActionData<typeof action>();
+  const actionData = useActionData<{
+    success?: boolean;
+    error?: string;
+    message?: string;
+  }>();
   const [searchParams] = useSearchParams();
   const submit = useSubmit();
   const navigation = useNavigation();
@@ -310,7 +332,7 @@ export default function Clinics() {
   // Show toast on action result
   useEffect(() => {
     if (actionData) {
-      if ('error' in actionData) {
+      if ('error' in actionData && actionData.error) {
         showToast(actionData.error, 'error');
       } else if ('success' in actionData && actionData.success) {
         showToast(
@@ -436,6 +458,7 @@ export default function Clinics() {
             cliniciansPageSize={cliniciansPagination.pageSize}
             clinicianInvites={clinicianInvites}
             totalClinicianInvites={invitesPagination.totalClinicianInvites}
+            prescriptions={prescriptions}
             onPageChange={handlePageChange}
             onSort={handleSort}
             onSearch={handleSearch}

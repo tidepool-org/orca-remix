@@ -51,6 +51,7 @@ export type DataSource = {
   earliestDataTime?: string;
   latestDataTime?: string;
   dataSetIds?: string[];
+  revision?: number;
 };
 
 export type DataSetsResponse =

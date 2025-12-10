@@ -10,6 +10,7 @@ import type {
   PatientInvite,
   Clinician,
   ClinicianInvite,
+  Prescription,
 } from './types';
 import useLocale from '~/hooks/useLocale';
 import ClipboardButton from '../ClipboardButton';
@@ -17,6 +18,7 @@ import PatientsTable from './PatientsTable';
 import PatientInvitesTable from './PatientInvitesTable';
 import CliniciansTable from './CliniciansTable';
 import ClinicianInvitesTable from './ClinicianInvitesTable';
+import PrescriptionsTable from './PrescriptionsTable';
 import RecentPatients from './RecentPatients';
 import RecentClinicians from './RecentClinicians';
 
@@ -40,6 +42,9 @@ export type ClinicProfileProps = {
   clinicianInvites?: ClinicianInvite[];
   totalClinicianInvites?: number;
   clinicianInvitesLoading?: boolean;
+  prescriptions?: Prescription[];
+  totalPrescriptions?: number;
+  prescriptionsLoading?: boolean;
   onPageChange?: (page: number) => void;
   onSort?: (sort: string) => void;
   onSearch?: (search: string) => void;
@@ -72,6 +77,9 @@ export default function ClinicProfile({
   clinicianInvites = [],
   totalClinicianInvites = 0,
   clinicianInvitesLoading = false,
+  prescriptions = [],
+  totalPrescriptions = 0,
+  prescriptionsLoading = false,
   onPageChange,
   onSort,
   onSearch,
@@ -270,6 +278,15 @@ export default function ClinicProfile({
           invites={clinicianInvites}
           isLoading={clinicianInvitesLoading}
           totalInvites={totalClinicianInvites}
+        />
+      </Well>
+
+      <Well>
+        <PrescriptionsTable
+          prescriptions={prescriptions}
+          totalPrescriptions={totalPrescriptions}
+          isLoading={prescriptionsLoading}
+          clinicId={id}
         />
       </Well>
 

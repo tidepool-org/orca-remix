@@ -4,9 +4,10 @@ import {
   ArrowLeftFromLine,
   UserCircle2Icon,
   Cross,
+  FileBarChart,
 } from 'lucide-react';
 import { Theme } from 'remix-themes';
-import { Button } from "@heroui/react";
+import { Button } from '@heroui/react';
 import { useLoaderData, NavLink } from 'react-router';
 
 import Logo from '~/components/Logo/Logo';
@@ -83,6 +84,11 @@ function Sidebar({ sidebarOpen, setSidebarOpen }: SidebarOpenProps) {
       icon: Cross,
       text: 'Clinic Management',
       href: '/clinics',
+    },
+    {
+      icon: FileBarChart,
+      text: 'Reports',
+      href: '/reports',
     },
   ];
 

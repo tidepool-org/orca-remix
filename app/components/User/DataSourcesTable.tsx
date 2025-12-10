@@ -44,6 +44,10 @@ export default function DataSourcesTable({
       label: 'State',
     },
     {
+      key: 'revision',
+      label: 'Revision',
+    },
+    {
       key: 'dataTimeRange',
       label: 'Data Range',
     },
@@ -119,6 +123,12 @@ export default function DataSourcesTable({
             >
               {item.state || 'Unknown'}
             </Chip>
+          );
+        case 'revision':
+          return (
+            <span className="text-sm font-mono">
+              {item.revision !== undefined ? item.revision : 'N/A'}
+            </span>
           );
         case 'dataTimeRange':
           return (

@@ -28,7 +28,7 @@ The admin-site is an internal Tidepool tool for customer support and issue diagn
 | Clinic Management | Clinic Viewing       | [x]    |       |
 | Clinic Management | Clinician Management | [x]    |       |
 | Clinic Management | Patient Management   | [x]    |       |
-| Clinic Management | Clinic Reports       | [ ]    |       |
+| Clinic Management | Clinic Reports       | [x]    |       |
 | Agent Management  | Agent Info           | [x]    |       |
 | Agent Management  | Action Logs          | [ ]    |       |
 
@@ -95,7 +95,6 @@ The admin-site is an internal Tidepool tool for customer support and issue diagn
 | Date Range Selection | All data, last 90/30/14 days, or custom range | Query params              | [x]      |
 | Format Selection     | Excel (.xlsx) or JSON                         | `format` param            | [x]      |
 | BG Units Selection   | mg/dL or mmol/L                               | `bgUnits` param           | [x]      |
-| Data Anonymization   | Option to anonymize exported data (planned)   | `anonymizeData` param     | [ ]      |
 
 ---
 
@@ -119,15 +118,16 @@ The admin-site is an internal Tidepool tool for customer support and issue diagn
 | View Connected Devices | List all connected data sources                | `/v1/users/{userId}/data_sources` | [x]      |
 | Connection Status      | Provider name, connection state, error details | Device connection data            | [x]      |
 | Data Timing            | Earliest data, latest data, last import time   | Device connection data            | [x]      |
-| Revision Tracking      | Connection revision count                      | Device connection data            | [ ]      |
+| Revision Tracking      | Connection revision count                      | Device connection data            | [x]      |
 
 ### Prescriptions
 
-| Feature              | Description                                       | API Endpoint                                    | Migrated |
-| -------------------- | ------------------------------------------------- | ----------------------------------------------- | -------- |
-| View Prescriptions   | Display prescriptions for user (table view)       | `/api/v1/prescription/{userID}` (commented out) | [ ]      |
-| Prescription Details | Patient ID, prescriber, status, activation number | Prescription data                               | [ ]      |
-| Prescription Dates   | Created date, modified date, expiration           | Prescription data                               | [ ]      |
+| Feature                    | Description                                       | API Endpoint                                | Migrated |
+| -------------------------- | ------------------------------------------------- | ------------------------------------------- | -------- |
+| View Clinic Prescriptions  | Display prescriptions for clinic (table view)     | `/v1/clinics/{clinicId}/prescriptions`      | [x]      |
+| View Patient Prescriptions | Display prescriptions for patient (table view)    | `/v1/patients/{userId}/prescriptions`       | [x]      |
+| Prescription Details       | Patient ID, prescriber, status, activation number | `/v1/clinics/{clinicId}/prescriptions/{id}` | [x]      |
+| Prescription Dates         | Created date, modified date, expiration           | Prescription data                           | [x]      |
 
 ---
 
@@ -170,19 +170,19 @@ The admin-site is an internal Tidepool tool for customer support and issue diagn
 
 ### Clinic Reports
 
-| Feature            | Description                                              | API Endpoint                      | Migrated |
-| ------------------ | -------------------------------------------------------- | --------------------------------- | -------- |
-| Clinic Report      | Generate Excel report of clinic users                    | `/api/v1/clinic/report`           | [ ]      |
-| Date Filtering     | Filter by creation date range                            | `createdFrom`, `createdTo` params | [ ]      |
-| Username Filtering | Ignore test/automated usernames                          | `ignoredUsernames` param          | [ ]      |
-| Report Contents    | User ID, username, Kissmetric ID, email, verified status | Excel columns                     | [ ]      |
+| Feature            | Description                                         | API Endpoint                      | Migrated |
+| ------------------ | --------------------------------------------------- | --------------------------------- | -------- |
+| Clinic Report      | Generate CSV report of clinic users                 | `/api/v1/clinic/report`           | [x]      |
+| Date Filtering     | Filter by creation date range                       | `createdFrom`, `createdTo` params | [x]      |
+| Username Filtering | Ignore test/automated usernames                     | `ignoredUsernames` param          | [x]      |
+| Report Contents    | User ID, username, email, clinic info, created time | CSV columns                       | [x]      |
 
 ### Clinic Merge Report
 
-| Feature               | Description                        | Page                    | Migrated |
-| --------------------- | ---------------------------------- | ----------------------- | -------- |
-| Source/Target Input   | Enter source and target clinic IDs | `/clinic/reports/merge` | [ ]      |
-| Merge Report Download | Download merge analysis Excel file | POST to generate        | [ ]      |
+| Feature               | Description                        | Page             | Migrated |
+| --------------------- | ---------------------------------- | ---------------- | -------- |
+| Source/Target Input   | Enter source and target clinic IDs | `/reports`       | [x]      |
+| Merge Report Download | Download merge analysis text file  | POST to generate | [x]      |
 
 ---
 

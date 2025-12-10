@@ -4,8 +4,19 @@ import { useRecentItems } from '~/components/Clinic/RecentItemsContext';
 import { apiRequest, apiRoutes } from '~/api.server';
 import { cliniciansSession } from '~/sessions.server';
 import ClinicianProfile from '~/components/Clinic/ClinicianProfile';
-import type { RecentClinician } from '~/components/Clinic/types';
+import type {
+  RecentClinician,
+  Clinician,
+  ClinicianClinicMembership,
+} from '~/components/Clinic/types';
 import { useEffect } from 'react';
+
+type ClinicianLoaderData = {
+  clinician: Clinician;
+  recentClinicians: RecentClinician[];
+  clinics: ClinicianClinicMembership[];
+  totalClinics: number;
+};
 
 export const loader = async ({ request, params }: LoaderFunctionArgs) => {
   const { clinicId, clinicianId } = params;
@@ -33,12 +44,16 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
     );
 
     // Handle both array response and object with data property
-    const clinics = Array.isArray(clinicsResponse)
-      ? clinicsResponse
-      : clinicsResponse?.data || [];
-    const totalClinics = Array.isArray(clinicsResponse)
-      ? clinicsResponse.length
-      : clinicsResponse?.meta?.count || clinics.length;
+    const clinicsResponseTyped = clinicsResponse as
+      | { data?: unknown[]; meta?: { count?: number } }
+      | unknown[];
+    const clinics = Array.isArray(clinicsResponseTyped)
+      ? clinicsResponseTyped
+      : (clinicsResponseTyped as { data?: unknown[] })?.data || [];
+    const totalClinics = Array.isArray(clinicsResponseTyped)
+      ? clinicsResponseTyped.length
+      : (clinicsResponseTyped as { meta?: { count?: number } })?.meta?.count ||
+        clinics.length;
 
     // Update recent clinicians session
     const { getSession, commitSession } = cliniciansSession;
@@ -59,16 +74,19 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
     }
 
     // Add current clinician to recent list
+    const clinicianTyped = clinician as Clinician;
     const recentClinician: RecentClinician = {
-      id: clinician.id,
-      name: clinician.name,
-      email: clinician.email,
-      roles: clinician.roles,
+      id: clinicianTyped.id,
+      name: clinicianTyped.name,
+      email: clinicianTyped.email,
+      roles: clinicianTyped.roles,
       lastViewedAt: new Date().toISOString(),
     };
 
     // Remove existing entry if present
-    recentClinicians = recentClinicians.filter((c) => c.id !== clinician.id);
+    recentClinicians = recentClinicians.filter(
+      (c) => c.id !== clinicianTyped.id,
+    );
     // Add to beginning of array
     recentClinicians.unshift(recentClinician);
     // Keep only last 10
@@ -95,7 +113,8 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
 };
 
 export default function ClinicianRoute() {
-  const { clinician, clinics, totalClinics } = useLoaderData<typeof loader>();
+  const { clinician, clinics, totalClinics } =
+    useLoaderData<ClinicianLoaderData>();
   const { addRecentClinician } = useRecentItems();
 
   // Add clinician to recent list immediately when component mounts

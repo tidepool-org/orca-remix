@@ -18,7 +18,10 @@ import type {
   ShareInvite,
   PumpSettings,
 } from '~/components/User/types';
-import type { ClinicianClinicMembership } from '~/components/Clinic/types';
+import type {
+  ClinicianClinicMembership,
+  Prescription,
+} from '~/components/Clinic/types';
 import { apiRequest, apiRequests, apiRoutes } from '~/api.server';
 import { usersSession } from '~/sessions.server';
 import { useLoaderData } from 'react-router';
@@ -92,6 +95,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   let dataSources: DataSource[] = [];
   let totalDataSources = 0;
   let pumpSettings: PumpSettings[] = [];
+  let prescriptions: Prescription[] = [];
 
   if (user?.userid && !profile?.clinic) {
     try {
@@ -142,6 +146,19 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     } catch (error) {
       console.error('Error fetching pump settings for user:', error);
       // Continue without pump settings
+    }
+
+    // Fetch prescriptions for this patient
+    try {
+      const prescriptionsResponse = await apiRequest<Prescription[]>(
+        apiRoutes.prescription.getPatientPrescriptions(user.userid),
+      );
+      prescriptions = Array.isArray(prescriptionsResponse)
+        ? prescriptionsResponse
+        : [];
+    } catch (error) {
+      console.error('Error fetching prescriptions for user:', error);
+      // Continue without prescriptions
     }
   }
 
@@ -221,6 +238,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
         sentInvites,
         receivedInvites,
         pumpSettings,
+        prescriptions,
       },
       {
         headers: {
@@ -245,6 +263,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     sentInvites: [],
     receivedInvites: [],
     pumpSettings: [],
+    prescriptions: [],
   };
 }
 
@@ -406,6 +425,7 @@ export default function Users() {
     sentInvites,
     receivedInvites,
     pumpSettings,
+    prescriptions,
   } = useLoaderData<typeof loader>();
 
   return user && profile ? (
@@ -423,6 +443,7 @@ export default function Users() {
       sentInvites={sentInvites}
       receivedInvites={receivedInvites}
       pumpSettings={pumpSettings}
+      prescriptions={prescriptions}
     />
   ) : null;
 }

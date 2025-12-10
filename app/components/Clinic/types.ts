@@ -151,3 +151,104 @@ export type PatientClinicMembership = {
     };
   };
 };
+
+// Prescription types
+export type PrescriptionState =
+  | 'draft'
+  | 'pending'
+  | 'submitted'
+  | 'claimed'
+  | 'active'
+  | 'inactive'
+  | 'expired';
+
+export type PrescriptionRevisionAttributes = {
+  firstName?: string;
+  lastName?: string;
+  birthday?: string;
+  mrn?: string;
+  email?: string;
+  sex?: 'male' | 'female' | 'undisclosed';
+  weight?: {
+    value: number;
+    units: string;
+  };
+  yearOfDiagnosis?: number;
+  phoneNumber?: {
+    countryCode: string;
+    number: string;
+  };
+  initialSettings?: {
+    bloodGlucoseUnits?: string;
+    basalRateSchedule?: Array<{
+      rate: number;
+      start: number;
+    }>;
+    bloodGlucoseTargetSchedule?: Array<{
+      start: number;
+      low?: number;
+      high?: number;
+    }>;
+    carbohydrateRatioSchedule?: Array<{
+      amount: number;
+      start: number;
+    }>;
+    insulinSensitivitySchedule?: Array<{
+      amount: number;
+      start: number;
+    }>;
+    basalRateMaximum?: {
+      value: number;
+      units: string;
+    };
+    bolusAmountMaximum?: {
+      value: number;
+      units: string;
+    };
+    bloodGlucoseSuspendThreshold?: {
+      value: number;
+      units: string;
+    };
+    insulinModel?: 'rapidChild' | 'rapidAdult';
+    pumpId?: string;
+    cgmId?: string;
+  };
+  training?: 'inPerson' | 'inModule';
+  therapySettings?: 'initial' | 'transferPumpSettings';
+  prescriberTermsAccepted?: boolean;
+  calculator?: {
+    method: 'weight' | 'totalDailyDose' | 'totalDailyDoseAndWeight';
+    weight?: number;
+    weightUnits?: 'kg' | 'lbs';
+    totalDailyDoseScaleFactor?: number;
+    totalDailyDose?: number;
+    recommendedBasalRate: number;
+    recommendedInsulinSensitivity: number;
+    recommendedCarbohydrateRatio: number;
+  };
+  revisionHash?: string;
+  caregiverFirstName?: string;
+  caregiverLastName?: string;
+  accountType?: 'patient' | 'caregiver';
+};
+
+export type PrescriptionRevision = {
+  revisionId?: number;
+  attributes: PrescriptionRevisionAttributes;
+};
+
+export type Prescription = {
+  id: string;
+  clinicId: string;
+  patientUserId?: string;
+  prescriberUserId?: string;
+  state: PrescriptionState;
+  createdTime: string;
+  createdUserId: string;
+  modifiedTime: string;
+  modifiedUserId: string;
+  expirationTime?: string;
+  deletedTime?: string;
+  deletedUserId?: string;
+  latestRevision: PrescriptionRevision;
+};

@@ -250,6 +250,71 @@ export const apiRoutes = {
       method: 'post',
       path: `/v1/clinics/${clinicId}/tier`,
     }),
+    // Reports
+    getAllClinicians: (options?: {
+      limit?: number;
+      offset?: number;
+      createdFrom?: string;
+      createdTo?: string;
+    }) => {
+      const params = new URLSearchParams();
+      if (options?.limit) params.set('limit', options.limit.toString());
+      if (options?.offset) params.set('offset', options.offset.toString());
+      if (options?.createdFrom)
+        params.set('createdTimeStart', options.createdFrom);
+      if (options?.createdTo) params.set('createdTimeEnd', options.createdTo);
+
+      return {
+        method: 'get',
+        path: `/v1/clinicians${params.toString() ? `?${params.toString()}` : ''}`,
+      };
+    },
+    // Merge clinic - merges tags, patients, clinicians, invites and share codes from source clinic
+    mergeClinic: (targetClinicId: string, sourceClinicId: string) => ({
+      method: 'post',
+      path: `/v1/clinics/${targetClinicId}/merge`,
+      body: { sourceId: sourceClinicId },
+    }),
+  },
+  prescription: {
+    // ref https://tidepool.redocly.app/reference/prescription.v1
+    // Get all prescriptions for a clinic
+    getClinicPrescriptions: (
+      clinicId: string,
+      options?: {
+        patientUserId?: string;
+        patientEmail?: string;
+        state?: string;
+        createdAfter?: string;
+        createdBefore?: string;
+      },
+    ) => {
+      const params = new URLSearchParams();
+      if (options?.patientUserId)
+        params.set('patientUserId', options.patientUserId);
+      if (options?.patientEmail)
+        params.set('patientEmail', options.patientEmail);
+      if (options?.state) params.set('state', options.state);
+      if (options?.createdAfter)
+        params.set('createdAfter', options.createdAfter);
+      if (options?.createdBefore)
+        params.set('createdBefore', options.createdBefore);
+
+      return {
+        method: 'get',
+        path: `/v1/clinics/${clinicId}/prescriptions${params.toString() ? `?${params.toString()}` : ''}`,
+      };
+    },
+    // Get a single prescription by ID
+    getPrescription: (clinicId: string, prescriptionId: string) => ({
+      method: 'get',
+      path: `/v1/clinics/${clinicId}/prescriptions/${prescriptionId}`,
+    }),
+    // Get all prescriptions for a patient/user
+    getPatientPrescriptions: (userId: string) => ({
+      method: 'get',
+      path: `/v1/patients/${userId}/prescriptions`,
+    }),
   },
 };
 
