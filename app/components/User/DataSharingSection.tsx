@@ -39,7 +39,7 @@ const formatPermissions = (permissions: Permissions): string[] => {
 };
 
 // Sub-component for Trusting Accounts (accounts that share WITH user)
-function TrustingAccountsTable({
+export function TrustingAccountsTable({
   accounts,
   isLoading,
 }: {
@@ -74,7 +74,7 @@ function TrustingAccountsTable({
       icon={<Users className="h-5 w-5" />}
       title="Accounts Sharing With User"
       totalItems={totalItems}
-      defaultExpanded={totalItems > 0}
+      defaultExpanded={false}
     >
       <p className="text-sm text-default-500 mb-4">
         These accounts have granted this user access to view their data.
@@ -118,7 +118,7 @@ function TrustingAccountsTable({
 }
 
 // Sub-component for Trusted Accounts (accounts user shares WITH)
-function TrustedAccountsTable({
+export function TrustedAccountsTable({
   accounts,
   isLoading,
 }: {
@@ -153,7 +153,7 @@ function TrustedAccountsTable({
       icon={<Users className="h-5 w-5" />}
       title="Accounts User Shares With"
       totalItems={totalItems}
-      defaultExpanded={totalItems > 0}
+      defaultExpanded={false}
     >
       <p className="text-sm text-default-500 mb-4">
         These accounts can view this user&apos;s data.
@@ -197,7 +197,7 @@ function TrustedAccountsTable({
 }
 
 // Sub-component for Sent Invites
-function SentInvitesTable({
+export function SentInvitesTable({
   invites,
   isLoading,
 }: {
@@ -252,7 +252,7 @@ function SentInvitesTable({
       icon={<Send className="h-5 w-5" />}
       title="Sent Invites"
       totalItems={totalItems}
-      defaultExpanded={totalItems > 0}
+      defaultExpanded={false}
     >
       <p className="text-sm text-default-500 mb-4">
         Pending invitations sent by this user to share their data.
@@ -314,7 +314,7 @@ function SentInvitesTable({
 }
 
 // Sub-component for Received Invites
-function ReceivedInvitesTable({
+export function ReceivedInvitesTable({
   invites,
   isLoading,
 }: {
@@ -369,7 +369,7 @@ function ReceivedInvitesTable({
       icon={<Inbox className="h-5 w-5" />}
       title="Received Invites"
       totalItems={totalItems}
-      defaultExpanded={totalItems > 0}
+      defaultExpanded={false}
     >
       <p className="text-sm text-default-500 mb-4">
         Pending invitations received by this user from others to view their

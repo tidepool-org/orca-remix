@@ -213,11 +213,13 @@ export default function PatientProfile({
         </div>
       </Well>
 
-      <ClinicsTable
-        clinics={patientClinics}
-        totalClinics={patientClinics.length}
-        showPermissions={true}
-      />
+      <Well>
+        <ClinicsTable
+          clinics={patientClinics}
+          totalClinics={patientClinics.length}
+          showPermissions={true}
+        />
+      </Well>
 
       <Well>
         <PrescriptionsTable

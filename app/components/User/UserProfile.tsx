@@ -3,7 +3,12 @@ import { intlFormat } from 'date-fns';
 import ClinicsTable from '../Clinic/ClinicsTable';
 import DataSetsTable from './DataSetsTable';
 import DataSourcesTable from './DataSourcesTable';
-import DataSharingSection from './DataSharingSection';
+import {
+  TrustingAccountsTable,
+  TrustedAccountsTable,
+  SentInvitesTable,
+  ReceivedInvitesTable,
+} from './DataSharingSection';
 import DataExportSection from './DataExportSection';
 import PumpSettingsSection from './PumpSettingsSection';
 import PrescriptionsSection from './PrescriptionsSection';
@@ -129,12 +134,25 @@ export default function UserProfile({
 
       {!clinic && (
         <Well>
-          <DataSharingSection
-            trustingAccounts={trustingAccounts}
-            trustedAccounts={trustedAccounts}
-            sentInvites={sentInvites}
-            receivedInvites={receivedInvites}
-          />
+          <TrustingAccountsTable accounts={trustingAccounts} />
+        </Well>
+      )}
+
+      {!clinic && (
+        <Well>
+          <TrustedAccountsTable accounts={trustedAccounts} />
+        </Well>
+      )}
+
+      {!clinic && (
+        <Well>
+          <SentInvitesTable invites={sentInvites} />
+        </Well>
+      )}
+
+      {!clinic && (
+        <Well>
+          <ReceivedInvitesTable invites={receivedInvites} />
         </Well>
       )}
 
