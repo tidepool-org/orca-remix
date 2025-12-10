@@ -1,5 +1,12 @@
 import { Tabs, Tab } from '@heroui/react';
-import { Building2, Share2, Database, Settings, FileText } from 'lucide-react';
+import {
+  Building2,
+  Share2,
+  Database,
+  Settings,
+  FileText,
+  Smartphone,
+} from 'lucide-react';
 import Well from '~/partials/Well';
 import { intlFormat } from 'date-fns';
 import ClinicsTable from '../Clinic/ClinicsTable';
@@ -155,10 +162,6 @@ export default function UserProfile({
     <div className="flex flex-col gap-6 w-full">
       {UserDetailsSection}
 
-      <Well>
-        <UserActions user={user} />
-      </Well>
-
       <div className="w-full">
         <Tabs
           aria-label="User profile sections"
@@ -268,7 +271,7 @@ export default function UserProfile({
             key="device"
             title={
               <div className="flex items-center gap-2">
-                <Settings className="w-4 h-4" />
+                <Smartphone className="w-4 h-4" />
                 <span>Device</span>
                 {pumpSettings.length > 0 && (
                   <span className="text-xs bg-default-100 px-1.5 py-0.5 rounded-full">
@@ -310,6 +313,23 @@ export default function UserProfile({
                   totalPrescriptions={totalPrescriptions}
                   isLoading={prescriptionsLoading}
                 />
+              </Well>
+            </div>
+          </Tab>
+
+          {/* Account Tab */}
+          <Tab
+            key="account"
+            title={
+              <div className="flex items-center gap-2">
+                <Settings className="w-4 h-4" />
+                <span>Account</span>
+              </div>
+            }
+          >
+            <div className="pt-6">
+              <Well>
+                <UserActions user={user} />
               </Well>
             </div>
           </Tab>
