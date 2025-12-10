@@ -332,3 +332,78 @@ The admin-site is an internal Tidepool tool for customer support and issue diagn
 - Legacy admin-site repository: `../admin-site`
 - Tidepool API documentation: <https://tidepool.redocly.app/tidepool-apis>
 - Clinic API: <https://tidepool.redocly.app/reference/clinic.v1>
+
+---
+
+## 10. Planned New Features (from Orca 2.0 Product Planning)
+
+These features are identified as "New" in the product planning document and need to be implemented.
+
+### Implementation Status Legend
+
+- `[ ]` - Not started
+- `[~]` - In progress
+- `[x]` - Completed
+
+### Phase 1: Core User Management Actions (High Priority)
+
+| Feature | Description | API Endpoint | Status | Logging Required |
+|---------|-------------|--------------|--------|------------------|
+| Delete All Uploads for User | Bulk delete all uploads for a user | New bulk endpoint needed | [ ] | Yes |
+| Disconnect Cloud Connection | Disconnect user's passive/cloud data connection | DELETE `/v1/users/{userId}/data_sources/{id}` | [ ] | Yes |
+
+### Phase 2: Clinic Configuration (High Priority)
+
+| Feature | Description | API Endpoint | Status | Logging Required |
+|---------|-------------|--------------|--------|------------------|
+| Update MRN-Required Setting | Toggle MRN requirement for clinic | PATCH `/v1/clinics/{clinicId}` | [ ] | Yes |
+| Update Clinic Timezone | Change clinic timezone setting | PATCH `/v1/clinics/{clinicId}` | [ ] | Yes |
+| Add/Remove Patient Limit | Modify patient limit for clinic | PATCH `/v1/clinics/{clinicId}` | [ ] | Yes |
+| Delete Clinic Workspace | Delete entire clinic workspace | DELETE `/v1/clinics/{clinicId}` | [ ] | Yes |
+
+### Phase 3: Clinic Membership Management (Medium Priority)
+
+| Feature | Description | API Endpoint | Status | Logging Required |
+|---------|-------------|--------------|--------|------------------|
+| Revoke Clinician Invitation | Cancel pending clinician invite | DELETE `/v1/clinics/{clinicId}/invites/clinicians/{inviteId}` | [ ] | Yes |
+| Remove Clinician from Clinic | Remove clinician access from workspace | DELETE `/v1/clinics/{clinicId}/clinicians/{clinicianId}` | [ ] | Yes |
+| Revoke Patient Invitation | Cancel pending patient invite | DELETE `/v1/clinics/{clinicId}/invites/patients/{inviteId}` | [ ] | Yes |
+
+### Phase 4: UX Enhancements (Lower Priority)
+
+| Feature | Description | Implementation | Status | Logging Required |
+|---------|-------------|----------------|--------|------------------|
+| View Recent Searches | Show user's recent search history | Local storage (already implemented via RecentItemsContext) | [x] | No |
+| Sort/Filter Table Data | Enhanced table sorting and filtering | Client-side (partially implemented) | [~] | No |
+| Confirm Bulk Actions | Confirmation modal for high-impact actions | UI component (ConfirmationModal exists) | [~] | Yes |
+
+### Phase 5: Advanced Features (Post-MVP)
+
+| Feature | Description | API Endpoint | Status | Logging Required |
+|---------|-------------|--------------|--------|------------------|
+| Download Raw Upload Blob | Download raw data from AWS S3 | Presigned URL endpoint needed | [ ] | Yes |
+| Merge Clinic Workspaces | Combine two clinic workspaces into one | Complex orchestration endpoint | [ ] | Yes |
+
+---
+
+## 11. Implementation Notes
+
+### API Documentation References
+
+- **Clinic API**: https://tidepool.redocly.app/reference/clinic.v1
+- **Export API**: https://tidepool.redocly.app/reference/export.v1
+- **Full API docs**: https://tidepool.redocly.app/tidepool-apis
+
+### Implementation Considerations
+
+1. **Logging Requirements**: All destructive actions (delete, disconnect, revoke) must be logged with:
+   - Agent email (who performed the action)
+   - Target resource (user ID, clinic ID, etc.)
+   - Timestamp
+   - Action type
+
+2. **Confirmation Modals**: High-impact actions should use the existing `ConfirmationModal` component with clear warning text.
+
+3. **API Integration**: New endpoints should follow the existing pattern in `app/api.server.ts`.
+
+4. **Error Handling**: Use existing error utilities from `app/utils/errors.ts`.
