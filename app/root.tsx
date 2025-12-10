@@ -10,7 +10,7 @@ import {
 } from 'react-router';
 
 import './tailwind.css';
-import { HeroUIProvider } from "@heroui/react";
+import { HeroUIProvider } from '@heroui/react';
 
 import {
   ThemeProvider,

@@ -250,25 +250,6 @@ export const apiRoutes = {
       method: 'post',
       path: `/v1/clinics/${clinicId}/tier`,
     }),
-    // Reports
-    getAllClinicians: (options?: {
-      limit?: number;
-      offset?: number;
-      createdFrom?: string;
-      createdTo?: string;
-    }) => {
-      const params = new URLSearchParams();
-      if (options?.limit) params.set('limit', options.limit.toString());
-      if (options?.offset) params.set('offset', options.offset.toString());
-      if (options?.createdFrom)
-        params.set('createdTimeStart', options.createdFrom);
-      if (options?.createdTo) params.set('createdTimeEnd', options.createdTo);
-
-      return {
-        method: 'get',
-        path: `/v1/clinicians${params.toString() ? `?${params.toString()}` : ''}`,
-      };
-    },
     // Merge clinic - merges tags, patients, clinicians, invites and share codes from source clinic
     mergeClinic: (targetClinicId: string, sourceClinicId: string) => ({
       method: 'post',

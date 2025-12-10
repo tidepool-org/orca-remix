@@ -1,4 +1,4 @@
-import { Chip } from "@heroui/react";
+import { Chip } from '@heroui/react';
 import { intlFormat } from 'date-fns';
 import useLocale from '~/hooks/useLocale';
 import Well from '~/partials/Well';

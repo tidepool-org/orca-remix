@@ -9,7 +9,7 @@ import {
   TableCell,
   Pagination,
   Spinner,
-} from "@heroui/react";
+} from '@heroui/react';
 import { Mail } from 'lucide-react';
 import { intlFormat } from 'date-fns';
 import useLocale from '~/hooks/useLocale';

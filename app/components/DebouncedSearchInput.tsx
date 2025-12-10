@@ -1,4 +1,4 @@
-import { Input } from "@heroui/react";
+import { Input } from '@heroui/react';
 import { SearchIcon } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 

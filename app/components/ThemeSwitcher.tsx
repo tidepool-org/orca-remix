@@ -1,6 +1,6 @@
 import { Theme, useTheme } from 'remix-themes';
 import { Sun, MoonStar } from 'lucide-react';
-import { Button } from "@heroui/react";
+import { Button } from '@heroui/react';
 
 export default function ThemeSwitcher() {
   const [theme, setTheme] = useTheme();

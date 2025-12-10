@@ -7,7 +7,7 @@ import {
   TableRow,
   TableCell,
   getKeyValue,
-} from "@heroui/react";
+} from '@heroui/react';
 import { History } from 'lucide-react';
 import { useRecentItems } from './RecentItemsContext';
 import Well from '~/partials/Well';

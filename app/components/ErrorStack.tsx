@@ -1,4 +1,4 @@
-import { Accordion, AccordionItem } from "@heroui/react";
+import { Accordion, AccordionItem } from '@heroui/react';
 import { useRouteError } from 'react-router';
 import { AlertCircle } from 'lucide-react';
 

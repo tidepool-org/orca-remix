@@ -71,9 +71,11 @@ These errors don't affect the build or runtime. To fix them would require:
    - Not critical, will be addressed in future Vite versions
 
 2. **Single Fetch Resource Routes**:
+
    ```
    ⚠️ REMIX FUTURE CHANGE: Externally-accessed resource routes...
    ```
+
    - Affects `routes/action.get-agent.ts`
    - Should wrap return value in `json()` helper
    - Not urgent, can be done anytime before React Router v7 migration

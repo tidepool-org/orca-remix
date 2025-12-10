@@ -21,6 +21,7 @@ The ORCA admin site serves as an internal tool for Tidepool support agents to ma
 ## Current State Analysis
 
 ### Existing Structure
+
 ```
 ├── Dashboard (Home)
 │   ├── User Lookup
@@ -55,6 +56,7 @@ The ORCA admin site serves as an internal tool for Tidepool support agents to ma
 ```
 
 ### What's Working Well
+
 - Two-column dashboard with parallel User/Clinic lookup
 - "Recently Viewed" lists for quick access to recent work
 - Collapsible table sections for organizing related data
@@ -62,6 +64,7 @@ The ORCA admin site serves as an internal tool for Tidepool support agents to ma
 - Nested routes for patient/clinician profiles within clinic context
 
 ### Gaps to Address
+
 - No dedicated data management features (export, device settings)
 - No data sharing/invite visibility
 - No clinic reports functionality
@@ -89,6 +92,7 @@ The ORCA admin site serves as an internal tool for Tidepool support agents to ma
 ## Section 1: Dashboard (Home)
 
 ### Current Layout (Keep)
+
 ```
 ┌─────────────────────────────────┬─────────────────────────────────┐
 │ User Lookup                     │ Clinic Lookup                   │
@@ -101,7 +105,9 @@ The ORCA admin site serves as an internal tool for Tidepool support agents to ma
 ```
 
 ### Enhancement: Quick Actions
+
 Consider adding a "Quick Actions" section below the lookup areas for common tasks that don't require navigating to a specific user/clinic first:
+
 - Generate Clinic Report (all clinics)
 - View Action Logs
 
@@ -224,6 +230,7 @@ This is the primary workspace for user-related tasks. Organize as a single scrol
 **Route:** `/users/:userId` (no change)
 
 **API Endpoints Needed:**
+
 - Data Sharing: `/api/v1/shared/users/{userID}`, `/api/v1/confirm/invite/{userID}`, `/api/v1/confirm/invitations/{userID}`
 - Data Export: `/api/v1/export/{userID}` (with query params)
 - Device Settings: `/api/v1/device/settings/{userID}`
@@ -312,6 +319,7 @@ Enhance the existing layout to include migration and reporting features.
 **Route:** `/clinics/:clinicId` (no change)
 
 **New API Endpoints Needed:**
+
 - Merge Patient List: POST `/api/v1/clinics/{clinicID}/migrations`
 - Generate Merge Report: POST `/api/v1/clinics/{clinicID}/reports/merge`
 - Clinician Invites: Filter from existing clinicians endpoint
@@ -381,6 +389,7 @@ This shows patient details in the context of their clinic membership. Keep exist
 **Route:** `/clinics/:clinicId/clinicians/:clinicianId` (no change)
 
 **New API Endpoints Needed:**
+
 - Migrate Clinician: POST `/api/v1/clinicians/{userID}/migrate`
 
 ---
@@ -423,6 +432,7 @@ Add a new "Reports" section to the sidebar for generating reports that aren't ti
 **Route:** `/reports`
 
 **API Endpoints:**
+
 - Clinic Report: GET `/api/v1/clinic/report`
 - Merge Report: POST `/api/v1/clinics/{clinicID}/reports/merge`
 
@@ -433,11 +443,14 @@ Add a new "Reports" section to the sidebar for generating reports that aren't ti
 Agent-specific features can be added to the header user menu or as a dedicated sidebar item.
 
 ### Option A: Header User Menu (Recommended)
+
 Add agent-related options to the existing user menu in the header:
+
 - View Action Logs (links to Sumo Logic)
 - Agent Profile
 
 ### Option B: Sidebar Item
+
 ```
 ├── User Management
 ├── Clinic Management
@@ -500,6 +513,7 @@ Home (/)
 ## Implementation Priority
 
 ### Phase 1: Core Feature Completion (High Priority)
+
 1. **Data Sharing Management** on User Profile
    - View accounts shared with user
    - View accounts user shares with
@@ -517,6 +531,7 @@ Home (/)
    - Filter from existing endpoint
 
 ### Phase 2: Device & Data Features (Medium Priority)
+
 4. **Data Export** on User Profile
    - Date range selection
    - Format selection (Excel/JSON)
@@ -536,6 +551,7 @@ Home (/)
    - Add revision tracking
 
 ### Phase 3: Clinic Operations (Medium Priority)
+
 7. **Clinic Actions**
    - Migrate to clinic account (clinician profile)
    - Merge patient list (clinic profile)
@@ -548,6 +564,7 @@ Home (/)
    - API: `/api/v1/clinic/report`, `/api/v1/clinics/{clinicID}/reports/merge`
 
 ### Phase 4: Additional Features (Lower Priority)
+
 9. **Prescriptions** on User Profile
    - Display prescriptions table
    - API: `/api/v1/prescription/{userID}`
@@ -557,6 +574,7 @@ Home (/)
     - Environment-specific URL handling
 
 ### Phase 5: Cross-Linking & Polish
+
 11. **Navigation Improvements**
     - Add "View Full User Profile" links from clinic patient/clinician profiles
     - Ensure bidirectional navigation between User and Clinic contexts
@@ -566,12 +584,15 @@ Home (/)
 ## UI Component Patterns
 
 ### Collapsible Sections
+
 Use the existing `CollapsibleTableWrapper` pattern for all expandable sections:
+
 - Default collapsed for less-frequently used sections
 - Show item count in header
 - Persist expand/collapse state per session
 
 ### Tables
+
 - Use existing HeroUI table components
 - Consistent column widths
 - Sortable columns where applicable
@@ -579,12 +600,14 @@ Use the existing `CollapsibleTableWrapper` pattern for all expandable sections:
 - Pagination for large datasets
 
 ### Actions
+
 - Primary actions as filled buttons
 - Secondary actions as outlined buttons
 - Destructive actions in "Danger Zone" with confirmation modals
 - Copy buttons for IDs and emails
 
 ### Forms
+
 - Use HeroUI form components
 - Inline validation
 - Loading states during submission
@@ -649,6 +672,7 @@ app/
 ## Summary
 
 This architecture plan:
+
 1. **Preserves** the existing two-column User/Clinic structure
 2. **Extends** user and clinic profiles with additional sections
 3. **Adds** a Reports section for standalone report generation

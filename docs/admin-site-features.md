@@ -16,21 +16,21 @@ The admin-site is an internal Tidepool tool for customer support and issue diagn
 
 ## Migration Progress Tracker
 
-| Category          | Feature              | Status | Notes |
-| ----------------- | -------------------- | ------ | ----- |
-| User Management   | User Lookup          | [x]    |       |
-| User Management   | User Profile Display | [x]    |       |
-| User Management   | Account Actions      | [x]    |       |
-| Data Management   | Upload Viewing       | [x]    |       |
-| Data Management   | Data Export          | [x]    |       |
-| Device Management | Device Settings      | [x]    |       |
-| Device Management | Connected Devices    | [x]    |       |
-| Clinic Management | Clinic Viewing       | [x]    |       |
-| Clinic Management | Clinician Management | [x]    |       |
-| Clinic Management | Patient Management   | [x]    |       |
-| Clinic Management | Clinic Reports       | [x]    |       |
-| Agent Management  | Agent Info           | [x]    |       |
-| Agent Management  | Action Logs          | [ ]    |       |
+| Category          | Feature              | Status | Notes                                                    |
+| ----------------- | -------------------- | ------ | -------------------------------------------------------- |
+| User Management   | User Lookup          | [x]    |                                                          |
+| User Management   | User Profile Display | [x]    |                                                          |
+| User Management   | Account Actions      | [x]    |                                                          |
+| Data Management   | Upload Viewing       | [x]    |                                                          |
+| Data Management   | Data Export          | [x]    |                                                          |
+| Device Management | Device Settings      | [x]    |                                                          |
+| Device Management | Connected Devices    | [x]    |                                                          |
+| Clinic Management | Clinic Viewing       | [x]    |                                                          |
+| Clinic Management | Clinician Management | [x]    |                                                          |
+| Clinic Management | Patient Management   | [x]    |                                                          |
+| Clinic Management | Clinic Reports       | [-]    | Removed - API endpoint not accessible in this deployment |
+| Agent Management  | Agent Info           | [x]    |                                                          |
+| Agent Management  | Action Logs          | [ ]    |                                                          |
 
 ---
 
@@ -172,10 +172,10 @@ The admin-site is an internal Tidepool tool for customer support and issue diagn
 
 | Feature            | Description                                         | API Endpoint                      | Migrated |
 | ------------------ | --------------------------------------------------- | --------------------------------- | -------- |
-| Clinic Report      | Generate CSV report of clinic users                 | `/api/v1/clinic/report`           | [x]      |
-| Date Filtering     | Filter by creation date range                       | `createdFrom`, `createdTo` params | [x]      |
-| Username Filtering | Ignore test/automated usernames                     | `ignoredUsernames` param          | [x]      |
-| Report Contents    | User ID, username, email, clinic info, created time | CSV columns                       | [x]      |
+| Clinic Report      | Generate CSV report of clinic users                 | `/api/v1/clinic/report`           | [-]      |
+| Date Filtering     | Filter by creation date range                       | `createdFrom`, `createdTo` params | [-]      |
+| Username Filtering | Ignore test/automated usernames                     | `ignoredUsernames` param          | [-]      |
+| Report Contents    | User ID, username, email, clinic info, created time | CSV columns                       | [-]      |
 
 ### Clinic Merge Report
 

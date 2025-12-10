@@ -6,7 +6,7 @@ import {
   TableRow,
   TableCell,
   getKeyValue,
-} from "@heroui/react";
+} from '@heroui/react';
 
 import { History } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router';
