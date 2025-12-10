@@ -394,6 +394,22 @@ export async function action({ request, params }: ActionFunctionArgs) {
         });
       }
 
+      case 'disconnect-data-source': {
+        const dataSourceId = formData.get('dataSourceId') as string;
+        if (!dataSourceId) {
+          return Response.json(
+            { success: false, error: 'Data source ID is required' },
+            { status: 400 },
+          );
+        }
+        await apiRequest(apiRoutes.data.deleteDataSource(dataSourceId));
+        return Response.json({
+          success: true,
+          action: 'disconnect-data-source',
+          message: 'Data source disconnected successfully',
+        });
+      }
+
       default:
         return Response.json(
           { success: false, error: `Unknown action: ${intent}` },

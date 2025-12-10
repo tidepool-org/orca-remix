@@ -99,6 +99,12 @@ export const apiRoutes = {
       method: 'delete',
       path: `/v1/data_sets/${dataSetId}/data`,
     }),
+    // Data source management (cloud/passive connections)
+    // ref https://tidepool.redocly.app/reference/data.v1/internal
+    deleteDataSource: (dataSourceId: string) => ({
+      method: 'delete',
+      path: `/v1/data_sources/${dataSourceId}`,
+    }),
   },
   export: {
     // ref https://tidepool.redocly.app/reference/export.v1

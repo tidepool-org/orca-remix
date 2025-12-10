@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Table,
   TableHeader,
@@ -8,13 +8,21 @@ import {
   TableCell,
   Chip,
   Spinner,
+  Button,
+  Dropdown,
+  DropdownTrigger,
+  DropdownMenu,
+  DropdownItem,
 } from '@heroui/react';
-import { Database } from 'lucide-react';
+import { Database, MoreVertical, Unplug } from 'lucide-react';
 import { intlFormat } from 'date-fns';
+import { useFetcher } from 'react-router';
 import useLocale from '~/hooks/useLocale';
 import CollapsibleTableWrapper from '../CollapsibleTableWrapper';
+import ConfirmationModal from '../ConfirmationModal';
 import { collapsibleTableClasses } from '~/utils/tableStyles';
 import type { DataSource } from './types';
+import { useToast } from '~/contexts/ToastContext';
 
 export type DataSourcesTableProps = {
   dataSources: DataSource[];
@@ -27,12 +35,47 @@ type Column = {
   label: string;
 };
 
+type DisconnectModalState = {
+  isOpen: boolean;
+  dataSource: DataSource | null;
+};
+
 export default function DataSourcesTable({
   dataSources = [],
   totalDataSources = 0,
   isLoading = false,
 }: DataSourcesTableProps) {
   const { locale } = useLocale();
+  const fetcher = useFetcher();
+  const { showToast } = useToast();
+  const [disconnectModal, setDisconnectModal] = useState<DisconnectModalState>({
+    isOpen: false,
+    dataSource: null,
+  });
+
+  const isDisconnecting = fetcher.state !== 'idle';
+
+  // Handle fetcher response
+  React.useEffect(() => {
+    if (fetcher.data && fetcher.state === 'idle') {
+      const data = fetcher.data as {
+        success: boolean;
+        error?: string;
+        message?: string;
+        action?: string;
+      };
+
+      if (data.success) {
+        showToast(
+          data.message || 'Operation completed successfully',
+          'success',
+        );
+        setDisconnectModal({ isOpen: false, dataSource: null });
+      } else if (data.error) {
+        showToast(data.error, 'error');
+      }
+    }
+  }, [fetcher.data, fetcher.state, showToast]);
 
   const columns: Column[] = [
     {
@@ -58,6 +101,10 @@ export default function DataSourcesTable({
     {
       key: 'expirationTime',
       label: 'Expires',
+    },
+    {
+      key: 'actions',
+      label: 'Actions',
     },
   ];
 
@@ -95,6 +142,26 @@ export default function DataSourcesTable({
           },
       { locale },
     );
+  };
+
+  const handleDisconnect = (dataSource: DataSource) => {
+    setDisconnectModal({ isOpen: true, dataSource });
+  };
+
+  const handleConfirmDisconnect = () => {
+    if (!disconnectModal.dataSource?.dataSourceId) return;
+
+    const formData = new FormData();
+    formData.append('intent', 'disconnect-data-source');
+    formData.append('dataSourceId', disconnectModal.dataSource.dataSourceId);
+
+    fetcher.submit(formData, { method: 'post' });
+  };
+
+  const handleCloseModal = () => {
+    if (!isDisconnecting) {
+      setDisconnectModal({ isOpen: false, dataSource: null });
+    }
   };
 
   const renderCell = React.useCallback(
@@ -169,6 +236,28 @@ export default function DataSourcesTable({
                 : 'N/A'}
             </span>
           );
+        case 'actions':
+          return (
+            <Dropdown>
+              <DropdownTrigger>
+                <Button isIconOnly size="sm" variant="light">
+                  <MoreVertical className="w-4 h-4" />
+                </Button>
+              </DropdownTrigger>
+              <DropdownMenu aria-label="Data source actions">
+                <DropdownItem
+                  key="disconnect"
+                  className="text-danger"
+                  color="danger"
+                  startContent={<Unplug className="w-4 h-4" />}
+                  description="Disconnect this data source"
+                  onPress={() => handleDisconnect(item)}
+                >
+                  Disconnect
+                </DropdownItem>
+              </DropdownMenu>
+            </Dropdown>
+          );
         default:
           return (
             <span className="text-sm">
@@ -193,38 +282,68 @@ export default function DataSourcesTable({
     </div>
   );
 
+  const getModalContent = () => {
+    if (!disconnectModal.dataSource) {
+      return { title: '', description: '', confirmText: '' };
+    }
+
+    const providerName =
+      disconnectModal.dataSource.providerName || 'Unknown Provider';
+
+    return {
+      title: 'Disconnect Data Source',
+      description: `Are you sure you want to disconnect the ${providerName} data source? This will stop automatic data syncing from this provider. The user will need to re-authenticate to restore the connection.`,
+      confirmText: 'Disconnect',
+    };
+  };
+
+  const modalContent = getModalContent();
+
   return (
-    <CollapsibleTableWrapper
-      icon={<Database className="h-5 w-5" />}
-      title="Data Sources"
-      totalItems={totalDataSources}
-      defaultExpanded={false}
-    >
-      <Table
-        aria-label="Data sources table"
-        shadow="none"
-        removeWrapper
-        classNames={collapsibleTableClasses}
+    <>
+      <CollapsibleTableWrapper
+        icon={<Database className="h-5 w-5" />}
+        title="Data Sources"
+        totalItems={totalDataSources}
+        defaultExpanded={false}
       >
-        <TableHeader columns={columns}>
-          {(column) => (
-            <TableColumn key={column.key}>{column.label}</TableColumn>
-          )}
-        </TableHeader>
-        <TableBody
-          emptyContent={EmptyContent}
-          loadingContent={LoadingContent}
-          loadingState={isLoading ? 'loading' : 'idle'}
+        <Table
+          aria-label="Data sources table"
+          shadow="none"
+          removeWrapper
+          classNames={collapsibleTableClasses}
         >
-          {dataSources.map((item) => (
-            <TableRow key={item.dataSourceId || item.providerName}>
-              {(columnKey) => (
-                <TableCell>{renderCell(item, columnKey as string)}</TableCell>
-              )}
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </CollapsibleTableWrapper>
+          <TableHeader columns={columns}>
+            {(column) => (
+              <TableColumn key={column.key}>{column.label}</TableColumn>
+            )}
+          </TableHeader>
+          <TableBody
+            emptyContent={EmptyContent}
+            loadingContent={LoadingContent}
+            loadingState={isLoading ? 'loading' : 'idle'}
+          >
+            {dataSources.map((item) => (
+              <TableRow key={item.dataSourceId || item.providerName}>
+                {(columnKey) => (
+                  <TableCell>{renderCell(item, columnKey as string)}</TableCell>
+                )}
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </CollapsibleTableWrapper>
+
+      <ConfirmationModal
+        isOpen={disconnectModal.isOpen}
+        onClose={handleCloseModal}
+        onConfirm={handleConfirmDisconnect}
+        title={modalContent.title}
+        description={modalContent.description}
+        confirmText={modalContent.confirmText}
+        confirmVariant="danger"
+        isLoading={isDisconnecting}
+      />
+    </>
   );
 }

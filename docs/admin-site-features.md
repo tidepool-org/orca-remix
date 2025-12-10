@@ -347,42 +347,42 @@ These features are identified as "New" in the product planning document and need
 
 ### Phase 1: Core User Management Actions (High Priority)
 
-| Feature | Description | API Endpoint | Status | Logging Required |
-|---------|-------------|--------------|--------|------------------|
-| Delete All Uploads for User | Bulk delete all uploads for a user | New bulk endpoint needed | [ ] | Yes |
-| Disconnect Cloud Connection | Disconnect user's passive/cloud data connection | DELETE `/v1/users/{userId}/data_sources/{id}` | [ ] | Yes |
+| Feature                     | Description                                     | API Endpoint                             | Status | Logging Required |
+| --------------------------- | ----------------------------------------------- | ---------------------------------------- | ------ | ---------------- |
+| Delete All Uploads for User | Bulk delete all uploads for a user              | No bulk API available                    | [-]    | Yes              |
+| Disconnect Cloud Connection | Disconnect user's passive/cloud data connection | DELETE `/v1/data_sources/{dataSourceId}` | [x]    | Yes              |
 
 ### Phase 2: Clinic Configuration (High Priority)
 
-| Feature | Description | API Endpoint | Status | Logging Required |
-|---------|-------------|--------------|--------|------------------|
-| Update MRN-Required Setting | Toggle MRN requirement for clinic | PATCH `/v1/clinics/{clinicId}` | [ ] | Yes |
-| Update Clinic Timezone | Change clinic timezone setting | PATCH `/v1/clinics/{clinicId}` | [ ] | Yes |
-| Add/Remove Patient Limit | Modify patient limit for clinic | PATCH `/v1/clinics/{clinicId}` | [ ] | Yes |
-| Delete Clinic Workspace | Delete entire clinic workspace | DELETE `/v1/clinics/{clinicId}` | [ ] | Yes |
+| Feature                     | Description                       | API Endpoint                    | Status | Logging Required |
+| --------------------------- | --------------------------------- | ------------------------------- | ------ | ---------------- |
+| Update MRN-Required Setting | Toggle MRN requirement for clinic | PATCH `/v1/clinics/{clinicId}`  | [ ]    | Yes              |
+| Update Clinic Timezone      | Change clinic timezone setting    | PATCH `/v1/clinics/{clinicId}`  | [ ]    | Yes              |
+| Add/Remove Patient Limit    | Modify patient limit for clinic   | PATCH `/v1/clinics/{clinicId}`  | [ ]    | Yes              |
+| Delete Clinic Workspace     | Delete entire clinic workspace    | DELETE `/v1/clinics/{clinicId}` | [ ]    | Yes              |
 
 ### Phase 3: Clinic Membership Management (Medium Priority)
 
-| Feature | Description | API Endpoint | Status | Logging Required |
-|---------|-------------|--------------|--------|------------------|
-| Revoke Clinician Invitation | Cancel pending clinician invite | DELETE `/v1/clinics/{clinicId}/invites/clinicians/{inviteId}` | [ ] | Yes |
-| Remove Clinician from Clinic | Remove clinician access from workspace | DELETE `/v1/clinics/{clinicId}/clinicians/{clinicianId}` | [ ] | Yes |
-| Revoke Patient Invitation | Cancel pending patient invite | DELETE `/v1/clinics/{clinicId}/invites/patients/{inviteId}` | [ ] | Yes |
+| Feature                      | Description                            | API Endpoint                                                  | Status | Logging Required |
+| ---------------------------- | -------------------------------------- | ------------------------------------------------------------- | ------ | ---------------- |
+| Revoke Clinician Invitation  | Cancel pending clinician invite        | DELETE `/v1/clinics/{clinicId}/invites/clinicians/{inviteId}` | [ ]    | Yes              |
+| Remove Clinician from Clinic | Remove clinician access from workspace | DELETE `/v1/clinics/{clinicId}/clinicians/{clinicianId}`      | [ ]    | Yes              |
+| Revoke Patient Invitation    | Cancel pending patient invite          | DELETE `/v1/clinics/{clinicId}/invites/patients/{inviteId}`   | [ ]    | Yes              |
 
 ### Phase 4: UX Enhancements (Lower Priority)
 
-| Feature | Description | Implementation | Status | Logging Required |
-|---------|-------------|----------------|--------|------------------|
-| View Recent Searches | Show user's recent search history | Local storage (already implemented via RecentItemsContext) | [x] | No |
-| Sort/Filter Table Data | Enhanced table sorting and filtering | Client-side (partially implemented) | [~] | No |
-| Confirm Bulk Actions | Confirmation modal for high-impact actions | UI component (ConfirmationModal exists) | [~] | Yes |
+| Feature                | Description                                | Implementation                                             | Status | Logging Required |
+| ---------------------- | ------------------------------------------ | ---------------------------------------------------------- | ------ | ---------------- |
+| View Recent Searches   | Show user's recent search history          | Local storage (already implemented via RecentItemsContext) | [x]    | No               |
+| Sort/Filter Table Data | Enhanced table sorting and filtering       | Client-side (partially implemented)                        | [~]    | No               |
+| Confirm Bulk Actions   | Confirmation modal for high-impact actions | UI component (ConfirmationModal exists)                    | [~]    | Yes              |
 
 ### Phase 5: Advanced Features (Post-MVP)
 
-| Feature | Description | API Endpoint | Status | Logging Required |
-|---------|-------------|--------------|--------|------------------|
-| Download Raw Upload Blob | Download raw data from AWS S3 | Presigned URL endpoint needed | [ ] | Yes |
-| Merge Clinic Workspaces | Combine two clinic workspaces into one | Complex orchestration endpoint | [ ] | Yes |
+| Feature                  | Description                            | API Endpoint                   | Status | Logging Required |
+| ------------------------ | -------------------------------------- | ------------------------------ | ------ | ---------------- |
+| Download Raw Upload Blob | Download raw data from AWS S3          | Presigned URL endpoint needed  | [ ]    | Yes              |
+| Merge Clinic Workspaces  | Combine two clinic workspaces into one | Complex orchestration endpoint | [ ]    | Yes              |
 
 ---
 
