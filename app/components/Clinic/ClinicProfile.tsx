@@ -1,8 +1,8 @@
 import Well from '~/partials/Well';
 import { intlFormat } from 'date-fns';
 import { useState, useEffect } from 'react';
-import { Select, SelectItem, Button } from '@heroui/react';
-import { Edit2, X } from 'lucide-react';
+import { Select, SelectItem, Button, Tabs, Tab } from '@heroui/react';
+import { Edit2, X, Users, UserCog, FileText, Clock } from 'lucide-react';
 
 import type {
   Clinic,
@@ -210,7 +210,8 @@ export default function ClinicProfile({
   ];
 
   return (
-    <div className="flex flex-col gap-8 w-full">
+    <div className="flex flex-col gap-6 w-full">
+      {/* Clinic Details - Always visible */}
       <Well>
         <h1 className="text-xl">{name}</h1>
 
@@ -234,65 +235,147 @@ export default function ClinicProfile({
         </div>
       </Well>
 
-      <Well>
-        <PatientsTable
-          patients={patients}
-          isLoading={patientsLoading}
-          totalPages={totalPages}
-          totalPatients={totalPatients}
-          currentPage={currentPage}
-          pageSize={pageSize}
-          onPageChange={onPageChange}
-          onSort={onSort}
-          onSearch={onSearch}
-          currentSort={currentSort}
-          currentSearch={currentSearch}
-          clinic={clinic}
-        />
-      </Well>
+      {/* Tabbed Interface */}
+      <div className="w-full">
+        <Tabs
+          aria-label="Clinic profile sections"
+          variant="underlined"
+          classNames={{
+            tabList:
+              'gap-4 w-full relative rounded-none p-0 border-b border-divider',
+            cursor: 'w-full bg-primary',
+            tab: 'max-w-fit px-2 h-12',
+            tabContent: 'group-data-[selected=true]:text-primary',
+          }}
+        >
+          {/* Patients Tab */}
+          <Tab
+            key="patients"
+            title={
+              <div className="flex items-center gap-2">
+                <Users className="w-4 h-4" />
+                <span>Patients</span>
+                {totalPatients > 0 && (
+                  <span className="text-xs bg-default-100 px-1.5 py-0.5 rounded-full">
+                    {totalPatients}
+                  </span>
+                )}
+              </div>
+            }
+          >
+            <div className="pt-6 flex flex-col gap-6">
+              <Well>
+                <PatientsTable
+                  patients={patients}
+                  isLoading={patientsLoading}
+                  totalPages={totalPages}
+                  totalPatients={totalPatients}
+                  currentPage={currentPage}
+                  pageSize={pageSize}
+                  onPageChange={onPageChange}
+                  onSort={onSort}
+                  onSearch={onSearch}
+                  currentSort={currentSort}
+                  currentSearch={currentSearch}
+                  clinic={clinic}
+                />
+              </Well>
 
-      <Well>
-        <PatientInvitesTable
-          invites={patientInvites}
-          isLoading={invitesLoading}
-          totalInvites={totalInvites}
-        />
-      </Well>
+              <Well>
+                <PatientInvitesTable
+                  invites={patientInvites}
+                  isLoading={invitesLoading}
+                  totalInvites={totalInvites}
+                />
+              </Well>
+            </div>
+          </Tab>
 
-      <Well>
-        <CliniciansTable
-          clinicians={clinicians}
-          totalClinicians={totalClinicians}
-          isLoading={cliniciansLoading}
-          totalPages={cliniciansTotalPages}
-          currentPage={cliniciansCurrentPage}
-          pageSize={cliniciansPageSize}
-          onPageChange={onCliniciansPageChange}
-          onSearch={onCliniciansSearch}
-          currentSearch={currentCliniciansSearch}
-        />
-      </Well>
+          {/* Clinicians Tab */}
+          <Tab
+            key="clinicians"
+            title={
+              <div className="flex items-center gap-2">
+                <UserCog className="w-4 h-4" />
+                <span>Clinicians</span>
+                {totalClinicians > 0 && (
+                  <span className="text-xs bg-default-100 px-1.5 py-0.5 rounded-full">
+                    {totalClinicians}
+                  </span>
+                )}
+              </div>
+            }
+          >
+            <div className="pt-6 flex flex-col gap-6">
+              <Well>
+                <CliniciansTable
+                  clinicians={clinicians}
+                  totalClinicians={totalClinicians}
+                  isLoading={cliniciansLoading}
+                  totalPages={cliniciansTotalPages}
+                  currentPage={cliniciansCurrentPage}
+                  pageSize={cliniciansPageSize}
+                  onPageChange={onCliniciansPageChange}
+                  onSearch={onCliniciansSearch}
+                  currentSearch={currentCliniciansSearch}
+                />
+              </Well>
 
-      <Well>
-        <ClinicianInvitesTable
-          invites={clinicianInvites}
-          isLoading={clinicianInvitesLoading}
-          totalInvites={totalClinicianInvites}
-        />
-      </Well>
+              <Well>
+                <ClinicianInvitesTable
+                  invites={clinicianInvites}
+                  isLoading={clinicianInvitesLoading}
+                  totalInvites={totalClinicianInvites}
+                />
+              </Well>
+            </div>
+          </Tab>
 
-      <Well>
-        <PrescriptionsTable
-          prescriptions={prescriptions}
-          totalPrescriptions={totalPrescriptions}
-          isLoading={prescriptionsLoading}
-          clinicId={id}
-        />
-      </Well>
+          {/* Prescriptions Tab */}
+          <Tab
+            key="prescriptions"
+            title={
+              <div className="flex items-center gap-2">
+                <FileText className="w-4 h-4" />
+                <span>Prescriptions</span>
+                {totalPrescriptions > 0 && (
+                  <span className="text-xs bg-default-100 px-1.5 py-0.5 rounded-full">
+                    {totalPrescriptions}
+                  </span>
+                )}
+              </div>
+            }
+          >
+            <div className="pt-6">
+              <Well>
+                <PrescriptionsTable
+                  prescriptions={prescriptions}
+                  totalPrescriptions={totalPrescriptions}
+                  isLoading={prescriptionsLoading}
+                  clinicId={id}
+                />
+              </Well>
+            </div>
+          </Tab>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <RecentPatients />
-        <RecentClinicians />
+          {/* Recent Activity Tab */}
+          <Tab
+            key="recent"
+            title={
+              <div className="flex items-center gap-2">
+                <Clock className="w-4 h-4" />
+                <span>Recent</span>
+              </div>
+            }
+          >
+            <div className="pt-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <RecentPatients />
+                <RecentClinicians />
+              </div>
+            </div>
+          </Tab>
+        </Tabs>
       </div>
     </div>
   );
