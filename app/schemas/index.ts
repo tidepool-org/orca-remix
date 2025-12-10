@@ -9,6 +9,7 @@ export const ClinicSchema = z.object({
   name: z.string(),
   shareCode: z.string(),
   tier: z.string(),
+  timezone: z.string().optional(),
   createdTime: z.string(),
   canMigrate: z.boolean(),
   patientTags: z
@@ -251,6 +252,30 @@ export const UpdateTierSchema = z.object({
   }),
 });
 
+// MRN settings schema
+export const MrnSettingsSchema = z.object({
+  required: z.boolean(),
+  unique: z.boolean(),
+});
+
+// Patient count limit schema
+export const PatientCountLimitSchema = z.object({
+  plan: z.number().optional(),
+  startDate: z.string().optional(),
+  endDate: z.string().optional(),
+});
+
+// Patient count settings schema
+export const PatientCountSettingsSchema = z.object({
+  hardLimit: PatientCountLimitSchema.optional(),
+  softLimit: PatientCountLimitSchema.optional(),
+});
+
+// Update clinic timezone schema
+export const UpdateTimezoneSchema = z.object({
+  timezone: z.string().min(1, 'Timezone is required'),
+});
+
 /**
  * Infer TypeScript types from schemas
  */
@@ -263,3 +288,6 @@ export type Profile = z.infer<typeof ProfileSchema>;
 export type ClinicianClinicMembership = z.infer<
   typeof ClinicianClinicMembershipSchema
 >;
+export type MrnSettings = z.infer<typeof MrnSettingsSchema>;
+export type PatientCountLimit = z.infer<typeof PatientCountLimitSchema>;
+export type PatientCountSettings = z.infer<typeof PatientCountSettingsSchema>;

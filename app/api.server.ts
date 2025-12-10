@@ -256,6 +256,40 @@ export const apiRoutes = {
       method: 'post',
       path: `/v1/clinics/${clinicId}/tier`,
     }),
+    // Update clinic - update timezone and other clinic properties
+    // ref https://tidepool.redocly.app/reference/clinic.v1/clinics/updateclinic
+    update: (clinicId: string) => ({
+      method: 'put',
+      path: `/v1/clinics/${clinicId}`,
+    }),
+    // Delete clinic workspace
+    // ref https://tidepool.redocly.app/reference/clinic.v1/clinics/deleteclinic
+    delete: (clinicId: string) => ({
+      method: 'delete',
+      path: `/v1/clinics/${clinicId}`,
+    }),
+    // MRN settings
+    // ref https://tidepool.redocly.app/reference/clinic.v1/internal/getmrnsettings
+    getMrnSettings: (clinicId: string) => ({
+      method: 'get',
+      path: `/v1/clinics/${clinicId}/settings/mrn`,
+    }),
+    // ref https://tidepool.redocly.app/reference/clinic.v1/internal/updatemrnsettings
+    updateMrnSettings: (clinicId: string) => ({
+      method: 'put',
+      path: `/v1/clinics/${clinicId}/settings/mrn`,
+    }),
+    // Patient count settings
+    // ref https://tidepool.redocly.app/reference/clinic.v1/clinics/getpatientcountsettings
+    getPatientCountSettings: (clinicId: string) => ({
+      method: 'get',
+      path: `/v1/clinics/${clinicId}/settings/patient_count`,
+    }),
+    // ref https://tidepool.redocly.app/reference/clinic.v1/internal/updatepatientcountsettings
+    updatePatientCountSettings: (clinicId: string) => ({
+      method: 'put',
+      path: `/v1/clinics/${clinicId}/settings/patient_count`,
+    }),
     // Merge clinic - merges tags, patients, clinicians, invites and share codes from source clinic
     mergeClinic: (targetClinicId: string, sourceClinicId: string) => ({
       method: 'post',

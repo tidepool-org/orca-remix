@@ -354,12 +354,12 @@ These features are identified as "New" in the product planning document and need
 
 ### Phase 2: Clinic Configuration (High Priority)
 
-| Feature                     | Description                       | API Endpoint                    | Status | Logging Required |
-| --------------------------- | --------------------------------- | ------------------------------- | ------ | ---------------- |
-| Update MRN-Required Setting | Toggle MRN requirement for clinic | PATCH `/v1/clinics/{clinicId}`  | [ ]    | Yes              |
-| Update Clinic Timezone      | Change clinic timezone setting    | PATCH `/v1/clinics/{clinicId}`  | [ ]    | Yes              |
-| Add/Remove Patient Limit    | Modify patient limit for clinic   | PATCH `/v1/clinics/{clinicId}`  | [ ]    | Yes              |
-| Delete Clinic Workspace     | Delete entire clinic workspace    | DELETE `/v1/clinics/{clinicId}` | [ ]    | Yes              |
+| Feature                     | Description                       | API Endpoint                                        | Status | Logging Required |
+| --------------------------- | --------------------------------- | --------------------------------------------------- | ------ | ---------------- |
+| Update MRN-Required Setting | Toggle MRN requirement for clinic | PUT `/v1/clinics/{clinicId}/settings/mrn`           | [x]    | Yes              |
+| Update Clinic Timezone      | Change clinic timezone setting    | PUT `/v1/clinics/{clinicId}`                        | [x]    | Yes              |
+| Add/Remove Patient Limit    | Modify patient limit for clinic   | PUT `/v1/clinics/{clinicId}/settings/patient_count` | [x]    | Yes              |
+| Delete Clinic Workspace     | Delete entire clinic workspace    | DELETE `/v1/clinics/{clinicId}`                     | [x]    | Yes              |
 
 ### Phase 3: Clinic Membership Management (Medium Priority)
 

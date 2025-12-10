@@ -30,4 +30,5 @@
 
 ## Workflow
 
+- **Code Formatting**: After completing a set of changes, run `npm run format` to ensure consistent code formatting with Prettier.
 - **Commit Messages**: After completing a set of changes, provide a suitable git commit message summarizing the work done. Use conventional commit format (e.g., `feat:`, `fix:`, `docs:`, `refactor:`) when appropriate.

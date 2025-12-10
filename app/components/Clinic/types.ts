@@ -5,6 +5,7 @@ export type Clinic = {
   createdTime: string;
   canMigrate: boolean;
   tier: string;
+  timezone?: string;
   patientTags?: {
     id: string;
     name: string;
@@ -13,6 +14,25 @@ export type Clinic = {
     id: string;
     name: string;
   }[];
+};
+
+// MRN settings for a clinic
+export type ClinicMrnSettings = {
+  required: boolean;
+  unique: boolean;
+};
+
+// Patient count limit configuration
+export type PatientCountLimit = {
+  plan?: number;
+  startDate?: string;
+  endDate?: string;
+};
+
+// Patient count settings for a clinic
+export type ClinicPatientCountSettings = {
+  hardLimit?: PatientCountLimit;
+  softLimit?: PatientCountLimit;
 };
 
 export type RecentClinic = Pick<Clinic, 'shareCode' | 'id' | 'name'>;

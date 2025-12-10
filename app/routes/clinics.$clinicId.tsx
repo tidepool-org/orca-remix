@@ -2,6 +2,7 @@ import {
   type LoaderFunctionArgs,
   type ActionFunctionArgs,
   type MetaFunction,
+  redirect,
 } from 'react-router';
 
 import ClinicProfile from '~/components/Clinic/ClinicProfile';
@@ -34,7 +35,12 @@ import { useCallback, useEffect } from 'react';
 import isArray from 'lodash/isArray';
 import pick from 'lodash/pick';
 import uniqBy from 'lodash/uniqBy';
-import { UpdateTierSchema } from '~/schemas';
+import {
+  UpdateTierSchema,
+  MrnSettingsSchema,
+  PatientCountSettingsSchema,
+  UpdateTimezoneSchema,
+} from '~/schemas';
 import { errorResponse } from '~/utils/errors';
 import { useToast } from '~/contexts/ToastContext';
 
@@ -67,6 +73,102 @@ export async function action({ request, params }: ActionFunctionArgs) {
         success: true,
         message: 'Clinic tier updated successfully',
       });
+    } catch (error) {
+      return errorResponse(error, 500);
+    }
+  }
+
+  if (actionType === 'updateTimezone') {
+    const timezone = formData.get('timezone');
+
+    try {
+      // Validate input
+      const validated = UpdateTimezoneSchema.parse({ timezone });
+
+      // Make API request to update clinic with new timezone
+      await apiRequest({
+        ...apiRoutes.clinic.update(clinicId),
+        body: { timezone: validated.timezone },
+      });
+
+      return Response.json({
+        success: true,
+        message: 'Clinic timezone updated successfully',
+      });
+    } catch (error) {
+      return errorResponse(error, 500);
+    }
+  }
+
+  if (actionType === 'updateMrnSettings') {
+    const required = formData.get('mrnRequired') === 'true';
+    const unique = formData.get('mrnUnique') === 'true';
+
+    try {
+      // Validate input
+      const validated = MrnSettingsSchema.parse({ required, unique });
+
+      // Make API request
+      await apiRequest({
+        ...apiRoutes.clinic.updateMrnSettings(clinicId),
+        body: validated,
+      });
+
+      return Response.json({
+        success: true,
+        message: 'MRN settings updated successfully',
+      });
+    } catch (error) {
+      return errorResponse(error, 500);
+    }
+  }
+
+  if (actionType === 'updatePatientCountSettings') {
+    const hardLimitPlan = formData.get('hardLimitPlan');
+
+    try {
+      // Build patient count settings - null values mean remove the limit
+      const settings: {
+        hardLimit?: { plan: number } | null;
+      } = {};
+
+      if (hardLimitPlan === '' || hardLimitPlan === null) {
+        // Remove the hard limit by sending null
+        settings.hardLimit = null;
+      } else {
+        const planValue = parseInt(hardLimitPlan as string, 10);
+        if (!isNaN(planValue) && planValue >= 0) {
+          settings.hardLimit = { plan: planValue };
+        }
+      }
+
+      // Validate input
+      PatientCountSettingsSchema.parse(settings);
+
+      // Make API request
+      await apiRequest({
+        ...apiRoutes.clinic.updatePatientCountSettings(clinicId),
+        body: settings,
+      });
+
+      return Response.json({
+        success: true,
+        message: 'Patient limit updated successfully',
+      });
+    } catch (error) {
+      return errorResponse(error, 500);
+    }
+  }
+
+  if (actionType === 'deleteClinic') {
+    try {
+      // Make API request to delete the clinic
+      await apiRequest({
+        ...apiRoutes.clinic.delete(clinicId),
+      });
+
+      // Redirect to clinics list after successful deletion
+      return redirect('/clinics');
     } catch (error) {
       return errorResponse(error, 500);
     }
@@ -172,6 +274,34 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
       // Continue without prescriptions
     }
 
+    // Fetch MRN settings separately to avoid breaking the page if the API is unavailable
+    let mrnSettings: { required: boolean; unique: boolean } | null = null;
+    try {
+      mrnSettings = (await apiRequest(
+        apiRoutes.clinic.getMrnSettings(clinicId),
+      )) as { required: boolean; unique: boolean };
+    } catch (err) {
+      console.error('Error fetching MRN settings:', err);
+      // Continue without MRN settings
+    }
+
+    // Fetch patient count settings separately
+    let patientCountSettings: {
+      hardLimit?: { plan?: number };
+      softLimit?: { plan?: number };
+    } | null = null;
+    try {
+      patientCountSettings = (await apiRequest(
+        apiRoutes.clinic.getPatientCountSettings(clinicId),
+      )) as {
+        hardLimit?: { plan?: number };
+        softLimit?: { plan?: number };
+      };
+    } catch (err) {
+      console.error('Error fetching patient count settings:', err);
+      // Continue without patient count settings
+    }
+
     const clinic: Clinic = results?.[0] as Clinic;
     const patientsResponse = results?.[1] as
       | { data: Patient[]; meta?: { count: number } }
@@ -234,6 +364,8 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
           clinicians,
           clinicianInvites,
           prescriptions,
+          mrnSettings,
+          patientCountSettings,
           recentPatients,
           recentClinicians,
           pagination: {
@@ -276,6 +408,8 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     clinicians: [],
     clinicianInvites: [],
     prescriptions: [],
+    mrnSettings: null,
+    patientCountSettings: null,
     recentPatients: [],
     recentClinicians: [],
     pagination: {
@@ -311,6 +445,8 @@ export default function Clinics() {
     clinicians,
     clinicianInvites,
     prescriptions,
+    mrnSettings,
+    patientCountSettings,
     recentPatients,
     recentClinicians,
     pagination,
@@ -405,7 +541,7 @@ export default function Clinics() {
   );
 
   const handleTierUpdate = useCallback(
-    (clinicId: string, newTier: string) => {
+    (_clinicId: string, newTier: string) => {
       const formData = new FormData();
       formData.append('actionType', 'updateTier');
       formData.append('tier', newTier);
@@ -414,6 +550,50 @@ export default function Clinics() {
     },
     [submit],
   );
+
+  const handleTimezoneUpdate = useCallback(
+    (_clinicId: string, newTimezone: string) => {
+      const formData = new FormData();
+      formData.append('actionType', 'updateTimezone');
+      formData.append('timezone', newTimezone);
+
+      submit(formData, { method: 'post' });
+    },
+    [submit],
+  );
+
+  const handleMrnSettingsUpdate = useCallback(
+    (_clinicId: string, mrnRequired: boolean, mrnUnique: boolean) => {
+      const formData = new FormData();
+      formData.append('actionType', 'updateMrnSettings');
+      formData.append('mrnRequired', mrnRequired.toString());
+      formData.append('mrnUnique', mrnUnique.toString());
+
+      submit(formData, { method: 'post' });
+    },
+    [submit],
+  );
+
+  const handlePatientLimitUpdate = useCallback(
+    (_clinicId: string, hardLimitPlan: number | null) => {
+      const formData = new FormData();
+      formData.append('actionType', 'updatePatientCountSettings');
+      formData.append(
+        'hardLimitPlan',
+        hardLimitPlan === null ? '' : hardLimitPlan.toString(),
+      );
+
+      submit(formData, { method: 'post' });
+    },
+    [submit],
+  );
+
+  const handleDeleteClinic = useCallback(() => {
+    const formData = new FormData();
+    formData.append('actionType', 'deleteClinic');
+
+    submit(formData, { method: 'post' });
+  }, [submit]);
 
   // Check if we're currently submitting a tier update
   const isSubmitting =
@@ -459,6 +639,8 @@ export default function Clinics() {
             clinicianInvites={clinicianInvites}
             totalClinicianInvites={invitesPagination.totalClinicianInvites}
             prescriptions={prescriptions}
+            mrnSettings={mrnSettings}
+            patientCountSettings={patientCountSettings}
             onPageChange={handlePageChange}
             onSort={handleSort}
             onSearch={handleSearch}
@@ -468,6 +650,10 @@ export default function Clinics() {
             onCliniciansSearch={handleCliniciansSearch}
             currentCliniciansSearch={sorting.cliniciansSearch}
             onTierUpdate={handleTierUpdate}
+            onTimezoneUpdate={handleTimezoneUpdate}
+            onMrnSettingsUpdate={handleMrnSettingsUpdate}
+            onPatientLimitUpdate={handlePatientLimitUpdate}
+            onDeleteClinic={handleDeleteClinic}
             isSubmitting={isSubmitting}
           />
         )}
