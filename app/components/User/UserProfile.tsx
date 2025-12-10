@@ -1,3 +1,5 @@
+import { Tabs, Tab } from '@heroui/react';
+import { Building2, Share2, Database, Settings, FileText } from 'lucide-react';
 import Well from '~/partials/Well';
 import { intlFormat } from 'date-fns';
 import ClinicsTable from '../Clinic/ClinicsTable';
@@ -100,101 +102,219 @@ export default function UserProfile({
     },
   ];
 
-  return (
-    <div className="flex flex-col gap-8 w-full">
-      <Well>
-        <h1 className="text-xl">{fullName}</h1>
+  // Calculate counts for tab badges
+  const dataSharingCount =
+    Object.keys(trustingAccounts).length +
+    Object.keys(trustedAccounts).length +
+    sentInvites.length +
+    receivedInvites.length;
 
-        <div className="text-small">
-          {userDetails.map(({ label, value, copy }, i) => (
-            <div
-              key={i}
-              className="flex justify-start flex-nowrap gap-2 items-center min-h-unit-8"
-            >
-              <strong>{label}:</strong>
-              <p>{value}</p>
-              {copy && <ClipboardButton clipboardText={value} />}
-            </div>
-          ))}
-        </div>
-      </Well>
+  // User details component (reused in both layouts)
+  const UserDetailsSection = (
+    <Well>
+      <h1 className="text-xl">{fullName}</h1>
+      <div className="text-small">
+        {userDetails.map(({ label, value, copy }, i) => (
+          <div
+            key={i}
+            className="flex justify-start flex-nowrap gap-2 items-center min-h-unit-8"
+          >
+            <strong>{label}:</strong>
+            <p>{value}</p>
+            {copy && <ClipboardButton clipboardText={value} />}
+          </div>
+        ))}
+      </div>
+    </Well>
+  );
+
+  // For clinician accounts, show simplified view (no tabs needed)
+  if (clinic) {
+    return (
+      <div className="flex flex-col gap-8 w-full">
+        {UserDetailsSection}
+
+        <Well>
+          <UserActions user={user} />
+        </Well>
+
+        <Well>
+          <ClinicsTable
+            clinics={clinics}
+            totalClinics={totalClinics}
+            totalPages={1}
+            currentPage={1}
+          />
+        </Well>
+      </div>
+    );
+  }
+
+  // For patient accounts, show tabbed interface
+  return (
+    <div className="flex flex-col gap-6 w-full">
+      {UserDetailsSection}
 
       <Well>
         <UserActions user={user} />
       </Well>
 
-      <Well>
-        <ClinicsTable
-          clinics={clinics}
-          totalClinics={totalClinics}
-          totalPages={1}
-          currentPage={1}
-        />
-      </Well>
+      <div className="w-full">
+        <Tabs
+          aria-label="User profile sections"
+          variant="underlined"
+          classNames={{
+            tabList:
+              'gap-4 w-full relative rounded-none p-0 border-b border-divider',
+            cursor: 'w-full bg-primary',
+            tab: 'max-w-fit px-2 h-12',
+            tabContent: 'group-data-[selected=true]:text-primary',
+          }}
+        >
+          {/* Clinics Tab */}
+          <Tab
+            key="clinics"
+            title={
+              <div className="flex items-center gap-2">
+                <Building2 className="w-4 h-4" />
+                <span>Clinics</span>
+                {totalClinics > 0 && (
+                  <span className="text-xs bg-default-100 px-1.5 py-0.5 rounded-full">
+                    {totalClinics}
+                  </span>
+                )}
+              </div>
+            }
+          >
+            <div className="pt-6">
+              <Well>
+                <ClinicsTable
+                  clinics={clinics}
+                  totalClinics={totalClinics}
+                  totalPages={1}
+                  currentPage={1}
+                />
+              </Well>
+            </div>
+          </Tab>
 
-      {!clinic && (
-        <Well>
-          <TrustingAccountsTable accounts={trustingAccounts} />
-        </Well>
-      )}
+          {/* Data Sharing Tab */}
+          <Tab
+            key="sharing"
+            title={
+              <div className="flex items-center gap-2">
+                <Share2 className="w-4 h-4" />
+                <span>Data Sharing</span>
+                {dataSharingCount > 0 && (
+                  <span className="text-xs bg-default-100 px-1.5 py-0.5 rounded-full">
+                    {dataSharingCount}
+                  </span>
+                )}
+              </div>
+            }
+          >
+            <div className="pt-6 flex flex-col gap-6">
+              <Well>
+                <TrustingAccountsTable accounts={trustingAccounts} />
+              </Well>
+              <Well>
+                <TrustedAccountsTable accounts={trustedAccounts} />
+              </Well>
+              <Well>
+                <SentInvitesTable invites={sentInvites} />
+              </Well>
+              <Well>
+                <ReceivedInvitesTable invites={receivedInvites} />
+              </Well>
+            </div>
+          </Tab>
 
-      {!clinic && (
-        <Well>
-          <TrustedAccountsTable accounts={trustedAccounts} />
-        </Well>
-      )}
+          {/* Data Tab */}
+          <Tab
+            key="data"
+            title={
+              <div className="flex items-center gap-2">
+                <Database className="w-4 h-4" />
+                <span>Data</span>
+                {totalDataSets > 0 && (
+                  <span className="text-xs bg-default-100 px-1.5 py-0.5 rounded-full">
+                    {totalDataSets}
+                  </span>
+                )}
+              </div>
+            }
+          >
+            <div className="pt-6 flex flex-col gap-6">
+              <Well>
+                <DataSetsTable
+                  dataSets={dataSets}
+                  totalDataSets={totalDataSets}
+                />
+              </Well>
+              <Well>
+                <DataSourcesTable
+                  dataSources={dataSources}
+                  totalDataSources={totalDataSources}
+                />
+              </Well>
+              <Well>
+                <DataExportSection userId={userId} />
+              </Well>
+            </div>
+          </Tab>
 
-      {!clinic && (
-        <Well>
-          <SentInvitesTable invites={sentInvites} />
-        </Well>
-      )}
+          {/* Device Tab */}
+          <Tab
+            key="device"
+            title={
+              <div className="flex items-center gap-2">
+                <Settings className="w-4 h-4" />
+                <span>Device</span>
+                {pumpSettings.length > 0 && (
+                  <span className="text-xs bg-default-100 px-1.5 py-0.5 rounded-full">
+                    {pumpSettings.length}
+                  </span>
+                )}
+              </div>
+            }
+          >
+            <div className="pt-6">
+              <Well>
+                <PumpSettingsSection
+                  pumpSettings={pumpSettings}
+                  isLoading={isPumpSettingsLoading}
+                />
+              </Well>
+            </div>
+          </Tab>
 
-      {!clinic && (
-        <Well>
-          <ReceivedInvitesTable invites={receivedInvites} />
-        </Well>
-      )}
-
-      {!clinic && (
-        <Well>
-          <DataSetsTable dataSets={dataSets} totalDataSets={totalDataSets} />
-        </Well>
-      )}
-
-      {!clinic && (
-        <Well>
-          <DataExportSection userId={userId} />
-        </Well>
-      )}
-
-      {!clinic && (
-        <Well>
-          <DataSourcesTable
-            dataSources={dataSources}
-            totalDataSources={totalDataSources}
-          />
-        </Well>
-      )}
-
-      {!clinic && (
-        <Well>
-          <PumpSettingsSection
-            pumpSettings={pumpSettings}
-            isLoading={isPumpSettingsLoading}
-          />
-        </Well>
-      )}
-
-      {!clinic && (
-        <Well>
-          <PrescriptionsSection
-            prescriptions={prescriptions}
-            totalPrescriptions={totalPrescriptions}
-            isLoading={prescriptionsLoading}
-          />
-        </Well>
-      )}
+          {/* Prescriptions Tab */}
+          <Tab
+            key="prescriptions"
+            title={
+              <div className="flex items-center gap-2">
+                <FileText className="w-4 h-4" />
+                <span>Prescriptions</span>
+                {totalPrescriptions > 0 && (
+                  <span className="text-xs bg-default-100 px-1.5 py-0.5 rounded-full">
+                    {totalPrescriptions}
+                  </span>
+                )}
+              </div>
+            }
+          >
+            <div className="pt-6">
+              <Well>
+                <PrescriptionsSection
+                  prescriptions={prescriptions}
+                  totalPrescriptions={totalPrescriptions}
+                  isLoading={prescriptionsLoading}
+                />
+              </Well>
+            </div>
+          </Tab>
+        </Tabs>
+      </div>
     </div>
   );
 }
