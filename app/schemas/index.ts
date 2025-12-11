@@ -139,14 +139,16 @@ export const PatientInviteSchema = z.object({
   restrictions: z.unknown(),
 });
 
+// User schema - some fields are optional to support unclaimed/custodial accounts
+// Unclaimed accounts are created by clinicians for patients who haven't verified their email yet
 export const UserSchema = z.object({
-  emailVerified: z.boolean(),
-  emails: z.array(z.string()),
-  passwordExists: z.boolean(),
-  roles: z.array(z.string()),
-  termsAccepted: z.string(),
+  emailVerified: z.boolean().optional(),
+  emails: z.array(z.string()).optional(),
+  passwordExists: z.boolean().optional(),
+  roles: z.array(z.string()).optional(),
+  termsAccepted: z.string().optional(),
   userid: z.string(),
-  username: z.string().email(),
+  username: z.string().optional(),
 });
 
 export const ProfileSchema = z.object({

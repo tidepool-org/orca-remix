@@ -34,6 +34,10 @@ export default function UserActions({ user }: UserActionsProps) {
 
   const isSubmitting = fetcher.state !== 'idle';
 
+  // Determine if this is an unclaimed/custodial account (no email set up)
+  const isUnclaimedAccount = !user.username;
+  const displayName = user.username || user.userid;
+
   // Handle fetcher response
   useEffect(() => {
     if (fetcher.state === 'idle' && fetcher.data) {
@@ -71,7 +75,7 @@ export default function UserActions({ user }: UserActionsProps) {
   const actionConfigs = {
     'verify-email': {
       title: 'Verify User Email',
-      description: `This will manually verify the email address for ${user.username}. The user will be able to log in immediately after verification.`,
+      description: `This will manually verify the email address for ${displayName}. The user will be able to log in immediately after verification.`,
       confirmText: 'Verify Email',
       confirmVariant: 'primary' as const,
       requiresInput: false,
@@ -79,7 +83,7 @@ export default function UserActions({ user }: UserActionsProps) {
     },
     'password-reset': {
       title: 'Send Password Reset',
-      description: `This will send a password reset email to ${user.username}. The user will receive an email with instructions to reset their password.`,
+      description: `This will send a password reset email to ${displayName}. The user will receive an email with instructions to reset their password.`,
       confirmText: 'Send Reset Email',
       confirmVariant: 'primary' as const,
       requiresInput: false,
@@ -87,7 +91,7 @@ export default function UserActions({ user }: UserActionsProps) {
     },
     'send-confirmation': {
       title: 'Send Confirmation Email',
-      description: `This will send a new account confirmation email to ${user.username}. Use this if the user never received their initial confirmation.`,
+      description: `This will send a new account confirmation email to ${displayName}. Use this if the user never received their initial confirmation.`,
       confirmText: 'Send Confirmation',
       confirmVariant: 'primary' as const,
       requiresInput: false,
@@ -95,7 +99,7 @@ export default function UserActions({ user }: UserActionsProps) {
     },
     'resend-confirmation': {
       title: 'Resend Confirmation Email',
-      description: `This will resend the account confirmation email to ${user.username}. Use this if the previous confirmation email expired.`,
+      description: `This will resend the account confirmation email to ${displayName}. Use this if the previous confirmation email expired.`,
       confirmText: 'Resend Confirmation',
       confirmVariant: 'primary' as const,
       requiresInput: false,
@@ -103,24 +107,24 @@ export default function UserActions({ user }: UserActionsProps) {
     },
     'delete-data': {
       title: 'Delete User Data',
-      description: `This will permanently delete all upload data for ${user.username}. The user account will remain intact, but all diabetes data will be removed. This action cannot be undone.`,
+      description: `This will permanently delete all upload data for ${displayName}. The user account will remain intact, but all diabetes data will be removed. This action cannot be undone.`,
       confirmText: 'Delete All Data',
       confirmVariant: 'danger' as const,
       requiresInput: true,
       inputPlaceholder: 'Enter email or user ID',
-      expectedInput: user.username,
-      inputLabel: 'Confirm by typing the user email',
+      expectedInput: displayName,
+      inputLabel: `Confirm by typing the user ${user.username ? 'email' : 'ID'}`,
       icon: <Trash2 className="text-danger" size={20} />,
     },
     'delete-account': {
       title: 'Delete User Account',
-      description: `This will permanently delete the account for ${user.username} and all associated data. This action cannot be undone.`,
+      description: `This will permanently delete the account for ${displayName} and all associated data. This action cannot be undone.`,
       confirmText: 'Delete Account',
       confirmVariant: 'danger' as const,
       requiresInput: true,
       inputPlaceholder: 'Enter email or user ID',
-      expectedInput: user.username,
-      inputLabel: 'Confirm by typing the user email',
+      expectedInput: displayName,
+      inputLabel: `Confirm by typing the user ${user.username ? 'email' : 'ID'}`,
       icon: <UserX className="text-danger" size={20} />,
     },
   };
@@ -137,7 +141,7 @@ export default function UserActions({ user }: UserActionsProps) {
           color="primary"
           startContent={<ShieldCheck size={16} />}
           onPress={() => openModal('verify-email')}
-          isDisabled={user.emailVerified}
+          isDisabled={user.emailVerified || isUnclaimedAccount}
         >
           Verify Email
         </Button>
@@ -148,6 +152,7 @@ export default function UserActions({ user }: UserActionsProps) {
           color="primary"
           startContent={<KeyRound size={16} />}
           onPress={() => openModal('password-reset')}
+          isDisabled={isUnclaimedAccount}
         >
           Send Password Reset
         </Button>
@@ -158,7 +163,7 @@ export default function UserActions({ user }: UserActionsProps) {
           color="primary"
           startContent={<Send size={16} />}
           onPress={() => openModal('send-confirmation')}
-          isDisabled={user.emailVerified}
+          isDisabled={user.emailVerified || isUnclaimedAccount}
         >
           Send Confirmation
         </Button>
@@ -169,7 +174,7 @@ export default function UserActions({ user }: UserActionsProps) {
           color="primary"
           startContent={<Mail size={16} />}
           onPress={() => openModal('resend-confirmation')}
-          isDisabled={user.emailVerified}
+          isDisabled={user.emailVerified || isUnclaimedAccount}
         >
           Resend Confirmation
         </Button>

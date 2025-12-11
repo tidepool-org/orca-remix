@@ -1,11 +1,13 @@
+// User type - some fields are optional to support unclaimed/custodial accounts
+// Unclaimed accounts are created by clinicians for patients who haven't verified their email yet
 export type User = {
-  emailVerified: boolean;
-  emails: string[];
-  passwordExists: boolean;
-  roles: string[];
-  termsAccepted: string;
+  emailVerified?: boolean;
+  emails?: string[];
+  passwordExists?: boolean;
+  roles?: string[];
+  termsAccepted?: string;
   userid: string;
-  username: string;
+  username?: string;
 };
 
 export type Profile = {
@@ -20,8 +22,11 @@ export type Profile = {
   };
 };
 
-export type RecentUser = Pick<User, 'username' | 'userid'> &
-  Pick<Profile, 'fullName'>;
+export type RecentUser = {
+  userid: string;
+  username?: string;
+  fullName?: string;
+};
 
 export type DataSet = {
   uploadId: string;

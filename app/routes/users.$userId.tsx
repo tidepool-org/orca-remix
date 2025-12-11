@@ -321,6 +321,16 @@ export async function action({ request, params }: ActionFunctionArgs) {
       }
 
       case 'password-reset': {
+        if (!user.username) {
+          return Response.json(
+            {
+              success: false,
+              error:
+                'Cannot send password reset to unclaimed account without email',
+            },
+            { status: 400 },
+          );
+        }
         await apiRequest(apiRoutes.user.sendPasswordReset(user.username));
         return Response.json({
           success: true,
@@ -339,6 +349,16 @@ export async function action({ request, params }: ActionFunctionArgs) {
       }
 
       case 'resend-confirmation': {
+        if (!user.username) {
+          return Response.json(
+            {
+              success: false,
+              error:
+                'Cannot resend confirmation to unclaimed account without email',
+            },
+            { status: 400 },
+          );
+        }
         await apiRequest(apiRoutes.user.resendConfirmation(user.username));
         return Response.json({
           success: true,

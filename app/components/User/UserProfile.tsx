@@ -79,11 +79,14 @@ export default function UserProfile({
   const { fullName, clinic } = profile;
   const { locale } = useLocale();
 
+  // Determine if this is an unclaimed/custodial account
+  const isUnclaimedAccount = !emailVerified && !termsAccepted;
+
   const userDetails = [
     {
       label: 'Email',
-      value: username,
-      copy: true,
+      value: username || 'N/A',
+      copy: !!username,
     },
     {
       label: 'User ID',
@@ -94,19 +97,31 @@ export default function UserProfile({
       label: 'Account Type',
       value: clinic ? `clinician (${clinic.role})` : 'patient',
     },
-    { label: 'Account Verified', value: emailVerified.toString() },
     {
-      label: 'Member Since',
-      value: intlFormat(
-        new Date(termsAccepted),
-        {
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric',
-        },
-        { locale },
-      ),
+      label: 'Account Status',
+      value: isUnclaimedAccount
+        ? 'Unclaimed (Custodial)'
+        : emailVerified
+          ? 'Verified'
+          : 'Unverified',
     },
+    ...(termsAccepted
+      ? [
+          {
+            label: 'Member Since',
+            value: intlFormat(
+              new Date(termsAccepted),
+              {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+              },
+              { locale },
+            ),
+            copy: false,
+          },
+        ]
+      : []),
   ];
 
   // Calculate counts for tab badges
