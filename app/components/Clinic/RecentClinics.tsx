@@ -53,7 +53,7 @@ export default function RecentClinics({ rows }: UserProfileProps) {
     <Well className="bg-transparent">
       <Table
         className="flex flex-1 flex-col text-content1-foreground gap-4"
-        aria-label="Recently viewed users"
+        aria-label="Recently viewed clinics"
         selectionMode="single"
         onSelectionChange={handleSelection}
         shadow="none"

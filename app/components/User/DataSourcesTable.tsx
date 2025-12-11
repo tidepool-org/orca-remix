@@ -78,7 +78,10 @@ export default function DataSourcesTable({
         <Input
           isClearable
           placeholder="Filter by provider or state..."
-          startContent={<Search className="w-4 h-4 text-default-400" />}
+          aria-label="Filter data sources by provider or state"
+          startContent={
+            <Search className="w-4 h-4 text-default-400" aria-hidden="true" />
+          }
           value={filterValue}
           onClear={() => setFilterValue('')}
           onValueChange={setFilterValue}
@@ -275,8 +278,13 @@ export default function DataSourcesTable({
           return (
             <Dropdown>
               <DropdownTrigger>
-                <Button isIconOnly size="sm" variant="light">
-                  <MoreVertical className="w-4 h-4" />
+                <Button
+                  isIconOnly
+                  size="sm"
+                  variant="light"
+                  aria-label="Data source actions"
+                >
+                  <MoreVertical className="w-4 h-4" aria-hidden="true" />
                 </Button>
               </DropdownTrigger>
               <DropdownMenu aria-label="Data source actions">
@@ -284,7 +292,9 @@ export default function DataSourcesTable({
                   key="disconnect"
                   className="text-danger"
                   color="danger"
-                  startContent={<Unplug className="w-4 h-4" />}
+                  startContent={
+                    <Unplug className="w-4 h-4" aria-hidden="true" />
+                  }
                   description="Disconnect this data source"
                   onPress={() => handleDisconnect(item)}
                 >
@@ -306,7 +316,10 @@ export default function DataSourcesTable({
 
   const EmptyContent = (
     <div className="flex flex-col items-center justify-center py-8">
-      <Database className="w-12 h-12 text-default-300 mb-4" />
+      <Database
+        className="w-12 h-12 text-default-300 mb-4"
+        aria-hidden="true"
+      />
       <span className="text-default-500">No data sources found</span>
     </div>
   );

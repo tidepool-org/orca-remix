@@ -10,9 +10,9 @@ type ClipboardButtonProps = ButtonProps & {
 
 export default function ClipboardButton({
   clipboardText = 'Sorry, there was nothing to copy.',
-  children = <Copy className="w-4" />,
+  children = <Copy className="w-4" aria-hidden="true" />,
   title = 'Copy to clipboard',
-  spinner = <CopyCheck className="w-4" />,
+  spinner = <CopyCheck className="w-4" aria-hidden="true" />,
   isIconOnly = true,
   size = 'sm',
   radius = 'sm',
@@ -51,6 +51,7 @@ export default function ClipboardButton({
       className="text-foreground/80 h-unit-7 min-w-unit-7 w-unit-7"
       isLoading={isLoading}
       title={title}
+      aria-label={title}
       spinner={spinner}
       isIconOnly={isIconOnly}
       size={size}

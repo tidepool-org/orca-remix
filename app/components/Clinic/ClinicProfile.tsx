@@ -500,6 +500,7 @@ export default function ClinicProfile({
                       onValueChange={handleLimitToggleChange}
                       isDisabled={isSubmitting || !isPatientLimitApplicable}
                       size="sm"
+                      aria-label="Enable patient count limit"
                     />
                   </div>
                   <div className="flex items-center gap-4">
@@ -627,6 +628,7 @@ export default function ClinicProfile({
                       }}
                       isDisabled={isSubmitting}
                       size="sm"
+                      aria-label="MRN required"
                     />
                   </div>
                   <div className="flex items-center justify-between">
@@ -644,6 +646,7 @@ export default function ClinicProfile({
                       }}
                       isDisabled={isSubmitting}
                       size="sm"
+                      aria-label="MRN unique"
                     />
                   </div>
                 </div>

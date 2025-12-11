@@ -168,7 +168,7 @@ export default function PumpSettingsSection({
         </CardHeader>
         <Divider />
         <CardBody className="flex flex-col justify-center items-center py-8 gap-2">
-          <Settings className="w-12 h-12 text-default-300" />
+          <Settings className="w-12 h-12 text-default-300" aria-hidden="true" />
           <span className="text-default-500">No pump settings found</span>
         </CardBody>
       </Card>

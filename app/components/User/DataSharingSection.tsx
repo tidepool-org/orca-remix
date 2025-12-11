@@ -57,7 +57,7 @@ export function TrustingAccountsTable({
 
   const EmptyContent = (
     <div className="flex flex-col items-center justify-center py-8">
-      <Users className="w-12 h-12 text-default-300 mb-4" />
+      <Users className="w-12 h-12 text-default-300 mb-4" aria-hidden="true" />
       <span className="text-default-500">
         No accounts are sharing data with this user
       </span>
@@ -141,7 +141,7 @@ export function TrustedAccountsTable({
 
   const EmptyContent = (
     <div className="flex flex-col items-center justify-center py-8">
-      <Users className="w-12 h-12 text-default-300 mb-4" />
+      <Users className="w-12 h-12 text-default-300 mb-4" aria-hidden="true" />
       <span className="text-default-500">
         This user is not sharing data with anyone
       </span>
@@ -247,7 +247,7 @@ export function SentInvitesTable({
 
   const EmptyContent = (
     <div className="flex flex-col items-center justify-center py-8">
-      <Send className="w-12 h-12 text-default-300 mb-4" />
+      <Send className="w-12 h-12 text-default-300 mb-4" aria-hidden="true" />
       <span className="text-default-500">No pending sent invites</span>
     </div>
   );
@@ -364,7 +364,7 @@ export function ReceivedInvitesTable({
 
   const EmptyContent = (
     <div className="flex flex-col items-center justify-center py-8">
-      <Inbox className="w-12 h-12 text-default-300 mb-4" />
+      <Inbox className="w-12 h-12 text-default-300 mb-4" aria-hidden="true" />
       <span className="text-default-500">No pending received invites</span>
     </div>
   );

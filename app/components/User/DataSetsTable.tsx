@@ -244,7 +244,7 @@ export default function DataSetsTable({
               key="delete-dataset"
               className="text-danger"
               color="danger"
-              startContent={<Trash2 className="w-4 h-4" />}
+              startContent={<Trash2 className="w-4 h-4" aria-hidden="true" />}
               description="Delete entire dataset"
               onPress={() => handleDeleteDataSet(item)}
             >
@@ -258,7 +258,9 @@ export default function DataSetsTable({
                 key="delete-data"
                 className="text-danger"
                 color="danger"
-                startContent={<Database className="w-4 h-4" />}
+                startContent={
+                  <Database className="w-4 h-4" aria-hidden="true" />
+                }
                 description="Delete data from continuous dataset"
                 onPress={() => handleDeleteDataFromDataSet(item)}
               >
@@ -270,8 +272,13 @@ export default function DataSetsTable({
           return (
             <Dropdown>
               <DropdownTrigger>
-                <Button isIconOnly size="sm" variant="light">
-                  <MoreVertical className="w-4 h-4" />
+                <Button
+                  isIconOnly
+                  size="sm"
+                  variant="light"
+                  aria-label="Dataset actions"
+                >
+                  <MoreVertical className="w-4 h-4" aria-hidden="true" />
                 </Button>
               </DropdownTrigger>
               <DropdownMenu aria-label="Dataset actions">
@@ -293,7 +300,7 @@ export default function DataSetsTable({
 
   const EmptyContent = (
     <div className="flex flex-col items-center justify-center py-8">
-      <Upload className="w-12 h-12 text-default-300 mb-4" />
+      <Upload className="w-12 h-12 text-default-300 mb-4" aria-hidden="true" />
       <span className="text-default-500">No data uploads found</span>
     </div>
   );
@@ -340,7 +347,10 @@ export default function DataSetsTable({
           isClearable
           className="w-full sm:max-w-[300px]"
           placeholder="Filter by Upload ID, Device, or Serial..."
-          startContent={<Search className="w-4 h-4 text-default-400" />}
+          aria-label="Filter uploads by Upload ID, Device, or Serial"
+          startContent={
+            <Search className="w-4 h-4 text-default-400" aria-hidden="true" />
+          }
           value={filterValue}
           onClear={onClear}
           onValueChange={setFilterValue}

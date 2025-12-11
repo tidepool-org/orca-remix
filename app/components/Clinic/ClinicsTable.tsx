@@ -77,7 +77,10 @@ export default function ClinicsTable({
         <Input
           isClearable
           placeholder="Filter by clinic name, ID, or tier..."
-          startContent={<Search className="w-4 h-4 text-default-400" />}
+          aria-label="Filter clinics by name, ID, or tier"
+          startContent={
+            <Search className="w-4 h-4 text-default-400" aria-hidden="true" />
+          }
           value={filterValue}
           onClear={() => setFilterValue('')}
           onValueChange={setFilterValue}
@@ -210,7 +213,10 @@ export default function ClinicsTable({
 
   const EmptyContent = (
     <div className="flex flex-col items-center justify-center py-8">
-      <Building2 className="w-12 h-12 text-default-300 mb-4" />
+      <Building2
+        className="w-12 h-12 text-default-300 mb-4"
+        aria-hidden="true"
+      />
       <span className="text-default-500">No clinics found</span>
     </div>
   );

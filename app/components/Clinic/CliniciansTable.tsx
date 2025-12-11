@@ -188,7 +188,10 @@ export default function CliniciansTable({
 
   const EmptyContent = (
     <div className="flex flex-col items-center justify-center py-8">
-      <UserCheck className="w-12 h-12 text-default-300 mb-4" />
+      <UserCheck
+        className="w-12 h-12 text-default-300 mb-4"
+        aria-hidden="true"
+      />
       <span className="text-default-500">
         No clinicians found for this clinic
       </span>

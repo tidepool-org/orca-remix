@@ -160,7 +160,10 @@ export default function ClinicianInvitesTable({
 
   const EmptyContent = (
     <div className="flex flex-col items-center justify-center py-8">
-      <UserPlus className="w-12 h-12 text-default-300 mb-4" />
+      <UserPlus
+        className="w-12 h-12 text-default-300 mb-4"
+        aria-hidden="true"
+      />
       <span className="text-default-500">
         Clinician invites data is not available
       </span>

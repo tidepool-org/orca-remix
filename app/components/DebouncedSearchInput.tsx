@@ -55,9 +55,12 @@ export default function DebouncedSearchInput({
   return (
     <Input
       placeholder={placeholder}
+      aria-label={placeholder}
       value={localValue}
       onValueChange={handleChange}
-      startContent={<SearchIcon className="text-default-400" size={16} />}
+      startContent={
+        <SearchIcon className="text-default-400" size={16} aria-hidden="true" />
+      }
       isClearable
       onClear={() => handleChange('')}
       className="max-w-xs"

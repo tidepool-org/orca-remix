@@ -314,7 +314,7 @@ export default function PatientsTable({
 
   const EmptyContent = (
     <div className="flex flex-col items-center justify-center py-8">
-      <Users className="w-12 h-12 text-default-300 mb-4" />
+      <Users className="w-12 h-12 text-default-300 mb-4" aria-hidden="true" />
       <span className="text-default-500">
         No patients found for this clinic
       </span>
