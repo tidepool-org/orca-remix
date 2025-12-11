@@ -7,6 +7,15 @@ import type {
   PatientClinicMembership,
   Prescription,
 } from '~/components/Clinic/types';
+import type {
+  DataSet,
+  DataSource,
+  DataSetsResponse,
+  DataSourcesResponse,
+  AccessPermissionsMap,
+  ShareInvite,
+  PumpSettings,
+} from '~/components/User/types';
 import { useRecentItems } from '~/components/Clinic/RecentItemsContext';
 import { apiRequest, apiRoutes } from '~/api.server';
 import { patientsSession } from '~/sessions.server';
@@ -22,6 +31,15 @@ type PatientLoaderData = {
   patientClinics: PatientClinicMembership[];
   prescriptions: Prescription[];
   recentPatients: RecentPatient[];
+  dataSets: DataSet[];
+  totalDataSets: number;
+  dataSources: DataSource[];
+  totalDataSources: number;
+  trustingAccounts: AccessPermissionsMap;
+  trustedAccounts: AccessPermissionsMap;
+  sentInvites: ShareInvite[];
+  receivedInvites: ShareInvite[];
+  pumpSettings: PumpSettings[];
 };
 
 export const meta: MetaFunction = () => {
@@ -47,28 +65,90 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     ? recentlyViewed.get(`patients-${clinicId}`)
     : [];
 
-  // Get the specific patient, their clinics, and prescriptions in parallel
-  const [patient, patientClinicsResponse, prescriptionsResponse] =
-    await Promise.all([
-      apiRequest({
-        ...apiRoutes.clinic.getPatient(clinicId, patientId),
-        schema: PatientSchema,
+  // Get the specific patient, their clinics, prescriptions, and data in parallel
+  const [
+    patient,
+    patientClinicsResponse,
+    prescriptionsResponse,
+    dataSetsResponse,
+    dataSourcesResponse,
+    trustingAccountsResponse,
+    trustedAccountsResponse,
+    sentInvitesResponse,
+    receivedInvitesResponse,
+    pumpSettingsResponse,
+  ] = await Promise.all([
+    apiRequest({
+      ...apiRoutes.clinic.getPatient(clinicId, patientId),
+      schema: PatientSchema,
+    }),
+    apiRequest({
+      ...apiRoutes.clinic.getClinicsForPatient(patientId),
+    }).catch((err) => {
+      console.error('Error fetching patient clinics:', err);
+      return null;
+    }),
+    apiRequest({
+      ...apiRoutes.prescription.getClinicPrescriptions(clinicId, {
+        patientUserId: patientId,
       }),
-      apiRequest({
-        ...apiRoutes.clinic.getClinicsForPatient(patientId),
-      }).catch((err) => {
-        console.error('Error fetching patient clinics:', err);
-        return null;
+    }).catch((err) => {
+      console.error('Error fetching patient prescriptions:', err);
+      return [];
+    }),
+    // Data sets
+    apiRequest<DataSetsResponse>({
+      ...apiRoutes.data.getDataSets(patientId),
+    }).catch((err) => {
+      console.error('Error fetching data sets:', err);
+      return [];
+    }),
+    // Data sources
+    apiRequest<DataSourcesResponse>({
+      ...apiRoutes.data.getDataSources(patientId),
+    }).catch((err) => {
+      console.error('Error fetching data sources:', err);
+      return [];
+    }),
+    // Sharing - accounts that share with this user (trusting)
+    apiRequest<AccessPermissionsMap>({
+      ...apiRoutes.sharing.getGroupsForUser(patientId),
+    }).catch((err) => {
+      console.error('Error fetching trusting accounts:', err);
+      return {};
+    }),
+    // Sharing - users who have access to this user's data (trusted)
+    apiRequest<AccessPermissionsMap>({
+      ...apiRoutes.sharing.getUsersInGroup(patientId),
+    }).catch((err) => {
+      console.error('Error fetching trusted accounts:', err);
+      return {};
+    }),
+    // Sent invites
+    apiRequest<ShareInvite[]>({
+      ...apiRoutes.invites.getSentInvites(patientId),
+    }).catch((err) => {
+      console.error('Error fetching sent invites:', err);
+      return [];
+    }),
+    // Received invites
+    apiRequest<ShareInvite[]>({
+      ...apiRoutes.invites.getReceivedInvites(patientId),
+    }).catch((err) => {
+      console.error('Error fetching received invites:', err);
+      return [];
+    }),
+    // Pump settings
+    apiRequest<PumpSettings[]>({
+      ...apiRoutes.data.getData(patientId, {
+        type: 'pumpSettings',
+        latest: true,
       }),
-      apiRequest({
-        ...apiRoutes.prescription.getClinicPrescriptions(clinicId, {
-          patientUserId: patientId,
-        }),
-      }).catch((err) => {
-        console.error('Error fetching patient prescriptions:', err);
-        return [];
-      }),
-    ]);
+    }).catch((err) => {
+      console.error('Error fetching pump settings:', err);
+      return [];
+    }),
+  ]);
 
   if (patient) {
     const recentPatient: RecentPatient = pick(patient, [
@@ -100,12 +180,79 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
       ? prescriptionsResponse
       : [];
 
+    // Process data sets response
+    let dataSets: DataSet[] = [];
+    let totalDataSets = 0;
+    if (Array.isArray(dataSetsResponse)) {
+      dataSets = dataSetsResponse;
+      totalDataSets = dataSetsResponse.length;
+    } else if (
+      dataSetsResponse &&
+      typeof dataSetsResponse === 'object' &&
+      'data' in dataSetsResponse
+    ) {
+      dataSets = dataSetsResponse.data;
+      totalDataSets = dataSetsResponse.meta?.count || dataSets.length;
+    }
+
+    // Process data sources response
+    let dataSources: DataSource[] = [];
+    let totalDataSources = 0;
+    if (Array.isArray(dataSourcesResponse)) {
+      dataSources = dataSourcesResponse;
+      totalDataSources = dataSourcesResponse.length;
+    } else if (
+      dataSourcesResponse &&
+      typeof dataSourcesResponse === 'object' &&
+      'data' in dataSourcesResponse
+    ) {
+      dataSources = dataSourcesResponse.data;
+      totalDataSources = dataSourcesResponse.meta?.count || dataSources.length;
+    }
+
+    // Ensure sharing responses are objects
+    const trustingAccounts =
+      trustingAccountsResponse &&
+      typeof trustingAccountsResponse === 'object' &&
+      !Array.isArray(trustingAccountsResponse)
+        ? (trustingAccountsResponse as AccessPermissionsMap)
+        : {};
+
+    const trustedAccounts =
+      trustedAccountsResponse &&
+      typeof trustedAccountsResponse === 'object' &&
+      !Array.isArray(trustedAccountsResponse)
+        ? (trustedAccountsResponse as AccessPermissionsMap)
+        : {};
+
+    // Ensure invites are arrays
+    const sentInvites = Array.isArray(sentInvitesResponse)
+      ? sentInvitesResponse
+      : [];
+    const receivedInvites = Array.isArray(receivedInvitesResponse)
+      ? receivedInvitesResponse
+      : [];
+
+    // Ensure pump settings is an array
+    const pumpSettings = Array.isArray(pumpSettingsResponse)
+      ? pumpSettingsResponse
+      : [];
+
     return Response.json(
       {
         patient,
         patientClinics: clinicsData,
         prescriptions,
         recentPatients: recentlyViewed.get(`patients-${clinicId}`),
+        dataSets,
+        totalDataSets,
+        dataSources,
+        totalDataSources,
+        trustingAccounts,
+        trustedAccounts,
+        sentInvites,
+        receivedInvites,
+        pumpSettings,
       },
       {
         headers: {
@@ -121,12 +268,33 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     patientClinics: [],
     prescriptions: [],
     recentPatients,
+    dataSets: [],
+    totalDataSets: 0,
+    dataSources: [],
+    totalDataSources: 0,
+    trustingAccounts: {},
+    trustedAccounts: {},
+    sentInvites: [],
+    receivedInvites: [],
+    pumpSettings: [],
   };
 }
 
 export default function PatientDetails() {
-  const { patient, patientClinics, prescriptions } =
-    useLoaderData<PatientLoaderData>();
+  const {
+    patient,
+    patientClinics,
+    prescriptions,
+    dataSets,
+    totalDataSets,
+    dataSources,
+    totalDataSources,
+    trustingAccounts,
+    trustedAccounts,
+    sentInvites,
+    receivedInvites,
+    pumpSettings,
+  } = useLoaderData<PatientLoaderData>();
   const { addRecentPatient } = useRecentItems();
 
   // Add patient to recent list immediately when component mounts
@@ -146,6 +314,15 @@ export default function PatientDetails() {
       patient={patient}
       patientClinics={patientClinics}
       prescriptions={prescriptions}
+      dataSets={dataSets}
+      totalDataSets={totalDataSets}
+      dataSources={dataSources}
+      totalDataSources={totalDataSources}
+      trustingAccounts={trustingAccounts}
+      trustedAccounts={trustedAccounts}
+      sentInvites={sentInvites}
+      receivedInvites={receivedInvites}
+      pumpSettings={pumpSettings}
     />
   ) : null;
 }

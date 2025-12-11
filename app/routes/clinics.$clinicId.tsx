@@ -127,14 +127,14 @@ export async function action({ request, params }: ActionFunctionArgs) {
     const hardLimitPlan = formData.get('hardLimitPlan');
 
     try {
-      // Build patient count settings - null values mean remove the limit
+      // Build patient count settings - empty object {} removes the limit
       const settings: {
-        hardLimit?: { plan: number } | null;
+        hardLimit?: { plan?: number } | Record<string, never>;
       } = {};
 
       if (hardLimitPlan === '' || hardLimitPlan === null) {
-        // Remove the hard limit by sending null
-        settings.hardLimit = null;
+        // Remove the hard limit by sending empty object (API doesn't accept null)
+        settings.hardLimit = {};
       } else {
         const planValue = parseInt(hardLimitPlan as string, 10);
         if (!isNaN(planValue) && planValue >= 0) {

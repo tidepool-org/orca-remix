@@ -308,6 +308,12 @@ export const apiRoutes = {
       method: 'delete',
       path: `/v1/clinics/${clinicId}/clinicians/${clinicianId}`,
     }),
+    // Update clinician roles
+    // ref https://tidepool.redocly.app/reference/clinic.v1/clinics/updateclinician
+    updateClinician: (clinicId: string, clinicianId: string) => ({
+      method: 'put',
+      path: `/v1/clinics/${clinicId}/clinicians/${clinicianId}`,
+    }),
     // Delete patient invitation
     // ref https://tidepool.redocly.app/reference/clinic.v1/confirmations/deletepatientinvitation
     deletePatientInvite: (clinicId: string, inviteId: string) => ({

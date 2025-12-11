@@ -1,5 +1,7 @@
-import { Chip } from '@heroui/react';
+import { Chip, Tabs, Tab, Switch } from '@heroui/react';
 import { intlFormat } from 'date-fns';
+import { Building2, Settings } from 'lucide-react';
+import { useFetcher } from 'react-router';
 import useLocale from '~/hooks/useLocale';
 import Well from '~/partials/Well';
 import ClipboardButton from '../ClipboardButton';
@@ -12,6 +14,7 @@ export type ClinicianProfileProps = {
   clinics?: ClinicianClinicMembership[];
   totalClinics?: number;
   clinicsLoading?: boolean;
+  clinicId?: string;
 };
 
 export default function ClinicianProfile({
@@ -20,8 +23,10 @@ export default function ClinicianProfile({
   clinics = [],
   totalClinics = 0,
   clinicsLoading = false,
+  clinicId,
 }: ClinicianProfileProps) {
   const { locale } = useLocale();
+  const fetcher = useFetcher();
 
   if (isLoading) {
     return (
@@ -62,12 +67,92 @@ export default function ClinicianProfile({
 
   const getRoleColor = (role: string) => {
     switch (role?.toLowerCase()) {
-      case 'admin':
+      case 'clinic_admin':
         return 'primary';
-      case 'member':
+      case 'prescriber':
+        return 'success';
+      case 'clinic_member':
       default:
         return 'default';
     }
+  };
+
+  const getRoleLabel = (role: string) => {
+    switch (role?.toLowerCase()) {
+      case 'clinic_admin':
+        return 'Admin';
+      case 'clinic_member':
+        return 'Member';
+      case 'prescriber':
+        return 'Prescriber';
+      default:
+        return role;
+    }
+  };
+
+  // Check if clinician has specific roles
+  const hasRole = (role: string) => {
+    return clinician.roles?.some((r) => r.toLowerCase() === role.toLowerCase());
+  };
+
+  const isAdmin = hasRole('CLINIC_ADMIN');
+  const isPrescriber = hasRole('PRESCRIBER');
+
+  // Check if the fetcher is currently updating
+  const isUpdating = fetcher.state === 'submitting';
+
+  // Handle toggle changes
+  const handleAdminToggle = (checked: boolean) => {
+    if (!clinicId) return;
+
+    // Build new roles array
+    let newRoles: string[];
+    if (checked) {
+      // Setting admin: remove CLINIC_MEMBER, add CLINIC_ADMIN
+      newRoles = clinician.roles
+        .filter((r) => r !== 'CLINIC_MEMBER')
+        .filter((r) => r !== 'CLINIC_ADMIN');
+      newRoles.push('CLINIC_ADMIN');
+    } else {
+      // Unsetting admin: remove CLINIC_ADMIN, add CLINIC_MEMBER
+      newRoles = clinician.roles
+        .filter((r) => r !== 'CLINIC_ADMIN')
+        .filter((r) => r !== 'CLINIC_MEMBER');
+      newRoles.push('CLINIC_MEMBER');
+    }
+
+    fetcher.submit(
+      {
+        intent: 'update-roles',
+        roles: JSON.stringify(newRoles),
+      },
+      { method: 'POST' },
+    );
+  };
+
+  const handlePrescriberToggle = (checked: boolean) => {
+    if (!clinicId) return;
+
+    // Build new roles array
+    let newRoles: string[];
+    if (checked) {
+      // Add PRESCRIBER role
+      newRoles = [
+        ...clinician.roles.filter((r) => r !== 'PRESCRIBER'),
+        'PRESCRIBER',
+      ];
+    } else {
+      // Remove PRESCRIBER role
+      newRoles = clinician.roles.filter((r) => r !== 'PRESCRIBER');
+    }
+
+    fetcher.submit(
+      {
+        intent: 'update-roles',
+        roles: JSON.stringify(newRoles),
+      },
+      { method: 'POST' },
+    );
   };
 
   const clinicianDetails = [
@@ -82,17 +167,22 @@ export default function ClinicianProfile({
       copy: true,
     },
     {
-      label: 'Role',
-      value: clinician.roles?.[0] || 'N/A',
+      label: 'Roles',
+      value: clinician.roles?.join(', ') || 'N/A',
       component: (
-        <Chip
-          color={getRoleColor(clinician.roles?.[0])}
-          variant="flat"
-          size="sm"
-          className="capitalize"
-        >
-          {clinician.roles?.[0]}
-        </Chip>
+        <div className="flex gap-2 flex-wrap">
+          {clinician.roles?.map((role) => (
+            <Chip
+              key={role}
+              color={getRoleColor(role)}
+              variant="flat"
+              size="sm"
+              className="capitalize"
+            >
+              {getRoleLabel(role)}
+            </Chip>
+          ))}
+        </div>
       ),
     },
     {
@@ -105,40 +195,143 @@ export default function ClinicianProfile({
     },
   ];
 
+  // Clinician details section
+  const ClinicianDetailsSection = (
+    <Well>
+      <h1 className="text-xl">{clinician.name}</h1>
+
+      <div className="text-sm">
+        {clinicianDetails.map(({ label, value, copy, component }, i) => (
+          <div
+            key={i}
+            className="flex justify-start flex-nowrap gap-2 items-center min-h-unit-8"
+          >
+            <strong>{label}:</strong>
+            {component ? (
+              component
+            ) : (
+              <>
+                <p>{value}</p>
+                {copy && <ClipboardButton clipboardText={value} />}
+              </>
+            )}
+          </div>
+        ))}
+      </div>
+    </Well>
+  );
+
   return (
-    <div className="flex flex-col gap-8 w-full">
-      <Well>
-        <h1 className="text-xl">{name}</h1>
+    <div className="flex flex-col gap-6 w-full">
+      {ClinicianDetailsSection}
 
-        <div className="text-sm">
-          {clinicianDetails.map(({ label, value, copy, component }, i) => (
-            <div
-              key={i}
-              className="flex justify-start flex-nowrap gap-2 items-center min-h-unit-8"
-            >
-              <strong>{label}:</strong>
-              {component ? (
-                component
-              ) : (
-                <>
-                  <p>{value}</p>
-                  {copy && <ClipboardButton clipboardText={value} />}
-                </>
-              )}
+      <div className="w-full">
+        <Tabs
+          aria-label="Clinician profile sections"
+          variant="underlined"
+          classNames={{
+            tabList:
+              'gap-4 w-full relative rounded-none p-0 border-b border-divider',
+            cursor: 'w-full bg-primary',
+            tab: 'max-w-fit px-2 h-12',
+            tabContent: 'group-data-[selected=true]:text-primary',
+          }}
+        >
+          {/* Clinics Tab */}
+          <Tab
+            key="clinics"
+            title={
+              <div className="flex items-center gap-2">
+                <Building2 className="w-4 h-4" />
+                <span>Clinics</span>
+                {totalClinics > 0 && (
+                  <span className="text-xs bg-default-100 px-1.5 py-0.5 rounded-full">
+                    {totalClinics}
+                  </span>
+                )}
+              </div>
+            }
+          >
+            <div className="pt-6">
+              <Well>
+                <ClinicsTable
+                  clinics={clinics}
+                  totalClinics={totalClinics}
+                  isLoading={clinicsLoading}
+                  totalPages={1}
+                  currentPage={1}
+                />
+              </Well>
             </div>
-          ))}
-        </div>
-      </Well>
+          </Tab>
 
-      <Well>
-        <ClinicsTable
-          clinics={clinics}
-          totalClinics={totalClinics}
-          isLoading={clinicsLoading}
-          totalPages={1}
-          currentPage={1}
-        />
-      </Well>
+          {/* Settings Tab - only show if clinicId is provided */}
+          {clinicId && (
+            <Tab
+              key="settings"
+              title={
+                <div className="flex items-center gap-2">
+                  <Settings className="w-4 h-4" />
+                  <span>Settings</span>
+                </div>
+              }
+            >
+              <div className="pt-6">
+                <Well>
+                  <h2 className="text-lg font-semibold mb-4">
+                    Clinician Role Settings
+                  </h2>
+                  <p className="text-sm text-default-500 mb-6">
+                    Manage clinician permissions for this clinic.
+                  </p>
+
+                  <div className="flex flex-col gap-6">
+                    {/* Admin Toggle */}
+                    <div className="flex items-center justify-between p-4 bg-content2 rounded-lg">
+                      <div className="flex flex-col gap-1">
+                        <span className="font-medium">Clinic Admin</span>
+                        <span className="text-sm text-default-500">
+                          Admin users can manage clinic settings, invite other
+                          clinicians, and manage patients.
+                        </span>
+                      </div>
+                      <Switch
+                        isSelected={isAdmin}
+                        onValueChange={handleAdminToggle}
+                        isDisabled={isUpdating}
+                        aria-label="Toggle admin role"
+                      />
+                    </div>
+
+                    {/* Prescriber Toggle */}
+                    <div className="flex items-center justify-between p-4 bg-content2 rounded-lg">
+                      <div className="flex flex-col gap-1">
+                        <span className="font-medium">Prescriber</span>
+                        <span className="text-sm text-default-500">
+                          Prescribers can create and manage prescriptions for
+                          patients.
+                        </span>
+                      </div>
+                      <Switch
+                        isSelected={isPrescriber}
+                        onValueChange={handlePrescriberToggle}
+                        isDisabled={isUpdating}
+                        aria-label="Toggle prescriber role"
+                      />
+                    </div>
+                  </div>
+
+                  {fetcher.data?.error && (
+                    <div className="mt-4 p-3 bg-danger/10 text-danger rounded-lg text-sm">
+                      {fetcher.data.error}
+                    </div>
+                  )}
+                </Well>
+              </div>
+            </Tab>
+          )}
+        </Tabs>
+      </div>
     </div>
   );
 }

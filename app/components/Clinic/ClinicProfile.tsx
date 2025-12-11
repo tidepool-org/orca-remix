@@ -1,4 +1,3 @@
-import Well from '~/partials/Well';
 import { intlFormat } from 'date-fns';
 import { useState, useEffect } from 'react';
 import {
@@ -18,7 +17,6 @@ import {
   FileText,
   Settings,
   Trash2,
-  Check,
 } from 'lucide-react';
 
 import type {
@@ -41,6 +39,7 @@ import PrescriptionsTable from './PrescriptionsTable';
 import RecentPatients from './RecentPatients';
 import RecentClinicians from './RecentClinicians';
 import ConfirmationModal from '../ConfirmationModal';
+import Well from '~/partials/Well';
 
 // Common timezones for selection
 const timezoneOptions = [
@@ -60,6 +59,16 @@ const timezoneOptions = [
   { key: 'Australia/Sydney', label: 'Sydney' },
   { key: 'UTC', label: 'UTC' },
 ];
+
+const tierOptions = [
+  { key: 'tier0100', label: 'Tier 0100' },
+  { key: 'tier0200', label: 'Tier 0200' },
+  { key: 'tier0300', label: 'Tier 0300' },
+  { key: 'tier0400', label: 'Tier 0400' },
+];
+
+const DEFAULT_PATIENT_LIMIT = 250;
+const PATIENT_LIMIT_STEP = 25;
 
 export type ClinicProfileProps = {
   clinic: Clinic;
@@ -159,10 +168,6 @@ export default function ClinicProfile({
     clinic;
   const { locale } = useLocale();
 
-  // Tier editing state
-  const [isEditingTier, setIsEditingTier] = useState(false);
-  const [selectedTier, setSelectedTier] = useState(tier);
-
   // Timezone editing state
   const [isEditingTimezone, setIsEditingTimezone] = useState(false);
   const [selectedTimezone, setSelectedTimezone] = useState(timezone || '');
@@ -173,22 +178,20 @@ export default function ClinicProfile({
   );
   const [mrnUnique, setMrnUnique] = useState(mrnSettings?.unique ?? false);
 
-  // Patient limit editing state
-  const [isEditingPatientLimit, setIsEditingPatientLimit] = useState(false);
+  // Patient limit state
+  const [isLimitEnabled, setIsLimitEnabled] = useState(
+    patientCountSettings?.hardLimit?.plan !== undefined,
+  );
   const [patientLimitValue, setPatientLimitValue] = useState(
-    patientCountSettings?.hardLimit?.plan?.toString() ?? '',
+    patientCountSettings?.hardLimit?.plan?.toString() ??
+      DEFAULT_PATIENT_LIMIT.toString(),
   );
 
   // Delete clinic modal state
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
-  // Reset editing state when tier changes (after successful update)
-  useEffect(() => {
-    if (!isSubmitting && selectedTier !== tier) {
-      setSelectedTier(tier);
-      setIsEditingTier(false);
-    }
-  }, [tier, selectedTier, isSubmitting]);
+  // Check if patient limits are applicable (only for tier0100)
+  const isPatientLimitApplicable = tier === 'tier0100';
 
   // Reset timezone state when it changes
   useEffect(() => {
@@ -202,25 +205,15 @@ export default function ClinicProfile({
     setMrnUnique(mrnSettings?.unique ?? false);
   }, [mrnSettings]);
 
-  // Reset patient limit when it changes
+  // Reset patient limit when it changes from server
   useEffect(() => {
+    const hasLimit = patientCountSettings?.hardLimit?.plan !== undefined;
+    setIsLimitEnabled(hasLimit);
     setPatientLimitValue(
-      patientCountSettings?.hardLimit?.plan?.toString() ?? '',
+      patientCountSettings?.hardLimit?.plan?.toString() ??
+        DEFAULT_PATIENT_LIMIT.toString(),
     );
-    setIsEditingPatientLimit(false);
   }, [patientCountSettings]);
-
-  const tierOptions = [
-    { key: 'tier0100', label: 'Tier 0100' },
-    { key: 'tier0200', label: 'Tier 0200' },
-    { key: 'tier0300', label: 'Tier 0300' },
-    { key: 'tier0400', label: 'Tier 0400' },
-  ];
-
-  const handleCancelTierEdit = () => {
-    setSelectedTier(tier);
-    setIsEditingTier(false);
-  };
 
   const handleCancelTimezoneEdit = () => {
     setSelectedTimezone(timezone || '');
@@ -236,20 +229,27 @@ export default function ClinicProfile({
     }
   };
 
-  const handlePatientLimitSave = () => {
+  const handleLimitToggleChange = (enabled: boolean) => {
+    setIsLimitEnabled(enabled);
     if (onPatientLimitUpdate) {
-      const value =
-        patientLimitValue === '' ? null : parseInt(patientLimitValue, 10);
-      onPatientLimitUpdate(id, value);
+      if (enabled) {
+        // Enable limit with current value or default
+        const value = parseInt(patientLimitValue, 10);
+        onPatientLimitUpdate(id, isNaN(value) ? DEFAULT_PATIENT_LIMIT : value);
+      } else {
+        // Disable limit - send null to indicate removal
+        onPatientLimitUpdate(id, null);
+      }
     }
-    setIsEditingPatientLimit(false);
   };
 
-  const handlePatientLimitCancel = () => {
-    setPatientLimitValue(
-      patientCountSettings?.hardLimit?.plan?.toString() ?? '',
-    );
-    setIsEditingPatientLimit(false);
+  const handlePatientLimitSave = () => {
+    if (onPatientLimitUpdate && isLimitEnabled) {
+      const value = parseInt(patientLimitValue, 10);
+      if (!isNaN(value) && value >= 0) {
+        onPatientLimitUpdate(id, value);
+      }
+    }
   };
 
   const handleDeleteClinic = () => {
@@ -273,62 +273,6 @@ export default function ClinicProfile({
     {
       label: 'Clinic Tier',
       value: tier,
-      editable: true,
-      component: (
-        <div className="flex items-center gap-2">
-          {isEditingTier ? (
-            <div className="flex items-center gap-2">
-              <Select
-                size="sm"
-                selectedKeys={[selectedTier]}
-                onSelectionChange={(keys) => {
-                  const key = Array.from(keys)[0] as string;
-                  if (key && key !== tier) {
-                    setSelectedTier(key);
-                    // Auto-submit when selection changes
-                    if (onTierUpdate) {
-                      onTierUpdate(id, key);
-                    }
-                  }
-                }}
-                className="w-40"
-                classNames={{
-                  trigger: 'h-8 min-h-8',
-                }}
-                isDisabled={isSubmitting}
-                placeholder="Select tier..."
-              >
-                {tierOptions.map((option) => (
-                  <SelectItem key={option.key}>{option.label}</SelectItem>
-                ))}
-              </Select>
-              <Button
-                isIconOnly
-                size="sm"
-                variant="light"
-                onPress={handleCancelTierEdit}
-                isDisabled={isSubmitting}
-                aria-label="Cancel tier edit"
-              >
-                <X size={14} />
-              </Button>
-            </div>
-          ) : (
-            <div className="flex items-center gap-2">
-              <span>{tier}</span>
-              <Button
-                isIconOnly
-                size="sm"
-                variant="light"
-                onPress={() => setIsEditingTier(true)}
-                aria-label="Edit clinic tier"
-              >
-                <Edit2 size={14} />
-              </Button>
-            </div>
-          )}
-        </div>
-      ),
     },
     { label: 'Can Migrate', value: canMigrate.toString() },
     {
@@ -359,20 +303,14 @@ export default function ClinicProfile({
         <h1 className="text-xl">{name}</h1>
 
         <div className="text-sm">
-          {clinicDetails.map(({ label, value, copy, component }, i) => (
+          {clinicDetails.map(({ label, value, copy }, i) => (
             <div
               key={i}
               className="flex justify-start flex-nowrap gap-2 items-center min-h-unit-8"
             >
               <strong>{label}:</strong>
-              {component ? (
-                component
-              ) : (
-                <>
-                  <p>{value}</p>
-                  {copy && <ClipboardButton clipboardText={value} />}
-                </>
-              )}
+              <p>{value}</p>
+              {copy && <ClipboardButton clipboardText={value} />}
             </div>
           ))}
         </div>
@@ -519,6 +457,101 @@ export default function ClinicProfile({
             }
           >
             <div className="pt-6 flex flex-col gap-6">
+              {/* Clinic Tier Settings */}
+              <Well>
+                <h2 className="text-lg font-medium mb-4">Clinic Tier</h2>
+                <div className="flex items-center gap-4">
+                  <Select
+                    size="sm"
+                    selectedKeys={[tier]}
+                    onSelectionChange={(keys) => {
+                      const key = Array.from(keys)[0] as string;
+                      if (key && key !== tier && onTierUpdate) {
+                        onTierUpdate(id, key);
+                      }
+                    }}
+                    className="w-48"
+                    classNames={{
+                      trigger: 'h-10 min-h-10',
+                    }}
+                    isDisabled={isSubmitting}
+                    aria-label="Select clinic tier"
+                  >
+                    {tierOptions.map((option) => (
+                      <SelectItem key={option.key}>{option.label}</SelectItem>
+                    ))}
+                  </Select>
+                </div>
+                <p className="text-xs text-default-500 mt-2">
+                  The clinic tier determines the features and limits available
+                  to this clinic.
+                </p>
+              </Well>
+
+              {/* Patient Limit Settings */}
+              <Well>
+                <h2 className="text-lg font-medium mb-4">Patient Limit</h2>
+                {!isPatientLimitApplicable && (
+                  <p className="text-xs text-default-500 mb-4 p-2 bg-default-100 rounded-md">
+                    Patient limits only apply to tier0100 clinics. Change the
+                    clinic tier to tier0100 to enable this setting.
+                  </p>
+                )}
+                <div className="flex flex-col gap-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium">Limit Applied</p>
+                      <p className="text-xs text-default-500">
+                        Enable patient count limit for this clinic
+                      </p>
+                    </div>
+                    <Switch
+                      isSelected={isLimitEnabled}
+                      onValueChange={handleLimitToggleChange}
+                      isDisabled={isSubmitting || !isPatientLimitApplicable}
+                      size="sm"
+                    />
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <div className="flex-1">
+                      <p className="text-sm font-medium mb-2">
+                        Maximum Patients
+                      </p>
+                      <div className="flex items-center gap-2">
+                        <Input
+                          type="number"
+                          size="sm"
+                          placeholder="Enter limit"
+                          value={isLimitEnabled ? patientLimitValue : ''}
+                          onValueChange={setPatientLimitValue}
+                          className="w-40"
+                          min={0}
+                          step={PATIENT_LIMIT_STEP}
+                          isDisabled={
+                            isSubmitting ||
+                            !isPatientLimitApplicable ||
+                            !isLimitEnabled
+                          }
+                          onBlur={handlePatientLimitSave}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              handlePatientLimitSave();
+                            }
+                          }}
+                        />
+                        <span className="text-sm text-default-500">
+                          patients
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <p className="text-xs text-default-500 mt-4">
+                  Set a maximum number of patients for this clinic. Use the
+                  toggle to enable or disable the limit.
+                </p>
+              </Well>
+
               {/* Timezone Settings */}
               <Well>
                 <h2 className="text-lg font-medium mb-4">Timezone</h2>
@@ -624,69 +657,6 @@ export default function ClinicProfile({
                     />
                   </div>
                 </div>
-              </Well>
-
-              {/* Patient Limit Settings */}
-              <Well>
-                <h2 className="text-lg font-medium mb-4">Patient Limit</h2>
-                <div className="flex items-center gap-4">
-                  {isEditingPatientLimit ? (
-                    <div className="flex items-center gap-2">
-                      <Input
-                        type="number"
-                        size="sm"
-                        placeholder="Enter limit (leave empty for no limit)"
-                        value={patientLimitValue}
-                        onValueChange={setPatientLimitValue}
-                        className="w-64"
-                        min={0}
-                        isDisabled={isSubmitting}
-                      />
-                      <Button
-                        isIconOnly
-                        size="sm"
-                        color="primary"
-                        variant="flat"
-                        onPress={handlePatientLimitSave}
-                        isDisabled={isSubmitting}
-                        aria-label="Save patient limit"
-                      >
-                        <Check size={14} />
-                      </Button>
-                      <Button
-                        isIconOnly
-                        size="sm"
-                        variant="light"
-                        onPress={handlePatientLimitCancel}
-                        isDisabled={isSubmitting}
-                        aria-label="Cancel patient limit edit"
-                      >
-                        <X size={14} />
-                      </Button>
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm">
-                        {patientCountSettings?.hardLimit?.plan !== undefined
-                          ? `${patientCountSettings.hardLimit.plan} patients`
-                          : 'No limit'}
-                      </span>
-                      <Button
-                        isIconOnly
-                        size="sm"
-                        variant="light"
-                        onPress={() => setIsEditingPatientLimit(true)}
-                        aria-label="Edit patient limit"
-                      >
-                        <Edit2 size={14} />
-                      </Button>
-                    </div>
-                  )}
-                </div>
-                <p className="text-xs text-default-500 mt-2">
-                  Set a maximum number of patients for this clinic. Leave empty
-                  to remove the limit.
-                </p>
               </Well>
 
               {/* Danger Zone */}

@@ -1,5 +1,5 @@
-import type { LoaderFunctionArgs } from 'react-router';
-import { useLoaderData } from 'react-router';
+import type { LoaderFunctionArgs, ActionFunctionArgs } from 'react-router';
+import { useLoaderData, useParams } from 'react-router';
 import { useRecentItems } from '~/components/Clinic/RecentItemsContext';
 import { apiRequest, apiRoutes } from '~/api.server';
 import { cliniciansSession } from '~/sessions.server';
@@ -10,6 +10,7 @@ import type {
   ClinicianClinicMembership,
 } from '~/components/Clinic/types';
 import { useEffect } from 'react';
+import { APIError } from '~/utils/errors';
 
 type ClinicianLoaderData = {
   clinician: Clinician;
@@ -112,9 +113,72 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
   }
 };
 
+export const action = async ({ request, params }: ActionFunctionArgs) => {
+  const { clinicId, clinicianId } = params;
+
+  if (!clinicId || !clinicianId) {
+    return Response.json(
+      { error: 'Missing clinic or clinician ID' },
+      { status: 400 },
+    );
+  }
+
+  const formData = await request.formData();
+  const intent = formData.get('intent');
+
+  if (intent === 'update-roles') {
+    const rolesJson = formData.get('roles');
+
+    if (!rolesJson || typeof rolesJson !== 'string') {
+      return Response.json({ error: 'Invalid roles data' }, { status: 400 });
+    }
+
+    try {
+      const roles = JSON.parse(rolesJson) as string[];
+
+      // Validate that we have at least one base role
+      const hasBaseRole = roles.some(
+        (r) => r === 'CLINIC_ADMIN' || r === 'CLINIC_MEMBER',
+      );
+      if (!hasBaseRole) {
+        return Response.json(
+          {
+            error:
+              'Clinician must have either CLINIC_ADMIN or CLINIC_MEMBER role',
+          },
+          { status: 400 },
+        );
+      }
+
+      // Update the clinician roles via the API
+      await apiRequest({
+        ...apiRoutes.clinic.updateClinician(clinicId, clinicianId),
+        body: { roles },
+      });
+
+      return Response.json({ success: true });
+    } catch (error) {
+      console.error('Error updating clinician roles:', error);
+      if (error instanceof APIError) {
+        return Response.json(
+          { error: error.message },
+          { status: error.status || 500 },
+        );
+      }
+      return Response.json(
+        { error: 'Failed to update clinician roles' },
+        { status: 500 },
+      );
+    }
+  }
+
+  return Response.json({ error: 'Unknown action' }, { status: 400 });
+};
+
 export default function ClinicianRoute() {
   const { clinician, clinics, totalClinics } =
     useLoaderData<ClinicianLoaderData>();
+  const { clinicId } = useParams();
   const { addRecentClinician } = useRecentItems();
 
   // Add clinician to recent list immediately when component mounts
@@ -136,6 +200,7 @@ export default function ClinicianRoute() {
       clinician={clinician}
       clinics={clinics}
       totalClinics={totalClinics}
+      clinicId={clinicId}
     />
   );
 }
