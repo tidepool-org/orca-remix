@@ -1,4 +1,4 @@
-import { Form, useSearchParams } from 'react-router';
+import { Form, useSearchParams, useNavigation } from 'react-router';
 import { Input, Button } from '@heroui/react';
 import { Cross } from 'lucide-react';
 import React from 'react';
@@ -17,7 +17,12 @@ export default function ClinicLookup({
   errorType = 'validation',
 }: ClinicLookupProps) {
   const [searchParams] = useSearchParams();
+  const navigation = useNavigation();
   const { showToast } = useToast();
+
+  const isSearching =
+    (navigation.state === 'loading' || navigation.state === 'submitting') &&
+    navigation.location?.pathname === '/clinics';
 
   const search = searchParams.get('search');
   const [searchValue, setSearchValue] = React.useState(search);
@@ -59,7 +64,7 @@ export default function ClinicLookup({
               errorMessage={errorType === 'validation' ? error : undefined}
             />
 
-            <Button type="submit" color="primary">
+            <Button type="submit" color="primary" isLoading={isSearching}>
               Search
             </Button>
           </div>
