@@ -21,6 +21,7 @@
 - **React Router**: Routes in `app/routes/` with flat-file convention. Export `loader`/`action` for data, `meta` for metadata
 - **State**: Use React hooks, `useLoaderData`/`useActionData` for route data, `useSubmit` for form submissions
 - **Styling**: Tailwind CSS with HeroUI theme. Use `className` props for styling
+- **Accessibility**: Follow WCAG AA guidelines. All interactive elements (buttons, inputs, toggles) must have `aria-label` attributes when not self-descriptive. Decorative icons should have `aria-hidden="true"`. Tables must have `aria-label` describing their content
 
 ## API Documentation
 
