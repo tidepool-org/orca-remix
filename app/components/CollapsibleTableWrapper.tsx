@@ -47,7 +47,7 @@ export default function CollapsibleTableWrapper({
       : `${title} (${totalItems})`;
 
   return (
-    <div className="w-full">
+    <div className="w-full rounded-lg border-2 border-content2">
       <button
         className="flex justify-between items-center w-full p-4 bg-content2 rounded-lg hover:bg-content3 transition-colors cursor-pointer"
         onClick={handleToggle}
