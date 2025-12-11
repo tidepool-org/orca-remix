@@ -219,7 +219,7 @@ export default function CliniciansTable({
         defaultExpanded={false}
       >
         {/* Search Controls */}
-        <div className="flex justify-start mb-4 p-4 bg-content1 rounded-lg">
+        <div className="flex justify-start mb-4">
           <DebouncedSearchInput
             placeholder="Search clinicians..."
             value={currentSearch || ''}
