@@ -47,9 +47,9 @@ export default function CollapsibleTableWrapper({
       : `${title} (${totalItems})`;
 
   return (
-    <div className="w-full rounded-lg border-2 border-content2">
+    <div className="w-full rounded-lg border-2 border-content2 overflow-hidden">
       <button
-        className="flex justify-between items-center w-full p-4 bg-content2 rounded-lg hover:bg-content3 transition-colors cursor-pointer"
+        className="flex justify-between items-center w-full p-4 bg-content2 hover:bg-content3 transition-colors cursor-pointer"
         onClick={handleToggle}
         aria-expanded={isExpanded}
         aria-controls={`${title
