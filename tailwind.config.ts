@@ -6,7 +6,8 @@ import defaultTheme from 'tailwindcss/defaultTheme';
 const brandColors = {
   primary: {
     // ref: https://tailcolor.com/palettes/687df7
-    DEFAULT: '#687df7',
+    // DEFAULT uses 600 shade for WCAG AA contrast on flat chip backgrounds
+    DEFAULT: '#5364c6',
     '50': '#f0f2fe',
     '100': '#e1e5fd',
     '200': '#c3cbfc',
@@ -21,7 +22,8 @@ const brandColors = {
   },
   secondary: {
     // ref: https://tailcolor.com/palettes/9b68f7
-    DEFAULT: '#9b68f7',
+    // DEFAULT uses 600 shade for WCAG AA contrast on flat chip backgrounds
+    DEFAULT: '#7c53c6',
     '50': '#f5f0fe',
     '100': '#ebe1fd',
     '200': '#d7c3fc',
@@ -36,7 +38,8 @@ const brandColors = {
   },
   success: {
     // ref: https://tailcolor.com/palettes/4A9A4E
-    DEFAULT: '#4A9A4E',
+    // DEFAULT uses 600 shade for WCAG AA contrast on flat chip backgrounds
+    DEFAULT: '#3b7b3e',
     '50': '#edf5ed',
     '100': '#dbebdc',
     '200': '#b7d7b8',
@@ -51,7 +54,8 @@ const brandColors = {
   },
   warning: {
     // ref: https://tailcolor.com/palettes/D69657
-    DEFAULT: '#D69657',
+    // DEFAULT uses 600 shade for WCAG AA contrast on flat chip backgrounds
+    DEFAULT: '#ab7846',
     '50': '#fbf5ee',
     '100': '#f7eadd',
     '200': '#efd5bc',
@@ -66,7 +70,8 @@ const brandColors = {
   },
   danger: {
     // ref: https://tailcolor.com/palettes/DA584E
-    DEFAULT: '#DA584E',
+    // DEFAULT uses 600 shade for WCAG AA contrast on flat chip backgrounds
+    DEFAULT: '#ae463e',
     '50': '#fbeeed',
     '100': '#f8dedc',
     '200': '#f0bcb8',
@@ -79,20 +84,20 @@ const brandColors = {
     '900': '#2c1210',
     foreground: '#FFFFFF',
   },
-  focus: '#687df7',
+  focus: '#5364c6',
 };
 
 const text = {
   light: {
     link: brandColors.primary.DEFAULT,
-    primary: '#4F6A92',
-    primaryGrey: '#66788A',
-    primaryDisabled: '#A5ADBA',
-    primarySubdued: '#7E98C3',
+    primary: '#3D5278', // Darker than original #4F6A92 for better contrast
+    primaryGrey: '#4A5A6A', // Darker than original #66788A
+    primaryDisabled: '#7A8290', // Darker than original #A5ADBA
+    primarySubdued: '#5A7299', // Darker than original #7E98C3
   },
   dark: {
-    link: brandColors.primary[600],
-    primary: semanticColors.dark.default[700],
+    link: brandColors.primary[400], // Lighter shade for dark mode links
+    primary: semanticColors.dark.default[800], // Brighter than 700 for better contrast
   },
 };
 
@@ -137,6 +142,21 @@ export default {
           colors: {
             ...brandColors,
             foreground: text.light.primary,
+            // Custom default scale with better contrast for muted text
+            default: {
+              50: '#fafafa',
+              100: '#f4f4f5',
+              200: '#e4e4e7',
+              300: '#d4d4d8',
+              400: '#71717a', // Darker than HeroUI default (#a1a1aa) for WCAG AA
+              500: '#52525b', // Shifted darker
+              600: '#3f3f46',
+              700: '#27272a',
+              800: '#18181b',
+              900: '#09090b',
+              foreground: '#000',
+              DEFAULT: '#d4d4d8',
+            },
             content1: '#F6F6F6',
             content2: '#EDEDED',
             content3: '#D3D3D3',
@@ -147,6 +167,21 @@ export default {
           colors: {
             ...brandColors,
             foreground: text.dark.primary,
+            // Custom default scale with better contrast for muted text
+            default: {
+              50: '#18181b',
+              100: '#27272a',
+              200: '#3f3f46',
+              300: '#52525b',
+              400: '#a1a1aa', // Lighter than HeroUI default (#71717a) for WCAG AA
+              500: '#d4d4d8', // Shifted lighter
+              600: '#e4e4e7',
+              700: '#f4f4f5',
+              800: '#fafafa',
+              900: '#ffffff',
+              foreground: '#fff',
+              DEFAULT: '#3f3f46',
+            },
             content1: '#0A0A0A',
             content2: '#131313',
             content3: '#2C2C2C',
