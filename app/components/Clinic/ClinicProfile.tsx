@@ -259,60 +259,58 @@ export default function ClinicProfile({
     setIsDeleteModalOpen(false);
   };
 
-  const clinicDetails = [
-    {
-      label: 'Share Code',
-      value: shareCode,
-      copy: true,
-    },
-    {
-      label: 'Clinic ID',
-      value: id,
-      copy: true,
-    },
-    {
-      label: 'Clinic Tier',
-      value: tier,
-    },
-    { label: 'Can Migrate', value: canMigrate.toString() },
-    {
-      label: 'Created On',
-      value: createdTime
-        ? (() => {
-            const date = new Date(createdTime);
-            return isNaN(date.getTime())
-              ? createdTime
-              : intlFormat(
-                  date,
-                  {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                  },
-                  { locale },
-                );
-          })()
-        : '—',
-    },
-  ];
-
   return (
     <div className="flex flex-col gap-6 w-full">
-      {/* Clinic Details - Always visible */}
+      {/* Clinic Details - Compact header layout */}
       <Well>
-        <h1 className="text-xl">{name}</h1>
+        {/* Name */}
+        <h1 className="text-xl font-semibold">{name}</h1>
 
-        <div className="text-sm">
-          {clinicDetails.map(({ label, value, copy }, i) => (
-            <div
-              key={i}
-              className="flex justify-start flex-nowrap gap-2 items-center min-h-unit-8"
-            >
-              <strong>{label}:</strong>
-              <p>{value}</p>
-              {copy && <ClipboardButton clipboardText={value} />}
-            </div>
-          ))}
+        {/* Primary identifiers row - copyable fields */}
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm mt-1">
+          <span className="flex items-center gap-1 text-default-500">
+            <span className="text-default-400">ID:</span>
+            <span className="font-mono">{id}</span>
+            <ClipboardButton clipboardText={id} />
+          </span>
+          {shareCode && (
+            <span className="flex items-center gap-1 text-default-500">
+              <span className="text-default-400">Share Code:</span>
+              <span className="font-mono">{shareCode}</span>
+              <ClipboardButton clipboardText={shareCode} />
+            </span>
+          )}
+        </div>
+
+        {/* Secondary metadata grid */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-x-6 gap-y-2 mt-4 text-sm">
+          <div>
+            <span className="text-default-400 block text-xs">Tier</span>
+            <span className="text-default-600">{tier || '—'}</span>
+          </div>
+          <div>
+            <span className="text-default-400 block text-xs">Can Migrate</span>
+            <span className="text-default-600">
+              {canMigrate ? 'Yes' : 'No'}
+            </span>
+          </div>
+          <div>
+            <span className="text-default-400 block text-xs">Created</span>
+            <span className="text-default-600">
+              {createdTime
+                ? (() => {
+                    const date = new Date(createdTime);
+                    return isNaN(date.getTime())
+                      ? createdTime
+                      : intlFormat(
+                          date,
+                          { year: 'numeric', month: 'short', day: 'numeric' },
+                          { locale },
+                        );
+                  })()
+                : '—'}
+            </span>
+          </div>
         </div>
       </Well>
 

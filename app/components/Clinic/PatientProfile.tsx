@@ -127,122 +127,6 @@ export default function PatientProfile({
     [clinicData?.sites],
   );
 
-  const patientDetails: Array<{
-    label: string;
-    value?: string;
-    copy?: boolean;
-    component?: React.ReactNode;
-  }> = [
-    {
-      label: 'Email',
-      value: email,
-      copy: true,
-    },
-    {
-      label: 'Patient ID',
-      value: id,
-      copy: true,
-    },
-    {
-      label: 'MRN',
-      value: mrn || '—',
-      copy: !!mrn,
-    },
-    {
-      label: 'Birth Date',
-      value: birthDate
-        ? intlFormat(
-            new Date(birthDate),
-            { year: 'numeric', month: 'long', day: 'numeric' },
-            { locale },
-          )
-        : '—',
-      copy: false,
-    },
-    {
-      label: 'Added',
-      value: intlFormat(
-        new Date(createdTime),
-        { year: 'numeric', month: 'long', day: 'numeric' },
-        { locale },
-      ),
-      copy: false,
-    },
-    {
-      label: 'Last Updated',
-      value: intlFormat(
-        new Date(updatedTime),
-        { year: 'numeric', month: 'long', day: 'numeric' },
-        { locale },
-      ),
-      copy: false,
-    },
-  ];
-
-  // Add tags to the details array if they exist
-  if (tags && tags.length > 0) {
-    patientDetails.push({
-      label: 'Tags',
-      component: (
-        <div className="flex gap-2 flex-wrap">
-          {tags.map((tagId, index) => (
-            <span
-              key={index}
-              className="px-2 py-1 bg-primary/10 text-primary rounded-md text-xs"
-            >
-              {getTagName(tagId)}
-            </span>
-          ))}
-        </div>
-      ),
-    });
-  }
-
-  // Add sites to the details array if they exist
-  if (patient.sites && patient.sites.length > 0) {
-    patientDetails.push({
-      label: 'Sites',
-      component: (
-        <div className="flex gap-2 flex-wrap">
-          {patient.sites.map((site, index) => (
-            <span
-              key={index}
-              className="px-2 py-1 bg-secondary/10 text-secondary rounded-md text-xs"
-            >
-              {getSiteName(site.id || site.name || String(site))}
-            </span>
-          ))}
-        </div>
-      ),
-    });
-  }
-
-  // Add permissions to the details array if they exist
-  if (permissions) {
-    patientDetails.push({
-      label: 'Permissions',
-      component: (
-        <div className="flex gap-2 flex-wrap">
-          {permissions.view && (
-            <span className="px-2 py-1 bg-success/10 text-success rounded-md text-xs">
-              View
-            </span>
-          )}
-          {permissions.upload && (
-            <span className="px-2 py-1 bg-warning/10 text-warning rounded-md text-xs">
-              Upload
-            </span>
-          )}
-          {permissions.note && (
-            <span className="px-2 py-1 bg-secondary/10 text-secondary rounded-md text-xs">
-              Note
-            </span>
-          )}
-        </div>
-      ),
-    });
-  }
-
   // Calculate counts for tab badges
   const dataSharingCount =
     Object.keys(trustingAccounts).length +
@@ -250,21 +134,120 @@ export default function PatientProfile({
     sentInvites.length +
     receivedInvites.length;
 
-  // Patient details component
+  // Patient details component - Compact header layout
   const PatientDetailsSection = (
     <Well>
-      <h1 className="text-xl">{fullName}</h1>
-      <div className="text-sm">
-        {patientDetails.map(({ label, value, copy, component }) => (
-          <div
-            key={label}
-            className="flex justify-start flex-nowrap gap-2 items-center min-h-unit-8"
-          >
-            <strong>{label}:</strong>
-            {component || <p>{value}</p>}
-            {copy && <ClipboardButton clipboardText={value} />}
+      {/* Name */}
+      <h1 className="text-xl font-semibold">{fullName}</h1>
+
+      {/* Primary identifiers row - copyable fields */}
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm mt-1">
+        {email && (
+          <span className="flex items-center gap-1">
+            <span className="text-default-600">{email}</span>
+            <ClipboardButton clipboardText={email} />
+          </span>
+        )}
+        <span className="flex items-center gap-1 text-default-500">
+          <span className="text-default-400">ID:</span>
+          <span className="font-mono">{id}</span>
+          <ClipboardButton clipboardText={id} />
+        </span>
+        {mrn && (
+          <span className="flex items-center gap-1 text-default-500">
+            <span className="text-default-400">MRN:</span>
+            <span className="font-mono">{mrn}</span>
+            <ClipboardButton clipboardText={mrn} />
+          </span>
+        )}
+      </div>
+
+      {/* Secondary metadata grid */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-x-6 gap-y-2 mt-4 text-sm">
+        <div>
+          <span className="text-default-400 block text-xs">Birth Date</span>
+          <span className="text-default-600">
+            {birthDate
+              ? intlFormat(
+                  new Date(birthDate),
+                  { year: 'numeric', month: 'short', day: 'numeric' },
+                  { locale },
+                )
+              : '—'}
+          </span>
+        </div>
+        <div>
+          <span className="text-default-400 block text-xs">Added</span>
+          <span className="text-default-600">
+            {intlFormat(
+              new Date(createdTime),
+              { year: 'numeric', month: 'short', day: 'numeric' },
+              { locale },
+            )}
+          </span>
+        </div>
+        <div>
+          <span className="text-default-400 block text-xs">Last Updated</span>
+          <span className="text-default-600">
+            {intlFormat(
+              new Date(updatedTime),
+              { year: 'numeric', month: 'short', day: 'numeric' },
+              { locale },
+            )}
+          </span>
+        </div>
+        {permissions && (
+          <div>
+            <span className="text-default-400 block text-xs">Permissions</span>
+            <div className="flex gap-1 flex-wrap mt-0.5">
+              {permissions.view && (
+                <span className="px-1.5 py-0.5 bg-success/10 text-success rounded text-xs">
+                  View
+                </span>
+              )}
+              {permissions.upload && (
+                <span className="px-1.5 py-0.5 bg-warning/10 text-warning rounded text-xs">
+                  Upload
+                </span>
+              )}
+              {permissions.note && (
+                <span className="px-1.5 py-0.5 bg-secondary/10 text-secondary rounded text-xs">
+                  Note
+                </span>
+              )}
+            </div>
           </div>
-        ))}
+        )}
+        {tags && tags.length > 0 && (
+          <div>
+            <span className="text-default-400 block text-xs">Tags</span>
+            <div className="flex gap-1 flex-wrap mt-0.5">
+              {tags.map((tagId, index) => (
+                <span
+                  key={index}
+                  className="px-1.5 py-0.5 bg-primary/10 text-primary rounded text-xs"
+                >
+                  {getTagName(tagId)}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+        {patient.sites && patient.sites.length > 0 && (
+          <div>
+            <span className="text-default-400 block text-xs">Sites</span>
+            <div className="flex gap-1 flex-wrap mt-0.5">
+              {patient.sites.map((site, index) => (
+                <span
+                  key={index}
+                  className="px-1.5 py-0.5 bg-secondary/10 text-secondary rounded text-xs"
+                >
+                  {getSiteName(site.id || site.name || String(site))}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </Well>
   );

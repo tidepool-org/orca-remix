@@ -82,48 +82,6 @@ export default function UserProfile({
   // Determine if this is an unclaimed/custodial account
   const isUnclaimedAccount = !emailVerified && !termsAccepted;
 
-  const userDetails = [
-    {
-      label: 'Email',
-      value: username || 'N/A',
-      copy: !!username,
-    },
-    {
-      label: 'User ID',
-      value: userId,
-      copy: true,
-    },
-    {
-      label: 'Account Type',
-      value: clinic ? `clinician (${clinic.role})` : 'patient',
-    },
-    {
-      label: 'Account Status',
-      value: isUnclaimedAccount
-        ? 'Unclaimed (Custodial)'
-        : emailVerified
-          ? 'Verified'
-          : 'Unverified',
-    },
-    ...(termsAccepted
-      ? [
-          {
-            label: 'Member Since',
-            value: intlFormat(
-              new Date(termsAccepted),
-              {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-              },
-              { locale },
-            ),
-            copy: false,
-          },
-        ]
-      : []),
-  ];
-
   // Calculate counts for tab badges
   const dataSharingCount =
     Object.keys(trustingAccounts).length +
@@ -131,21 +89,57 @@ export default function UserProfile({
     sentInvites.length +
     receivedInvites.length;
 
-  // User details component (reused in both layouts)
+  // User details component - Compact header layout
   const UserDetailsSection = (
     <Well>
-      <h1 className="text-xl">{fullName}</h1>
-      <div className="text-small">
-        {userDetails.map(({ label, value, copy }, i) => (
-          <div
-            key={i}
-            className="flex justify-start flex-nowrap gap-2 items-center min-h-unit-8"
-          >
-            <strong>{label}:</strong>
-            <p>{value}</p>
-            {copy && <ClipboardButton clipboardText={value} />}
+      {/* Name */}
+      <h1 className="text-xl font-semibold">{fullName}</h1>
+
+      {/* Primary identifiers row - copyable fields */}
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm mt-1">
+        {username && (
+          <span className="flex items-center gap-1">
+            <span className="text-default-600">{username}</span>
+            <ClipboardButton clipboardText={username} />
+          </span>
+        )}
+        <span className="flex items-center gap-1 text-default-500">
+          <span className="text-default-400">ID:</span>
+          <span className="font-mono">{userId}</span>
+          <ClipboardButton clipboardText={userId} />
+        </span>
+      </div>
+
+      {/* Secondary metadata grid */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-x-6 gap-y-2 mt-4 text-sm">
+        <div>
+          <span className="text-default-400 block text-xs">Account Type</span>
+          <span className="text-default-600">
+            {clinic ? `Clinician (${clinic.role})` : 'Patient'}
+          </span>
+        </div>
+        <div>
+          <span className="text-default-400 block text-xs">Account Status</span>
+          <span className="text-default-600">
+            {isUnclaimedAccount
+              ? 'Unclaimed (Custodial)'
+              : emailVerified
+                ? 'Verified'
+                : 'Unverified'}
+          </span>
+        </div>
+        {termsAccepted && (
+          <div>
+            <span className="text-default-400 block text-xs">Member Since</span>
+            <span className="text-default-600">
+              {intlFormat(
+                new Date(termsAccepted),
+                { year: 'numeric', month: 'short', day: 'numeric' },
+                { locale },
+              )}
+            </span>
           </div>
-        ))}
+        )}
       </div>
     </Well>
   );

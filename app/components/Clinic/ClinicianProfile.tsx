@@ -51,20 +51,7 @@ export default function ClinicianProfile({
     );
   }
 
-  const formatDate = (dateString: string) => {
-    return intlFormat(
-      new Date(dateString),
-      {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-        hour: 'numeric',
-        minute: '2-digit',
-      },
-      { locale },
-    );
-  };
-
+  // Check if clinician has specific roles
   const getRoleColor = (role: string) => {
     switch (role?.toLowerCase()) {
       case 'clinic_admin':
@@ -155,68 +142,67 @@ export default function ClinicianProfile({
     );
   };
 
-  const clinicianDetails = [
-    {
-      label: 'Email',
-      value: clinician.email,
-      copy: true,
-    },
-    {
-      label: 'Clinician ID',
-      value: clinician.id,
-      copy: true,
-    },
-    {
-      label: 'Roles',
-      value: clinician.roles?.join(', ') || 'N/A',
-      component: (
-        <div className="flex gap-2 flex-wrap">
-          {clinician.roles?.map((role) => (
-            <Chip
-              key={role}
-              color={getRoleColor(role)}
-              variant="flat"
-              size="sm"
-              className="capitalize"
-            >
-              {getRoleLabel(role)}
-            </Chip>
-          ))}
-        </div>
-      ),
-    },
-    {
-      label: 'Added to Clinic',
-      value: formatDate(clinician.createdTime),
-    },
-    {
-      label: 'Last Updated',
-      value: formatDate(clinician.updatedTime),
-    },
-  ];
-
-  // Clinician details section
+  // Clinician details section - Compact header layout
   const ClinicianDetailsSection = (
     <Well>
-      <h1 className="text-xl">{clinician.name}</h1>
+      {/* Name */}
+      <h1 className="text-xl font-semibold">{clinician.name}</h1>
 
-      <div className="text-sm">
-        {clinicianDetails.map(({ label, value, copy, component }, i) => (
-          <div
-            key={i}
-            className="flex justify-start flex-nowrap gap-2 items-center min-h-unit-8"
-          >
-            <strong>{label}:</strong>
-            {component ? (
-              component
-            ) : (
-              <>
-                <p>{value}</p>
-                {copy && <ClipboardButton clipboardText={value} />}
-              </>
-            )}
+      {/* Primary identifiers row - copyable fields */}
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm mt-1">
+        {clinician.email && (
+          <span className="flex items-center gap-1">
+            <span className="text-default-600">{clinician.email}</span>
+            <ClipboardButton clipboardText={clinician.email} />
+          </span>
+        )}
+        <span className="flex items-center gap-1 text-default-500">
+          <span className="text-default-400">ID:</span>
+          <span className="font-mono">{clinician.id}</span>
+          <ClipboardButton clipboardText={clinician.id} />
+        </span>
+      </div>
+
+      {/* Secondary metadata grid */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-x-6 gap-y-2 mt-4 text-sm">
+        <div>
+          <span className="text-default-400 block text-xs">Roles</span>
+          <div className="flex gap-1 flex-wrap mt-0.5">
+            {clinician.roles?.map((role) => (
+              <Chip
+                key={role}
+                color={getRoleColor(role)}
+                variant="flat"
+                size="sm"
+                className="capitalize"
+              >
+                {getRoleLabel(role)}
+              </Chip>
+            ))}
           </div>
-        ))}
+        </div>
+        <div>
+          <span className="text-default-400 block text-xs">
+            Added to Clinic
+          </span>
+          <span className="text-default-600">
+            {intlFormat(
+              new Date(clinician.createdTime),
+              { year: 'numeric', month: 'short', day: 'numeric' },
+              { locale },
+            )}
+          </span>
+        </div>
+        <div>
+          <span className="text-default-400 block text-xs">Last Updated</span>
+          <span className="text-default-600">
+            {intlFormat(
+              new Date(clinician.updatedTime),
+              { year: 'numeric', month: 'short', day: 'numeric' },
+              { locale },
+            )}
+          </span>
+        </div>
       </div>
     </Well>
   );
