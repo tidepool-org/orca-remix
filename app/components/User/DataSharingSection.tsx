@@ -8,6 +8,7 @@ import {
   Chip,
   Spinner,
 } from '@heroui/react';
+import { Link } from 'react-router';
 import { Users, Send, Inbox } from 'lucide-react';
 import { intlFormat } from 'date-fns';
 import useLocale from '~/hooks/useLocale';
@@ -98,7 +99,12 @@ export function TrustingAccountsTable({
           {entries.map(([userId, permissions]) => (
             <TableRow key={userId}>
               <TableCell>
-                <span className="font-mono text-sm">{userId}</span>
+                <Link
+                  to={`/users/${userId}`}
+                  className="font-mono text-sm text-primary hover:underline"
+                >
+                  {userId}
+                </Link>
               </TableCell>
               <TableCell>
                 <div className="flex gap-1 flex-wrap">
@@ -177,7 +183,12 @@ export function TrustedAccountsTable({
           {entries.map(([userId, permissions]) => (
             <TableRow key={userId}>
               <TableCell>
-                <span className="font-mono text-sm">{userId}</span>
+                <Link
+                  to={`/users/${userId}`}
+                  className="font-mono text-sm text-primary hover:underline"
+                >
+                  {userId}
+                </Link>
               </TableCell>
               <TableCell>
                 <div className="flex gap-1 flex-wrap">
@@ -394,14 +405,17 @@ export function ReceivedInvitesTable({
           {invites.map((invite) => (
             <TableRow key={invite.key}>
               <TableCell>
-                <div className="flex flex-col">
-                  <span className="text-sm">
+                <Link
+                  to={`/users/${invite.creatorId}`}
+                  className="flex flex-col hover:underline"
+                >
+                  <span className="text-sm text-primary">
                     {invite.creator?.profile?.fullName || 'Unknown'}
                   </span>
                   <span className="text-xs text-default-400 font-mono">
                     {invite.creatorId}
                   </span>
-                </div>
+                </Link>
               </TableCell>
               <TableCell>
                 <Chip size="sm" variant="flat">
