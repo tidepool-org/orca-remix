@@ -1,5 +1,5 @@
 import { useRouteLoaderData } from 'react-router';
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { Tabs, Tab } from '@heroui/react';
 import {
   Building2,
@@ -7,6 +7,8 @@ import {
   Database,
   Smartphone,
   FileText,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 import Well from '~/partials/Well';
 import { intlFormat } from 'date-fns';
@@ -134,13 +136,31 @@ export default function PatientProfile({
     sentInvites.length +
     receivedInvites.length;
 
-  // Patient details component - Compact header layout
-  const PatientDetailsSection = (
-    <Well>
-      {/* Name */}
-      <h1 className="text-xl font-semibold">{fullName}</h1>
+  // State for collapsible details (Option 3)
+  const [isDetailsExpanded, setIsDetailsExpanded] = useState(false);
 
-      {/* Primary identifiers row - copyable fields */}
+  // Patient details component - Option 3: Collapsible details layout
+  const PatientDetailsSection = (
+    <Well className="!gap-0">
+      {/* Row 1: Name on left, toggle button on right */}
+      <div className="flex items-center justify-between gap-2">
+        <h1 className="text-xl font-semibold">{fullName}</h1>
+        <button
+          onClick={() => setIsDetailsExpanded(!isDetailsExpanded)}
+          className="flex items-center gap-1 text-sm text-primary hover:text-primary-600 transition-colors"
+          aria-expanded={isDetailsExpanded}
+          aria-label={isDetailsExpanded ? 'Hide details' : 'Show details'}
+        >
+          <span>{isDetailsExpanded ? 'Hide Details' : 'Show Details'}</span>
+          {isDetailsExpanded ? (
+            <ChevronUp className="w-4 h-4" aria-hidden="true" />
+          ) : (
+            <ChevronDown className="w-4 h-4" aria-hidden="true" />
+          )}
+        </button>
+      </div>
+
+      {/* Row 2: Copyable identifiers */}
       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm mt-1">
         {email && (
           <span className="flex items-center gap-1">
@@ -150,105 +170,113 @@ export default function PatientProfile({
         )}
         <span className="flex items-center gap-1 text-default-500">
           <span className="text-default-400">ID:</span>
-          <span className="font-mono">{id}</span>
+          <span className="font-mono text-xs">{id}</span>
           <ClipboardButton clipboardText={id} />
         </span>
         {mrn && (
           <span className="flex items-center gap-1 text-default-500">
             <span className="text-default-400">MRN:</span>
-            <span className="font-mono">{mrn}</span>
+            <span className="font-mono text-xs">{mrn}</span>
             <ClipboardButton clipboardText={mrn} />
           </span>
         )}
       </div>
 
-      {/* Secondary metadata grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-x-6 gap-y-2 mt-4 text-sm">
-        <div>
-          <span className="text-default-400 block text-xs">Birth Date</span>
-          <span className="text-default-600">
-            {birthDate
-              ? intlFormat(
-                  new Date(birthDate),
+      {/* Collapsible details section */}
+      {isDetailsExpanded && (
+        <div className="mt-4 pt-4 border-t border-divider">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-x-6 gap-y-3 text-sm">
+            <div>
+              <span className="text-default-400 block text-xs">Birth Date</span>
+              <span className="text-default-600">
+                {birthDate
+                  ? intlFormat(
+                      new Date(birthDate),
+                      { year: 'numeric', month: 'short', day: 'numeric' },
+                      { locale },
+                    )
+                  : '—'}
+              </span>
+            </div>
+            <div>
+              <span className="text-default-400 block text-xs">Added</span>
+              <span className="text-default-600">
+                {intlFormat(
+                  new Date(createdTime),
                   { year: 'numeric', month: 'short', day: 'numeric' },
                   { locale },
-                )
-              : '—'}
-          </span>
-        </div>
-        <div>
-          <span className="text-default-400 block text-xs">Added</span>
-          <span className="text-default-600">
-            {intlFormat(
-              new Date(createdTime),
-              { year: 'numeric', month: 'short', day: 'numeric' },
-              { locale },
+                )}
+              </span>
+            </div>
+            <div>
+              <span className="text-default-400 block text-xs">
+                Last Updated
+              </span>
+              <span className="text-default-600">
+                {intlFormat(
+                  new Date(updatedTime),
+                  { year: 'numeric', month: 'short', day: 'numeric' },
+                  { locale },
+                )}
+              </span>
+            </div>
+            {permissions && (
+              <div>
+                <span className="text-default-400 block text-xs">
+                  Permissions
+                </span>
+                <div className="flex gap-1 flex-wrap mt-0.5">
+                  {permissions.view && (
+                    <span className="px-1.5 py-0.5 bg-success/10 text-success rounded text-xs">
+                      View
+                    </span>
+                  )}
+                  {permissions.upload && (
+                    <span className="px-1.5 py-0.5 bg-warning/10 text-warning rounded text-xs">
+                      Upload
+                    </span>
+                  )}
+                  {permissions.note && (
+                    <span className="px-1.5 py-0.5 bg-secondary/10 text-secondary rounded text-xs">
+                      Note
+                    </span>
+                  )}
+                </div>
+              </div>
             )}
-          </span>
-        </div>
-        <div>
-          <span className="text-default-400 block text-xs">Last Updated</span>
-          <span className="text-default-600">
-            {intlFormat(
-              new Date(updatedTime),
-              { year: 'numeric', month: 'short', day: 'numeric' },
-              { locale },
+            {tags && tags.length > 0 && (
+              <div>
+                <span className="text-default-400 block text-xs">Tags</span>
+                <div className="flex gap-1 flex-wrap mt-0.5">
+                  {tags.map((tagId, index) => (
+                    <span
+                      key={index}
+                      className="px-1.5 py-0.5 bg-primary/10 text-primary rounded text-xs"
+                    >
+                      {getTagName(tagId)}
+                    </span>
+                  ))}
+                </div>
+              </div>
             )}
-          </span>
+            {patient.sites && patient.sites.length > 0 && (
+              <div>
+                <span className="text-default-400 block text-xs">Sites</span>
+                <div className="flex gap-1 flex-wrap mt-0.5">
+                  {patient.sites.map((site, index) => (
+                    <span
+                      key={index}
+                      className="px-1.5 py-0.5 bg-secondary/10 text-secondary rounded text-xs"
+                    >
+                      {getSiteName(site.id || site.name || String(site))}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
-        {permissions && (
-          <div>
-            <span className="text-default-400 block text-xs">Permissions</span>
-            <div className="flex gap-1 flex-wrap mt-0.5">
-              {permissions.view && (
-                <span className="px-1.5 py-0.5 bg-success/10 text-success rounded text-xs">
-                  View
-                </span>
-              )}
-              {permissions.upload && (
-                <span className="px-1.5 py-0.5 bg-warning/10 text-warning rounded text-xs">
-                  Upload
-                </span>
-              )}
-              {permissions.note && (
-                <span className="px-1.5 py-0.5 bg-secondary/10 text-secondary rounded text-xs">
-                  Note
-                </span>
-              )}
-            </div>
-          </div>
-        )}
-        {tags && tags.length > 0 && (
-          <div>
-            <span className="text-default-400 block text-xs">Tags</span>
-            <div className="flex gap-1 flex-wrap mt-0.5">
-              {tags.map((tagId, index) => (
-                <span
-                  key={index}
-                  className="px-1.5 py-0.5 bg-primary/10 text-primary rounded text-xs"
-                >
-                  {getTagName(tagId)}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
-        {patient.sites && patient.sites.length > 0 && (
-          <div>
-            <span className="text-default-400 block text-xs">Sites</span>
-            <div className="flex gap-1 flex-wrap mt-0.5">
-              {patient.sites.map((site, index) => (
-                <span
-                  key={index}
-                  className="px-1.5 py-0.5 bg-secondary/10 text-secondary rounded text-xs"
-                >
-                  {getSiteName(site.id || site.name || String(site))}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
+      )}
     </Well>
   );
 

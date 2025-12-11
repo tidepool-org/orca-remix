@@ -17,6 +17,8 @@ import {
   FileText,
   Settings,
   Trash2,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 
 import type {
@@ -190,6 +192,9 @@ export default function ClinicProfile({
   // Delete clinic modal state
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
+  // Collapsible details state
+  const [isDetailsExpanded, setIsDetailsExpanded] = useState(false);
+
   // Check if patient limits are applicable (only for tier0100)
   const isPatientLimitApplicable = tier === 'tier0100';
 
@@ -261,57 +266,82 @@ export default function ClinicProfile({
 
   return (
     <div className="flex flex-col gap-6 w-full">
-      {/* Clinic Details - Compact header layout */}
-      <Well>
-        {/* Name */}
-        <h1 className="text-xl font-semibold">{name}</h1>
+      {/* Clinic Details - Collapsible header layout */}
+      <Well className="!gap-0">
+        {/* Row 1: Name on left, toggle button on right */}
+        <div className="flex items-center justify-between gap-2">
+          <h1 className="text-xl font-semibold">{name}</h1>
+          <button
+            onClick={() => setIsDetailsExpanded(!isDetailsExpanded)}
+            className="flex items-center gap-1 text-sm text-primary hover:text-primary-600 transition-colors"
+            aria-expanded={isDetailsExpanded}
+            aria-label={isDetailsExpanded ? 'Hide details' : 'Show details'}
+          >
+            <span>{isDetailsExpanded ? 'Hide Details' : 'Show Details'}</span>
+            {isDetailsExpanded ? (
+              <ChevronUp className="w-4 h-4" aria-hidden="true" />
+            ) : (
+              <ChevronDown className="w-4 h-4" aria-hidden="true" />
+            )}
+          </button>
+        </div>
 
-        {/* Primary identifiers row - copyable fields */}
+        {/* Row 2: Copyable identifiers */}
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm mt-1">
           <span className="flex items-center gap-1 text-default-500">
             <span className="text-default-400">ID:</span>
-            <span className="font-mono">{id}</span>
+            <span className="font-mono text-xs">{id}</span>
             <ClipboardButton clipboardText={id} />
           </span>
           {shareCode && (
             <span className="flex items-center gap-1 text-default-500">
               <span className="text-default-400">Share Code:</span>
-              <span className="font-mono">{shareCode}</span>
+              <span className="font-mono text-xs">{shareCode}</span>
               <ClipboardButton clipboardText={shareCode} />
             </span>
           )}
         </div>
 
-        {/* Secondary metadata grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-x-6 gap-y-2 mt-4 text-sm">
-          <div>
-            <span className="text-default-400 block text-xs">Tier</span>
-            <span className="text-default-600">{tier || '—'}</span>
+        {/* Collapsible details section */}
+        {isDetailsExpanded && (
+          <div className="mt-4 pt-4 border-t border-divider">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-x-6 gap-y-3 text-sm">
+              <div>
+                <span className="text-default-400 block text-xs">Tier</span>
+                <span className="text-default-600">{tier || '—'}</span>
+              </div>
+              <div>
+                <span className="text-default-400 block text-xs">
+                  Can Migrate
+                </span>
+                <span className="text-default-600">
+                  {canMigrate ? 'Yes' : 'No'}
+                </span>
+              </div>
+              <div>
+                <span className="text-default-400 block text-xs">Created</span>
+                <span className="text-default-600">
+                  {createdTime
+                    ? (() => {
+                        const date = new Date(createdTime);
+                        return isNaN(date.getTime())
+                          ? createdTime
+                          : intlFormat(
+                              date,
+                              {
+                                year: 'numeric',
+                                month: 'short',
+                                day: 'numeric',
+                              },
+                              { locale },
+                            );
+                      })()
+                    : '—'}
+                </span>
+              </div>
+            </div>
           </div>
-          <div>
-            <span className="text-default-400 block text-xs">Can Migrate</span>
-            <span className="text-default-600">
-              {canMigrate ? 'Yes' : 'No'}
-            </span>
-          </div>
-          <div>
-            <span className="text-default-400 block text-xs">Created</span>
-            <span className="text-default-600">
-              {createdTime
-                ? (() => {
-                    const date = new Date(createdTime);
-                    return isNaN(date.getTime())
-                      ? createdTime
-                      : intlFormat(
-                          date,
-                          { year: 'numeric', month: 'short', day: 'numeric' },
-                          { locale },
-                        );
-                  })()
-                : '—'}
-            </span>
-          </div>
-        </div>
+        )}
       </Well>
 
       {/* Tabbed Interface */}

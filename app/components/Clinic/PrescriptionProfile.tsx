@@ -1,7 +1,9 @@
+import { useState } from 'react';
 import Well from '~/partials/Well';
 import { intlFormat } from 'date-fns';
 import { Chip } from '@heroui/react';
 import { Link } from 'react-router';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 
 import type { Prescription, PrescriptionState, Clinician } from './types';
 import useLocale from '~/hooks/useLocale';
@@ -73,70 +75,94 @@ export default function PrescriptionProfile({
       ? `${attrs.firstName} ${attrs.lastName}`
       : attrs.firstName || attrs.lastName || 'Unknown Patient';
 
+  // Collapsible details state
+  const [isDetailsExpanded, setIsDetailsExpanded] = useState(false);
+
   return (
     <div className="flex flex-col gap-6 w-full">
-      {/* Prescription Header - Compact layout */}
-      <Well>
-        {/* Title with state chip */}
-        <div className="flex items-center gap-3">
-          <h1 className="text-xl font-semibold">
-            Prescription for {patientName}
-          </h1>
-          <Chip
-            color={getStateColor(state)}
-            variant="flat"
-            size="sm"
-            className="capitalize"
+      {/* Prescription Header - Collapsible layout */}
+      <Well className="!gap-0">
+        {/* Row 1: Title with state chip on left, toggle button on right */}
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-3">
+            <h1 className="text-xl font-semibold">
+              Prescription for {patientName}
+            </h1>
+            <Chip
+              color={getStateColor(state)}
+              variant="flat"
+              size="sm"
+              className="capitalize"
+            >
+              {state}
+            </Chip>
+          </div>
+          <button
+            onClick={() => setIsDetailsExpanded(!isDetailsExpanded)}
+            className="flex items-center gap-1 text-sm text-primary hover:text-primary-600 transition-colors"
+            aria-expanded={isDetailsExpanded}
+            aria-label={isDetailsExpanded ? 'Hide details' : 'Show details'}
           >
-            {state}
-          </Chip>
+            <span>{isDetailsExpanded ? 'Hide Details' : 'Show Details'}</span>
+            {isDetailsExpanded ? (
+              <ChevronUp className="w-4 h-4" aria-hidden="true" />
+            ) : (
+              <ChevronDown className="w-4 h-4" aria-hidden="true" />
+            )}
+          </button>
         </div>
 
-        {/* Primary identifier row */}
+        {/* Row 2: Copyable identifiers */}
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm mt-1">
           <span className="flex items-center gap-1 text-default-500">
             <span className="text-default-400">ID:</span>
-            <span className="font-mono">{id}</span>
+            <span className="font-mono text-xs">{id}</span>
             <ClipboardButton clipboardText={id} />
           </span>
           {patientUserId && (
             <span className="flex items-center gap-1 text-default-500">
               <span className="text-default-400">Patient:</span>
-              <span className="font-mono">{patientUserId}</span>
+              <span className="font-mono text-xs">{patientUserId}</span>
               <ClipboardButton clipboardText={patientUserId} />
             </span>
           )}
         </div>
 
-        {/* Metadata grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-x-6 gap-y-2 mt-4 text-sm">
-          <div>
-            <span className="text-default-400 block text-xs">Created</span>
-            <span className="text-default-600">
-              {formatDate(createdTime) || 'N/A'}
-            </span>
-          </div>
-          <div>
-            <span className="text-default-400 block text-xs">Modified</span>
-            <span className="text-default-600">
-              {formatDate(modifiedTime) || 'N/A'}
-            </span>
-          </div>
-          <div>
-            <span className="text-default-400 block text-xs">Expires</span>
-            <span className="text-default-600">
-              {formatDate(expirationTime) || 'N/A'}
-            </span>
-          </div>
-          {latestRevision?.revisionId !== undefined && (
-            <div>
-              <span className="text-default-400 block text-xs">Revision</span>
-              <span className="text-default-600">
-                {latestRevision.revisionId}
-              </span>
+        {/* Collapsible details section */}
+        {isDetailsExpanded && (
+          <div className="mt-4 pt-4 border-t border-divider">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-x-6 gap-y-3 text-sm">
+              <div>
+                <span className="text-default-400 block text-xs">Created</span>
+                <span className="text-default-600">
+                  {formatDate(createdTime) || 'N/A'}
+                </span>
+              </div>
+              <div>
+                <span className="text-default-400 block text-xs">Modified</span>
+                <span className="text-default-600">
+                  {formatDate(modifiedTime) || 'N/A'}
+                </span>
+              </div>
+              <div>
+                <span className="text-default-400 block text-xs">Expires</span>
+                <span className="text-default-600">
+                  {formatDate(expirationTime) || 'N/A'}
+                </span>
+              </div>
+              {latestRevision?.revisionId !== undefined && (
+                <div>
+                  <span className="text-default-400 block text-xs">
+                    Revision
+                  </span>
+                  <span className="text-default-600">
+                    {latestRevision.revisionId}
+                  </span>
+                </div>
+              )}
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </Well>
 
       {/* Patient & Prescriber Info - Side by side on larger screens */}

@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Tabs, Tab } from '@heroui/react';
 import {
   Building2,
@@ -6,6 +7,8 @@ import {
   Settings,
   FileText,
   Smartphone,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 import Well from '~/partials/Well';
 import { intlFormat } from 'date-fns';
@@ -82,6 +85,9 @@ export default function UserProfile({
   // Determine if this is an unclaimed/custodial account
   const isUnclaimedAccount = !emailVerified && !termsAccepted;
 
+  // Collapsible details state
+  const [isDetailsExpanded, setIsDetailsExpanded] = useState(false);
+
   // Calculate counts for tab badges
   const dataSharingCount =
     Object.keys(trustingAccounts).length +
@@ -89,13 +95,28 @@ export default function UserProfile({
     sentInvites.length +
     receivedInvites.length;
 
-  // User details component - Compact header layout
+  // User details component - Collapsible header layout
   const UserDetailsSection = (
-    <Well>
-      {/* Name */}
-      <h1 className="text-xl font-semibold">{fullName}</h1>
+    <Well className="!gap-0">
+      {/* Row 1: Name on left, toggle button on right */}
+      <div className="flex items-center justify-between gap-2">
+        <h1 className="text-xl font-semibold">{fullName}</h1>
+        <button
+          onClick={() => setIsDetailsExpanded(!isDetailsExpanded)}
+          className="flex items-center gap-1 text-sm text-primary hover:text-primary-600 transition-colors"
+          aria-expanded={isDetailsExpanded}
+          aria-label={isDetailsExpanded ? 'Hide details' : 'Show details'}
+        >
+          <span>{isDetailsExpanded ? 'Hide Details' : 'Show Details'}</span>
+          {isDetailsExpanded ? (
+            <ChevronUp className="w-4 h-4" aria-hidden="true" />
+          ) : (
+            <ChevronDown className="w-4 h-4" aria-hidden="true" />
+          )}
+        </button>
+      </div>
 
-      {/* Primary identifiers row - copyable fields */}
+      {/* Row 2: Copyable identifiers */}
       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm mt-1">
         {username && (
           <span className="flex items-center gap-1">
@@ -105,42 +126,52 @@ export default function UserProfile({
         )}
         <span className="flex items-center gap-1 text-default-500">
           <span className="text-default-400">ID:</span>
-          <span className="font-mono">{userId}</span>
+          <span className="font-mono text-xs">{userId}</span>
           <ClipboardButton clipboardText={userId} />
         </span>
       </div>
 
-      {/* Secondary metadata grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-x-6 gap-y-2 mt-4 text-sm">
-        <div>
-          <span className="text-default-400 block text-xs">Account Type</span>
-          <span className="text-default-600">
-            {clinic ? `Clinician (${clinic.role})` : 'Patient'}
-          </span>
-        </div>
-        <div>
-          <span className="text-default-400 block text-xs">Account Status</span>
-          <span className="text-default-600">
-            {isUnclaimedAccount
-              ? 'Unclaimed (Custodial)'
-              : emailVerified
-                ? 'Verified'
-                : 'Unverified'}
-          </span>
-        </div>
-        {termsAccepted && (
-          <div>
-            <span className="text-default-400 block text-xs">Member Since</span>
-            <span className="text-default-600">
-              {intlFormat(
-                new Date(termsAccepted),
-                { year: 'numeric', month: 'short', day: 'numeric' },
-                { locale },
-              )}
-            </span>
+      {/* Collapsible details section */}
+      {isDetailsExpanded && (
+        <div className="mt-4 pt-4 border-t border-divider">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-x-6 gap-y-3 text-sm">
+            <div>
+              <span className="text-default-400 block text-xs">
+                Account Type
+              </span>
+              <span className="text-default-600">
+                {clinic ? `Clinician (${clinic.role})` : 'Patient'}
+              </span>
+            </div>
+            <div>
+              <span className="text-default-400 block text-xs">
+                Account Status
+              </span>
+              <span className="text-default-600">
+                {isUnclaimedAccount
+                  ? 'Unclaimed (Custodial)'
+                  : emailVerified
+                    ? 'Verified'
+                    : 'Unverified'}
+              </span>
+            </div>
+            {termsAccepted && (
+              <div>
+                <span className="text-default-400 block text-xs">
+                  Member Since
+                </span>
+                <span className="text-default-600">
+                  {intlFormat(
+                    new Date(termsAccepted),
+                    { year: 'numeric', month: 'short', day: 'numeric' },
+                    { locale },
+                  )}
+                </span>
+              </div>
+            )}
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </Well>
   );
 

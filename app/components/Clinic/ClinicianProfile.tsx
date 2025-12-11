@@ -1,6 +1,7 @@
 import { Chip, Tabs, Tab, Switch } from '@heroui/react';
 import { intlFormat } from 'date-fns';
-import { Building2, Settings } from 'lucide-react';
+import { useState } from 'react';
+import { Building2, Settings, ChevronDown, ChevronUp } from 'lucide-react';
 import { useFetcher } from 'react-router';
 import useLocale from '~/hooks/useLocale';
 import Well from '~/partials/Well';
@@ -27,6 +28,9 @@ export default function ClinicianProfile({
 }: ClinicianProfileProps) {
   const { locale } = useLocale();
   const fetcher = useFetcher();
+
+  // Collapsible details state - must be before early returns
+  const [isDetailsExpanded, setIsDetailsExpanded] = useState(false);
 
   if (isLoading) {
     return (
@@ -142,13 +146,28 @@ export default function ClinicianProfile({
     );
   };
 
-  // Clinician details section - Compact header layout
+  // Clinician details section - Collapsible header layout
   const ClinicianDetailsSection = (
-    <Well>
-      {/* Name */}
-      <h1 className="text-xl font-semibold">{clinician.name}</h1>
+    <Well className="!gap-0">
+      {/* Row 1: Name on left, toggle button on right */}
+      <div className="flex items-center justify-between gap-2">
+        <h1 className="text-xl font-semibold">{clinician.name}</h1>
+        <button
+          onClick={() => setIsDetailsExpanded(!isDetailsExpanded)}
+          className="flex items-center gap-1 text-sm text-primary hover:text-primary-600 transition-colors"
+          aria-expanded={isDetailsExpanded}
+          aria-label={isDetailsExpanded ? 'Hide details' : 'Show details'}
+        >
+          <span>{isDetailsExpanded ? 'Hide Details' : 'Show Details'}</span>
+          {isDetailsExpanded ? (
+            <ChevronUp className="w-4 h-4" aria-hidden="true" />
+          ) : (
+            <ChevronDown className="w-4 h-4" aria-hidden="true" />
+          )}
+        </button>
+      </div>
 
-      {/* Primary identifiers row - copyable fields */}
+      {/* Row 2: Copyable identifiers */}
       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm mt-1">
         {clinician.email && (
           <span className="flex items-center gap-1">
@@ -158,52 +177,58 @@ export default function ClinicianProfile({
         )}
         <span className="flex items-center gap-1 text-default-500">
           <span className="text-default-400">ID:</span>
-          <span className="font-mono">{clinician.id}</span>
+          <span className="font-mono text-xs">{clinician.id}</span>
           <ClipboardButton clipboardText={clinician.id} />
         </span>
       </div>
 
-      {/* Secondary metadata grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-x-6 gap-y-2 mt-4 text-sm">
-        <div>
-          <span className="text-default-400 block text-xs">Roles</span>
-          <div className="flex gap-1 flex-wrap mt-0.5">
-            {clinician.roles?.map((role) => (
-              <Chip
-                key={role}
-                color={getRoleColor(role)}
-                variant="flat"
-                size="sm"
-                className="capitalize"
-              >
-                {getRoleLabel(role)}
-              </Chip>
-            ))}
+      {/* Collapsible details section */}
+      {isDetailsExpanded && (
+        <div className="mt-4 pt-4 border-t border-divider">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-x-6 gap-y-3 text-sm">
+            <div>
+              <span className="text-default-400 block text-xs">Roles</span>
+              <div className="flex gap-1 flex-wrap mt-0.5">
+                {clinician.roles?.map((role) => (
+                  <Chip
+                    key={role}
+                    color={getRoleColor(role)}
+                    variant="flat"
+                    size="sm"
+                    className="capitalize"
+                  >
+                    {getRoleLabel(role)}
+                  </Chip>
+                ))}
+              </div>
+            </div>
+            <div>
+              <span className="text-default-400 block text-xs">
+                Added to Clinic
+              </span>
+              <span className="text-default-600">
+                {intlFormat(
+                  new Date(clinician.createdTime),
+                  { year: 'numeric', month: 'short', day: 'numeric' },
+                  { locale },
+                )}
+              </span>
+            </div>
+            <div>
+              <span className="text-default-400 block text-xs">
+                Last Updated
+              </span>
+              <span className="text-default-600">
+                {intlFormat(
+                  new Date(clinician.updatedTime),
+                  { year: 'numeric', month: 'short', day: 'numeric' },
+                  { locale },
+                )}
+              </span>
+            </div>
           </div>
         </div>
-        <div>
-          <span className="text-default-400 block text-xs">
-            Added to Clinic
-          </span>
-          <span className="text-default-600">
-            {intlFormat(
-              new Date(clinician.createdTime),
-              { year: 'numeric', month: 'short', day: 'numeric' },
-              { locale },
-            )}
-          </span>
-        </div>
-        <div>
-          <span className="text-default-400 block text-xs">Last Updated</span>
-          <span className="text-default-600">
-            {intlFormat(
-              new Date(clinician.updatedTime),
-              { year: 'numeric', month: 'short', day: 'numeric' },
-              { locale },
-            )}
-          </span>
-        </div>
-      </div>
+      )}
     </Well>
   );
 
