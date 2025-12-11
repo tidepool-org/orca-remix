@@ -42,26 +42,27 @@ export default function UserLookup({
   return (
     <Form action="/users">
       <Well>
-        <SectionHeader icon={UserCircle2Icon} title="User Lookup" />
+        <div className="flex flex-col gap-4">
+          <SectionHeader icon={UserCircle2Icon} title="User Lookup" />
 
-        <div className="flex items-center gap-4">
-          <Input
-            name="search"
-            type="text"
-            label="User ID or Email Address"
-            value={searchValue || ''}
-            onChange={handleSearchChange}
-            className="max-w-xs"
-            classNames={searchInputClasses}
-            isInvalid={!!error && errorType === 'validation'}
-            errorMessage={errorType === 'validation' ? error : undefined}
-          />
-        </div>
+          <div className="flex items-center gap-4">
+            <Input
+              name="search"
+              type="text"
+              placeholder="User ID or Email Address"
+              aria-label="User ID or Email Address"
+              value={searchValue || ''}
+              onChange={handleSearchChange}
+              className="flex-1 min-w-48 max-w-xs"
+              classNames={searchInputClasses}
+              isInvalid={!!error && errorType === 'validation'}
+              errorMessage={errorType === 'validation' ? error : undefined}
+            />
 
-        <div>
-          <Button type="submit" color="primary">
-            Search
-          </Button>
+            <Button type="submit" color="primary">
+              Search
+            </Button>
+          </div>
         </div>
       </Well>
     </Form>

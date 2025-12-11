@@ -42,26 +42,27 @@ export default function ClinicLookup({
   return (
     <Form action="/clinics">
       <Well>
-        <SectionHeader icon={Cross} title="Clinic Lookup" />
+        <div className="flex flex-col gap-4">
+          <SectionHeader icon={Cross} title="Clinic Lookup" />
 
-        <div className="flex items-center gap-4">
-          <Input
-            name="search"
-            type="text"
-            label="Clinic ID or Share Code"
-            value={searchValue || ''}
-            onChange={handleSearchChange}
-            className="max-w-xs"
-            classNames={searchInputClasses}
-            isInvalid={!!error && errorType === 'validation'}
-            errorMessage={errorType === 'validation' ? error : undefined}
-          />
-        </div>
+          <div className="flex items-center gap-4">
+            <Input
+              name="search"
+              type="text"
+              placeholder="Clinic ID or Share Code"
+              aria-label="Clinic ID or Share Code"
+              value={searchValue || ''}
+              onChange={handleSearchChange}
+              className="flex-1 min-w-48 max-w-xs"
+              classNames={searchInputClasses}
+              isInvalid={!!error && errorType === 'validation'}
+              errorMessage={errorType === 'validation' ? error : undefined}
+            />
 
-        <div>
-          <Button type="submit" color="primary">
-            Search
-          </Button>
+            <Button type="submit" color="primary">
+              Search
+            </Button>
+          </div>
         </div>
       </Well>
     </Form>
