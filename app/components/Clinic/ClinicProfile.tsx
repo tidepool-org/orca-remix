@@ -329,6 +329,50 @@ export default function ClinicProfile({
             tabContent: 'group-data-[selected=true]:text-primary',
           }}
         >
+          {/* Clinicians Tab */}
+          <Tab
+            key="clinicians"
+            title={
+              <div className="flex items-center gap-2">
+                <UserCog className="w-4 h-4" />
+                <span>Clinicians</span>
+                {totalClinicians > 0 && (
+                  <span className="text-xs bg-default-100 px-1.5 py-0.5 rounded-full">
+                    {totalClinicians}
+                  </span>
+                )}
+              </div>
+            }
+          >
+            <div className="pt-6 flex flex-col gap-6">
+              <Well>
+                <CliniciansTable
+                  clinicians={clinicians}
+                  totalClinicians={totalClinicians}
+                  isLoading={cliniciansLoading}
+                  totalPages={cliniciansTotalPages}
+                  currentPage={cliniciansCurrentPage}
+                  pageSize={cliniciansPageSize}
+                  onPageChange={onCliniciansPageChange}
+                  onSearch={onCliniciansSearch}
+                  currentSearch={currentCliniciansSearch}
+                  onRemoveClinician={onRemoveClinician}
+                />
+              </Well>
+
+              <Well>
+                <ClinicianInvitesTable
+                  invites={clinicianInvites}
+                  isLoading={clinicianInvitesLoading}
+                  totalInvites={totalClinicianInvites}
+                  onRevokeInvite={onRevokeClinicianInvite}
+                />
+              </Well>
+
+              <RecentClinicians />
+            </div>
+          </Tab>
+
           {/* Patients Tab */}
           <Tab
             key="patients"
@@ -372,50 +416,6 @@ export default function ClinicProfile({
               </Well>
 
               <RecentPatients />
-            </div>
-          </Tab>
-
-          {/* Clinicians Tab */}
-          <Tab
-            key="clinicians"
-            title={
-              <div className="flex items-center gap-2">
-                <UserCog className="w-4 h-4" />
-                <span>Clinicians</span>
-                {totalClinicians > 0 && (
-                  <span className="text-xs bg-default-100 px-1.5 py-0.5 rounded-full">
-                    {totalClinicians}
-                  </span>
-                )}
-              </div>
-            }
-          >
-            <div className="pt-6 flex flex-col gap-6">
-              <Well>
-                <CliniciansTable
-                  clinicians={clinicians}
-                  totalClinicians={totalClinicians}
-                  isLoading={cliniciansLoading}
-                  totalPages={cliniciansTotalPages}
-                  currentPage={cliniciansCurrentPage}
-                  pageSize={cliniciansPageSize}
-                  onPageChange={onCliniciansPageChange}
-                  onSearch={onCliniciansSearch}
-                  currentSearch={currentCliniciansSearch}
-                  onRemoveClinician={onRemoveClinician}
-                />
-              </Well>
-
-              <Well>
-                <ClinicianInvitesTable
-                  invites={clinicianInvites}
-                  isLoading={clinicianInvitesLoading}
-                  totalInvites={totalClinicianInvites}
-                  onRevokeInvite={onRevokeClinicianInvite}
-                />
-              </Well>
-
-              <RecentClinicians />
             </div>
           </Tab>
 
