@@ -365,9 +365,9 @@ These features are identified as "New" in the product planning document and need
 
 | Feature                      | Description                            | API Endpoint                                                  | Status | Logging Required |
 | ---------------------------- | -------------------------------------- | ------------------------------------------------------------- | ------ | ---------------- |
-| Revoke Clinician Invitation  | Cancel pending clinician invite        | DELETE `/v1/clinics/{clinicId}/invites/clinicians/{inviteId}` | [ ]    | Yes              |
-| Remove Clinician from Clinic | Remove clinician access from workspace | DELETE `/v1/clinics/{clinicId}/clinicians/{clinicianId}`      | [ ]    | Yes              |
-| Revoke Patient Invitation    | Cancel pending patient invite          | DELETE `/v1/clinics/{clinicId}/invites/patients/{inviteId}`   | [ ]    | Yes              |
+| Revoke Clinician Invitation  | Cancel pending clinician invite        | DELETE `/v1/clinics/{clinicId}/invites/clinicians/{inviteId}` | [x]    | Yes              |
+| Remove Clinician from Clinic | Remove clinician access from workspace | DELETE `/v1/clinics/{clinicId}/clinicians/{clinicianId}`      | [x]    | Yes              |
+| Revoke Patient Invitation    | Cancel pending patient invite          | DELETE `/v1/clinics/{clinicId}/invites/patients/{inviteId}`   | [x]    | Yes              |
 
 ### Phase 4: UX Enhancements (Lower Priority)
 

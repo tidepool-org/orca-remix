@@ -174,6 +174,69 @@ export async function action({ request, params }: ActionFunctionArgs) {
     }
   }
 
+  if (actionType === 'revokeClinicianInvite') {
+    const inviteId = formData.get('inviteId') as string;
+
+    if (!inviteId) {
+      return errorResponse('Invite ID is required', 400);
+    }
+
+    try {
+      await apiRequest({
+        ...apiRoutes.clinic.deleteClinicianInvite(clinicId, inviteId),
+      });
+
+      return Response.json({
+        success: true,
+        message: 'Clinician invitation revoked successfully',
+      });
+    } catch (error) {
+      return errorResponse(error, 500);
+    }
+  }
+
+  if (actionType === 'removeClinician') {
+    const clinicianId = formData.get('clinicianId') as string;
+
+    if (!clinicianId) {
+      return errorResponse('Clinician ID is required', 400);
+    }
+
+    try {
+      await apiRequest({
+        ...apiRoutes.clinic.deleteClinician(clinicId, clinicianId),
+      });
+
+      return Response.json({
+        success: true,
+        message: 'Clinician removed from clinic successfully',
+      });
+    } catch (error) {
+      return errorResponse(error, 500);
+    }
+  }
+
+  if (actionType === 'revokePatientInvite') {
+    const inviteId = formData.get('inviteId') as string;
+
+    if (!inviteId) {
+      return errorResponse('Invite ID is required', 400);
+    }
+
+    try {
+      await apiRequest({
+        ...apiRoutes.clinic.deletePatientInvite(clinicId, inviteId),
+      });
+
+      return Response.json({
+        success: true,
+        message: 'Patient invitation revoked successfully',
+      });
+    } catch (error) {
+      return errorResponse(error, 500);
+    }
+  }
+
   return errorResponse('Invalid action', 400);
 }
 
@@ -595,6 +658,39 @@ export default function Clinics() {
     submit(formData, { method: 'post' });
   }, [submit]);
 
+  const handleRevokeClinicianInvite = useCallback(
+    (inviteId: string) => {
+      const formData = new FormData();
+      formData.append('actionType', 'revokeClinicianInvite');
+      formData.append('inviteId', inviteId);
+
+      submit(formData, { method: 'post' });
+    },
+    [submit],
+  );
+
+  const handleRemoveClinician = useCallback(
+    (clinicianId: string) => {
+      const formData = new FormData();
+      formData.append('actionType', 'removeClinician');
+      formData.append('clinicianId', clinicianId);
+
+      submit(formData, { method: 'post' });
+    },
+    [submit],
+  );
+
+  const handleRevokePatientInvite = useCallback(
+    (inviteId: string) => {
+      const formData = new FormData();
+      formData.append('actionType', 'revokePatientInvite');
+      formData.append('inviteId', inviteId);
+
+      submit(formData, { method: 'post' });
+    },
+    [submit],
+  );
+
   // Check if we're currently submitting a tier update
   const isSubmitting =
     navigation.state === 'submitting' &&
@@ -654,6 +750,9 @@ export default function Clinics() {
             onMrnSettingsUpdate={handleMrnSettingsUpdate}
             onPatientLimitUpdate={handlePatientLimitUpdate}
             onDeleteClinic={handleDeleteClinic}
+            onRevokeClinicianInvite={handleRevokeClinicianInvite}
+            onRemoveClinician={handleRemoveClinician}
+            onRevokePatientInvite={handleRevokePatientInvite}
             isSubmitting={isSubmitting}
           />
         )}

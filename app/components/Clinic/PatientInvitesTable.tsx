@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router';
 import {
   Table,
@@ -9,13 +9,16 @@ import {
   TableCell,
   Pagination,
   Spinner,
+  Button,
+  Tooltip,
 } from '@heroui/react';
-import { Mail } from 'lucide-react';
+import { Mail, Trash2 } from 'lucide-react';
 import { intlFormat } from 'date-fns';
 import useLocale from '~/hooks/useLocale';
 import CollapsibleTableWrapper from '../CollapsibleTableWrapper';
 import { collapsibleTableClasses } from '~/utils/tableStyles';
 import type { PatientInvite } from './types';
+import ConfirmationModal from '../ConfirmationModal';
 
 export type PatientInvitesTableProps = {
   invites: PatientInvite[];
@@ -25,6 +28,7 @@ export type PatientInvitesTableProps = {
   currentPage?: number;
   pageSize?: number;
   onPageChange?: (page: number) => void;
+  onRevokeInvite?: (inviteId: string) => void;
 };
 
 type Column = {
@@ -39,6 +43,7 @@ const columns: Column[] = [
   { key: 'userId', label: 'USER ID', sortable: false },
   { key: 'created', label: 'INVITED', sortable: false },
   { key: 'expiresAt', label: 'EXPIRES', sortable: false },
+  { key: 'actions', label: 'ACTIONS', sortable: false },
 ];
 
 export default function PatientInvitesTable({
@@ -49,10 +54,15 @@ export default function PatientInvitesTable({
   currentPage = 1,
   pageSize,
   onPageChange,
+  onRevokeInvite,
 }: PatientInvitesTableProps) {
   const { locale } = useLocale();
   const navigate = useNavigate();
-  const [isExpanded, setIsExpanded] = React.useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [revokeModalOpen, setRevokeModalOpen] = useState(false);
+  const [selectedInvite, setSelectedInvite] = useState<PatientInvite | null>(
+    null,
+  );
 
   // Filter to pending invites only
   const pendingInvites = React.useMemo(() => {
@@ -69,6 +79,19 @@ export default function PatientInvitesTable({
     currentPage * effectivePageSize,
     pendingInvites.length,
   );
+
+  const handleRevokeClick = (invite: PatientInvite) => {
+    setSelectedInvite(invite);
+    setRevokeModalOpen(true);
+  };
+
+  const handleConfirmRevoke = () => {
+    if (selectedInvite && onRevokeInvite) {
+      onRevokeInvite(selectedInvite.key);
+    }
+    setRevokeModalOpen(false);
+    setSelectedInvite(null);
+  };
 
   const renderCell = React.useCallback(
     (
@@ -128,11 +151,27 @@ export default function PatientInvitesTable({
               )}
             </p>
           );
+        case 'actions':
+          return (
+            <Tooltip content="Revoke invitation" color="danger">
+              <Button
+                isIconOnly
+                size="sm"
+                color="danger"
+                variant="light"
+                onPress={() => handleRevokeClick(invite)}
+                aria-label="Revoke invitation"
+                isDisabled={!onRevokeInvite}
+              >
+                <Trash2 size={16} />
+              </Button>
+            </Tooltip>
+          );
         default:
           return <span className="text-default-400">—</span>;
       }
     },
-    [locale],
+    [locale, onRevokeInvite],
   );
 
   const EmptyContent = (
@@ -151,81 +190,96 @@ export default function PatientInvitesTable({
   );
 
   return (
-    <CollapsibleTableWrapper
-      icon={<Mail className="h-5 w-5" />}
-      title="Pending Patient Invites"
-      totalItems={pendingInvites.length}
-      isExpanded={isExpanded}
-      onToggle={() => setIsExpanded(!isExpanded)}
-      showRange={{
-        firstItem: firstInviteOnPage,
-        lastItem: lastInviteOnPage,
-      }}
-      defaultExpanded={false}
-    >
-      <Table
-        aria-label="Clinic patient invites table"
-        className="flex flex-1 flex-col text-content1-foreground gap-4"
-        shadow="none"
-        removeWrapper
-        selectionMode="single"
-        onSelectionChange={(keys: 'all' | Set<React.Key>) => {
-          const invite = pendingInvites.find(
-            (inv) =>
-              inv.key === (keys instanceof Set ? Array.from(keys)[0] : keys),
-          );
-          if (invite?.creator?.userid)
-            navigate(`/users/${invite.creator.userid}`);
+    <>
+      <CollapsibleTableWrapper
+        icon={<Mail className="h-5 w-5" />}
+        title="Pending Patient Invites"
+        totalItems={pendingInvites.length}
+        isExpanded={isExpanded}
+        onToggle={() => setIsExpanded(!isExpanded)}
+        showRange={{
+          firstItem: firstInviteOnPage,
+          lastItem: lastInviteOnPage,
         }}
-        classNames={collapsibleTableClasses}
+        defaultExpanded={false}
       >
-        <TableHeader columns={columns}>
-          {(column) => (
-            <TableColumn
-              key={column.key}
-              className="text-content1-foreground font-medium"
-            >
-              {column.label}
-            </TableColumn>
-          )}
-        </TableHeader>
-        <TableBody
-          emptyContent={EmptyContent}
-          loadingContent={LoadingContent}
-          isLoading={isLoading}
-          items={pendingInvites || []}
+        <Table
+          aria-label="Clinic patient invites table"
+          className="flex flex-1 flex-col text-content1-foreground gap-4"
+          shadow="none"
+          removeWrapper
+          selectionMode="single"
+          onSelectionChange={(keys: 'all' | Set<React.Key>) => {
+            const invite = pendingInvites.find(
+              (inv) =>
+                inv.key === (keys instanceof Set ? Array.from(keys)[0] : keys),
+            );
+            if (invite?.creator?.userid)
+              navigate(`/users/${invite.creator.userid}`);
+          }}
+          classNames={collapsibleTableClasses}
         >
-          {(invite) => (
-            <TableRow key={invite.key}>
-              {(columnKey) => (
-                <TableCell>
-                  {renderCell(
-                    invite,
-                    columnKey as
-                      | keyof PatientInvite
-                      | 'actions'
-                      | 'patientName'
-                      | 'birthday'
-                      | 'userId',
-                  )}
-                </TableCell>
-              )}
-            </TableRow>
-          )}
-        </TableBody>
-      </Table>
+          <TableHeader columns={columns}>
+            {(column) => (
+              <TableColumn
+                key={column.key}
+                className="text-content1-foreground font-medium"
+              >
+                {column.label}
+              </TableColumn>
+            )}
+          </TableHeader>
+          <TableBody
+            emptyContent={EmptyContent}
+            loadingContent={LoadingContent}
+            isLoading={isLoading}
+            items={pendingInvites || []}
+          >
+            {(invite) => (
+              <TableRow key={invite.key}>
+                {(columnKey) => (
+                  <TableCell>
+                    {renderCell(
+                      invite,
+                      columnKey as
+                        | keyof PatientInvite
+                        | 'actions'
+                        | 'patientName'
+                        | 'birthday'
+                        | 'userId',
+                    )}
+                  </TableCell>
+                )}
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
 
-      {totalPages > 1 && (
-        <div className="flex justify-center mt-4">
-          <Pagination
-            page={currentPage}
-            total={totalPages}
-            onChange={onPageChange}
-            showControls
-            showShadow
-          />
-        </div>
-      )}
-    </CollapsibleTableWrapper>
+        {totalPages > 1 && (
+          <div className="flex justify-center mt-4">
+            <Pagination
+              page={currentPage}
+              total={totalPages}
+              onChange={onPageChange}
+              showControls
+              showShadow
+            />
+          </div>
+        )}
+      </CollapsibleTableWrapper>
+
+      <ConfirmationModal
+        isOpen={revokeModalOpen}
+        onClose={() => {
+          setRevokeModalOpen(false);
+          setSelectedInvite(null);
+        }}
+        onConfirm={handleConfirmRevoke}
+        title="Revoke Patient Invitation"
+        description={`Are you sure you want to revoke this patient invitation? ${selectedInvite?.creator?.profile?.patient?.fullName || selectedInvite?.creator?.profile?.fullName || 'This patient'} will no longer be able to join this clinic using this invite.`}
+        confirmText="Revoke Invitation"
+        confirmVariant="danger"
+      />
+    </>
   );
 }

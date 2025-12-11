@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import {
   Table,
@@ -10,14 +10,17 @@ import {
   Pagination,
   Spinner,
   Chip,
+  Button,
+  Tooltip,
 } from '@heroui/react';
-import { UserCheck } from 'lucide-react';
+import { UserCheck, Trash2 } from 'lucide-react';
 import { intlFormat } from 'date-fns';
 import useLocale from '~/hooks/useLocale';
 import CollapsibleTableWrapper from '../CollapsibleTableWrapper';
 import { collapsibleTableClasses } from '~/utils/tableStyles';
 import type { Clinician } from './types';
 import DebouncedSearchInput from '../DebouncedSearchInput';
+import ConfirmationModal from '../ConfirmationModal';
 export type CliniciansTableProps = {
   clinicians: Clinician[];
   totalClinicians: number;
@@ -28,10 +31,11 @@ export type CliniciansTableProps = {
   onPageChange?: (page: number) => void;
   onSearch?: (search: string) => void;
   currentSearch?: string;
+  onRemoveClinician?: (clinicianId: string) => void;
 };
 
 type Column = {
-  key: keyof Clinician;
+  key: string;
   label: string;
   sortable?: boolean;
 };
@@ -46,11 +50,16 @@ export default function CliniciansTable({
   onPageChange,
   onSearch,
   currentSearch,
+  onRemoveClinician,
 }: CliniciansTableProps) {
   const { locale } = useLocale();
   const navigate = useNavigate();
   const params = useParams();
-  const [isExpanded, setIsExpanded] = React.useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [removeModalOpen, setRemoveModalOpen] = useState(false);
+  const [selectedClinician, setSelectedClinician] = useState<Clinician | null>(
+    null,
+  );
 
   // Calculate pagination details
   const effectivePageSize =
@@ -84,10 +93,28 @@ export default function CliniciansTable({
       label: 'Added',
       sortable: false,
     },
+    {
+      key: 'actions',
+      label: 'Actions',
+      sortable: false,
+    },
   ];
 
+  const handleRemoveClick = (clinician: Clinician) => {
+    setSelectedClinician(clinician);
+    setRemoveModalOpen(true);
+  };
+
+  const handleConfirmRemove = () => {
+    if (selectedClinician && onRemoveClinician) {
+      onRemoveClinician(selectedClinician.id);
+    }
+    setRemoveModalOpen(false);
+    setSelectedClinician(null);
+  };
+
   const renderCell = React.useCallback(
-    (clinician: Clinician, columnKey: keyof Clinician) => {
+    (clinician: Clinician, columnKey: string) => {
       const cellValue = clinician[columnKey as keyof Clinician];
 
       switch (columnKey) {
@@ -136,11 +163,27 @@ export default function CliniciansTable({
               )}
             </p>
           );
+        case 'actions':
+          return (
+            <Tooltip content="Remove clinician" color="danger">
+              <Button
+                isIconOnly
+                size="sm"
+                color="danger"
+                variant="light"
+                onPress={() => handleRemoveClick(clinician)}
+                aria-label="Remove clinician"
+                isDisabled={!onRemoveClinician}
+              >
+                <Trash2 size={16} />
+              </Button>
+            </Tooltip>
+          );
         default:
           return cellValue;
       }
     },
-    [locale],
+    [locale, onRemoveClinician],
   );
 
   const EmptyContent = (
@@ -159,76 +202,91 @@ export default function CliniciansTable({
   );
 
   return (
-    <CollapsibleTableWrapper
-      icon={<UserCheck className="h-5 w-5" />}
-      title="Clinicians"
-      totalItems={totalClinicians}
-      isExpanded={isExpanded}
-      onToggle={() => setIsExpanded(!isExpanded)}
-      showRange={{
-        firstItem: firstClinicianOnPage,
-        lastItem: lastClinicianOnPage,
-      }}
-      defaultExpanded={false}
-    >
-      {/* Search Controls */}
-      <div className="flex justify-start mb-4 p-4 bg-content1 rounded-lg">
-        <DebouncedSearchInput
-          placeholder="Search clinicians..."
-          value={currentSearch || ''}
-          onSearch={(value) => onSearch?.(value)}
-          debounceMs={1000}
-        />
-      </div>
-
-      <Table
-        aria-label="Clinic clinicians table"
-        className="flex flex-1 flex-col text-content1-foreground gap-4"
-        shadow="none"
-        removeWrapper
-        selectionMode="single"
-        onSelectionChange={(keys: 'all' | Set<React.Key>) => {
-          const key = keys instanceof Set ? Array.from(keys)[0] : keys;
-          if (key && key !== 'all')
-            navigate(`/clinics/${params.clinicId}/clinicians/${key}`);
+    <>
+      <CollapsibleTableWrapper
+        icon={<UserCheck className="h-5 w-5" />}
+        title="Clinicians"
+        totalItems={totalClinicians}
+        isExpanded={isExpanded}
+        onToggle={() => setIsExpanded(!isExpanded)}
+        showRange={{
+          firstItem: firstClinicianOnPage,
+          lastItem: lastClinicianOnPage,
         }}
-        classNames={collapsibleTableClasses}
+        defaultExpanded={false}
       >
-        <TableHeader columns={columns}>
-          {(column) => (
-            <TableColumn key={column.key} className="text-left">
-              {column.label}
-            </TableColumn>
-          )}
-        </TableHeader>
-        <TableBody
-          emptyContent={EmptyContent}
-          loadingContent={LoadingContent}
-          loadingState={isLoading ? 'loading' : 'idle'}
-        >
-          {clinicians.map((clinician) => (
-            <TableRow key={clinician.id}>
-              {(columnKey) => (
-                <TableCell>
-                  {renderCell(clinician, columnKey as keyof Clinician)}
-                </TableCell>
-              )}
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-
-      {totalPages > 1 && (
-        <div className="flex justify-center mt-4">
-          <Pagination
-            page={currentPage}
-            total={totalPages}
-            onChange={onPageChange}
-            showControls
-            showShadow
+        {/* Search Controls */}
+        <div className="flex justify-start mb-4 p-4 bg-content1 rounded-lg">
+          <DebouncedSearchInput
+            placeholder="Search clinicians..."
+            value={currentSearch || ''}
+            onSearch={(value) => onSearch?.(value)}
+            debounceMs={1000}
           />
         </div>
-      )}
-    </CollapsibleTableWrapper>
+
+        <Table
+          aria-label="Clinic clinicians table"
+          className="flex flex-1 flex-col text-content1-foreground gap-4"
+          shadow="none"
+          removeWrapper
+          selectionMode="single"
+          onSelectionChange={(keys: 'all' | Set<React.Key>) => {
+            const key = keys instanceof Set ? Array.from(keys)[0] : keys;
+            if (key && key !== 'all')
+              navigate(`/clinics/${params.clinicId}/clinicians/${key}`);
+          }}
+          classNames={collapsibleTableClasses}
+        >
+          <TableHeader columns={columns}>
+            {(column) => (
+              <TableColumn key={column.key} className="text-left">
+                {column.label}
+              </TableColumn>
+            )}
+          </TableHeader>
+          <TableBody
+            emptyContent={EmptyContent}
+            loadingContent={LoadingContent}
+            loadingState={isLoading ? 'loading' : 'idle'}
+          >
+            {clinicians.map((clinician) => (
+              <TableRow key={clinician.id}>
+                {(columnKey) => (
+                  <TableCell>
+                    {renderCell(clinician, columnKey as string)}
+                  </TableCell>
+                )}
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+
+        {totalPages > 1 && (
+          <div className="flex justify-center mt-4">
+            <Pagination
+              page={currentPage}
+              total={totalPages}
+              onChange={onPageChange}
+              showControls
+              showShadow
+            />
+          </div>
+        )}
+      </CollapsibleTableWrapper>
+
+      <ConfirmationModal
+        isOpen={removeModalOpen}
+        onClose={() => {
+          setRemoveModalOpen(false);
+          setSelectedClinician(null);
+        }}
+        onConfirm={handleConfirmRemove}
+        title="Remove Clinician"
+        description={`Are you sure you want to remove ${selectedClinician?.name || 'this clinician'} from this clinic? They will lose access to all clinic data and patients.`}
+        confirmText="Remove Clinician"
+        confirmVariant="danger"
+      />
+    </>
   );
 }

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Table,
   TableHeader,
@@ -8,18 +8,22 @@ import {
   TableCell,
   Spinner,
   Chip,
+  Button,
+  Tooltip,
 } from '@heroui/react';
-import { UserPlus } from 'lucide-react';
+import { UserPlus, Trash2 } from 'lucide-react';
 import { intlFormat } from 'date-fns';
 import useLocale from '~/hooks/useLocale';
 import CollapsibleTableWrapper from '../CollapsibleTableWrapper';
 import { collapsibleTableClasses } from '~/utils/tableStyles';
+import ConfirmationModal from '../ConfirmationModal';
 import type { ClinicianInvite } from './types';
 
 export type ClinicianInvitesTableProps = {
   invites: ClinicianInvite[];
   totalInvites: number;
   isLoading?: boolean;
+  onRevokeInvite?: (inviteId: string) => void;
 };
 
 type Column = {
@@ -32,6 +36,7 @@ const columns: Column[] = [
   { key: 'roles', label: 'ROLE' },
   { key: 'createdTime', label: 'INVITED' },
   { key: 'status', label: 'STATUS' },
+  { key: 'actions', label: 'ACTIONS' },
 ];
 
 export default function ClinicianInvitesTable({
@@ -40,14 +45,32 @@ export default function ClinicianInvitesTable({
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   totalInvites: _totalInvites = 0,
   isLoading = false,
+  onRevokeInvite,
 }: ClinicianInvitesTableProps) {
   const { locale } = useLocale();
-  const [isExpanded, setIsExpanded] = React.useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [revokeModalOpen, setRevokeModalOpen] = useState(false);
+  const [selectedInvite, setSelectedInvite] = useState<ClinicianInvite | null>(
+    null,
+  );
 
   // Filter to pending invites only
   const pendingInvites = React.useMemo(() => {
     return invites.filter((invite) => invite.status === 'pending');
   }, [invites]);
+
+  const handleRevokeClick = (invite: ClinicianInvite) => {
+    setSelectedInvite(invite);
+    setRevokeModalOpen(true);
+  };
+
+  const handleConfirmRevoke = () => {
+    if (selectedInvite && onRevokeInvite) {
+      onRevokeInvite(selectedInvite.inviteId);
+    }
+    setRevokeModalOpen(false);
+    setSelectedInvite(null);
+  };
 
   const renderCell = React.useCallback(
     (invite: ClinicianInvite, columnKey: string) => {
@@ -112,11 +135,27 @@ export default function ClinicianInvitesTable({
               {invite.status}
             </Chip>
           );
+        case 'actions':
+          return (
+            <Tooltip content="Revoke invitation" color="danger">
+              <Button
+                isIconOnly
+                size="sm"
+                color="danger"
+                variant="light"
+                onPress={() => handleRevokeClick(invite)}
+                aria-label="Revoke invitation"
+                isDisabled={!onRevokeInvite}
+              >
+                <Trash2 size={16} />
+              </Button>
+            </Tooltip>
+          );
         default:
           return <span className="text-default-400">-</span>;
       }
     },
-    [locale],
+    [locale, onRevokeInvite],
   );
 
   const EmptyContent = (
@@ -138,46 +177,63 @@ export default function ClinicianInvitesTable({
   );
 
   return (
-    <CollapsibleTableWrapper
-      icon={<UserPlus className="h-5 w-5" />}
-      title="Pending Clinician Invites"
-      totalItems={pendingInvites.length}
-      isExpanded={isExpanded}
-      onToggle={() => setIsExpanded(!isExpanded)}
-      defaultExpanded={false}
-    >
-      <Table
-        aria-label="Clinic clinician invites table"
-        className="flex flex-1 flex-col text-content1-foreground gap-4"
-        shadow="none"
-        removeWrapper
-        classNames={collapsibleTableClasses}
+    <>
+      <CollapsibleTableWrapper
+        icon={<UserPlus className="h-5 w-5" />}
+        title="Pending Clinician Invites"
+        totalItems={pendingInvites.length}
+        isExpanded={isExpanded}
+        onToggle={() => setIsExpanded(!isExpanded)}
+        defaultExpanded={false}
       >
-        <TableHeader columns={columns}>
-          {(column) => (
-            <TableColumn
-              key={column.key}
-              className="text-content1-foreground font-medium"
-            >
-              {column.label}
-            </TableColumn>
-          )}
-        </TableHeader>
-        <TableBody
-          emptyContent={EmptyContent}
-          loadingContent={LoadingContent}
-          isLoading={isLoading}
-          items={pendingInvites || []}
+        <Table
+          aria-label="Clinic clinician invites table"
+          className="flex flex-1 flex-col text-content1-foreground gap-4"
+          shadow="none"
+          removeWrapper
+          classNames={collapsibleTableClasses}
         >
-          {(invite) => (
-            <TableRow key={invite.inviteId}>
-              {(columnKey) => (
-                <TableCell>{renderCell(invite, columnKey as string)}</TableCell>
-              )}
-            </TableRow>
-          )}
-        </TableBody>
-      </Table>
-    </CollapsibleTableWrapper>
+          <TableHeader columns={columns}>
+            {(column) => (
+              <TableColumn
+                key={column.key}
+                className="text-content1-foreground font-medium"
+              >
+                {column.label}
+              </TableColumn>
+            )}
+          </TableHeader>
+          <TableBody
+            emptyContent={EmptyContent}
+            loadingContent={LoadingContent}
+            isLoading={isLoading}
+            items={pendingInvites || []}
+          >
+            {(invite) => (
+              <TableRow key={invite.inviteId}>
+                {(columnKey) => (
+                  <TableCell>
+                    {renderCell(invite, columnKey as string)}
+                  </TableCell>
+                )}
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </CollapsibleTableWrapper>
+
+      <ConfirmationModal
+        isOpen={revokeModalOpen}
+        onClose={() => {
+          setRevokeModalOpen(false);
+          setSelectedInvite(null);
+        }}
+        onConfirm={handleConfirmRevoke}
+        title="Revoke Clinician Invitation"
+        description={`Are you sure you want to revoke this invitation? ${selectedInvite?.email || 'This person'} will no longer be able to join this clinic using this invite.`}
+        confirmText="Revoke Invitation"
+        confirmVariant="danger"
+      />
+    </>
   );
 }

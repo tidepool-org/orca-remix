@@ -296,6 +296,24 @@ export const apiRoutes = {
       path: `/v1/clinics/${targetClinicId}/merge`,
       body: { sourceId: sourceClinicId },
     }),
+    // Delete clinician invitation
+    // ref https://tidepool.redocly.app/reference/clinic.v1/confirmations/deleteclinicianinvite
+    deleteClinicianInvite: (clinicId: string, inviteId: string) => ({
+      method: 'delete',
+      path: `/v1/clinics/${clinicId}/invites/clinicians/${inviteId}`,
+    }),
+    // Remove clinician from clinic
+    // ref https://tidepool.redocly.app/reference/clinic.v1/clinics/deleteclinician
+    deleteClinician: (clinicId: string, clinicianId: string) => ({
+      method: 'delete',
+      path: `/v1/clinics/${clinicId}/clinicians/${clinicianId}`,
+    }),
+    // Delete patient invitation
+    // ref https://tidepool.redocly.app/reference/clinic.v1/confirmations/deletepatientinvitation
+    deletePatientInvite: (clinicId: string, inviteId: string) => ({
+      method: 'delete',
+      path: `/v1/clinics/${clinicId}/invites/patients/${inviteId}`,
+    }),
   },
   prescription: {
     // ref https://tidepool.redocly.app/reference/prescription.v1

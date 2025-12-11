@@ -16,7 +16,6 @@ import {
   Users,
   UserCog,
   FileText,
-  Clock,
   Settings,
   Trash2,
   Check,
@@ -107,6 +106,9 @@ export type ClinicProfileProps = {
     hardLimitPlan: number | null,
   ) => void;
   onDeleteClinic?: () => void;
+  onRevokeClinicianInvite?: (inviteId: string) => void;
+  onRemoveClinician?: (clinicianId: string) => void;
+  onRevokePatientInvite?: (inviteId: string) => void;
   isSubmitting?: boolean;
 };
 
@@ -148,6 +150,9 @@ export default function ClinicProfile({
   onMrnSettingsUpdate,
   onPatientLimitUpdate,
   onDeleteClinic,
+  onRevokeClinicianInvite,
+  onRemoveClinician,
+  onRevokePatientInvite,
   isSubmitting = false,
 }: ClinicProfileProps) {
   const { id, shareCode, name, createdTime, canMigrate, tier, timezone } =
@@ -424,8 +429,11 @@ export default function ClinicProfile({
                   invites={patientInvites}
                   isLoading={invitesLoading}
                   totalInvites={totalInvites}
+                  onRevokeInvite={onRevokePatientInvite}
                 />
               </Well>
+
+              <RecentPatients />
             </div>
           </Tab>
 
@@ -456,6 +464,7 @@ export default function ClinicProfile({
                   onPageChange={onCliniciansPageChange}
                   onSearch={onCliniciansSearch}
                   currentSearch={currentCliniciansSearch}
+                  onRemoveClinician={onRemoveClinician}
                 />
               </Well>
 
@@ -464,8 +473,11 @@ export default function ClinicProfile({
                   invites={clinicianInvites}
                   isLoading={clinicianInvitesLoading}
                   totalInvites={totalClinicianInvites}
+                  onRevokeInvite={onRevokeClinicianInvite}
                 />
               </Well>
+
+              <RecentClinicians />
             </div>
           </Tab>
 
@@ -703,24 +715,6 @@ export default function ClinicProfile({
                   </Button>
                 </div>
               </Well>
-            </div>
-          </Tab>
-
-          {/* Recent Activity Tab */}
-          <Tab
-            key="recent"
-            title={
-              <div className="flex items-center gap-2">
-                <Clock className="w-4 h-4" />
-                <span>Recent</span>
-              </div>
-            }
-          >
-            <div className="pt-6">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <RecentPatients />
-                <RecentClinicians />
-              </div>
             </div>
           </Tab>
         </Tabs>
