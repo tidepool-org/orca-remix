@@ -301,13 +301,11 @@ export default function PatientProfile({
             }
           >
             <div className="pt-6">
-              <Well>
-                <ClinicsTable
-                  clinics={patientClinics}
-                  totalClinics={patientClinics.length}
-                  showPermissions={true}
-                />
-              </Well>
+              <ClinicsTable
+                clinics={patientClinics}
+                totalClinics={patientClinics.length}
+                showPermissions={true}
+              />
             </div>
           </Tab>
 
@@ -327,18 +325,10 @@ export default function PatientProfile({
             }
           >
             <div className="pt-6 flex flex-col gap-6">
-              <Well>
-                <TrustingAccountsTable accounts={trustingAccounts} />
-              </Well>
-              <Well>
-                <TrustedAccountsTable accounts={trustedAccounts} />
-              </Well>
-              <Well>
-                <SentInvitesTable invites={sentInvites} />
-              </Well>
-              <Well>
-                <ReceivedInvitesTable invites={receivedInvites} />
-              </Well>
+              <TrustingAccountsTable accounts={trustingAccounts} />
+              <TrustedAccountsTable accounts={trustedAccounts} />
+              <SentInvitesTable invites={sentInvites} />
+              <ReceivedInvitesTable invites={receivedInvites} />
             </div>
           </Tab>
 
@@ -358,18 +348,14 @@ export default function PatientProfile({
             }
           >
             <div className="pt-6 flex flex-col gap-6">
-              <Well>
-                <DataSetsTable
-                  dataSets={dataSets}
-                  totalDataSets={totalDataSets}
-                />
-              </Well>
-              <Well>
-                <DataSourcesTable
-                  dataSources={dataSources}
-                  totalDataSources={totalDataSources}
-                />
-              </Well>
+              <DataSetsTable
+                dataSets={dataSets}
+                totalDataSets={totalDataSets}
+              />
+              <DataSourcesTable
+                dataSources={dataSources}
+                totalDataSources={totalDataSources}
+              />
               <Well>
                 <DataExportSection userId={id} />
               </Well>
@@ -392,12 +378,10 @@ export default function PatientProfile({
             }
           >
             <div className="pt-6">
-              <Well>
-                <PumpSettingsSection
-                  pumpSettings={pumpSettings}
-                  isLoading={isPumpSettingsLoading}
-                />
-              </Well>
+              <PumpSettingsSection
+                pumpSettings={pumpSettings}
+                isLoading={isPumpSettingsLoading}
+              />
             </div>
           </Tab>
 
@@ -417,14 +401,12 @@ export default function PatientProfile({
             }
           >
             <div className="pt-6">
-              <Well>
-                <PrescriptionsTable
-                  prescriptions={prescriptions}
-                  totalPrescriptions={totalPrescriptions}
-                  isLoading={prescriptionsLoading}
-                  clinicId={clinicId}
-                />
-              </Well>
+              <PrescriptionsTable
+                prescriptions={prescriptions}
+                totalPrescriptions={totalPrescriptions}
+                isLoading={prescriptionsLoading}
+                clinicId={clinicId}
+              />
             </div>
           </Tab>
         </Tabs>

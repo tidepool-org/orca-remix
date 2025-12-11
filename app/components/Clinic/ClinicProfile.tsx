@@ -345,29 +345,25 @@ export default function ClinicProfile({
             }
           >
             <div className="pt-6 flex flex-col gap-6">
-              <Well>
-                <CliniciansTable
-                  clinicians={clinicians}
-                  totalClinicians={totalClinicians}
-                  isLoading={cliniciansLoading}
-                  totalPages={cliniciansTotalPages}
-                  currentPage={cliniciansCurrentPage}
-                  pageSize={cliniciansPageSize}
-                  onPageChange={onCliniciansPageChange}
-                  onSearch={onCliniciansSearch}
-                  currentSearch={currentCliniciansSearch}
-                  onRemoveClinician={onRemoveClinician}
-                />
-              </Well>
+              <CliniciansTable
+                clinicians={clinicians}
+                totalClinicians={totalClinicians}
+                isLoading={cliniciansLoading}
+                totalPages={cliniciansTotalPages}
+                currentPage={cliniciansCurrentPage}
+                pageSize={cliniciansPageSize}
+                onPageChange={onCliniciansPageChange}
+                onSearch={onCliniciansSearch}
+                currentSearch={currentCliniciansSearch}
+                onRemoveClinician={onRemoveClinician}
+              />
 
-              <Well>
-                <ClinicianInvitesTable
-                  invites={clinicianInvites}
-                  isLoading={clinicianInvitesLoading}
-                  totalInvites={totalClinicianInvites}
-                  onRevokeInvite={onRevokeClinicianInvite}
-                />
-              </Well>
+              <ClinicianInvitesTable
+                invites={clinicianInvites}
+                isLoading={clinicianInvitesLoading}
+                totalInvites={totalClinicianInvites}
+                onRevokeInvite={onRevokeClinicianInvite}
+              />
 
               <RecentClinicians />
             </div>
@@ -389,31 +385,27 @@ export default function ClinicProfile({
             }
           >
             <div className="pt-6 flex flex-col gap-6">
-              <Well>
-                <PatientsTable
-                  patients={patients}
-                  isLoading={patientsLoading}
-                  totalPages={totalPages}
-                  totalPatients={totalPatients}
-                  currentPage={currentPage}
-                  pageSize={pageSize}
-                  onPageChange={onPageChange}
-                  onSort={onSort}
-                  onSearch={onSearch}
-                  currentSort={currentSort}
-                  currentSearch={currentSearch}
-                  clinic={clinic}
-                />
-              </Well>
+              <PatientsTable
+                patients={patients}
+                isLoading={patientsLoading}
+                totalPages={totalPages}
+                totalPatients={totalPatients}
+                currentPage={currentPage}
+                pageSize={pageSize}
+                onPageChange={onPageChange}
+                onSort={onSort}
+                onSearch={onSearch}
+                currentSort={currentSort}
+                currentSearch={currentSearch}
+                clinic={clinic}
+              />
 
-              <Well>
-                <PatientInvitesTable
-                  invites={patientInvites}
-                  isLoading={invitesLoading}
-                  totalInvites={totalInvites}
-                  onRevokeInvite={onRevokePatientInvite}
-                />
-              </Well>
+              <PatientInvitesTable
+                invites={patientInvites}
+                isLoading={invitesLoading}
+                totalInvites={totalInvites}
+                onRevokeInvite={onRevokePatientInvite}
+              />
 
               <RecentPatients />
             </div>
@@ -435,14 +427,12 @@ export default function ClinicProfile({
             }
           >
             <div className="pt-6">
-              <Well>
-                <PrescriptionsTable
-                  prescriptions={prescriptions}
-                  totalPrescriptions={totalPrescriptions}
-                  isLoading={prescriptionsLoading}
-                  clinicId={id}
-                />
-              </Well>
+              <PrescriptionsTable
+                prescriptions={prescriptions}
+                totalPrescriptions={totalPrescriptions}
+                isLoading={prescriptionsLoading}
+                clinicId={id}
+              />
             </div>
           </Tab>
 

@@ -160,14 +160,12 @@ export default function UserProfile({
           <UserActions user={user} />
         </Well>
 
-        <Well>
-          <ClinicsTable
-            clinics={clinics}
-            totalClinics={totalClinics}
-            totalPages={1}
-            currentPage={1}
-          />
-        </Well>
+        <ClinicsTable
+          clinics={clinics}
+          totalClinics={totalClinics}
+          totalPages={1}
+          currentPage={1}
+        />
       </div>
     );
   }
@@ -205,14 +203,12 @@ export default function UserProfile({
             }
           >
             <div className="pt-6">
-              <Well>
-                <ClinicsTable
-                  clinics={clinics}
-                  totalClinics={totalClinics}
-                  totalPages={1}
-                  currentPage={1}
-                />
-              </Well>
+              <ClinicsTable
+                clinics={clinics}
+                totalClinics={totalClinics}
+                totalPages={1}
+                currentPage={1}
+              />
             </div>
           </Tab>
 
@@ -232,18 +228,10 @@ export default function UserProfile({
             }
           >
             <div className="pt-6 flex flex-col gap-6">
-              <Well>
-                <TrustingAccountsTable accounts={trustingAccounts} />
-              </Well>
-              <Well>
-                <TrustedAccountsTable accounts={trustedAccounts} />
-              </Well>
-              <Well>
-                <SentInvitesTable invites={sentInvites} />
-              </Well>
-              <Well>
-                <ReceivedInvitesTable invites={receivedInvites} />
-              </Well>
+              <TrustingAccountsTable accounts={trustingAccounts} />
+              <TrustedAccountsTable accounts={trustedAccounts} />
+              <SentInvitesTable invites={sentInvites} />
+              <ReceivedInvitesTable invites={receivedInvites} />
             </div>
           </Tab>
 
@@ -263,18 +251,14 @@ export default function UserProfile({
             }
           >
             <div className="pt-6 flex flex-col gap-6">
-              <Well>
-                <DataSetsTable
-                  dataSets={dataSets}
-                  totalDataSets={totalDataSets}
-                />
-              </Well>
-              <Well>
-                <DataSourcesTable
-                  dataSources={dataSources}
-                  totalDataSources={totalDataSources}
-                />
-              </Well>
+              <DataSetsTable
+                dataSets={dataSets}
+                totalDataSets={totalDataSets}
+              />
+              <DataSourcesTable
+                dataSources={dataSources}
+                totalDataSources={totalDataSources}
+              />
               <Well>
                 <DataExportSection userId={userId} />
               </Well>
@@ -297,12 +281,10 @@ export default function UserProfile({
             }
           >
             <div className="pt-6">
-              <Well>
-                <PumpSettingsSection
-                  pumpSettings={pumpSettings}
-                  isLoading={isPumpSettingsLoading}
-                />
-              </Well>
+              <PumpSettingsSection
+                pumpSettings={pumpSettings}
+                isLoading={isPumpSettingsLoading}
+              />
             </div>
           </Tab>
 
@@ -322,13 +304,11 @@ export default function UserProfile({
             }
           >
             <div className="pt-6">
-              <Well>
-                <PrescriptionsSection
-                  prescriptions={prescriptions}
-                  totalPrescriptions={totalPrescriptions}
-                  isLoading={prescriptionsLoading}
-                />
-              </Well>
+              <PrescriptionsSection
+                prescriptions={prescriptions}
+                totalPrescriptions={totalPrescriptions}
+                isLoading={prescriptionsLoading}
+              />
             </div>
           </Tab>
 

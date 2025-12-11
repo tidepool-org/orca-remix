@@ -253,15 +253,13 @@ export default function ClinicianProfile({
             }
           >
             <div className="pt-6">
-              <Well>
-                <ClinicsTable
-                  clinics={clinics}
-                  totalClinics={totalClinics}
-                  isLoading={clinicsLoading}
-                  totalPages={1}
-                  currentPage={1}
-                />
-              </Well>
+              <ClinicsTable
+                clinics={clinics}
+                totalClinics={totalClinics}
+                isLoading={clinicsLoading}
+                totalPages={1}
+                currentPage={1}
+              />
             </div>
           </Tab>
 

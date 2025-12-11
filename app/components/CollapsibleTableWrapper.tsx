@@ -72,7 +72,7 @@ export default function CollapsibleTableWrapper({
       {isExpanded && (
         <div
           id={`${title.toLowerCase().replace(/\s+/g, '-')}-table-content`}
-          className="mt-4 transition-all duration-300"
+          className="mt-4 p-4 transition-all duration-300"
         >
           {children}
         </div>
