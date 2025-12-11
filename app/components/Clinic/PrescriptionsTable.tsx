@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   Table,
   TableHeader,
@@ -8,8 +8,9 @@ import {
   TableCell,
   Chip,
   Spinner,
+  Input,
 } from '@heroui/react';
-import { FileText } from 'lucide-react';
+import { FileText, Search } from 'lucide-react';
 import { intlFormat } from 'date-fns';
 import { Link } from 'react-router';
 import useLocale from '~/hooks/useLocale';
@@ -38,6 +39,37 @@ export default function PrescriptionsTable({
   showClinicLink = true,
 }: PrescriptionsTableProps) {
   const { locale } = useLocale();
+  const [filterValue, setFilterValue] = useState('');
+
+  const filteredPrescriptions = useMemo(() => {
+    if (!filterValue.trim()) return prescriptions;
+    const searchTerm = filterValue.toLowerCase().trim();
+    return prescriptions.filter((prescription) => {
+      const attrs = prescription.latestRevision?.attributes;
+      const patientName =
+        `${attrs?.firstName || ''} ${attrs?.lastName || ''}`.toLowerCase();
+      const state = prescription.state?.toLowerCase() || '';
+      return patientName.includes(searchTerm) || state.includes(searchTerm);
+    });
+  }, [prescriptions, filterValue]);
+
+  const topContent = useMemo(
+    () => (
+      <div className="flex justify-between items-center mb-4">
+        <Input
+          isClearable
+          placeholder="Filter by patient name or state..."
+          startContent={<Search className="w-4 h-4 text-default-400" />}
+          value={filterValue}
+          onClear={() => setFilterValue('')}
+          onValueChange={setFilterValue}
+          size="sm"
+          className="max-w-xs"
+        />
+      </div>
+    ),
+    [filterValue],
+  );
 
   const columns: Column[] = [
     {
@@ -187,6 +219,7 @@ export default function PrescriptionsTable({
       totalItems={totalPrescriptions}
       defaultExpanded={false}
     >
+      {topContent}
       <Table
         aria-label="Prescriptions table"
         shadow="none"
@@ -203,7 +236,7 @@ export default function PrescriptionsTable({
           loadingContent={LoadingContent}
           loadingState={isLoading ? 'loading' : 'idle'}
         >
-          {prescriptions.map((item) => (
+          {filteredPrescriptions.map((item) => (
             <TableRow key={item.id}>
               {(columnKey) => (
                 <TableCell>{renderCell(item, columnKey as string)}</TableCell>

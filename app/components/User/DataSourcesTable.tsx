@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   Table,
   TableHeader,
@@ -13,8 +13,9 @@ import {
   DropdownTrigger,
   DropdownMenu,
   DropdownItem,
+  Input,
 } from '@heroui/react';
-import { Database, MoreVertical, Unplug } from 'lucide-react';
+import { Database, MoreVertical, Unplug, Search } from 'lucide-react';
 import { intlFormat } from 'date-fns';
 import { useFetcher } from 'react-router';
 import useLocale from '~/hooks/useLocale';
@@ -48,12 +49,46 @@ export default function DataSourcesTable({
   const { locale } = useLocale();
   const fetcher = useFetcher();
   const { showToast } = useToast();
+  const [filterValue, setFilterValue] = useState('');
   const [disconnectModal, setDisconnectModal] = useState<DisconnectModalState>({
     isOpen: false,
     dataSource: null,
   });
 
   const isDisconnecting = fetcher.state !== 'idle';
+
+  const filteredDataSources = useMemo(() => {
+    if (!filterValue.trim()) return dataSources;
+    const searchTerm = filterValue.toLowerCase().trim();
+    return dataSources.filter((dataSource) => {
+      const providerName = dataSource.providerName?.toLowerCase() || '';
+      const state = dataSource.state?.toLowerCase() || '';
+      const dataSourceId = dataSource.dataSourceId?.toLowerCase() || '';
+      return (
+        providerName.includes(searchTerm) ||
+        state.includes(searchTerm) ||
+        dataSourceId.includes(searchTerm)
+      );
+    });
+  }, [dataSources, filterValue]);
+
+  const topContent = useMemo(
+    () => (
+      <div className="flex justify-between items-center mb-4">
+        <Input
+          isClearable
+          placeholder="Filter by provider or state..."
+          startContent={<Search className="w-4 h-4 text-default-400" />}
+          value={filterValue}
+          onClear={() => setFilterValue('')}
+          onValueChange={setFilterValue}
+          size="sm"
+          className="max-w-xs"
+        />
+      </div>
+    ),
+    [filterValue],
+  );
 
   // Handle fetcher response
   React.useEffect(() => {
@@ -307,6 +342,7 @@ export default function DataSourcesTable({
         totalItems={totalDataSources}
         defaultExpanded={false}
       >
+        {topContent}
         <Table
           aria-label="Data sources table"
           shadow="none"
@@ -323,7 +359,7 @@ export default function DataSourcesTable({
             loadingContent={LoadingContent}
             loadingState={isLoading ? 'loading' : 'idle'}
           >
-            {dataSources.map((item) => (
+            {filteredDataSources.map((item) => (
               <TableRow key={item.dataSourceId || item.providerName}>
                 {(columnKey) => (
                   <TableCell>{renderCell(item, columnKey as string)}</TableCell>

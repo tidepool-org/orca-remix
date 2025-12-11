@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router';
 import {
   Table,
@@ -10,8 +10,9 @@ import {
   Pagination,
   Spinner,
   Chip,
+  Input,
 } from '@heroui/react';
-import { Building2 } from 'lucide-react';
+import { Building2, Search } from 'lucide-react';
 import { intlFormat } from 'date-fns';
 import useLocale from '~/hooks/useLocale';
 import CollapsibleTableWrapper from '../CollapsibleTableWrapper';
@@ -52,6 +53,41 @@ export default function ClinicsTable({
   const { locale } = useLocale();
   const navigate = useNavigate();
   const [isExpanded, setIsExpanded] = React.useState(false);
+  const [filterValue, setFilterValue] = useState('');
+
+  const filteredClinics = useMemo(() => {
+    if (!filterValue.trim()) return clinics;
+    const searchTerm = filterValue.toLowerCase().trim();
+    return clinics.filter((item) => {
+      const clinic = item.clinic;
+      const name = clinic.name?.toLowerCase() || '';
+      const id = clinic.id?.toLowerCase() || '';
+      const tier = clinic.tier?.toLowerCase() || '';
+      return (
+        name.includes(searchTerm) ||
+        id.includes(searchTerm) ||
+        tier.includes(searchTerm)
+      );
+    });
+  }, [clinics, filterValue]);
+
+  const topContent = useMemo(
+    () => (
+      <div className="flex justify-between items-center mb-4">
+        <Input
+          isClearable
+          placeholder="Filter by clinic name, ID, or tier..."
+          startContent={<Search className="w-4 h-4 text-default-400" />}
+          value={filterValue}
+          onClear={() => setFilterValue('')}
+          onValueChange={setFilterValue}
+          size="sm"
+          className="max-w-xs"
+        />
+      </div>
+    ),
+    [filterValue],
+  );
 
   // Calculate pagination details
   const effectivePageSize =
@@ -198,6 +234,7 @@ export default function ClinicsTable({
       }}
       defaultExpanded={false}
     >
+      {topContent}
       <Table
         aria-label="Clinics table"
         selectionMode="single"
@@ -219,7 +256,7 @@ export default function ClinicsTable({
           loadingContent={LoadingContent}
           loadingState={isLoading ? 'loading' : 'idle'}
         >
-          {clinics.map((item) => (
+          {filteredClinics.map((item) => (
             <TableRow key={item.clinic?.id || Math.random()}>
               {(columnKey) => (
                 <TableCell>
