@@ -283,16 +283,11 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 export default function PatientDetails() {
   const {
     patient,
-    patientClinics,
     prescriptions,
     dataSets,
     totalDataSets,
     dataSources,
     totalDataSources,
-    trustingAccounts,
-    trustedAccounts,
-    sentInvites,
-    receivedInvites,
     pumpSettings,
   } = useLoaderData<PatientLoaderData>();
   const { addRecentPatient } = useRecentItems();
@@ -312,16 +307,11 @@ export default function PatientDetails() {
   return patient ? (
     <PatientProfile
       patient={patient}
-      patientClinics={patientClinics}
       prescriptions={prescriptions}
       dataSets={dataSets}
       totalDataSets={totalDataSets}
       dataSources={dataSources}
       totalDataSources={totalDataSources}
-      trustingAccounts={trustingAccounts}
-      trustedAccounts={trustedAccounts}
-      sentInvites={sentInvites}
-      receivedInvites={receivedInvites}
       pumpSettings={pumpSettings}
     />
   ) : null;

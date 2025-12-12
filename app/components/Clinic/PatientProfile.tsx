@@ -1,44 +1,29 @@
-import { useRouteLoaderData } from 'react-router';
+import { useRouteLoaderData, Link } from 'react-router';
 import { useCallback, useState } from 'react';
 import { Tabs, Tab } from '@heroui/react';
 import {
-  Building2,
-  Share2,
   Database,
   Smartphone,
   FileText,
   ChevronDown,
   ChevronUp,
+  ExternalLink,
 } from 'lucide-react';
 import Well from '~/partials/Well';
 import { intlFormat } from 'date-fns';
 
-import type { Patient, PatientClinicMembership, Prescription } from './types';
-import type {
-  DataSet,
-  DataSource,
-  AccessPermissionsMap,
-  ShareInvite,
-  PumpSettings,
-} from '../User/types';
+import type { Patient, Prescription } from './types';
+import type { DataSet, DataSource, PumpSettings } from '../User/types';
 import useLocale from '~/hooks/useLocale';
 import ClipboardButton from '../ClipboardButton';
-import ClinicsTable from './ClinicsTable';
 import PrescriptionsTable from './PrescriptionsTable';
 import DataSetsTable from '../User/DataSetsTable';
 import DataSourcesTable from '../User/DataSourcesTable';
 import DataExportSection from '../User/DataExportSection';
-import {
-  TrustingAccountsTable,
-  TrustedAccountsTable,
-  SentInvitesTable,
-  ReceivedInvitesTable,
-} from '../User/DataSharingSection';
 import PumpSettingsSection from '../User/PumpSettingsSection';
 
 export type PatientProfileProps = {
   patient: Patient;
-  patientClinics?: PatientClinicMembership[];
   prescriptions?: Prescription[];
   totalPrescriptions?: number;
   prescriptionsLoading?: boolean;
@@ -58,11 +43,6 @@ export type PatientProfileProps = {
   totalDataSets?: number;
   dataSources?: DataSource[];
   totalDataSources?: number;
-  // Data sharing tab props
-  trustingAccounts?: AccessPermissionsMap;
-  trustedAccounts?: AccessPermissionsMap;
-  sentInvites?: ShareInvite[];
-  receivedInvites?: ShareInvite[];
   // Device tab props
   pumpSettings?: PumpSettings[];
   isPumpSettingsLoading?: boolean;
@@ -70,7 +50,6 @@ export type PatientProfileProps = {
 
 export default function PatientProfile({
   patient,
-  patientClinics = [],
   prescriptions = [],
   totalPrescriptions = 0,
   prescriptionsLoading = false,
@@ -80,10 +59,6 @@ export default function PatientProfile({
   totalDataSets = 0,
   dataSources = [],
   totalDataSources = 0,
-  trustingAccounts = {},
-  trustedAccounts = {},
-  sentInvites = [],
-  receivedInvites = [],
   pumpSettings = [],
   isPumpSettingsLoading = false,
 }: PatientProfileProps) {
@@ -129,19 +104,6 @@ export default function PatientProfile({
     [clinicData?.sites],
   );
 
-  // Calculate counts for tab badges (excluding current patient's own entries)
-  const trustingAccountsCount = Object.keys(trustingAccounts).filter(
-    (accountId) => accountId !== id,
-  ).length;
-  const trustedAccountsCount = Object.keys(trustedAccounts).filter(
-    (accountId) => accountId !== id,
-  ).length;
-  const dataSharingCount =
-    trustingAccountsCount +
-    trustedAccountsCount +
-    sentInvites.length +
-    receivedInvites.length;
-
   // State for collapsible details (Option 3)
   const [isDetailsExpanded, setIsDetailsExpanded] = useState(false);
 
@@ -166,7 +128,7 @@ export default function PatientProfile({
         </button>
       </div>
 
-      {/* Row 2: Copyable identifiers */}
+      {/* Row 2: Copyable identifiers - order: email, ID, MRN, then View User Account link */}
       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm mt-1">
         {email && (
           <span className="flex items-center gap-1">
@@ -186,6 +148,14 @@ export default function PatientProfile({
             <ClipboardButton clipboardText={mrn} />
           </span>
         )}
+        <Link
+          to={`/users/${id}`}
+          className="flex items-center gap-1 px-2 py-1 rounded-md text-default-500 hover:text-foreground hover:bg-default/40 transition-all"
+          aria-label="View user account"
+        >
+          <span>View User Account</span>
+          <ExternalLink className="w-4 h-4" aria-hidden="true" />
+        </Link>
       </div>
 
       {/* Collapsible details section */}
@@ -302,59 +272,6 @@ export default function PatientProfile({
             tabContent: 'group-data-[selected=true]:text-primary',
           }}
         >
-          {/* Clinics Tab */}
-          <Tab
-            key="clinics"
-            title={
-              <div className="flex items-center gap-2">
-                <Building2 className="w-4 h-4" />
-                <span>Clinics</span>
-                {patientClinics.length > 0 && (
-                  <span className="text-xs bg-default-100 px-1.5 py-0.5 rounded-full">
-                    {patientClinics.length}
-                  </span>
-                )}
-              </div>
-            }
-          >
-            <div className="pt-6">
-              <ClinicsTable
-                clinics={patientClinics}
-                totalClinics={patientClinics.length}
-                showPermissions={true}
-              />
-            </div>
-          </Tab>
-
-          {/* Data Sharing Tab */}
-          <Tab
-            key="sharing"
-            title={
-              <div className="flex items-center gap-2">
-                <Share2 className="w-4 h-4" />
-                <span>Data Sharing</span>
-                {dataSharingCount > 0 && (
-                  <span className="text-xs bg-default-100 px-1.5 py-0.5 rounded-full">
-                    {dataSharingCount}
-                  </span>
-                )}
-              </div>
-            }
-          >
-            <div className="pt-6 flex flex-col gap-6">
-              <TrustingAccountsTable
-                accounts={trustingAccounts}
-                currentUserId={id}
-              />
-              <TrustedAccountsTable
-                accounts={trustedAccounts}
-                currentUserId={id}
-              />
-              <SentInvitesTable invites={sentInvites} />
-              <ReceivedInvitesTable invites={receivedInvites} />
-            </div>
-          </Tab>
-
           {/* Data Tab */}
           <Tab
             key="data"
