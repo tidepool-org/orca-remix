@@ -131,11 +131,12 @@ export default function PatientProfile({
       {/* Row 2: Copyable identifiers - order: email, ID, MRN, then View User Account link */}
       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm mt-1">
         {email && (
-          <span className="flex items-center gap-1">
-            <span className="text-default-600">{email}</span>
+          <span className="flex items-center gap-1 text-default-500">
+            <span className="text-default-400">{email}</span>
             <ClipboardButton clipboardText={email} />
           </span>
         )}
+        j{' '}
         <span className="flex items-center gap-1 text-default-500">
           <span className="text-default-400">ID:</span>
           <span className="font-mono text-xs">{id}</span>
@@ -143,7 +144,7 @@ export default function PatientProfile({
         </span>
         {mrn && (
           <span className="flex items-center gap-1 text-default-500">
-            <span className="text-default-400">MRN:</span>
+            <span className="text-d efault-400">MRN:</span>
             <span className="font-mono text-xs">{mrn}</span>
             <ClipboardButton clipboardText={mrn} />
           </span>
@@ -153,7 +154,7 @@ export default function PatientProfile({
           className="flex items-center gap-1 px-2 py-1 rounded-md text-default-500 hover:text-foreground hover:bg-default/40 transition-all"
           aria-label="View user account"
         >
-          <span>View User Account</span>
+          <span className="text-default-400">View User Account</span>
           <ExternalLink className="w-4 h-4" aria-hidden="true" />
         </Link>
       </div>
