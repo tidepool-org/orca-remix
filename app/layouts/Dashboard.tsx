@@ -1,7 +1,7 @@
 import { useState } from 'react';
 
-import { Outlet, useMatches } from 'react-router';
-import { Breadcrumbs, BreadcrumbItem } from '@heroui/react';
+import { Outlet, useMatches, useNavigation } from 'react-router';
+import { Breadcrumbs, BreadcrumbItem, Spinner } from '@heroui/react';
 import { Home } from 'lucide-react';
 import filter from 'lodash/filter';
 import map from 'lodash/map';
@@ -29,6 +29,9 @@ interface IMatch {
 function Dashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const matches = useMatches() as IMatch[];
+  const navigation = useNavigation();
+
+  const isLoading = navigation.state === 'loading';
 
   const breadcrumbs: Breadcrumb[] = map(
     filter(matches, (match) => match.handle?.breadcrumb) as IMatch[],
@@ -47,7 +50,17 @@ function Dashboard() {
           {/*  Site header */}
           <Header sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
 
-          <main>
+          <main className="relative flex-1">
+            {/* Loading overlay */}
+            {isLoading && (
+              <div
+                className="absolute inset-0 bg-background/50 backdrop-blur-sm z-10 flex items-center justify-center"
+                aria-label="Loading content"
+              >
+                <Spinner size="lg" />
+              </div>
+            )}
+
             <div className="px-4 sm:px-6 lg:px-8 py-8 w-full">
               {/* Breadcrumbs */}
               {!!breadcrumbs.length && (

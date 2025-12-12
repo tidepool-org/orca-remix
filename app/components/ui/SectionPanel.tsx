@@ -8,8 +8,8 @@ export type SectionPanelProps = {
   title: string;
   /** Optional subtitle/description */
   subtitle?: string;
-  /** Content to render inside the panel */
-  children: ReactNode;
+  /** Content to render inside the panel (optional for header-only panels) */
+  children?: ReactNode;
   /** Controls to render on the right side of the header (e.g., toggles, buttons) */
   headerControls?: ReactNode;
   /** Whether the panel is collapsible (default: false) */
@@ -128,7 +128,7 @@ export default function SectionPanel({
         <div className="flex w-full p-4 bg-content1">{headerContent}</div>
       )}
 
-      {isExpanded && (
+      {isExpanded && children && (
         <div id={panelId} className="p-4 transition-all duration-300">
           {children}
         </div>

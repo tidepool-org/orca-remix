@@ -1,5 +1,4 @@
 import { ReactNode, useState } from 'react';
-import Well from '~/partials/Well';
 import CopyableIdentifier from './CopyableIdentifier';
 import DetailGrid from './DetailGrid';
 import DetailsToggleButton from './DetailsToggleButton';
@@ -57,39 +56,42 @@ export default function ProfileHeader({
   const hasExpandableContent = detailFields.length > 0;
 
   return (
-    <Well className="!gap-0">
-      {/* Row 1: Title on left, toggle button on right */}
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
-          <h1 className="text-xl font-semibold">{title}</h1>
-          {titleRowExtra}
+    <div className="w-full rounded-lg border-2 border-content2 overflow-hidden">
+      {/* Header section with title and identifiers */}
+      <div className="p-4 bg-content1">
+        {/* Row 1: Title on left, toggle button on right */}
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <h1 className="text-xl font-semibold">{title}</h1>
+            {titleRowExtra}
+          </div>
+          {hasExpandableContent && (
+            <DetailsToggleButton
+              isExpanded={isExpanded}
+              onToggle={handleToggle}
+            />
+          )}
         </div>
-        {hasExpandableContent && (
-          <DetailsToggleButton
-            isExpanded={isExpanded}
-            onToggle={handleToggle}
-          />
+
+        {/* Row 2: Copyable identifiers and optional action link */}
+        {(identifiers.length > 0 || actionLink) && (
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm mt-1">
+            {identifiers.map((identifier, index) => (
+              <CopyableIdentifier
+                key={index}
+                label={identifier.label}
+                value={identifier.value}
+                monospace={identifier.monospace}
+              />
+            ))}
+            {actionLink}
+          </div>
         )}
       </div>
 
-      {/* Row 2: Copyable identifiers and optional action link */}
-      {(identifiers.length > 0 || actionLink) && (
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm mt-1">
-          {identifiers.map((identifier, index) => (
-            <CopyableIdentifier
-              key={index}
-              label={identifier.label}
-              value={identifier.value}
-              monospace={identifier.monospace}
-            />
-          ))}
-          {actionLink}
-        </div>
-      )}
-
       {/* Collapsible details section */}
       {hasExpandableContent && isExpanded && (
-        <div className="mt-4 pt-4 border-t border-divider">
+        <div className="p-4 border-t border-divider">
           <DetailGrid
             fields={detailFields}
             columns={{ default: 2, sm: 3, md: 4, lg: 5 }}
@@ -98,6 +100,6 @@ export default function ProfileHeader({
           />
         </div>
       )}
-    </Well>
+    </div>
   );
 }

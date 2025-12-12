@@ -9,13 +9,11 @@ import TabTitle from '~/components/ui/TabTitle';
 import StatusChip from '~/components/ui/StatusChip';
 import SettingsToggleRow from '~/components/ui/SettingsToggleRow';
 import SectionPanel from '~/components/ui/SectionPanel';
-import Well from '~/partials/Well';
 import type { Clinician, ClinicianClinicMembership } from './types';
 import { formatShortDate } from '~/utils/dateFormatters';
 
 export type ClinicianProfileProps = {
   clinician: Clinician | null;
-  isLoading?: boolean;
   clinics?: ClinicianClinicMembership[];
   totalClinics?: number;
   clinicsLoading?: boolean;
@@ -24,7 +22,6 @@ export type ClinicianProfileProps = {
 
 export default function ClinicianProfile({
   clinician,
-  isLoading,
   clinics = [],
   totalClinics = 0,
   clinicsLoading = false,
@@ -33,26 +30,13 @@ export default function ClinicianProfile({
   const { locale } = useLocale();
   const fetcher = useFetcher();
 
-  if (isLoading) {
-    return (
-      <Well>
-        <div className="animate-pulse">
-          <div className="h-6 bg-content2 rounded w-1/3 mb-4"></div>
-          <div className="space-y-3">
-            <div className="h-4 bg-content2 rounded w-1/2"></div>
-            <div className="h-4 bg-content2 rounded w-3/4"></div>
-            <div className="h-4 bg-content2 rounded w-1/4"></div>
-          </div>
-        </div>
-      </Well>
-    );
-  }
-
   if (!clinician) {
     return (
-      <Well>
-        <p className="text-default-600">Clinician not found</p>
-      </Well>
+      <div className="w-full rounded-lg border-2 border-content2 overflow-hidden">
+        <div className="p-4 bg-content1">
+          <p className="text-default-600">Clinician not found</p>
+        </div>
+      </div>
     );
   }
 

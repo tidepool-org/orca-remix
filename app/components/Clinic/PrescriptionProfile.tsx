@@ -1,4 +1,3 @@
-import Well from '~/partials/Well';
 import { Link } from 'react-router';
 
 import type { Prescription, Clinician } from './types';
@@ -7,6 +6,7 @@ import ProfileHeader from '~/components/ui/ProfileHeader';
 import StatusChip from '~/components/ui/StatusChip';
 import CopyableIdentifier from '~/components/ui/CopyableIdentifier';
 import DetailGrid from '~/components/ui/DetailGrid';
+import SectionPanel from '~/components/ui/SectionPanel';
 import { formatShortDate } from '~/utils/dateFormatters';
 
 export type PrescriptionProfileProps = {
@@ -77,8 +77,7 @@ export default function PrescriptionProfile({
       {/* Patient & Prescriber Info - Side by side on larger screens */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Patient Information */}
-        <Well>
-          <h2 className="text-lg font-semibold mb-3">Patient Information</h2>
+        <SectionPanel title="Patient Information">
           <DetailGrid
             fields={[
               {
@@ -129,11 +128,10 @@ export default function PrescriptionProfile({
             ]}
             columns={{ default: 2, md: 2 }}
           />
-        </Well>
+        </SectionPanel>
 
         {/* Prescriber Information */}
-        <Well>
-          <h2 className="text-lg font-semibold mb-3">Prescriber Information</h2>
+        <SectionPanel title="Prescriber Information">
           <DetailGrid
             fields={[
               {
@@ -168,7 +166,7 @@ export default function PrescriptionProfile({
             ]}
             columns={{ default: 1 }}
           />
-        </Well>
+        </SectionPanel>
       </div>
 
       {/* Therapy Details & Initial Settings - Side by side */}
@@ -179,8 +177,7 @@ export default function PrescriptionProfile({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Therapy Details */}
           {(attrs.training || attrs.therapySettings || attrs.accountType) && (
-            <Well>
-              <h2 className="text-lg font-semibold mb-3">Therapy Details</h2>
+            <SectionPanel title="Therapy Details">
               <DetailGrid
                 fields={[
                   {
@@ -208,13 +205,12 @@ export default function PrescriptionProfile({
                 ]}
                 columns={{ default: 2 }}
               />
-            </Well>
+            </SectionPanel>
           )}
 
           {/* Initial Settings */}
           {attrs.initialSettings && (
-            <Well>
-              <h2 className="text-lg font-semibold mb-3">Initial Settings</h2>
+            <SectionPanel title="Initial Settings">
               <DetailGrid
                 fields={[
                   {
@@ -243,7 +239,7 @@ export default function PrescriptionProfile({
                 ]}
                 columns={{ default: 2 }}
               />
-            </Well>
+            </SectionPanel>
           )}
         </div>
       )}
