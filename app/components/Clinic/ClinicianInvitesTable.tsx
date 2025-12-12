@@ -7,10 +7,8 @@ import {
   TableRow,
   TableCell,
   Chip,
-  Button,
-  Tooltip,
 } from '@heroui/react';
-import { UserPlus, Trash2 } from 'lucide-react';
+import { UserPlus } from 'lucide-react';
 import useLocale from '~/hooks/useLocale';
 import CollapsibleTableWrapper from '../CollapsibleTableWrapper';
 import { collapsibleTableClasses } from '~/utils/tableStyles';
@@ -18,6 +16,7 @@ import ConfirmationModal from '../ConfirmationModal';
 import type { ClinicianInvite } from './types';
 import TableEmptyState from '~/components/ui/TableEmptyState';
 import TableLoadingState from '~/components/ui/TableLoadingState';
+import DeleteActionButton from '~/components/ui/DeleteActionButton';
 import { formatShortDate } from '~/utils/dateFormatters';
 import { getInviteStatusColor } from '~/utils/statusColors';
 
@@ -127,19 +126,12 @@ export default function ClinicianInvitesTable({
           );
         case 'actions':
           return (
-            <Tooltip content="Revoke invitation" color="danger">
-              <Button
-                isIconOnly
-                size="sm"
-                color="danger"
-                variant="light"
-                onPress={() => handleRevokeClick(invite)}
-                aria-label="Revoke invitation"
-                isDisabled={!onRevokeInvite}
-              >
-                <Trash2 size={16} />
-              </Button>
-            </Tooltip>
+            <DeleteActionButton
+              tooltip="Revoke invitation"
+              ariaLabel="Revoke invitation"
+              onPress={() => handleRevokeClick(invite)}
+              isDisabled={!onRevokeInvite}
+            />
           );
         default:
           return <span className="text-default-400">-</span>;

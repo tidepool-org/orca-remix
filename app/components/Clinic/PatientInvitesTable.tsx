@@ -7,10 +7,8 @@ import {
   TableBody,
   TableRow,
   TableCell,
-  Button,
-  Tooltip,
 } from '@heroui/react';
-import { Mail, Trash2 } from 'lucide-react';
+import { Mail } from 'lucide-react';
 import useLocale from '~/hooks/useLocale';
 import CollapsibleTableWrapper from '../CollapsibleTableWrapper';
 import { collapsibleTableClasses } from '~/utils/tableStyles';
@@ -22,6 +20,7 @@ import TablePagination, {
   getFirstItemOnPage,
   getLastItemOnPage,
 } from '~/components/ui/TablePagination';
+import DeleteActionButton from '~/components/ui/DeleteActionButton';
 import { formatShortDate } from '~/utils/dateFormatters';
 
 export type PatientInvitesTableProps = {
@@ -152,19 +151,12 @@ export default function PatientInvitesTable({
           );
         case 'actions':
           return (
-            <Tooltip content="Revoke invitation" color="danger">
-              <Button
-                isIconOnly
-                size="sm"
-                color="danger"
-                variant="light"
-                onPress={() => handleRevokeClick(invite)}
-                aria-label="Revoke invitation"
-                isDisabled={!onRevokeInvite}
-              >
-                <Trash2 size={16} />
-              </Button>
-            </Tooltip>
+            <DeleteActionButton
+              tooltip="Revoke invitation"
+              ariaLabel="Revoke invitation"
+              onPress={() => handleRevokeClick(invite)}
+              isDisabled={!onRevokeInvite}
+            />
           );
         default:
           return <span className="text-default-400">—</span>;

@@ -8,10 +8,8 @@ import {
   TableRow,
   TableCell,
   Chip,
-  Button,
-  Tooltip,
 } from '@heroui/react';
-import { UserCheck, Trash2 } from 'lucide-react';
+import { UserCheck } from 'lucide-react';
 import useLocale from '~/hooks/useLocale';
 import CollapsibleTableWrapper from '../CollapsibleTableWrapper';
 import { collapsibleTableClasses } from '~/utils/tableStyles';
@@ -24,6 +22,7 @@ import TablePagination, {
   getFirstItemOnPage,
   getLastItemOnPage,
 } from '~/components/ui/TablePagination';
+import DeleteActionButton from '~/components/ui/DeleteActionButton';
 import { formatShortDate } from '~/utils/dateFormatters';
 export type CliniciansTableProps = {
   clinicians: Clinician[];
@@ -165,19 +164,12 @@ export default function CliniciansTable({
           );
         case 'actions':
           return (
-            <Tooltip content="Remove clinician" color="danger">
-              <Button
-                isIconOnly
-                size="sm"
-                color="danger"
-                variant="light"
-                onPress={() => handleRemoveClick(clinician)}
-                aria-label="Remove clinician"
-                isDisabled={!onRemoveClinician}
-              >
-                <Trash2 size={16} />
-              </Button>
-            </Tooltip>
+            <DeleteActionButton
+              tooltip="Remove clinician"
+              ariaLabel="Remove clinician"
+              onPress={() => handleRemoveClick(clinician)}
+              isDisabled={!onRemoveClinician}
+            />
           );
         default:
           return cellValue;
