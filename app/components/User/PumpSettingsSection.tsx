@@ -1,9 +1,5 @@
 import { useState, useMemo } from 'react';
 import {
-  Card,
-  CardBody,
-  CardHeader,
-  Divider,
   Select,
   SelectItem,
   Chip,
@@ -18,11 +14,12 @@ import {
   TableRow,
   TableCell,
 } from '@heroui/react';
-import { Settings, Clock, Target, Utensils, Zap, Info } from 'lucide-react';
+import { Settings, Clock, Target, Utensils, Zap } from 'lucide-react';
 import { formatDateWithTime } from '~/utils/dateFormatters';
 import { msToTime } from '~/utils/timeConversion';
 import { formatBgValue, formatInsulinSensitivity } from '~/utils/bgUnits';
 import useLocale from '~/hooks/useLocale';
+import SectionPanel from '~/components/ui/SectionPanel';
 import type {
   PumpSettings,
   BasalScheduleEntry,
@@ -94,44 +91,48 @@ export default function PumpSettingsSection({
     return [];
   }, [selectedSettings]);
 
+  // BG units toggle component for header
+  const bgUnitsToggle = (
+    <div className="flex items-center gap-2">
+      <span className="text-sm text-default-500">mg/dL</span>
+      <Switch
+        size="sm"
+        isSelected={useMmol}
+        onValueChange={setUseMmol}
+        aria-label="Toggle BG units"
+      />
+      <span className="text-sm text-default-500">mmol/L</span>
+    </div>
+  );
+
   if (isLoading) {
     return (
-      <Card className="w-full" shadow="none">
-        <CardHeader className="flex gap-3">
-          <Settings className="w-5 h-5 text-primary" />
-          <div className="flex flex-col">
-            <p className="text-md font-semibold">Pump Settings</p>
-            <p className="text-small text-default-500">
-              View device settings and schedules
-            </p>
-          </div>
-        </CardHeader>
-        <Divider />
-        <CardBody className="flex justify-center items-center py-8">
+      <SectionPanel
+        icon={<Settings className="w-5 h-5" />}
+        title="Pump Settings"
+        subtitle="View device settings and schedules"
+        aria-label="Pump settings section"
+      >
+        <div className="flex justify-center items-center py-8">
           <Spinner size="lg" label="Loading pump settings..." />
-        </CardBody>
-      </Card>
+        </div>
+      </SectionPanel>
     );
   }
 
   if (pumpSettings.length === 0) {
     return (
-      <Card className="w-full" shadow="none">
-        <CardHeader className="flex gap-3">
-          <Settings className="w-5 h-5 text-primary" />
-          <div className="flex flex-col">
-            <p className="text-md font-semibold">Pump Settings</p>
-            <p className="text-small text-default-500">
-              View device settings and schedules
-            </p>
-          </div>
-        </CardHeader>
-        <Divider />
-        <CardBody className="flex flex-col justify-center items-center py-8 gap-2">
+      <SectionPanel
+        icon={<Settings className="w-5 h-5" />}
+        title="Pump Settings"
+        subtitle="View device settings and schedules"
+        aria-label="Pump settings section"
+      >
+        <div className="flex flex-col justify-center items-center py-8 gap-2">
           <Settings className="w-12 h-12 text-default-300" aria-hidden="true" />
           <span className="text-default-500">No pump settings found</span>
-        </CardBody>
-      </Card>
+        </div>
+      </SectionPanel>
     );
   }
 
@@ -299,98 +300,74 @@ export default function PumpSettingsSection({
   };
 
   return (
-    <Card className="w-full">
-      <CardHeader className="flex gap-3">
-        <Settings className="w-5 h-5 text-primary" />
-        <div className="flex flex-col flex-1">
-          <p className="text-md font-semibold">Pump Settings</p>
-          <p className="text-small text-default-500">
-            View device settings and schedules
-          </p>
-        </div>
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-default-500">mg/dL</span>
-            <Switch
-              size="sm"
-              isSelected={useMmol}
-              onValueChange={setUseMmol}
-              aria-label="Toggle BG units"
-            />
-            <span className="text-sm text-default-500">mmol/L</span>
-          </div>
-        </div>
-      </CardHeader>
-      <Divider />
-      <CardBody className="gap-4">
-        {/* Settings selector */}
-        {pumpSettings.length > 1 && (
-          <div className="flex items-center gap-4">
-            <Select
-              label="Settings from"
-              selectedKeys={[selectedSettingIndex.toString()]}
-              onSelectionChange={(keys) => {
-                const selected = Array.from(keys)[0];
-                if (selected !== undefined) {
-                  setSelectedSettingIndex(parseInt(selected as string, 10));
-                }
-              }}
-              size="sm"
-              className="max-w-xs"
-            >
-              {pumpSettings.map((settings, index) => (
-                <SelectItem key={index.toString()}>
-                  {formatDate(settings.time)}
-                  {settings.model ? ` - ${settings.model}` : ''}
-                </SelectItem>
-              ))}
-            </Select>
+    <SectionPanel
+      icon={<Settings className="w-5 h-5" />}
+      title="Pump Settings"
+      subtitle="View device settings and schedules"
+      headerControls={bgUnitsToggle}
+      aria-label="Pump settings section"
+    >
+      <div className="flex flex-col gap-4">
+        {/* Device info row */}
+        {selectedSettings && (
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
+            {selectedSettings.manufacturers &&
+              selectedSettings.manufacturers.length > 0 && (
+                <div>
+                  <span className="text-default-400">Manufacturer:</span>{' '}
+                  <span>{selectedSettings.manufacturers.join(', ')}</span>
+                </div>
+              )}
+            {selectedSettings.model && (
+              <div>
+                <span className="text-default-400">Model:</span>{' '}
+                <span>{selectedSettings.model}</span>
+              </div>
+            )}
+            {selectedSettings.serialNumber && (
+              <div>
+                <span className="text-default-400">Serial:</span>{' '}
+                <span className="font-mono">
+                  {selectedSettings.serialNumber}
+                </span>
+              </div>
+            )}
+            <div>
+              <span className="text-default-400">Time:</span>{' '}
+              <span>{formatDate(selectedSettings.time)}</span>
+            </div>
+            {selectedSettings.activeSchedule && (
+              <div className="flex items-center gap-1">
+                <span className="text-default-400">Active Schedule:</span>{' '}
+                <Chip size="sm" color="primary" variant="flat">
+                  {selectedSettings.activeSchedule}
+                </Chip>
+              </div>
+            )}
           </div>
         )}
 
-        {/* Device info */}
-        {selectedSettings && (
-          <div className="bg-default-50 rounded-lg p-3">
-            <div className="flex items-center gap-2 mb-2">
-              <Info className="w-4 h-4 text-default-500" />
-              <span className="text-sm font-medium">Device Information</span>
-            </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
-              {selectedSettings.manufacturers &&
-                selectedSettings.manufacturers.length > 0 && (
-                  <div>
-                    <span className="text-default-400">Manufacturer:</span>{' '}
-                    <span>{selectedSettings.manufacturers.join(', ')}</span>
-                  </div>
-                )}
-              {selectedSettings.model && (
-                <div>
-                  <span className="text-default-400">Model:</span>{' '}
-                  <span>{selectedSettings.model}</span>
-                </div>
-              )}
-              {selectedSettings.serialNumber && (
-                <div>
-                  <span className="text-default-400">Serial:</span>{' '}
-                  <span className="font-mono">
-                    {selectedSettings.serialNumber}
-                  </span>
-                </div>
-              )}
-              <div>
-                <span className="text-default-400">Time:</span>{' '}
-                <span>{formatDate(selectedSettings.time)}</span>
-              </div>
-              {selectedSettings.activeSchedule && (
-                <div>
-                  <span className="text-default-400">Active Schedule:</span>{' '}
-                  <Chip size="sm" color="primary" variant="flat">
-                    {selectedSettings.activeSchedule}
-                  </Chip>
-                </div>
-              )}
-            </div>
-          </div>
+        {/* Settings selector (only if multiple) */}
+        {pumpSettings.length > 1 && (
+          <Select
+            label="Settings from"
+            selectedKeys={[selectedSettingIndex.toString()]}
+            onSelectionChange={(keys) => {
+              const selected = Array.from(keys)[0];
+              if (selected !== undefined) {
+                setSelectedSettingIndex(parseInt(selected as string, 10));
+              }
+            }}
+            size="sm"
+            className="max-w-xs"
+          >
+            {pumpSettings.map((settings, index) => (
+              <SelectItem key={index.toString()}>
+                {formatDate(settings.time)}
+                {settings.model ? ` - ${settings.model}` : ''}
+              </SelectItem>
+            ))}
+          </Select>
         )}
 
         {/* Settings tabs */}
@@ -400,7 +377,7 @@ export default function PumpSettingsSection({
             key="basal"
             title={
               <div className="flex items-center gap-2">
-                <Clock className="w-4 h-4" />
+                <Clock className="w-4 h-4" aria-hidden="true" />
                 <span>Basal ({basalScheduleNames.length})</span>
               </div>
             }
@@ -426,7 +403,7 @@ export default function PumpSettingsSection({
             key="bgTargets"
             title={
               <div className="flex items-center gap-2">
-                <Target className="w-4 h-4" />
+                <Target className="w-4 h-4" aria-hidden="true" />
                 <span>BG Targets ({bgTargetScheduleNames.length})</span>
               </div>
             }
@@ -452,7 +429,7 @@ export default function PumpSettingsSection({
             key="carbRatios"
             title={
               <div className="flex items-center gap-2">
-                <Utensils className="w-4 h-4" />
+                <Utensils className="w-4 h-4" aria-hidden="true" />
                 <span>Carb Ratios ({carbRatioScheduleNames.length})</span>
               </div>
             }
@@ -478,7 +455,7 @@ export default function PumpSettingsSection({
             key="insulinSensitivity"
             title={
               <div className="flex items-center gap-2">
-                <Zap className="w-4 h-4" />
+                <Zap className="w-4 h-4" aria-hidden="true" />
                 <span>ISF ({insulinSensitivityScheduleNames.length})</span>
               </div>
             }
@@ -501,7 +478,7 @@ export default function PumpSettingsSection({
             </div>
           </Tab>
         </Tabs>
-      </CardBody>
-    </Card>
+      </div>
+    </SectionPanel>
   );
 }

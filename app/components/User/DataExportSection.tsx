@@ -1,17 +1,8 @@
 import { useState } from 'react';
-import {
-  Button,
-  Select,
-  SelectItem,
-  RadioGroup,
-  Radio,
-  Card,
-  CardBody,
-  CardHeader,
-  Divider,
-} from '@heroui/react';
+import { Button, Select, SelectItem, RadioGroup, Radio } from '@heroui/react';
 import { Download, Calendar, FileSpreadsheet, FileJson } from 'lucide-react';
 import { subDays, format } from 'date-fns';
+import SectionPanel from '~/components/ui/SectionPanel';
 
 export type DataExportSectionProps = {
   userId: string;
@@ -84,23 +75,18 @@ export default function DataExportSection({ userId }: DataExportSectionProps) {
   ];
 
   return (
-    <Card className="w-full" shadow="none">
-      <CardHeader className="flex gap-3">
-        <Download className="w-5 h-5 text-primary" />
-        <div className="flex flex-col">
-          <p className="text-md font-semibold">Export User Data</p>
-          <p className="text-small text-default-500">
-            Download diabetes data in Excel or JSON format
-          </p>
-        </div>
-      </CardHeader>
-      <Divider />
-      <CardBody className="gap-4">
+    <SectionPanel
+      icon={<Download className="w-5 h-5" />}
+      title="Export User Data"
+      subtitle="Download diabetes data in Excel or JSON format"
+      aria-label="Export user data section"
+    >
+      <div className="flex flex-col gap-4">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Date Range Selection */}
           <div className="flex flex-col gap-2">
             <span className="text-sm font-medium flex items-center gap-2">
-              <Calendar className="w-4 h-4" />
+              <Calendar className="w-4 h-4" aria-hidden="true" />
               Date Range
             </span>
             <Select
@@ -130,13 +116,13 @@ export default function DataExportSection({ userId }: DataExportSectionProps) {
             >
               <Radio value="xlsx">
                 <span className="flex items-center gap-1">
-                  <FileSpreadsheet className="w-4 h-4" />
+                  <FileSpreadsheet className="w-4 h-4" aria-hidden="true" />
                   Excel
                 </span>
               </Radio>
               <Radio value="json">
                 <span className="flex items-center gap-1">
-                  <FileJson className="w-4 h-4" />
+                  <FileJson className="w-4 h-4" aria-hidden="true" />
                   JSON
                 </span>
               </Radio>
@@ -159,19 +145,17 @@ export default function DataExportSection({ userId }: DataExportSectionProps) {
           </div>
         </div>
 
-        <Divider />
-
-        <div className="flex justify-end">
+        <div className="flex justify-end pt-2">
           <Button
             color="primary"
-            startContent={<Download className="w-4 h-4" />}
+            startContent={<Download className="w-4 h-4" aria-hidden="true" />}
             onPress={handleExport}
             isLoading={isExporting}
           >
             {isExporting ? 'Preparing Export...' : 'Export Data'}
           </Button>
         </div>
-      </CardBody>
-    </Card>
+      </div>
+    </SectionPanel>
   );
 }

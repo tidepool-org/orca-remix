@@ -219,9 +219,7 @@ export default function UserProfile({
                 dataSources={dataSources}
                 totalDataSources={totalDataSources}
               />
-              <Well>
-                <DataExportSection userId={userId} />
-              </Well>
+              <DataExportSection userId={userId} />
             </div>
           </Tab>
 

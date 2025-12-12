@@ -207,12 +207,10 @@ export default function ReportsIndex() {
 
   return (
     <div className="flex flex-col gap-6 w-full">
-      <Well>
-        <ClinicMergeReportSection
-          onGenerateReport={handleGenerateMergeReport}
-          isLoading={isSubmitting || isGeneratingReport}
-        />
-      </Well>
+      <ClinicMergeReportSection
+        onGenerateReport={handleGenerateMergeReport}
+        isLoading={isSubmitting || isGeneratingReport}
+      />
     </div>
   );
 }
