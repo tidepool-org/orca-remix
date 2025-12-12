@@ -8,7 +8,7 @@ import {
   Chip,
   Spinner,
 } from '@heroui/react';
-import { Link } from 'react-router';
+import { useNavigate } from 'react-router';
 import { Users, Send, Inbox } from 'lucide-react';
 import { intlFormat } from 'date-fns';
 import useLocale from '~/hooks/useLocale';
@@ -47,6 +47,7 @@ export function TrustingAccountsTable({
   accounts: AccessPermissionsMap;
   isLoading?: boolean;
 }) {
+  const navigate = useNavigate();
   const entries = Object.entries(accounts);
   const totalItems = entries.length;
 
@@ -84,6 +85,11 @@ export function TrustingAccountsTable({
         aria-label="Accounts sharing with user"
         shadow="none"
         removeWrapper
+        selectionMode="single"
+        onSelectionChange={(keys: 'all' | Set<React.Key>) => {
+          const key = keys instanceof Set ? Array.from(keys)[0] : keys;
+          if (key && key !== 'all') navigate(`/users/${key}`);
+        }}
         classNames={collapsibleTableClasses}
       >
         <TableHeader columns={columns}>
@@ -99,12 +105,7 @@ export function TrustingAccountsTable({
           {entries.map(([userId, permissions]) => (
             <TableRow key={userId}>
               <TableCell>
-                <Link
-                  to={`/users/${userId}`}
-                  className="font-mono text-sm text-primary hover:underline"
-                >
-                  {userId}
-                </Link>
+                <span className="font-mono text-sm">{userId}</span>
               </TableCell>
               <TableCell>
                 <div className="flex gap-1 flex-wrap">
@@ -131,6 +132,7 @@ export function TrustedAccountsTable({
   accounts: AccessPermissionsMap;
   isLoading?: boolean;
 }) {
+  const navigate = useNavigate();
   const entries = Object.entries(accounts);
   const totalItems = entries.length;
 
@@ -168,6 +170,11 @@ export function TrustedAccountsTable({
         aria-label="Accounts user shares with"
         shadow="none"
         removeWrapper
+        selectionMode="single"
+        onSelectionChange={(keys: 'all' | Set<React.Key>) => {
+          const key = keys instanceof Set ? Array.from(keys)[0] : keys;
+          if (key && key !== 'all') navigate(`/users/${key}`);
+        }}
         classNames={collapsibleTableClasses}
       >
         <TableHeader columns={columns}>
@@ -183,12 +190,7 @@ export function TrustedAccountsTable({
           {entries.map(([userId, permissions]) => (
             <TableRow key={userId}>
               <TableCell>
-                <Link
-                  to={`/users/${userId}`}
-                  className="font-mono text-sm text-primary hover:underline"
-                >
-                  {userId}
-                </Link>
+                <span className="font-mono text-sm">{userId}</span>
               </TableCell>
               <TableCell>
                 <div className="flex gap-1 flex-wrap">
@@ -333,6 +335,7 @@ export function ReceivedInvitesTable({
   isLoading?: boolean;
 }) {
   const { locale } = useLocale();
+  const navigate = useNavigate();
   const totalItems = invites.length;
 
   const columns = [
@@ -390,6 +393,13 @@ export function ReceivedInvitesTable({
         aria-label="Received invites"
         shadow="none"
         removeWrapper
+        selectionMode="single"
+        onSelectionChange={(keys: 'all' | Set<React.Key>) => {
+          const key = keys instanceof Set ? Array.from(keys)[0] : keys;
+          // Find the invite by key to get the creatorId
+          const invite = invites.find((i) => i.key === key);
+          if (invite?.creatorId) navigate(`/users/${invite.creatorId}`);
+        }}
         classNames={collapsibleTableClasses}
       >
         <TableHeader columns={columns}>
@@ -405,17 +415,14 @@ export function ReceivedInvitesTable({
           {invites.map((invite) => (
             <TableRow key={invite.key}>
               <TableCell>
-                <Link
-                  to={`/users/${invite.creatorId}`}
-                  className="flex flex-col hover:underline"
-                >
-                  <span className="text-sm text-primary">
+                <div className="flex flex-col">
+                  <span className="text-sm">
                     {invite.creator?.profile?.fullName || 'Unknown'}
                   </span>
                   <span className="text-xs text-default-400 font-mono">
                     {invite.creatorId}
                   </span>
-                </Link>
+                </div>
               </TableCell>
               <TableCell>
                 <Chip size="sm" variant="flat">
