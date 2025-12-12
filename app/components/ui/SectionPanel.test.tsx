@@ -357,7 +357,7 @@ describe('SectionPanel', () => {
         </SectionPanel>,
       );
 
-      const header = screen.getByText('Test Section').closest('.bg-content2');
+      const header = screen.getByText('Test Section').closest('.bg-content1');
       expect(header).toBeInTheDocument();
     });
   });

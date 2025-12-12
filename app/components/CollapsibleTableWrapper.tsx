@@ -49,7 +49,7 @@ export default function CollapsibleTableWrapper({
   return (
     <div className="w-full rounded-lg border-2 border-content2 overflow-hidden">
       <button
-        className="flex justify-between items-center w-full p-4 bg-content2 hover:bg-content3 transition-colors cursor-pointer"
+        className="flex justify-between items-center w-full p-4 bg-content1 hover:bg-default/40 transition-colors cursor-pointer"
         onClick={handleToggle}
         aria-expanded={isExpanded}
         aria-controls={`${title

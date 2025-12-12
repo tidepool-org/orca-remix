@@ -117,7 +117,7 @@ export default function SectionPanel({
     >
       {collapsible ? (
         <button
-          className="flex w-full p-4 bg-content2 hover:bg-content3 transition-colors cursor-pointer"
+          className="flex w-full p-4 bg-content1 hover:bg-default/40 transition-colors cursor-pointer"
           onClick={handleToggle}
           aria-expanded={isExpanded}
           aria-controls={panelId}
@@ -125,7 +125,7 @@ export default function SectionPanel({
           {headerContent}
         </button>
       ) : (
-        <div className="flex w-full p-4 bg-content2">{headerContent}</div>
+        <div className="flex w-full p-4 bg-content1">{headerContent}</div>
       )}
 
       {isExpanded && (
