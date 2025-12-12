@@ -1,10 +1,12 @@
-import { Chip, Tabs, Tab, Switch } from '@heroui/react';
+import { Chip, Tab, Switch } from '@heroui/react';
 import { Building2, Settings } from 'lucide-react';
 import { useFetcher } from 'react-router';
 import useLocale from '~/hooks/useLocale';
 import Well from '~/partials/Well';
 import ClinicsTable from './ClinicsTable';
 import ProfileHeader from '~/components/ui/ProfileHeader';
+import ProfileTabs from '~/components/ui/ProfileTabs';
+import TabTitle from '~/components/ui/TabTitle';
 import type { Clinician, ClinicianClinicMembership } from './types';
 import { formatShortDate } from '~/utils/dateFormatters';
 import { getRoleColor, formatRoleLabel } from '~/utils/statusColors';
@@ -161,30 +163,12 @@ export default function ClinicianProfile({
       />
 
       <div className="w-full">
-        <Tabs
-          aria-label="Clinician profile sections"
-          variant="underlined"
-          classNames={{
-            tabList:
-              'gap-4 w-full relative rounded-none p-0 border-b border-divider',
-            cursor: 'w-full bg-primary',
-            tab: 'max-w-fit px-2 h-12',
-            tabContent: 'group-data-[selected=true]:text-primary',
-          }}
-        >
+        <ProfileTabs aria-label="Clinician profile sections">
           {/* Clinics Tab */}
           <Tab
             key="clinics"
             title={
-              <div className="flex items-center gap-2">
-                <Building2 className="w-4 h-4" />
-                <span>Clinics</span>
-                {totalClinics > 0 && (
-                  <span className="text-xs bg-default-100 px-1.5 py-0.5 rounded-full">
-                    {totalClinics}
-                  </span>
-                )}
-              </div>
+              <TabTitle icon={Building2} label="Clinics" count={totalClinics} />
             }
           >
             <div className="pt-6">
@@ -202,12 +186,7 @@ export default function ClinicianProfile({
           {clinicId && (
             <Tab
               key="settings"
-              title={
-                <div className="flex items-center gap-2">
-                  <Settings className="w-4 h-4" />
-                  <span>Settings</span>
-                </div>
-              }
+              title={<TabTitle icon={Settings} label="Settings" />}
             >
               <div className="pt-6">
                 <Well>
@@ -263,7 +242,7 @@ export default function ClinicianProfile({
               </div>
             </Tab>
           )}
-        </Tabs>
+        </ProfileTabs>
       </div>
     </div>
   );

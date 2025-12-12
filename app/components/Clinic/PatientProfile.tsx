@@ -1,6 +1,6 @@
 import { useRouteLoaderData, Link } from 'react-router';
 import { useCallback } from 'react';
-import { Tabs, Tab } from '@heroui/react';
+import { Tab } from '@heroui/react';
 import { Database, Smartphone, FileText, ExternalLink } from 'lucide-react';
 import Well from '~/partials/Well';
 
@@ -10,6 +10,8 @@ import useLocale from '~/hooks/useLocale';
 import PrescriptionsTable from './PrescriptionsTable';
 import DataSetsTable from '../User/DataSetsTable';
 import ProfileHeader from '~/components/ui/ProfileHeader';
+import ProfileTabs from '~/components/ui/ProfileTabs';
+import TabTitle from '~/components/ui/TabTitle';
 import DataSourcesTable from '../User/DataSourcesTable';
 import DataExportSection from '../User/DataExportSection';
 import PumpSettingsSection from '../User/PumpSettingsSection';
@@ -198,30 +200,12 @@ export default function PatientProfile({
       />
 
       <div className="w-full">
-        <Tabs
-          aria-label="Patient profile sections"
-          variant="underlined"
-          classNames={{
-            tabList:
-              'gap-4 w-full relative rounded-none p-0 border-b border-divider',
-            cursor: 'w-full bg-primary',
-            tab: 'max-w-fit px-2 h-12',
-            tabContent: 'group-data-[selected=true]:text-primary',
-          }}
-        >
+        <ProfileTabs aria-label="Patient profile sections">
           {/* Data Tab */}
           <Tab
             key="data"
             title={
-              <div className="flex items-center gap-2">
-                <Database className="w-4 h-4" />
-                <span>Data</span>
-                {totalDataSets > 0 && (
-                  <span className="text-xs bg-default-100 px-1.5 py-0.5 rounded-full">
-                    {totalDataSets}
-                  </span>
-                )}
-              </div>
+              <TabTitle icon={Database} label="Data" count={totalDataSets} />
             }
           >
             <div className="pt-6 flex flex-col gap-6">
@@ -243,15 +227,11 @@ export default function PatientProfile({
           <Tab
             key="device"
             title={
-              <div className="flex items-center gap-2">
-                <Smartphone className="w-4 h-4" />
-                <span>Device</span>
-                {pumpSettings.length > 0 && (
-                  <span className="text-xs bg-default-100 px-1.5 py-0.5 rounded-full">
-                    {pumpSettings.length}
-                  </span>
-                )}
-              </div>
+              <TabTitle
+                icon={Smartphone}
+                label="Device"
+                count={pumpSettings.length}
+              />
             }
           >
             <div className="pt-6">
@@ -266,15 +246,11 @@ export default function PatientProfile({
           <Tab
             key="prescriptions"
             title={
-              <div className="flex items-center gap-2">
-                <FileText className="w-4 h-4" />
-                <span>Prescriptions</span>
-                {totalPrescriptions > 0 && (
-                  <span className="text-xs bg-default-100 px-1.5 py-0.5 rounded-full">
-                    {totalPrescriptions}
-                  </span>
-                )}
-              </div>
+              <TabTitle
+                icon={FileText}
+                label="Prescriptions"
+                count={totalPrescriptions}
+              />
             }
           >
             <div className="pt-6">
@@ -286,7 +262,7 @@ export default function PatientProfile({
               />
             </div>
           </Tab>
-        </Tabs>
+        </ProfileTabs>
       </div>
     </div>
   );

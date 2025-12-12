@@ -1,4 +1,4 @@
-import { Tabs, Tab } from '@heroui/react';
+import { Tab } from '@heroui/react';
 import {
   Building2,
   Share2,
@@ -20,6 +20,8 @@ import {
 import DataExportSection from './DataExportSection';
 import PumpSettingsSection from './PumpSettingsSection';
 import ProfileHeader from '~/components/ui/ProfileHeader';
+import ProfileTabs from '~/components/ui/ProfileTabs';
+import TabTitle from '~/components/ui/TabTitle';
 import PrescriptionsSection from './PrescriptionsSection';
 import UserActions from './UserActions';
 import type { ClinicianClinicMembership, Prescription } from '../Clinic/types';
@@ -158,30 +160,12 @@ export default function UserProfile({
       {UserDetailsSection}
 
       <div className="w-full">
-        <Tabs
-          aria-label="User profile sections"
-          variant="underlined"
-          classNames={{
-            tabList:
-              'gap-4 w-full relative rounded-none p-0 border-b border-divider',
-            cursor: 'w-full bg-primary',
-            tab: 'max-w-fit px-2 h-12',
-            tabContent: 'group-data-[selected=true]:text-primary',
-          }}
-        >
+        <ProfileTabs aria-label="User profile sections">
           {/* Clinics Tab */}
           <Tab
             key="clinics"
             title={
-              <div className="flex items-center gap-2">
-                <Building2 className="w-4 h-4" />
-                <span>Clinics</span>
-                {totalClinics > 0 && (
-                  <span className="text-xs bg-default-100 px-1.5 py-0.5 rounded-full">
-                    {totalClinics}
-                  </span>
-                )}
-              </div>
+              <TabTitle icon={Building2} label="Clinics" count={totalClinics} />
             }
           >
             <div className="pt-6">
@@ -198,15 +182,11 @@ export default function UserProfile({
           <Tab
             key="sharing"
             title={
-              <div className="flex items-center gap-2">
-                <Share2 className="w-4 h-4" />
-                <span>Data Sharing</span>
-                {dataSharingCount > 0 && (
-                  <span className="text-xs bg-default-100 px-1.5 py-0.5 rounded-full">
-                    {dataSharingCount}
-                  </span>
-                )}
-              </div>
+              <TabTitle
+                icon={Share2}
+                label="Data Sharing"
+                count={dataSharingCount}
+              />
             }
           >
             <div className="pt-6 flex flex-col gap-6">
@@ -227,15 +207,7 @@ export default function UserProfile({
           <Tab
             key="data"
             title={
-              <div className="flex items-center gap-2">
-                <Database className="w-4 h-4" />
-                <span>Data</span>
-                {totalDataSets > 0 && (
-                  <span className="text-xs bg-default-100 px-1.5 py-0.5 rounded-full">
-                    {totalDataSets}
-                  </span>
-                )}
-              </div>
+              <TabTitle icon={Database} label="Data" count={totalDataSets} />
             }
           >
             <div className="pt-6 flex flex-col gap-6">
@@ -257,15 +229,11 @@ export default function UserProfile({
           <Tab
             key="device"
             title={
-              <div className="flex items-center gap-2">
-                <Smartphone className="w-4 h-4" />
-                <span>Device</span>
-                {pumpSettings.length > 0 && (
-                  <span className="text-xs bg-default-100 px-1.5 py-0.5 rounded-full">
-                    {pumpSettings.length}
-                  </span>
-                )}
-              </div>
+              <TabTitle
+                icon={Smartphone}
+                label="Device"
+                count={pumpSettings.length}
+              />
             }
           >
             <div className="pt-6">
@@ -280,15 +248,11 @@ export default function UserProfile({
           <Tab
             key="prescriptions"
             title={
-              <div className="flex items-center gap-2">
-                <FileText className="w-4 h-4" />
-                <span>Prescriptions</span>
-                {totalPrescriptions > 0 && (
-                  <span className="text-xs bg-default-100 px-1.5 py-0.5 rounded-full">
-                    {totalPrescriptions}
-                  </span>
-                )}
-              </div>
+              <TabTitle
+                icon={FileText}
+                label="Prescriptions"
+                count={totalPrescriptions}
+              />
             }
           >
             <div className="pt-6">
@@ -303,12 +267,7 @@ export default function UserProfile({
           {/* Account Tab */}
           <Tab
             key="account"
-            title={
-              <div className="flex items-center gap-2">
-                <Settings className="w-4 h-4" />
-                <span>Account</span>
-              </div>
-            }
+            title={<TabTitle icon={Settings} label="Account" />}
           >
             <div className="pt-6">
               <Well>
@@ -316,7 +275,7 @@ export default function UserProfile({
               </Well>
             </div>
           </Tab>
-        </Tabs>
+        </ProfileTabs>
       </div>
     </div>
   );

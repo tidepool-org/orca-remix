@@ -1,14 +1,6 @@
 import { formatShortDate } from '~/utils/dateFormatters';
 import { useState, useEffect } from 'react';
-import {
-  Select,
-  SelectItem,
-  Button,
-  Tabs,
-  Tab,
-  Switch,
-  Input,
-} from '@heroui/react';
+import { Select, SelectItem, Button, Tab, Switch, Input } from '@heroui/react';
 import {
   Edit2,
   X,
@@ -39,6 +31,8 @@ import RecentPatients from './RecentPatients';
 import RecentClinicians from './RecentClinicians';
 import ConfirmationModal from '../ConfirmationModal';
 import ProfileHeader from '~/components/ui/ProfileHeader';
+import ProfileTabs from '~/components/ui/ProfileTabs';
+import TabTitle from '~/components/ui/TabTitle';
 import Well from '~/partials/Well';
 
 // Common timezones for selection
@@ -287,30 +281,16 @@ export default function ClinicProfile({
 
       {/* Tabbed Interface */}
       <div className="w-full">
-        <Tabs
-          aria-label="Clinic profile sections"
-          variant="underlined"
-          classNames={{
-            tabList:
-              'gap-4 w-full relative rounded-none p-0 border-b border-divider',
-            cursor: 'w-full bg-primary',
-            tab: 'max-w-fit px-2 h-12',
-            tabContent: 'group-data-[selected=true]:text-primary',
-          }}
-        >
+        <ProfileTabs aria-label="Clinic profile sections">
           {/* Clinicians Tab */}
           <Tab
             key="clinicians"
             title={
-              <div className="flex items-center gap-2">
-                <UserCog className="w-4 h-4" />
-                <span>Clinicians</span>
-                {totalClinicians > 0 && (
-                  <span className="text-xs bg-default-100 px-1.5 py-0.5 rounded-full">
-                    {totalClinicians}
-                  </span>
-                )}
-              </div>
+              <TabTitle
+                icon={UserCog}
+                label="Clinicians"
+                count={totalClinicians}
+              />
             }
           >
             <div className="pt-6 flex flex-col gap-6">
@@ -342,15 +322,7 @@ export default function ClinicProfile({
           <Tab
             key="patients"
             title={
-              <div className="flex items-center gap-2">
-                <Users className="w-4 h-4" />
-                <span>Patients</span>
-                {totalPatients > 0 && (
-                  <span className="text-xs bg-default-100 px-1.5 py-0.5 rounded-full">
-                    {totalPatients}
-                  </span>
-                )}
-              </div>
+              <TabTitle icon={Users} label="Patients" count={totalPatients} />
             }
           >
             <div className="pt-6 flex flex-col gap-6">
@@ -384,15 +356,11 @@ export default function ClinicProfile({
           <Tab
             key="prescriptions"
             title={
-              <div className="flex items-center gap-2">
-                <FileText className="w-4 h-4" />
-                <span>Prescriptions</span>
-                {totalPrescriptions > 0 && (
-                  <span className="text-xs bg-default-100 px-1.5 py-0.5 rounded-full">
-                    {totalPrescriptions}
-                  </span>
-                )}
-              </div>
+              <TabTitle
+                icon={FileText}
+                label="Prescriptions"
+                count={totalPrescriptions}
+              />
             }
           >
             <div className="pt-6">
@@ -408,12 +376,7 @@ export default function ClinicProfile({
           {/* Settings Tab */}
           <Tab
             key="settings"
-            title={
-              <div className="flex items-center gap-2">
-                <Settings className="w-4 h-4" />
-                <span>Settings</span>
-              </div>
-            }
+            title={<TabTitle icon={Settings} label="Settings" />}
           >
             <div className="pt-6 flex flex-col gap-6">
               {/* Clinic Tier Settings */}
@@ -649,7 +612,7 @@ export default function ClinicProfile({
               </Well>
             </div>
           </Tab>
-        </Tabs>
+        </ProfileTabs>
       </div>
 
       {/* Delete Clinic Confirmation Modal */}
