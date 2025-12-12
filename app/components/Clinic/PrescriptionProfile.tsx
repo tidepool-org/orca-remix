@@ -1,12 +1,11 @@
-import { useState } from 'react';
 import Well from '~/partials/Well';
 import { Chip } from '@heroui/react';
 import { Link } from 'react-router';
 
-import type { Prescription, PrescriptionState, Clinician } from './types';
+import type { Prescription, Clinician } from './types';
 import useLocale from '~/hooks/useLocale';
 import ClipboardButton from '../ClipboardButton';
-import DetailsToggleButton from '~/components/ui/DetailsToggleButton';
+import ProfileHeader from '~/components/ui/ProfileHeader';
 import { formatShortDate } from '~/utils/dateFormatters';
 import { getPrescriptionStateColor } from '~/utils/statusColors';
 
@@ -40,86 +39,49 @@ export default function PrescriptionProfile({
       ? `${attrs.firstName} ${attrs.lastName}`
       : attrs.firstName || attrs.lastName || 'Unknown Patient';
 
-  // Collapsible details state
-  const [isDetailsExpanded, setIsDetailsExpanded] = useState(false);
+  // ProfileHeader configuration
+  const prescriptionIdentifiers = [
+    { label: 'ID:', value: id, monospace: true },
+    ...(patientUserId
+      ? [{ label: 'Patient:', value: patientUserId, monospace: true }]
+      : []),
+  ];
+
+  const prescriptionDetailFields = [
+    { label: 'Created', value: formatShortDate(createdTime, locale) || 'N/A' },
+    {
+      label: 'Modified',
+      value: formatShortDate(modifiedTime, locale) || 'N/A',
+    },
+    {
+      label: 'Expires',
+      value: formatShortDate(expirationTime, locale) || 'N/A',
+    },
+    ...(latestRevision?.revisionId !== undefined
+      ? [{ label: 'Revision', value: String(latestRevision.revisionId) }]
+      : []),
+  ];
+
+  const stateChip = (
+    <Chip
+      color={getPrescriptionStateColor(state)}
+      variant="flat"
+      size="sm"
+      className="capitalize"
+    >
+      {state}
+    </Chip>
+  );
 
   return (
     <div className="flex flex-col gap-6 w-full">
-      {/* Prescription Header - Collapsible layout */}
-      <Well className="!gap-0">
-        {/* Row 1: Title with state chip on left, toggle button on right */}
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-3">
-            <h1 className="text-xl font-semibold">
-              Prescription for {patientName}
-            </h1>
-            <Chip
-              color={getPrescriptionStateColor(state)}
-              variant="flat"
-              size="sm"
-              className="capitalize"
-            >
-              {state}
-            </Chip>
-          </div>
-          <DetailsToggleButton
-            isExpanded={isDetailsExpanded}
-            onToggle={() => setIsDetailsExpanded(!isDetailsExpanded)}
-          />
-        </div>
-
-        {/* Row 2: Copyable identifiers */}
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm mt-1">
-          <span className="flex items-center gap-1 text-default-500">
-            <span className="text-default-400">ID:</span>
-            <span className="font-mono text-xs">{id}</span>
-            <ClipboardButton clipboardText={id} />
-          </span>
-          {patientUserId && (
-            <span className="flex items-center gap-1 text-default-500">
-              <span className="text-default-400">Patient:</span>
-              <span className="font-mono text-xs">{patientUserId}</span>
-              <ClipboardButton clipboardText={patientUserId} />
-            </span>
-          )}
-        </div>
-
-        {/* Collapsible details section */}
-        {isDetailsExpanded && (
-          <div className="mt-4 pt-4 border-t border-divider">
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-x-6 gap-y-3 text-sm">
-              <div>
-                <span className="text-default-400 block text-xs">Created</span>
-                <span className="text-default-600">
-                  {formatShortDate(createdTime, locale) || 'N/A'}
-                </span>
-              </div>
-              <div>
-                <span className="text-default-400 block text-xs">Modified</span>
-                <span className="text-default-600">
-                  {formatShortDate(modifiedTime, locale) || 'N/A'}
-                </span>
-              </div>
-              <div>
-                <span className="text-default-400 block text-xs">Expires</span>
-                <span className="text-default-600">
-                  {formatShortDate(expirationTime, locale) || 'N/A'}
-                </span>
-              </div>
-              {latestRevision?.revisionId !== undefined && (
-                <div>
-                  <span className="text-default-400 block text-xs">
-                    Revision
-                  </span>
-                  <span className="text-default-600">
-                    {latestRevision.revisionId}
-                  </span>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-      </Well>
+      {/* Prescription Header - Using ProfileHeader */}
+      <ProfileHeader
+        title={`Prescription for ${patientName}`}
+        titleRowExtra={stateChip}
+        identifiers={prescriptionIdentifiers}
+        detailFields={prescriptionDetailFields}
+      />
 
       {/* Patient & Prescriber Info - Side by side on larger screens */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

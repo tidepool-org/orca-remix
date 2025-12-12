@@ -8,7 +8,6 @@ import {
   TableBody,
   TableRow,
   TableCell,
-  Pagination,
   Chip,
   SortDescriptor,
   Tooltip,
@@ -21,6 +20,10 @@ import type { Patient } from './types';
 import DebouncedSearchInput from '../DebouncedSearchInput';
 import TableEmptyState from '~/components/ui/TableEmptyState';
 import TableLoadingState from '~/components/ui/TableLoadingState';
+import TablePagination, {
+  getFirstItemOnPage,
+  getLastItemOnPage,
+} from '~/components/ui/TablePagination';
 import { formatShortDate } from '~/utils/dateFormatters';
 
 export type PatientsTableProps = {
@@ -110,10 +113,14 @@ export default function PatientsTable({
   const effectivePageSize =
     pageSize ??
     (patients.length > 0 ? Math.ceil(totalPatients / totalPages) : 25);
-  const firstPatientOnPage =
-    totalPatients > 0 ? (currentPage - 1) * effectivePageSize + 1 : 0;
-  const lastPatientOnPage = Math.min(
-    currentPage * effectivePageSize,
+  const firstPatientOnPage = getFirstItemOnPage(
+    currentPage,
+    effectivePageSize,
+    totalPatients,
+  );
+  const lastPatientOnPage = getLastItemOnPage(
+    currentPage,
+    effectivePageSize,
     totalPatients,
   );
 
@@ -370,17 +377,13 @@ export default function PatientsTable({
         </TableBody>
       </Table>
 
-      {totalPages > 1 && (
-        <div className="flex justify-center mt-4">
-          <Pagination
-            page={currentPage}
-            total={totalPages}
-            onChange={onPageChange}
-            showControls
-            showShadow
-          />
-        </div>
-      )}
+      <TablePagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        totalItems={totalPatients}
+        pageSize={effectivePageSize}
+        onPageChange={onPageChange}
+      />
     </CollapsibleTableWrapper>
   );
 }

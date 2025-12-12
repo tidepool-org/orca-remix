@@ -7,16 +7,16 @@ import {
   TableRow,
   TableCell,
   Chip,
-  Input,
 } from '@heroui/react';
-import { FileText, Search } from 'lucide-react';
+import { FileText } from 'lucide-react';
 import { Link } from 'react-router';
 import useLocale from '~/hooks/useLocale';
 import CollapsibleTableWrapper from '../CollapsibleTableWrapper';
 import { collapsibleTableClasses } from '~/utils/tableStyles';
-import type { Prescription, PrescriptionState } from './types';
+import type { Prescription } from './types';
 import TableEmptyState from '~/components/ui/TableEmptyState';
 import TableLoadingState from '~/components/ui/TableLoadingState';
+import TableFilterInput from '~/components/ui/TableFilterInput';
 import { formatDateTime } from '~/utils/dateFormatters';
 import { getPrescriptionStateColor } from '~/utils/statusColors';
 
@@ -57,21 +57,13 @@ export default function PrescriptionsTable({
 
   const topContent = useMemo(
     () => (
-      <div className="flex justify-between items-center mb-4">
-        <Input
-          isClearable
-          placeholder="Filter by patient name or state..."
-          aria-label="Filter prescriptions by patient name or state"
-          startContent={
-            <Search className="w-4 h-4 text-default-400" aria-hidden="true" />
-          }
-          value={filterValue}
-          onClear={() => setFilterValue('')}
-          onValueChange={setFilterValue}
-          size="sm"
-          className="max-w-xs"
-        />
-      </div>
+      <TableFilterInput
+        value={filterValue}
+        onChange={setFilterValue}
+        placeholder="Filter by patient name or state..."
+        aria-label="Filter prescriptions by patient name or state"
+        className="mb-4"
+      />
     ),
     [filterValue],
   );

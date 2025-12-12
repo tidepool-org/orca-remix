@@ -1,5 +1,5 @@
 import { useRouteLoaderData, Link } from 'react-router';
-import { useCallback, useState } from 'react';
+import { useCallback } from 'react';
 import { Tabs, Tab } from '@heroui/react';
 import { Database, Smartphone, FileText, ExternalLink } from 'lucide-react';
 import Well from '~/partials/Well';
@@ -7,10 +7,9 @@ import Well from '~/partials/Well';
 import type { Patient, Prescription } from './types';
 import type { DataSet, DataSource, PumpSettings } from '../User/types';
 import useLocale from '~/hooks/useLocale';
-import ClipboardButton from '../ClipboardButton';
 import PrescriptionsTable from './PrescriptionsTable';
 import DataSetsTable from '../User/DataSetsTable';
-import DetailsToggleButton from '~/components/ui/DetailsToggleButton';
+import ProfileHeader from '~/components/ui/ProfileHeader';
 import DataSourcesTable from '../User/DataSourcesTable';
 import DataExportSection from '../User/DataExportSection';
 import PumpSettingsSection from '../User/PumpSettingsSection';
@@ -98,138 +97,105 @@ export default function PatientProfile({
     [clinicData?.sites],
   );
 
-  // State for collapsible details (Option 3)
-  const [isDetailsExpanded, setIsDetailsExpanded] = useState(false);
+  // ProfileHeader configuration
+  const patientIdentifiers = [
+    ...(email ? [{ value: email }] : []),
+    { label: 'ID:', value: id, monospace: true },
+    ...(mrn ? [{ label: 'MRN:', value: mrn, monospace: true }] : []),
+  ];
 
-  // Patient details component - Option 3: Collapsible details layout
-  const PatientDetailsSection = (
-    <Well className="!gap-0">
-      {/* Row 1: Name on left, toggle button on right */}
-      <div className="flex items-center justify-between gap-2">
-        <h1 className="text-xl font-semibold">{fullName}</h1>
-        <DetailsToggleButton
-          isExpanded={isDetailsExpanded}
-          onToggle={() => setIsDetailsExpanded(!isDetailsExpanded)}
-        />
-      </div>
+  const patientDetailFields = [
+    {
+      label: 'Birth Date',
+      value: birthDate ? formatShortDate(birthDate, locale) : '—',
+    },
+    { label: 'Added', value: formatShortDate(createdTime, locale) },
+    { label: 'Last Updated', value: formatShortDate(updatedTime, locale) },
+    ...(permissions
+      ? [
+          {
+            label: 'Permissions',
+            value: (
+              <div className="flex gap-1 flex-wrap mt-0.5">
+                {permissions.view && (
+                  <span className="px-1.5 py-0.5 bg-success/10 text-success rounded text-xs">
+                    View
+                  </span>
+                )}
+                {permissions.upload && (
+                  <span className="px-1.5 py-0.5 bg-warning/10 text-warning rounded text-xs">
+                    Upload
+                  </span>
+                )}
+                {permissions.note && (
+                  <span className="px-1.5 py-0.5 bg-secondary/10 text-secondary rounded text-xs">
+                    Note
+                  </span>
+                )}
+              </div>
+            ),
+          },
+        ]
+      : []),
+    ...(tags && tags.length > 0
+      ? [
+          {
+            label: 'Tags',
+            value: (
+              <div className="flex gap-1 flex-wrap mt-0.5">
+                {tags.map((tagId, index) => (
+                  <span
+                    key={index}
+                    className="px-1.5 py-0.5 bg-primary/10 text-primary rounded text-xs"
+                  >
+                    {getTagName(tagId)}
+                  </span>
+                ))}
+              </div>
+            ),
+          },
+        ]
+      : []),
+    ...(patient.sites && patient.sites.length > 0
+      ? [
+          {
+            label: 'Sites',
+            value: (
+              <div className="flex gap-1 flex-wrap mt-0.5">
+                {patient.sites.map((site, index) => (
+                  <span
+                    key={index}
+                    className="px-1.5 py-0.5 bg-secondary/10 text-secondary rounded text-xs"
+                  >
+                    {getSiteName(site.id || site.name || String(site))}
+                  </span>
+                ))}
+              </div>
+            ),
+          },
+        ]
+      : []),
+  ];
 
-      {/* Row 2: Copyable identifiers - order: email, ID, MRN, then View User Account link */}
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm mt-1">
-        {email && (
-          <span className="flex items-center gap-1 text-default-500">
-            <span className="text-default-400">{email}</span>
-            <ClipboardButton clipboardText={email} />
-          </span>
-        )}
-        <span className="flex items-center gap-1 text-default-500">
-          <span className="text-default-400">ID:</span>
-          <span className="font-mono text-xs">{id}</span>
-          <ClipboardButton clipboardText={id} />
-        </span>
-        {mrn && (
-          <span className="flex items-center gap-1 text-default-500">
-            <span className="text-d efault-400">MRN:</span>
-            <span className="font-mono text-xs">{mrn}</span>
-            <ClipboardButton clipboardText={mrn} />
-          </span>
-        )}
-        <Link
-          to={`/users/${id}`}
-          className="flex items-center gap-1 px-2 py-1 rounded-md text-default-500 hover:text-foreground hover:bg-default/40 transition-all"
-          aria-label="View user account"
-        >
-          <span className="text-default-400">View User Account</span>
-          <ExternalLink className="w-4 h-4" aria-hidden="true" />
-        </Link>
-      </div>
-
-      {/* Collapsible details section */}
-      {isDetailsExpanded && (
-        <div className="mt-4 pt-4 border-t border-divider">
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-x-6 gap-y-3 text-sm">
-            <div>
-              <span className="text-default-400 block text-xs">Birth Date</span>
-              <span className="text-default-600">
-                {birthDate ? formatShortDate(birthDate, locale) : '—'}
-              </span>
-            </div>
-            <div>
-              <span className="text-default-400 block text-xs">Added</span>
-              <span className="text-default-600">
-                {formatShortDate(createdTime, locale)}
-              </span>
-            </div>
-            <div>
-              <span className="text-default-400 block text-xs">
-                Last Updated
-              </span>
-              <span className="text-default-600">
-                {formatShortDate(updatedTime, locale)}
-              </span>
-            </div>
-            {permissions && (
-              <div>
-                <span className="text-default-400 block text-xs">
-                  Permissions
-                </span>
-                <div className="flex gap-1 flex-wrap mt-0.5">
-                  {permissions.view && (
-                    <span className="px-1.5 py-0.5 bg-success/10 text-success rounded text-xs">
-                      View
-                    </span>
-                  )}
-                  {permissions.upload && (
-                    <span className="px-1.5 py-0.5 bg-warning/10 text-warning rounded text-xs">
-                      Upload
-                    </span>
-                  )}
-                  {permissions.note && (
-                    <span className="px-1.5 py-0.5 bg-secondary/10 text-secondary rounded text-xs">
-                      Note
-                    </span>
-                  )}
-                </div>
-              </div>
-            )}
-            {tags && tags.length > 0 && (
-              <div>
-                <span className="text-default-400 block text-xs">Tags</span>
-                <div className="flex gap-1 flex-wrap mt-0.5">
-                  {tags.map((tagId, index) => (
-                    <span
-                      key={index}
-                      className="px-1.5 py-0.5 bg-primary/10 text-primary rounded text-xs"
-                    >
-                      {getTagName(tagId)}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-            {patient.sites && patient.sites.length > 0 && (
-              <div>
-                <span className="text-default-400 block text-xs">Sites</span>
-                <div className="flex gap-1 flex-wrap mt-0.5">
-                  {patient.sites.map((site, index) => (
-                    <span
-                      key={index}
-                      className="px-1.5 py-0.5 bg-secondary/10 text-secondary rounded text-xs"
-                    >
-                      {getSiteName(site.id || site.name || String(site))}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-    </Well>
+  const viewUserAccountLink = (
+    <Link
+      to={`/users/${id}`}
+      className="flex items-center gap-1 px-2 py-1 rounded-md text-default-500 hover:text-foreground hover:bg-default/40 transition-all"
+      aria-label="View user account"
+    >
+      <span className="text-default-400">View User Account</span>
+      <ExternalLink className="w-4 h-4" aria-hidden="true" />
+    </Link>
   );
 
   return (
     <div className="flex flex-col gap-6 w-full">
-      {PatientDetailsSection}
+      <ProfileHeader
+        title={fullName}
+        identifiers={patientIdentifiers}
+        actionLink={viewUserAccountLink}
+        detailFields={patientDetailFields}
+      />
 
       <div className="w-full">
         <Tabs

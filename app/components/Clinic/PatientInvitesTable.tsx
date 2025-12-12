@@ -7,7 +7,6 @@ import {
   TableBody,
   TableRow,
   TableCell,
-  Pagination,
   Button,
   Tooltip,
 } from '@heroui/react';
@@ -19,6 +18,10 @@ import type { PatientInvite } from './types';
 import ConfirmationModal from '../ConfirmationModal';
 import TableEmptyState from '~/components/ui/TableEmptyState';
 import TableLoadingState from '~/components/ui/TableLoadingState';
+import TablePagination, {
+  getFirstItemOnPage,
+  getLastItemOnPage,
+} from '~/components/ui/TablePagination';
 import { formatShortDate } from '~/utils/dateFormatters';
 
 export type PatientInvitesTableProps = {
@@ -74,10 +77,14 @@ export default function PatientInvitesTable({
   const effectivePageSize =
     pageSize ??
     (pendingInvites.length > 0 ? Math.ceil(totalInvites / totalPages) : 25);
-  const firstInviteOnPage =
-    pendingInvites.length > 0 ? (currentPage - 1) * effectivePageSize + 1 : 0;
-  const lastInviteOnPage = Math.min(
-    currentPage * effectivePageSize,
+  const firstInviteOnPage = getFirstItemOnPage(
+    currentPage,
+    effectivePageSize,
+    pendingInvites.length,
+  );
+  const lastInviteOnPage = getLastItemOnPage(
+    currentPage,
+    effectivePageSize,
     pendingInvites.length,
   );
 
@@ -243,17 +250,13 @@ export default function PatientInvitesTable({
           </TableBody>
         </Table>
 
-        {totalPages > 1 && (
-          <div className="flex justify-center mt-4">
-            <Pagination
-              page={currentPage}
-              total={totalPages}
-              onChange={onPageChange}
-              showControls
-              showShadow
-            />
-          </div>
-        )}
+        <TablePagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          totalItems={pendingInvites.length}
+          pageSize={effectivePageSize}
+          onPageChange={onPageChange}
+        />
       </CollapsibleTableWrapper>
 
       <ConfirmationModal

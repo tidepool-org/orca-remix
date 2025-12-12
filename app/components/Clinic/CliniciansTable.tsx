@@ -7,7 +7,6 @@ import {
   TableBody,
   TableRow,
   TableCell,
-  Pagination,
   Chip,
   Button,
   Tooltip,
@@ -21,6 +20,10 @@ import DebouncedSearchInput from '../DebouncedSearchInput';
 import ConfirmationModal from '../ConfirmationModal';
 import TableEmptyState from '~/components/ui/TableEmptyState';
 import TableLoadingState from '~/components/ui/TableLoadingState';
+import TablePagination, {
+  getFirstItemOnPage,
+  getLastItemOnPage,
+} from '~/components/ui/TablePagination';
 import { formatShortDate } from '~/utils/dateFormatters';
 export type CliniciansTableProps = {
   clinicians: Clinician[];
@@ -66,10 +69,14 @@ export default function CliniciansTable({
   const effectivePageSize =
     pageSize ??
     (clinicians.length > 0 ? Math.ceil(totalClinicians / totalPages) : 25);
-  const firstClinicianOnPage =
-    totalClinicians > 0 ? (currentPage - 1) * effectivePageSize + 1 : 0;
-  const lastClinicianOnPage = Math.min(
-    currentPage * effectivePageSize,
+  const firstClinicianOnPage = getFirstItemOnPage(
+    currentPage,
+    effectivePageSize,
+    totalClinicians,
+  );
+  const lastClinicianOnPage = getLastItemOnPage(
+    currentPage,
+    effectivePageSize,
     totalClinicians,
   );
 
@@ -249,17 +256,13 @@ export default function CliniciansTable({
           </TableBody>
         </Table>
 
-        {totalPages > 1 && (
-          <div className="flex justify-center mt-4">
-            <Pagination
-              page={currentPage}
-              total={totalPages}
-              onChange={onPageChange}
-              showControls
-              showShadow
-            />
-          </div>
-        )}
+        <TablePagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          totalItems={totalClinicians}
+          pageSize={effectivePageSize}
+          onPageChange={onPageChange}
+        />
       </CollapsibleTableWrapper>
 
       <ConfirmationModal

@@ -30,7 +30,6 @@ import type {
   ClinicPatientCountSettings,
 } from './types';
 import useLocale from '~/hooks/useLocale';
-import ClipboardButton from '../ClipboardButton';
 import PatientsTable from './PatientsTable';
 import PatientInvitesTable from './PatientInvitesTable';
 import CliniciansTable from './CliniciansTable';
@@ -39,7 +38,7 @@ import PrescriptionsTable from './PrescriptionsTable';
 import RecentPatients from './RecentPatients';
 import RecentClinicians from './RecentClinicians';
 import ConfirmationModal from '../ConfirmationModal';
-import DetailsToggleButton from '~/components/ui/DetailsToggleButton';
+import ProfileHeader from '~/components/ui/ProfileHeader';
 import Well from '~/partials/Well';
 
 // Common timezones for selection
@@ -191,11 +190,25 @@ export default function ClinicProfile({
   // Delete clinic modal state
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
-  // Collapsible details state
-  const [isDetailsExpanded, setIsDetailsExpanded] = useState(false);
-
   // Check if patient limits are applicable (only for tier0100)
   const isPatientLimitApplicable = tier === 'tier0100';
+
+  // ProfileHeader configuration
+  const clinicIdentifiers = [
+    { label: 'ID:', value: id, monospace: true },
+    ...(shareCode
+      ? [{ label: 'Share Code:', value: shareCode, monospace: true }]
+      : []),
+  ];
+
+  const clinicDetailFields = [
+    { label: 'Tier', value: tier || '—' },
+    { label: 'Can Migrate', value: canMigrate ? 'Yes' : 'No' },
+    {
+      label: 'Created',
+      value: createdTime ? formatShortDate(createdTime, locale) : '—',
+    },
+  ];
 
   // Reset timezone state when it changes
   useEffect(() => {
@@ -265,59 +278,12 @@ export default function ClinicProfile({
 
   return (
     <div className="flex flex-col gap-6 w-full">
-      {/* Clinic Details - Collapsible header layout */}
-      <Well className="!gap-0">
-        {/* Row 1: Name on left, toggle button on right */}
-        <div className="flex items-center justify-between gap-2">
-          <h1 className="text-xl font-semibold">{name}</h1>
-          <DetailsToggleButton
-            isExpanded={isDetailsExpanded}
-            onToggle={() => setIsDetailsExpanded(!isDetailsExpanded)}
-          />
-        </div>
-
-        {/* Row 2: Copyable identifiers */}
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm mt-1">
-          <span className="flex items-center gap-1 text-default-500">
-            <span className="text-default-400">ID:</span>
-            <span className="font-mono text-xs">{id}</span>
-            <ClipboardButton clipboardText={id} />
-          </span>
-          {shareCode && (
-            <span className="flex items-center gap-1 text-default-500">
-              <span className="text-default-400">Share Code:</span>
-              <span className="font-mono text-xs">{shareCode}</span>
-              <ClipboardButton clipboardText={shareCode} />
-            </span>
-          )}
-        </div>
-
-        {/* Collapsible details section */}
-        {isDetailsExpanded && (
-          <div className="mt-4 pt-4 border-t border-divider">
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-x-6 gap-y-3 text-sm">
-              <div>
-                <span className="text-default-400 block text-xs">Tier</span>
-                <span className="text-default-600">{tier || '—'}</span>
-              </div>
-              <div>
-                <span className="text-default-400 block text-xs">
-                  Can Migrate
-                </span>
-                <span className="text-default-600">
-                  {canMigrate ? 'Yes' : 'No'}
-                </span>
-              </div>
-              <div>
-                <span className="text-default-400 block text-xs">Created</span>
-                <span className="text-default-600">
-                  {createdTime ? formatShortDate(createdTime, locale) : '—'}
-                </span>
-              </div>
-            </div>
-          </div>
-        )}
-      </Well>
+      {/* Clinic Details - Using ProfileHeader */}
+      <ProfileHeader
+        title={name}
+        identifiers={clinicIdentifiers}
+        detailFields={clinicDetailFields}
+      />
 
       {/* Tabbed Interface */}
       <div className="w-full">

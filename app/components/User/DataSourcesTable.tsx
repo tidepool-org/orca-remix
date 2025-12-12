@@ -12,9 +12,8 @@ import {
   DropdownTrigger,
   DropdownMenu,
   DropdownItem,
-  Input,
 } from '@heroui/react';
-import { Database, MoreVertical, Unplug, Search } from 'lucide-react';
+import { Database, MoreVertical, Unplug } from 'lucide-react';
 import { useFetcher } from 'react-router';
 import useLocale from '~/hooks/useLocale';
 import CollapsibleTableWrapper from '../CollapsibleTableWrapper';
@@ -24,6 +23,7 @@ import type { DataSource } from './types';
 import { useToast } from '~/contexts/ToastContext';
 import TableEmptyState from '~/components/ui/TableEmptyState';
 import TableLoadingState from '~/components/ui/TableLoadingState';
+import TableFilterInput from '~/components/ui/TableFilterInput';
 import { formatShortDate, formatDateWithTime } from '~/utils/dateFormatters';
 import { getDataSourceStateColor } from '~/utils/statusColors';
 
@@ -76,21 +76,13 @@ export default function DataSourcesTable({
 
   const topContent = useMemo(
     () => (
-      <div className="flex justify-between items-center mb-4">
-        <Input
-          isClearable
-          placeholder="Filter by provider or state..."
-          aria-label="Filter data sources by provider or state"
-          startContent={
-            <Search className="w-4 h-4 text-default-400" aria-hidden="true" />
-          }
-          value={filterValue}
-          onClear={() => setFilterValue('')}
-          onValueChange={setFilterValue}
-          size="sm"
-          className="max-w-xs"
-        />
-      </div>
+      <TableFilterInput
+        value={filterValue}
+        onChange={setFilterValue}
+        placeholder="Filter by provider or state..."
+        aria-label="Filter data sources by provider or state"
+        className="mb-4"
+      />
     ),
     [filterValue],
   );

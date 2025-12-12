@@ -7,11 +7,9 @@ import {
   TableBody,
   TableRow,
   TableCell,
-  Pagination,
   Chip,
-  Input,
 } from '@heroui/react';
-import { Building2, Search } from 'lucide-react';
+import { Building2 } from 'lucide-react';
 import useLocale from '~/hooks/useLocale';
 import CollapsibleTableWrapper from '../CollapsibleTableWrapper';
 import { collapsibleTableClasses } from '~/utils/tableStyles';
@@ -22,6 +20,11 @@ import type {
 } from './types';
 import TableEmptyState from '~/components/ui/TableEmptyState';
 import TableLoadingState from '~/components/ui/TableLoadingState';
+import TablePagination, {
+  getFirstItemOnPage,
+  getLastItemOnPage,
+} from '~/components/ui/TablePagination';
+import TableFilterInput from '~/components/ui/TableFilterInput';
 import { formatShortDate } from '~/utils/dateFormatters';
 
 export type ClinicsTableProps = {
@@ -74,21 +77,13 @@ export default function ClinicsTable({
 
   const topContent = useMemo(
     () => (
-      <div className="flex justify-between items-center mb-4">
-        <Input
-          isClearable
-          placeholder="Filter by clinic name, ID, or tier..."
-          aria-label="Filter clinics by name, ID, or tier"
-          startContent={
-            <Search className="w-4 h-4 text-default-400" aria-hidden="true" />
-          }
-          value={filterValue}
-          onClear={() => setFilterValue('')}
-          onValueChange={setFilterValue}
-          size="sm"
-          className="max-w-xs"
-        />
-      </div>
+      <TableFilterInput
+        value={filterValue}
+        onChange={setFilterValue}
+        placeholder="Filter by clinic name, ID, or tier..."
+        aria-label="Filter clinics by name, ID, or tier"
+        className="mb-4"
+      />
     ),
     [filterValue],
   );
@@ -97,10 +92,14 @@ export default function ClinicsTable({
   const effectivePageSize =
     pageSize ??
     (clinics.length > 0 ? Math.ceil(totalClinics / totalPages) : 25);
-  const firstClinicOnPage =
-    totalClinics > 0 ? (currentPage - 1) * effectivePageSize + 1 : 0;
-  const lastClinicOnPage = Math.min(
-    currentPage * effectivePageSize,
+  const firstClinicOnPage = getFirstItemOnPage(
+    currentPage,
+    effectivePageSize,
+    totalClinics,
+  );
+  const lastClinicOnPage = getLastItemOnPage(
+    currentPage,
+    effectivePageSize,
     totalClinics,
   );
 
@@ -257,16 +256,13 @@ export default function ClinicsTable({
         </TableBody>
       </Table>
 
-      {totalPages > 1 && onPageChange && (
-        <div className="flex justify-center mt-4">
-          <Pagination
-            showControls
-            total={totalPages}
-            page={currentPage}
-            onChange={onPageChange}
-          />
-        </div>
-      )}
+      <TablePagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        totalItems={totalClinics}
+        pageSize={effectivePageSize}
+        onPageChange={onPageChange}
+      />
     </CollapsibleTableWrapper>
   );
 }

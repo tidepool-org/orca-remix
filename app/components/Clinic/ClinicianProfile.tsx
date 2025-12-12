@@ -1,12 +1,10 @@
 import { Chip, Tabs, Tab, Switch } from '@heroui/react';
-import { useState } from 'react';
 import { Building2, Settings } from 'lucide-react';
 import { useFetcher } from 'react-router';
 import useLocale from '~/hooks/useLocale';
 import Well from '~/partials/Well';
-import ClipboardButton from '../ClipboardButton';
 import ClinicsTable from './ClinicsTable';
-import DetailsToggleButton from '~/components/ui/DetailsToggleButton';
+import ProfileHeader from '~/components/ui/ProfileHeader';
 import type { Clinician, ClinicianClinicMembership } from './types';
 import { formatShortDate } from '~/utils/dateFormatters';
 import { getRoleColor, formatRoleLabel } from '~/utils/statusColors';
@@ -30,9 +28,6 @@ export default function ClinicianProfile({
 }: ClinicianProfileProps) {
   const { locale } = useLocale();
   const fetcher = useFetcher();
-
-  // Collapsible details state - must be before early returns
-  const [isDetailsExpanded, setIsDetailsExpanded] = useState(false);
 
   if (isLoading) {
     return (
@@ -122,78 +117,48 @@ export default function ClinicianProfile({
     );
   };
 
-  // Clinician details section - Collapsible header layout
-  const ClinicianDetailsSection = (
-    <Well className="!gap-0">
-      {/* Row 1: Name on left, toggle button on right */}
-      <div className="flex items-center justify-between gap-2">
-        <h1 className="text-xl font-semibold">{clinician.name}</h1>
-        <DetailsToggleButton
-          isExpanded={isDetailsExpanded}
-          onToggle={() => setIsDetailsExpanded(!isDetailsExpanded)}
-        />
-      </div>
+  // Clinician details section - using ProfileHeader component
+  const clinicianIdentifiers = [
+    ...(clinician.email ? [{ value: clinician.email }] : []),
+    { label: 'ID:', value: clinician.id, monospace: true },
+  ];
 
-      {/* Row 2: Copyable identifiers */}
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm mt-1">
-        {clinician.email && (
-          <span className="flex items-center gap-1">
-            <span className="text-default-600">{clinician.email}</span>
-            <ClipboardButton clipboardText={clinician.email} />
-          </span>
-        )}
-        <span className="flex items-center gap-1 text-default-500">
-          <span className="text-default-400">ID:</span>
-          <span className="font-mono text-xs">{clinician.id}</span>
-          <ClipboardButton clipboardText={clinician.id} />
-        </span>
-      </div>
-
-      {/* Collapsible details section */}
-      {isDetailsExpanded && (
-        <div className="mt-4 pt-4 border-t border-divider">
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-x-6 gap-y-3 text-sm">
-            <div>
-              <span className="text-default-400 block text-xs">Roles</span>
-              <div className="flex gap-1 flex-wrap mt-0.5">
-                {clinician.roles?.map((role) => (
-                  <Chip
-                    key={role}
-                    color={getRoleColor(role)}
-                    variant="flat"
-                    size="sm"
-                    className="capitalize"
-                  >
-                    {formatRoleLabel(role)}
-                  </Chip>
-                ))}
-              </div>
-            </div>
-            <div>
-              <span className="text-default-400 block text-xs">
-                Added to Clinic
-              </span>
-              <span className="text-default-600">
-                {formatShortDate(clinician.createdTime, locale)}
-              </span>
-            </div>
-            <div>
-              <span className="text-default-400 block text-xs">
-                Last Updated
-              </span>
-              <span className="text-default-600">
-                {formatShortDate(clinician.updatedTime, locale)}
-              </span>
-            </div>
-          </div>
+  const clinicianDetailFields = [
+    {
+      label: 'Roles',
+      value: (
+        <div className="flex gap-1 flex-wrap mt-0.5">
+          {clinician.roles?.map((role) => (
+            <Chip
+              key={role}
+              color={getRoleColor(role)}
+              variant="flat"
+              size="sm"
+              className="capitalize"
+            >
+              {formatRoleLabel(role)}
+            </Chip>
+          ))}
         </div>
-      )}
-    </Well>
-  );
+      ),
+    },
+    {
+      label: 'Added to Clinic',
+      value: formatShortDate(clinician.createdTime, locale),
+    },
+    {
+      label: 'Last Updated',
+      value: formatShortDate(clinician.updatedTime, locale),
+    },
+  ];
 
   return (
     <div className="flex flex-col gap-6 w-full">
-      {ClinicianDetailsSection}
+      <ProfileHeader
+        title={clinician.name}
+        identifiers={clinicianIdentifiers}
+        detailFields={clinicianDetailFields}
+      />
 
       <div className="w-full">
         <Tabs

@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { Tabs, Tab } from '@heroui/react';
 import {
   Building2,
@@ -20,7 +19,7 @@ import {
 } from './DataSharingSection';
 import DataExportSection from './DataExportSection';
 import PumpSettingsSection from './PumpSettingsSection';
-import DetailsToggleButton from '~/components/ui/DetailsToggleButton';
+import ProfileHeader from '~/components/ui/ProfileHeader';
 import PrescriptionsSection from './PrescriptionsSection';
 import UserActions from './UserActions';
 import type { ClinicianClinicMembership, Prescription } from '../Clinic/types';
@@ -35,7 +34,6 @@ import type {
   PumpSettings,
 } from './types';
 import useLocale from '~/hooks/useLocale';
-import ClipboardButton from '../ClipboardButton';
 import { formatShortDate } from '~/utils/dateFormatters';
 
 export type UserProfileProps = {
@@ -84,9 +82,6 @@ export default function UserProfile({
   // Determine if this is an unclaimed/custodial account
   const isUnclaimedAccount = !emailVerified && !termsAccepted;
 
-  // Collapsible details state
-  const [isDetailsExpanded, setIsDetailsExpanded] = useState(false);
-
   // Calculate counts for tab badges (excluding current user's own entries)
   const trustingAccountsCount = Object.keys(trustingAccounts).filter(
     (id) => id !== userId,
@@ -100,71 +95,41 @@ export default function UserProfile({
     sentInvites.length +
     receivedInvites.length;
 
-  // User details component - Collapsible header layout
+  // User profile header configuration
+  const userIdentifiers = [
+    ...(username ? [{ value: username }] : []),
+    { label: 'ID:', value: userId, monospace: true },
+  ];
+
+  const userDetailFields = [
+    {
+      label: 'Account Type',
+      value: clinic ? `Clinician (${clinic.role})` : 'Patient',
+    },
+    {
+      label: 'Account Status',
+      value: isUnclaimedAccount
+        ? 'Unclaimed (Custodial)'
+        : emailVerified
+          ? 'Verified'
+          : 'Unverified',
+    },
+    ...(termsAccepted
+      ? [
+          {
+            label: 'Member Since',
+            value: formatShortDate(termsAccepted, locale),
+          },
+        ]
+      : []),
+  ];
+
   const UserDetailsSection = (
-    <Well className="!gap-0">
-      {/* Row 1: Name on left, toggle button on right */}
-      <div className="flex items-center justify-between gap-2">
-        <h1 className="text-xl font-semibold">{fullName}</h1>
-        <DetailsToggleButton
-          isExpanded={isDetailsExpanded}
-          onToggle={() => setIsDetailsExpanded(!isDetailsExpanded)}
-        />
-      </div>
-
-      {/* Row 2: Copyable identifiers */}
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm mt-1">
-        {username && (
-          <span className="flex items-center gap-1">
-            <span className="text-default-600">{username}</span>
-            <ClipboardButton clipboardText={username} />
-          </span>
-        )}
-        <span className="flex items-center gap-1 text-default-500">
-          <span className="text-default-400">ID:</span>
-          <span className="font-mono text-xs">{userId}</span>
-          <ClipboardButton clipboardText={userId} />
-        </span>
-      </div>
-
-      {/* Collapsible details section */}
-      {isDetailsExpanded && (
-        <div className="mt-4 pt-4 border-t border-divider">
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-x-6 gap-y-3 text-sm">
-            <div>
-              <span className="text-default-400 block text-xs">
-                Account Type
-              </span>
-              <span className="text-default-600">
-                {clinic ? `Clinician (${clinic.role})` : 'Patient'}
-              </span>
-            </div>
-            <div>
-              <span className="text-default-400 block text-xs">
-                Account Status
-              </span>
-              <span className="text-default-600">
-                {isUnclaimedAccount
-                  ? 'Unclaimed (Custodial)'
-                  : emailVerified
-                    ? 'Verified'
-                    : 'Unverified'}
-              </span>
-            </div>
-            {termsAccepted && (
-              <div>
-                <span className="text-default-400 block text-xs">
-                  Member Since
-                </span>
-                <span className="text-default-600">
-                  {formatShortDate(termsAccepted, locale)}
-                </span>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-    </Well>
+    <ProfileHeader
+      title={fullName || username || 'Unknown User'}
+      identifiers={userIdentifiers}
+      detailFields={userDetailFields}
+    />
   );
 
   // For clinician accounts, show simplified view (no tabs needed)

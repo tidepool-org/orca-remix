@@ -12,9 +12,8 @@ import {
   DropdownTrigger,
   DropdownMenu,
   DropdownItem,
-  Input,
 } from '@heroui/react';
-import { Upload, MoreVertical, Trash2, Database, Search } from 'lucide-react';
+import { Upload, MoreVertical, Trash2, Database } from 'lucide-react';
 import { useFetcher } from 'react-router';
 import useLocale from '~/hooks/useLocale';
 import CollapsibleTableWrapper from '../CollapsibleTableWrapper';
@@ -25,6 +24,7 @@ import type { DataSet } from './types';
 import { useToast } from '~/contexts/ToastContext';
 import TableEmptyState from '~/components/ui/TableEmptyState';
 import TableLoadingState from '~/components/ui/TableLoadingState';
+import TableFilterInput from '~/components/ui/TableFilterInput';
 import { formatDateWithTime } from '~/utils/dateFormatters';
 
 export type DataSetsTableProps = {
@@ -318,34 +318,22 @@ export default function DataSetsTable({
 
   const modalContent = getModalContent();
 
-  const onClear = React.useCallback(() => {
-    setFilterValue('');
-  }, []);
-
   const topContent = React.useMemo(() => {
     return (
-      <div className="flex justify-between items-center mb-4">
-        <Input
-          isClearable
-          className="w-full sm:max-w-[300px]"
-          placeholder="Filter by Upload ID, Device, or Serial..."
-          aria-label="Filter uploads by Upload ID, Device, or Serial"
-          startContent={
-            <Search className="w-4 h-4 text-default-400" aria-hidden="true" />
-          }
-          value={filterValue}
-          onClear={onClear}
-          onValueChange={setFilterValue}
-          size="sm"
-        />
-        {filterValue && (
-          <span className="text-sm text-default-400">
-            Showing {filteredDataSets.length} of {totalDataSets} uploads
-          </span>
-        )}
-      </div>
+      <TableFilterInput
+        value={filterValue}
+        onChange={setFilterValue}
+        placeholder="Filter by Upload ID, Device, or Serial..."
+        aria-label="Filter uploads by Upload ID, Device, or Serial"
+        showResultCount={filterValue !== ''}
+        filteredCount={filteredDataSets.length}
+        totalCount={totalDataSets}
+        itemLabel="uploads"
+        maxWidth="w-full sm:max-w-[300px]"
+        className="mb-4"
+      />
     );
-  }, [filterValue, onClear, filteredDataSets.length, totalDataSets]);
+  }, [filterValue, filteredDataSets.length, totalDataSets]);
 
   return (
     <>
