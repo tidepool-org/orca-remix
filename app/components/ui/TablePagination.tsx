@@ -69,7 +69,6 @@ export default function TablePagination({
         total={totalPages}
         onChange={onPageChange}
         showControls
-        showShadow
       />
     </div>
   );
