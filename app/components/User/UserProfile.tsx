@@ -213,12 +213,12 @@ export default function UserProfile({
             }
           >
             <div className="pt-6 flex flex-col gap-6">
-              <TrustingAccountsTable
-                accounts={trustingAccounts}
-                currentUserId={userId}
-              />
               <TrustedAccountsTable
                 accounts={trustedAccounts}
+                currentUserId={userId}
+              />
+              <TrustingAccountsTable
+                accounts={trustingAccounts}
                 currentUserId={userId}
               />
               <SentInvitesTable invites={sentInvites} />

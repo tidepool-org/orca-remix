@@ -18,18 +18,6 @@ import TableLoadingState from '~/components/ui/TableLoadingState';
 import StatusChip from '~/components/ui/StatusChip';
 import { formatShortDate } from '~/utils/dateFormatters';
 
-export type DataSharingSectionProps = {
-  // Accounts that share data WITH this user (user can view their data)
-  trustingAccounts: AccessPermissionsMap;
-  // Accounts that this user shares data WITH (they can view user's data)
-  trustedAccounts: AccessPermissionsMap;
-  // Pending invites sent by this user
-  sentInvites: ShareInvite[];
-  // Pending invites received by this user
-  receivedInvites: ShareInvite[];
-  isLoading?: boolean;
-};
-
 // Helper to convert permissions object to readable array
 const formatPermissions = (permissions: Permissions): string[] => {
   const perms: string[] = [];
@@ -382,26 +370,5 @@ export function ReceivedInvitesTable({
         </TableBody>
       </Table>
     </CollapsibleTableWrapper>
-  );
-}
-
-// Main DataSharingSection component
-export default function DataSharingSection({
-  trustingAccounts,
-  trustedAccounts,
-  sentInvites,
-  receivedInvites,
-  isLoading = false,
-}: DataSharingSectionProps) {
-  return (
-    <div className="flex flex-col gap-6">
-      <TrustingAccountsTable
-        accounts={trustingAccounts}
-        isLoading={isLoading}
-      />
-      <TrustedAccountsTable accounts={trustedAccounts} isLoading={isLoading} />
-      <SentInvitesTable invites={sentInvites} isLoading={isLoading} />
-      <ReceivedInvitesTable invites={receivedInvites} isLoading={isLoading} />
-    </div>
   );
 }
