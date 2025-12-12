@@ -9,8 +9,7 @@ import {
 } from '@heroui/react';
 import { History } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
-import Well from '~/partials/Well';
-import SectionHeader from '~/components/SectionHeader';
+import SectionPanel from '~/components/ui/SectionPanel';
 import { recentTableClasses } from '~/utils/tableStyles';
 
 type Column = {
@@ -105,8 +104,6 @@ export default function RecentItemsTable<T extends { id?: string }>({
     }
   };
 
-  const TableHeading = <SectionHeader icon={Icon} title={title} />;
-
   const EmptyContent = (
     <p className="text-center text-default-400 py-4">{emptyMessage}</p>
   );
@@ -116,7 +113,11 @@ export default function RecentItemsTable<T extends { id?: string }>({
   };
 
   return (
-    <Well className="bg-transparent">
+    <SectionPanel
+      icon={<Icon className="w-5 h-5" />}
+      title={title}
+      aria-label={ariaLabel}
+    >
       <Table
         className="flex flex-1 flex-col text-content1-foreground gap-4"
         aria-label={ariaLabel}
@@ -124,7 +125,6 @@ export default function RecentItemsTable<T extends { id?: string }>({
         removeWrapper
         selectionMode="single"
         onSelectionChange={handleSelection}
-        topContent={TableHeading}
         classNames={{
           th: recentTableClasses.th,
           tr: recentTableClasses.tr,
@@ -149,6 +149,6 @@ export default function RecentItemsTable<T extends { id?: string }>({
           )}
         </TableBody>
       </Table>
-    </Well>
+    </SectionPanel>
   );
 }
