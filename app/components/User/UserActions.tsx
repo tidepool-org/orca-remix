@@ -126,7 +126,7 @@ export default function UserActions({ user }: UserActionsProps) {
   return (
     <SectionPanel title="Account Actions" aria-label="Account Actions">
       {/* Standard Actions */}
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-3 mb-4">
         <Button
           size="sm"
           variant="flat"
@@ -173,10 +173,10 @@ export default function UserActions({ user }: UserActionsProps) {
       </div>
 
       {/* Danger Zone */}
-      <Divider className="my-2" />
+      <Divider className="my-4" />
 
-      <DangerZoneSection showIcon size="sm" className="mb-0">
-        <div className="flex flex-wrap gap-2">
+      <DangerZoneSection showIcon size="sm" className="mt-2">
+        <div className="flex flex-wrap gap-3">
           <Button
             size="sm"
             variant="flat"

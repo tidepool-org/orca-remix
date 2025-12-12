@@ -7,7 +7,6 @@ import {
   FileText,
   Smartphone,
 } from 'lucide-react';
-import Well from '~/partials/Well';
 import ClinicsTable from '../Clinic/ClinicsTable';
 import DataSetsTable from './DataSetsTable';
 import DataSourcesTable from './DataSourcesTable';
@@ -134,20 +133,46 @@ export default function UserProfile({
     />
   );
 
-  // For clinician accounts, show simplified view (no tabs needed)
+  // For clinician accounts, show tabbed interface with Clinics and Account tabs
   if (clinic) {
     return (
-      <div className="flex flex-col gap-8 w-full">
+      <div className="flex flex-col gap-6 w-full">
         {UserDetailsSection}
 
-        <UserActions user={user} />
+        <div className="w-full">
+          <ProfileTabs aria-label="Clinician profile sections">
+            {/* Clinics Tab */}
+            <Tab
+              key="clinics"
+              title={
+                <TabTitle
+                  icon={Building2}
+                  label="Clinics"
+                  count={totalClinics}
+                />
+              }
+            >
+              <div className="pt-6">
+                <ClinicsTable
+                  clinics={clinics}
+                  totalClinics={totalClinics}
+                  totalPages={1}
+                  currentPage={1}
+                />
+              </div>
+            </Tab>
 
-        <ClinicsTable
-          clinics={clinics}
-          totalClinics={totalClinics}
-          totalPages={1}
-          currentPage={1}
-        />
+            {/* Account Tab */}
+            <Tab
+              key="account"
+              title={<TabTitle icon={Settings} label="Account" />}
+            >
+              <div className="pt-6">
+                <UserActions user={user} />
+              </div>
+            </Tab>
+          </ProfileTabs>
+        </div>
       </div>
     );
   }
