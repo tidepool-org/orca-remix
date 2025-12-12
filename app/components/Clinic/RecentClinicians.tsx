@@ -1,88 +1,34 @@
 import { useNavigate, useParams } from 'react-router';
-import {
-  Table,
-  TableHeader,
-  TableColumn,
-  TableBody,
-  TableRow,
-  TableCell,
-  getKeyValue,
-} from '@heroui/react';
-import { History } from 'lucide-react';
 import { useRecentItems } from './RecentItemsContext';
-import Well from '~/partials/Well';
-import SectionHeader from '~/components/SectionHeader';
-import { recentTableClasses } from '~/utils/tableStyles';
+import RecentItemsTable from '~/components/ui/RecentItemsTable';
 import type { RecentClinician } from './types';
 
 export type RecentCliniciansProps = {
   recentClinicians?: RecentClinician[]; // Keep for backward compatibility but use context
 };
 
+const columns = [
+  { key: 'name', label: 'Name' },
+  { key: 'email', label: 'Email Address' },
+];
+
 export default function RecentClinicians() {
   const navigate = useNavigate();
   const params = useParams();
   const { recentClinicians } = useRecentItems();
 
-  // Always use context data for real-time updates
-  const clinicians = recentClinicians;
-
-  const columns = [
-    {
-      key: 'name',
-      label: 'Name',
-    },
-    {
-      key: 'email',
-      label: 'Email Address',
-    },
-  ];
-
-  const handleSelection = (e: React.Key | Set<React.Key>) => {
-    const key = e instanceof Set ? Array.from(e)[0] : e;
+  const handleSelect = (key: React.Key) => {
     navigate(`/clinics/${params.clinicId}/clinicians/${key}`);
   };
 
-  const TableHeading = (
-    <SectionHeader icon={History} title="Recently Viewed Clinicians" />
-  );
-
-  const EmptyContent = (
-    <p className="text-center text-default-400 py-4">
-      There are no recently viewed clinicians to show
-    </p>
-  );
-
   return (
-    <Well className="bg-transparent">
-      <Table
-        className="flex flex-1 flex-col text-content1-foreground gap-4"
-        aria-label="Recently viewed clinicians"
-        shadow="none"
-        removeWrapper
-        selectionMode="single"
-        onSelectionChange={handleSelection}
-        topContent={TableHeading}
-        classNames={{
-          th: recentTableClasses.th,
-          tr: recentTableClasses.tr,
-        }}
-      >
-        <TableHeader columns={columns}>
-          {(column) => (
-            <TableColumn key={column.key}>{column.label}</TableColumn>
-          )}
-        </TableHeader>
-        <TableBody emptyContent={EmptyContent} items={clinicians}>
-          {(item) => (
-            <TableRow key={item.id}>
-              {(columnKey) => (
-                <TableCell>{getKeyValue(item, columnKey)}</TableCell>
-              )}
-            </TableRow>
-          )}
-        </TableBody>
-      </Table>
-    </Well>
+    <RecentItemsTable<RecentClinician>
+      items={recentClinicians}
+      columns={columns}
+      onSelect={handleSelect}
+      aria-label="Recently viewed clinicians"
+      title="Recently Viewed Clinicians"
+      emptyMessage="There are no recently viewed clinicians to show"
+    />
   );
 }

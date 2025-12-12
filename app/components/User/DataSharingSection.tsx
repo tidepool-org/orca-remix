@@ -15,8 +15,8 @@ import { collapsibleTableClasses } from '~/utils/tableStyles';
 import type { AccessPermissionsMap, ShareInvite, Permissions } from './types';
 import TableEmptyState from '~/components/ui/TableEmptyState';
 import TableLoadingState from '~/components/ui/TableLoadingState';
+import StatusChip from '~/components/ui/StatusChip';
 import { formatShortDate } from '~/utils/dateFormatters';
-import { getInviteStatusColor } from '~/utils/statusColors';
 
 export type DataSharingSectionProps = {
   // Accounts that share data WITH this user (user can view their data)
@@ -274,13 +274,7 @@ export function SentInvitesTable({
                 </Chip>
               </TableCell>
               <TableCell>
-                <Chip
-                  size="sm"
-                  variant="flat"
-                  color={getInviteStatusColor(invite.status)}
-                >
-                  {invite.status}
-                </Chip>
+                <StatusChip status={invite.status} type="invite" />
               </TableCell>
               <TableCell>
                 <span className="text-sm">
@@ -376,13 +370,7 @@ export function ReceivedInvitesTable({
                 </Chip>
               </TableCell>
               <TableCell>
-                <Chip
-                  size="sm"
-                  variant="flat"
-                  color={getInviteStatusColor(invite.status)}
-                >
-                  {invite.status}
-                </Chip>
+                <StatusChip status={invite.status} type="invite" />
               </TableCell>
               <TableCell>
                 <span className="text-sm">

@@ -6,7 +6,6 @@ import {
   TableBody,
   TableRow,
   TableCell,
-  Chip,
 } from '@heroui/react';
 import { UserPlus } from 'lucide-react';
 import useLocale from '~/hooks/useLocale';
@@ -17,8 +16,8 @@ import type { ClinicianInvite } from './types';
 import TableEmptyState from '~/components/ui/TableEmptyState';
 import TableLoadingState from '~/components/ui/TableLoadingState';
 import DeleteActionButton from '~/components/ui/DeleteActionButton';
+import StatusChip from '~/components/ui/StatusChip';
 import { formatShortDate } from '~/utils/dateFormatters';
-import { getInviteStatusColor } from '~/utils/statusColors';
 
 export type ClinicianInvitesTableProps = {
   invites: ClinicianInvite[];
@@ -90,20 +89,7 @@ export default function ClinicianInvitesTable({
             invite.roles && invite.roles.length > 0
               ? invite.roles[0]
               : 'Unknown';
-          return (
-            <Chip
-              className="capitalize"
-              color={
-                primaryRole.toLowerCase().includes('admin')
-                  ? 'primary'
-                  : 'default'
-              }
-              size="sm"
-              variant="flat"
-            >
-              {primaryRole.replace('CLINIC_', '').toLowerCase()}
-            </Chip>
-          );
+          return <StatusChip status={primaryRole} type="role" />;
         }
         case 'createdTime':
           if (!invite.createdTime)
@@ -114,16 +100,7 @@ export default function ClinicianInvitesTable({
             </p>
           );
         case 'status':
-          return (
-            <Chip
-              className="capitalize"
-              color={getInviteStatusColor(invite.status)}
-              size="sm"
-              variant="flat"
-            >
-              {invite.status}
-            </Chip>
-          );
+          return <StatusChip status={invite.status} type="invite" />;
         case 'actions':
           return (
             <DeleteActionButton

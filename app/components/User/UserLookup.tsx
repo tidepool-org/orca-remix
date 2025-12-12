@@ -1,11 +1,5 @@
-import { Form, useSearchParams, useNavigation } from 'react-router';
-import { Input, Button } from '@heroui/react';
 import { UserCircle2Icon } from 'lucide-react';
-import React from 'react';
-import Well from '~/partials/Well';
-import { useToast } from '~/contexts/ToastContext';
-import SectionHeader from '~/components/SectionHeader';
-import { searchInputClasses } from '~/utils/tableStyles';
+import LookupForm from '~/components/ui/LookupForm';
 
 type UserLookupProps = {
   error?: string;
@@ -16,60 +10,14 @@ export default function UserLookup({
   error,
   errorType = 'validation',
 }: UserLookupProps) {
-  const [searchParams] = useSearchParams();
-  const navigation = useNavigation();
-  const { showToast } = useToast();
-
-  const isSearching =
-    (navigation.state === 'loading' || navigation.state === 'submitting') &&
-    navigation.location?.pathname === '/users';
-
-  const search = searchParams.get('search');
-  const [searchValue, setSearchValue] = React.useState(search);
-  const lastErrorRef = React.useRef<string | undefined>();
-
-  React.useEffect(() => {
-    setSearchValue(search || '');
-  }, [search]);
-
-  // Show toast only for API errors
-  React.useEffect(() => {
-    if (error && errorType === 'api' && error !== lastErrorRef.current) {
-      showToast(error, 'error');
-      lastErrorRef.current = error;
-    }
-  }, [error, errorType, showToast]);
-
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchValue(e.target.value);
-  };
-
   return (
-    <Form action="/users">
-      <Well>
-        <div className="flex flex-col gap-4">
-          <SectionHeader icon={UserCircle2Icon} title="User Lookup" />
-
-          <div className="flex items-center gap-4">
-            <Input
-              name="search"
-              type="text"
-              placeholder="User ID or Email Address"
-              aria-label="User ID or Email Address"
-              value={searchValue || ''}
-              onChange={handleSearchChange}
-              className="flex-1 min-w-48 max-w-xs"
-              classNames={searchInputClasses}
-              isInvalid={!!error && errorType === 'validation'}
-              errorMessage={errorType === 'validation' ? error : undefined}
-            />
-
-            <Button type="submit" color="primary" isLoading={isSearching}>
-              Search
-            </Button>
-          </div>
-        </div>
-      </Well>
-    </Form>
+    <LookupForm
+      action="/users"
+      icon={UserCircle2Icon}
+      title="User Lookup"
+      placeholder="User ID or Email Address"
+      error={error}
+      errorType={errorType}
+    />
   );
 }

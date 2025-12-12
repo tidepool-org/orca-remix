@@ -75,12 +75,14 @@ export default function Users() {
   const data = useLoaderData<typeof loader>();
   const { recentUsers } = data;
 
+  // Extract error fields with proper type narrowing
+  const error = 'error' in data ? data.error : undefined;
+  const errorType =
+    'errorType' in data ? (data.errorType as 'validation' | 'api') : undefined;
+
   return (
     <div className="flex flex-col gap-4 md:gap-6 lg:gap-8">
-      <UserLookup
-        error={'error' in data ? data.error : undefined}
-        errorType={'errorType' in data ? data.errorType : 'validation'}
-      />
+      <UserLookup error={error} errorType={errorType} />
       <RecentUsers rows={recentUsers} />
     </div>
   );

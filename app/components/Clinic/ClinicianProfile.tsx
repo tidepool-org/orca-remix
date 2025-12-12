@@ -1,4 +1,4 @@
-import { Chip, Tab, Switch } from '@heroui/react';
+import { Tab, Switch } from '@heroui/react';
 import { Building2, Settings } from 'lucide-react';
 import { useFetcher } from 'react-router';
 import useLocale from '~/hooks/useLocale';
@@ -7,9 +7,9 @@ import ClinicsTable from './ClinicsTable';
 import ProfileHeader from '~/components/ui/ProfileHeader';
 import ProfileTabs from '~/components/ui/ProfileTabs';
 import TabTitle from '~/components/ui/TabTitle';
+import StatusChip from '~/components/ui/StatusChip';
 import type { Clinician, ClinicianClinicMembership } from './types';
 import { formatShortDate } from '~/utils/dateFormatters';
-import { getRoleColor, formatRoleLabel } from '~/utils/statusColors';
 
 export type ClinicianProfileProps = {
   clinician: Clinician | null;
@@ -131,15 +131,7 @@ export default function ClinicianProfile({
       value: (
         <div className="flex gap-1 flex-wrap mt-0.5">
           {clinician.roles?.map((role) => (
-            <Chip
-              key={role}
-              color={getRoleColor(role)}
-              variant="flat"
-              size="sm"
-              className="capitalize"
-            >
-              {formatRoleLabel(role)}
-            </Chip>
+            <StatusChip key={role} status={role} type="role" />
           ))}
         </div>
       ),

@@ -1,13 +1,12 @@
 import Well from '~/partials/Well';
-import { Chip } from '@heroui/react';
 import { Link } from 'react-router';
 
 import type { Prescription, Clinician } from './types';
 import useLocale from '~/hooks/useLocale';
 import ClipboardButton from '../ClipboardButton';
 import ProfileHeader from '~/components/ui/ProfileHeader';
+import StatusChip from '~/components/ui/StatusChip';
 import { formatShortDate } from '~/utils/dateFormatters';
-import { getPrescriptionStateColor } from '~/utils/statusColors';
 
 export type PrescriptionProfileProps = {
   prescription: Prescription;
@@ -62,16 +61,7 @@ export default function PrescriptionProfile({
       : []),
   ];
 
-  const stateChip = (
-    <Chip
-      color={getPrescriptionStateColor(state)}
-      variant="flat"
-      size="sm"
-      className="capitalize"
-    >
-      {state}
-    </Chip>
-  );
+  const stateChip = <StatusChip status={state} type="prescription" />;
 
   return (
     <div className="flex flex-col gap-6 w-full">

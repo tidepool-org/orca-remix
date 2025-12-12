@@ -6,7 +6,6 @@ import {
   TableBody,
   TableRow,
   TableCell,
-  Chip,
   Button,
   Dropdown,
   DropdownTrigger,
@@ -24,8 +23,8 @@ import { useToast } from '~/contexts/ToastContext';
 import TableEmptyState from '~/components/ui/TableEmptyState';
 import TableLoadingState from '~/components/ui/TableLoadingState';
 import TableFilterInput from '~/components/ui/TableFilterInput';
+import StatusChip from '~/components/ui/StatusChip';
 import { formatShortDate, formatDateWithTime } from '~/utils/dateFormatters';
-import { getDataSourceStateColor } from '~/utils/statusColors';
 
 export type DataSourcesTableProps = {
   dataSources: DataSource[];
@@ -178,14 +177,7 @@ export default function DataSourcesTable({
           );
         case 'state':
           return (
-            <Chip
-              color={getDataSourceStateColor(item.state || '')}
-              variant="flat"
-              size="sm"
-              className="capitalize"
-            >
-              {item.state || 'Unknown'}
-            </Chip>
+            <StatusChip status={item.state || 'Unknown'} type="dataSource" />
           );
         case 'revision':
           return (

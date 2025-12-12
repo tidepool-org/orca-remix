@@ -6,7 +6,6 @@ import {
   TableBody,
   TableRow,
   TableCell,
-  Chip,
 } from '@heroui/react';
 import { FileText } from 'lucide-react';
 import { Link } from 'react-router';
@@ -17,8 +16,8 @@ import type { Prescription } from './types';
 import TableEmptyState from '~/components/ui/TableEmptyState';
 import TableLoadingState from '~/components/ui/TableLoadingState';
 import TableFilterInput from '~/components/ui/TableFilterInput';
+import StatusChip from '~/components/ui/StatusChip';
 import { formatDateTime } from '~/utils/dateFormatters';
-import { getPrescriptionStateColor } from '~/utils/statusColors';
 
 export type PrescriptionsTableProps = {
   prescriptions: Prescription[];
@@ -117,16 +116,7 @@ export default function PrescriptionsTable({
           return <span className="font-medium">{patientName}</span>;
         }
         case 'state':
-          return (
-            <Chip
-              color={getPrescriptionStateColor(item.state)}
-              variant="flat"
-              size="sm"
-              className="capitalize"
-            >
-              {item.state}
-            </Chip>
-          );
+          return <StatusChip status={item.state} type="prescription" />;
         case 'createdTime':
           return (
             <span className="text-sm">
