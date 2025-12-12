@@ -3,9 +3,10 @@ import { Link } from 'react-router';
 
 import type { Prescription, Clinician } from './types';
 import useLocale from '~/hooks/useLocale';
-import ClipboardButton from '../ClipboardButton';
 import ProfileHeader from '~/components/ui/ProfileHeader';
 import StatusChip from '~/components/ui/StatusChip';
+import CopyableIdentifier from '~/components/ui/CopyableIdentifier';
+import DetailGrid from '~/components/ui/DetailGrid';
 import { formatShortDate } from '~/utils/dateFormatters';
 
 export type PrescriptionProfileProps = {
@@ -78,108 +79,95 @@ export default function PrescriptionProfile({
         {/* Patient Information */}
         <Well>
           <h2 className="text-lg font-semibold mb-3">Patient Information</h2>
-          <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-            <div>
-              <span className="text-default-400 block text-xs">Email</span>
-              <span className="flex items-center gap-1 text-default-600">
-                {attrs.email || 'N/A'}
-                {attrs.email && <ClipboardButton clipboardText={attrs.email} />}
-              </span>
-            </div>
-            <div>
-              <span className="text-default-400 block text-xs">Birthday</span>
-              <span className="text-default-600">
-                {attrs.birthday
+          <DetailGrid
+            fields={[
+              {
+                label: 'Email',
+                value: attrs.email ? (
+                  <CopyableIdentifier value={attrs.email} />
+                ) : (
+                  'N/A'
+                ),
+              },
+              {
+                label: 'Birthday',
+                value: attrs.birthday
                   ? formatShortDate(attrs.birthday, locale) || attrs.birthday
-                  : 'N/A'}
-              </span>
-            </div>
-            <div>
-              <span className="text-default-400 block text-xs">MRN</span>
-              <span className="flex items-center gap-1 text-default-600">
-                {attrs.mrn || 'N/A'}
-                {attrs.mrn && <ClipboardButton clipboardText={attrs.mrn} />}
-              </span>
-            </div>
-            <div>
-              <span className="text-default-400 block text-xs">Sex</span>
-              <span className="text-default-600">
-                {attrs.sex
+                  : 'N/A',
+              },
+              {
+                label: 'MRN',
+                value: attrs.mrn ? (
+                  <CopyableIdentifier value={attrs.mrn} monospace />
+                ) : (
+                  'N/A'
+                ),
+              },
+              {
+                label: 'Sex',
+                value: attrs.sex
                   ? attrs.sex.charAt(0).toUpperCase() + attrs.sex.slice(1)
-                  : 'N/A'}
-              </span>
-            </div>
-            {attrs.phoneNumber && (
-              <div>
-                <span className="text-default-400 block text-xs">Phone</span>
-                <span className="text-default-600">
-                  {attrs.phoneNumber.countryCode} {attrs.phoneNumber.number}
-                </span>
-              </div>
-            )}
-            {attrs.weight && (
-              <div>
-                <span className="text-default-400 block text-xs">Weight</span>
-                <span className="text-default-600">
-                  {attrs.weight.value} {attrs.weight.units}
-                </span>
-              </div>
-            )}
-            {attrs.yearOfDiagnosis && (
-              <div>
-                <span className="text-default-400 block text-xs">
-                  Year of Diagnosis
-                </span>
-                <span className="text-default-600">
-                  {attrs.yearOfDiagnosis}
-                </span>
-              </div>
-            )}
-          </div>
+                  : 'N/A',
+              },
+              {
+                label: 'Phone',
+                value:
+                  `${attrs.phoneNumber?.countryCode || ''} ${attrs.phoneNumber?.number || ''}`.trim(),
+                hidden: !attrs.phoneNumber,
+              },
+              {
+                label: 'Weight',
+                value:
+                  `${attrs.weight?.value || ''} ${attrs.weight?.units || ''}`.trim(),
+                hidden: !attrs.weight,
+              },
+              {
+                label: 'Year of Diagnosis',
+                value: String(attrs.yearOfDiagnosis),
+                hidden: !attrs.yearOfDiagnosis,
+              },
+            ]}
+            columns={{ default: 2, md: 2 }}
+          />
         </Well>
 
         {/* Prescriber Information */}
         <Well>
           <h2 className="text-lg font-semibold mb-3">Prescriber Information</h2>
-          <div className="grid grid-cols-1 gap-y-2 text-sm">
-            <div>
-              <span className="text-default-400 block text-xs">
-                Prescriber ID
-              </span>
-              {prescriberUserId ? (
-                <span className="flex items-center gap-1">
-                  <Link
-                    to={`/clinics/${clinicId}/clinicians/${prescriberUserId}`}
-                    className="text-primary hover:underline font-mono"
-                  >
-                    {prescriberUserId}
-                  </Link>
-                  <ClipboardButton clipboardText={prescriberUserId} />
-                </span>
-              ) : (
-                <span className="text-default-600">N/A</span>
-              )}
-            </div>
-            {prescriber && (
-              <>
-                <div>
-                  <span className="text-default-400 block text-xs">Name</span>
-                  <span className="text-default-600">
-                    {prescriber.name || 'N/A'}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-default-400 block text-xs">Email</span>
-                  <span className="flex items-center gap-1 text-default-600">
-                    {prescriber.email || 'N/A'}
-                    {prescriber.email && (
-                      <ClipboardButton clipboardText={prescriber.email} />
-                    )}
-                  </span>
-                </div>
-              </>
-            )}
-          </div>
+          <DetailGrid
+            fields={[
+              {
+                label: 'Prescriber ID',
+                value: prescriberUserId ? (
+                  <CopyableIdentifier value={prescriberUserId}>
+                    <Link
+                      to={`/clinics/${clinicId}/clinicians/${prescriberUserId}`}
+                      className="text-primary hover:underline font-mono"
+                    >
+                      {prescriberUserId}
+                    </Link>
+                  </CopyableIdentifier>
+                ) : (
+                  'N/A'
+                ),
+              },
+              {
+                label: 'Name',
+                value: prescriber?.name || 'N/A',
+                hidden: !prescriber,
+              },
+              {
+                label: 'Email',
+                value: prescriber?.email ? (
+                  <CopyableIdentifier value={prescriber.email} />
+                ) : (
+                  'N/A'
+                ),
+                hidden: !prescriber,
+              },
+            ]}
+            columns={{ default: 1 }}
+          />
         </Well>
       </div>
 
@@ -193,43 +181,33 @@ export default function PrescriptionProfile({
           {(attrs.training || attrs.therapySettings || attrs.accountType) && (
             <Well>
               <h2 className="text-lg font-semibold mb-3">Therapy Details</h2>
-              <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-                {attrs.training && (
-                  <div>
-                    <span className="text-default-400 block text-xs">
-                      Training
-                    </span>
-                    <span className="text-default-600">
-                      {attrs.training === 'inPerson'
-                        ? 'In Person'
-                        : 'In Module'}
-                    </span>
-                  </div>
-                )}
-                {attrs.therapySettings && (
-                  <div>
-                    <span className="text-default-400 block text-xs">
-                      Therapy Settings
-                    </span>
-                    <span className="text-default-600">
-                      {attrs.therapySettings === 'initial'
+              <DetailGrid
+                fields={[
+                  {
+                    label: 'Training',
+                    value:
+                      attrs.training === 'inPerson' ? 'In Person' : 'In Module',
+                    hidden: !attrs.training,
+                  },
+                  {
+                    label: 'Therapy Settings',
+                    value:
+                      attrs.therapySettings === 'initial'
                         ? 'Initial'
-                        : 'Transfer Pump Settings'}
-                    </span>
-                  </div>
-                )}
-                {attrs.accountType && (
-                  <div>
-                    <span className="text-default-400 block text-xs">
-                      Account Type
-                    </span>
-                    <span className="text-default-600">
-                      {attrs.accountType.charAt(0).toUpperCase() +
-                        attrs.accountType.slice(1)}
-                    </span>
-                  </div>
-                )}
-              </div>
+                        : 'Transfer Pump Settings',
+                    hidden: !attrs.therapySettings,
+                  },
+                  {
+                    label: 'Account Type',
+                    value: attrs.accountType
+                      ? attrs.accountType.charAt(0).toUpperCase() +
+                        attrs.accountType.slice(1)
+                      : '',
+                    hidden: !attrs.accountType,
+                  },
+                ]}
+                columns={{ default: 2 }}
+              />
             </Well>
           )}
 
@@ -237,50 +215,34 @@ export default function PrescriptionProfile({
           {attrs.initialSettings && (
             <Well>
               <h2 className="text-lg font-semibold mb-3">Initial Settings</h2>
-              <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-                {attrs.initialSettings.bloodGlucoseUnits && (
-                  <div>
-                    <span className="text-default-400 block text-xs">
-                      BG Units
-                    </span>
-                    <span className="text-default-600">
-                      {attrs.initialSettings.bloodGlucoseUnits}
-                    </span>
-                  </div>
-                )}
-                {attrs.initialSettings.insulinModel && (
-                  <div>
-                    <span className="text-default-400 block text-xs">
-                      Insulin Model
-                    </span>
-                    <span className="text-default-600">
-                      {attrs.initialSettings.insulinModel === 'rapidChild'
+              <DetailGrid
+                fields={[
+                  {
+                    label: 'BG Units',
+                    value: attrs.initialSettings.bloodGlucoseUnits || '',
+                    hidden: !attrs.initialSettings.bloodGlucoseUnits,
+                  },
+                  {
+                    label: 'Insulin Model',
+                    value:
+                      attrs.initialSettings.insulinModel === 'rapidChild'
                         ? 'Rapid Child'
-                        : 'Rapid Adult'}
-                    </span>
-                  </div>
-                )}
-                {attrs.initialSettings.pumpId && (
-                  <div>
-                    <span className="text-default-400 block text-xs">
-                      Pump ID
-                    </span>
-                    <span className="text-default-600">
-                      {attrs.initialSettings.pumpId}
-                    </span>
-                  </div>
-                )}
-                {attrs.initialSettings.cgmId && (
-                  <div>
-                    <span className="text-default-400 block text-xs">
-                      CGM ID
-                    </span>
-                    <span className="text-default-600">
-                      {attrs.initialSettings.cgmId}
-                    </span>
-                  </div>
-                )}
-              </div>
+                        : 'Rapid Adult',
+                    hidden: !attrs.initialSettings.insulinModel,
+                  },
+                  {
+                    label: 'Pump ID',
+                    value: attrs.initialSettings.pumpId || '',
+                    hidden: !attrs.initialSettings.pumpId,
+                  },
+                  {
+                    label: 'CGM ID',
+                    value: attrs.initialSettings.cgmId || '',
+                    hidden: !attrs.initialSettings.cgmId,
+                  },
+                ]}
+                columns={{ default: 2 }}
+              />
             </Well>
           )}
         </div>

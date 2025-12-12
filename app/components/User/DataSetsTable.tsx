@@ -18,7 +18,7 @@ import { useFetcher } from 'react-router';
 import useLocale from '~/hooks/useLocale';
 import CollapsibleTableWrapper from '../CollapsibleTableWrapper';
 import ConfirmationModal from '../ConfirmationModal';
-import ClipboardButton from '../ClipboardButton';
+import CopyableIdentifier from '~/components/ui/CopyableIdentifier';
 import { collapsibleTableClasses } from '~/utils/tableStyles';
 import type { DataSet } from './types';
 import { useToast } from '~/contexts/ToastContext';
@@ -157,20 +157,20 @@ export default function DataSetsTable({
     (item: DataSet, columnKey: string) => {
       switch (columnKey) {
         case 'uploadId':
-          return (
-            <div className="flex items-center gap-1">
+          return item.uploadId ? (
+            <CopyableIdentifier
+              value={item.uploadId}
+              truncate
+              maxWidth="120px"
+              monospace
+              size="sm"
+            >
               <span className="text-xs font-mono text-default-500 truncate max-w-[120px]">
-                {item.uploadId ? `${item.uploadId.slice(0, 8)}...` : 'N/A'}
+                {item.uploadId.slice(0, 8)}...
               </span>
-              {item.uploadId && (
-                <ClipboardButton
-                  clipboardText={item.uploadId}
-                  size="sm"
-                  variant="light"
-                  title="Copy Upload ID"
-                />
-              )}
-            </div>
+            </CopyableIdentifier>
+          ) : (
+            <span className="text-xs text-default-500">N/A</span>
           );
         case 'deviceModel':
           return (
