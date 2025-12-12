@@ -8,6 +8,7 @@ import {
   Smartphone,
 } from 'lucide-react';
 import ClinicsTable from '../Clinic/ClinicsTable';
+import PrescriptionsTable from '../Clinic/PrescriptionsTable';
 import DataSetsTable from './DataSetsTable';
 import DataSourcesTable from './DataSourcesTable';
 import {
@@ -21,8 +22,8 @@ import PumpSettingsSection from './PumpSettingsSection';
 import ProfileHeader from '~/components/ui/ProfileHeader';
 import ProfileTabs from '~/components/ui/ProfileTabs';
 import TabTitle from '~/components/ui/TabTitle';
-import PrescriptionsSection from './PrescriptionsSection';
 import UserActions from './UserActions';
+import { CollapsibleGroup } from '~/components/CollapsibleGroup';
 import type { ClinicianClinicMembership, Prescription } from '../Clinic/types';
 
 import type {
@@ -153,12 +154,15 @@ export default function UserProfile({
               }
             >
               <div className="pt-6">
-                <ClinicsTable
-                  clinics={clinics}
-                  totalClinics={totalClinics}
-                  totalPages={1}
-                  currentPage={1}
-                />
+                <CollapsibleGroup>
+                  <ClinicsTable
+                    clinics={clinics}
+                    totalClinics={totalClinics}
+                    totalPages={1}
+                    currentPage={1}
+                    isFirstInGroup
+                  />
+                </CollapsibleGroup>
               </div>
             </Tab>
 
@@ -192,12 +196,15 @@ export default function UserProfile({
             }
           >
             <div className="pt-6">
-              <ClinicsTable
-                clinics={clinics}
-                totalClinics={totalClinics}
-                totalPages={1}
-                currentPage={1}
-              />
+              <CollapsibleGroup>
+                <ClinicsTable
+                  clinics={clinics}
+                  totalClinics={totalClinics}
+                  totalPages={1}
+                  currentPage={1}
+                  isFirstInGroup
+                />
+              </CollapsibleGroup>
             </div>
           </Tab>
 
@@ -213,16 +220,19 @@ export default function UserProfile({
             }
           >
             <div className="pt-6 flex flex-col gap-6">
-              <TrustedAccountsTable
-                accounts={trustedAccounts}
-                currentUserId={userId}
-              />
-              <TrustingAccountsTable
-                accounts={trustingAccounts}
-                currentUserId={userId}
-              />
-              <SentInvitesTable invites={sentInvites} />
-              <ReceivedInvitesTable invites={receivedInvites} />
+              <CollapsibleGroup>
+                <TrustedAccountsTable
+                  accounts={trustedAccounts}
+                  currentUserId={userId}
+                  isFirstInGroup
+                />
+                <TrustingAccountsTable
+                  accounts={trustingAccounts}
+                  currentUserId={userId}
+                />
+                <SentInvitesTable invites={sentInvites} />
+                <ReceivedInvitesTable invites={receivedInvites} />
+              </CollapsibleGroup>
             </div>
           </Tab>
 
@@ -234,15 +244,18 @@ export default function UserProfile({
             }
           >
             <div className="pt-6 flex flex-col gap-6">
-              <DataSetsTable
-                dataSets={dataSets}
-                totalDataSets={totalDataSets}
-              />
-              <DataSourcesTable
-                dataSources={dataSources}
-                totalDataSources={totalDataSources}
-              />
-              <DataExportSection userId={userId} />
+              <CollapsibleGroup>
+                <DataSetsTable
+                  dataSets={dataSets}
+                  totalDataSets={totalDataSets}
+                  isFirstInGroup
+                />
+                <DataSourcesTable
+                  dataSources={dataSources}
+                  totalDataSources={totalDataSources}
+                />
+                <DataExportSection userId={userId} />
+              </CollapsibleGroup>
             </div>
           </Tab>
 
@@ -277,11 +290,14 @@ export default function UserProfile({
             }
           >
             <div className="pt-6">
-              <PrescriptionsSection
-                prescriptions={prescriptions}
-                totalPrescriptions={totalPrescriptions}
-                isLoading={prescriptionsLoading}
-              />
+              <CollapsibleGroup>
+                <PrescriptionsTable
+                  prescriptions={prescriptions}
+                  totalPrescriptions={totalPrescriptions}
+                  isLoading={prescriptionsLoading}
+                  isFirstInGroup
+                />
+              </CollapsibleGroup>
             </div>
           </Tab>
 

@@ -34,10 +34,13 @@ export function TrustingAccountsTable({
   accounts,
   isLoading,
   currentUserId,
+  isFirstInGroup,
 }: {
   accounts: AccessPermissionsMap;
   isLoading?: boolean;
   currentUserId?: string;
+  /** Mark this as the first table in a CollapsibleGroup to auto-expand it */
+  isFirstInGroup?: boolean;
 }) {
   const navigate = useNavigate();
   // Filter out the current user's own ID from the list
@@ -65,7 +68,7 @@ export function TrustingAccountsTable({
       icon={<Users className="h-5 w-5" />}
       title="Accounts Sharing With User"
       totalItems={totalItems}
-      defaultExpanded={false}
+      isFirstInGroup={isFirstInGroup}
     >
       <p className="text-sm text-default-500 mb-4">
         These accounts have granted this user access to view their data.
@@ -118,10 +121,13 @@ export function TrustedAccountsTable({
   accounts,
   isLoading,
   currentUserId,
+  isFirstInGroup,
 }: {
   accounts: AccessPermissionsMap;
   isLoading?: boolean;
   currentUserId?: string;
+  /** Mark this as the first table in a CollapsibleGroup to auto-expand it */
+  isFirstInGroup?: boolean;
 }) {
   const navigate = useNavigate();
   // Filter out the current user's own ID from the list
@@ -149,7 +155,7 @@ export function TrustedAccountsTable({
       icon={<Users className="h-5 w-5" />}
       title="Accounts User Shares With"
       totalItems={totalItems}
-      defaultExpanded={false}
+      isFirstInGroup={isFirstInGroup}
     >
       <p className="text-sm text-default-500 mb-4">
         These accounts can view this user&apos;s data.
@@ -201,9 +207,12 @@ export function TrustedAccountsTable({
 export function SentInvitesTable({
   invites,
   isLoading,
+  isFirstInGroup,
 }: {
   invites: ShareInvite[];
   isLoading?: boolean;
+  /** Mark this as the first table in a CollapsibleGroup to auto-expand it */
+  isFirstInGroup?: boolean;
 }) {
   const { locale } = useLocale();
   const totalItems = invites.length;
@@ -230,7 +239,7 @@ export function SentInvitesTable({
       icon={<Send className="h-5 w-5" />}
       title="Sent Invites"
       totalItems={totalItems}
-      defaultExpanded={false}
+      isFirstInGroup={isFirstInGroup}
     >
       <p className="text-sm text-default-500 mb-4">
         Pending invitations sent by this user to share their data.
@@ -281,9 +290,12 @@ export function SentInvitesTable({
 export function ReceivedInvitesTable({
   invites,
   isLoading,
+  isFirstInGroup,
 }: {
   invites: ShareInvite[];
   isLoading?: boolean;
+  /** Mark this as the first table in a CollapsibleGroup to auto-expand it */
+  isFirstInGroup?: boolean;
 }) {
   const { locale } = useLocale();
   const navigate = useNavigate();
@@ -311,7 +323,7 @@ export function ReceivedInvitesTable({
       icon={<Inbox className="h-5 w-5" />}
       title="Received Invites"
       totalItems={totalItems}
-      defaultExpanded={false}
+      isFirstInGroup={isFirstInGroup}
     >
       <p className="text-sm text-default-500 mb-4">
         Pending invitations received by this user from others to view their

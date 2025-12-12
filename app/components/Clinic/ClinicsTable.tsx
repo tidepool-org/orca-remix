@@ -36,6 +36,8 @@ export type ClinicsTableProps = {
   pageSize?: number;
   onPageChange?: (page: number) => void;
   showPermissions?: boolean;
+  /** Mark this as the first table in a CollapsibleGroup to auto-expand it */
+  isFirstInGroup?: boolean;
 };
 
 type Column = {
@@ -53,10 +55,10 @@ export default function ClinicsTable({
   pageSize,
   onPageChange,
   showPermissions = false,
+  isFirstInGroup = false,
 }: ClinicsTableProps) {
   const { locale } = useLocale();
   const navigate = useNavigate();
-  const [isExpanded, setIsExpanded] = React.useState(false);
   const [filterValue, setFilterValue] = useState('');
 
   const filteredClinics = useMemo(() => {
@@ -199,10 +201,6 @@ export default function ClinicsTable({
     [locale],
   );
 
-  const handleToggleExpand = () => {
-    setIsExpanded(!isExpanded);
-  };
-
   const EmptyContent = (
     <TableEmptyState icon={Building2} message="No clinics found" />
   );
@@ -214,13 +212,11 @@ export default function ClinicsTable({
       icon={<Building2 className="h-5 w-5" />}
       title="Clinics"
       totalItems={totalClinics}
-      isExpanded={isExpanded}
-      onToggle={handleToggleExpand}
+      isFirstInGroup={isFirstInGroup}
       showRange={{
         firstItem: firstClinicOnPage,
         lastItem: lastClinicOnPage,
       }}
-      defaultExpanded={false}
     >
       {topContent}
       <Table

@@ -30,6 +30,8 @@ export type DataSourcesTableProps = {
   dataSources: DataSource[];
   totalDataSources: number;
   isLoading?: boolean;
+  /** Mark this as the first table in a CollapsibleGroup to auto-expand it */
+  isFirstInGroup?: boolean;
 };
 
 type Column = {
@@ -46,6 +48,7 @@ export default function DataSourcesTable({
   dataSources = [],
   totalDataSources = 0,
   isLoading = false,
+  isFirstInGroup = false,
 }: DataSourcesTableProps) {
   const { locale } = useLocale();
   const fetcher = useFetcher();
@@ -293,7 +296,7 @@ export default function DataSourcesTable({
         icon={<Database className="h-5 w-5" />}
         title="Data Sources"
         totalItems={totalDataSources}
-        defaultExpanded={false}
+        isFirstInGroup={isFirstInGroup}
       >
         {topContent}
         <Table

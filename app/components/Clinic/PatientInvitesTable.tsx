@@ -32,6 +32,8 @@ export type PatientInvitesTableProps = {
   pageSize?: number;
   onPageChange?: (page: number) => void;
   onRevokeInvite?: (inviteId: string) => void;
+  /** Mark this as the first table in a CollapsibleGroup to auto-expand it */
+  isFirstInGroup?: boolean;
 };
 
 type Column = {
@@ -58,10 +60,10 @@ export default function PatientInvitesTable({
   pageSize,
   onPageChange,
   onRevokeInvite,
+  isFirstInGroup = false,
 }: PatientInvitesTableProps) {
   const { locale } = useLocale();
   const navigate = useNavigate();
-  const [isExpanded, setIsExpanded] = useState(false);
   const [revokeModalOpen, setRevokeModalOpen] = useState(false);
   const [selectedInvite, setSelectedInvite] = useState<PatientInvite | null>(
     null,
@@ -182,13 +184,11 @@ export default function PatientInvitesTable({
         icon={<Mail className="h-5 w-5" />}
         title="Pending Patient Invites"
         totalItems={pendingInvites.length}
-        isExpanded={isExpanded}
-        onToggle={() => setIsExpanded(!isExpanded)}
+        isFirstInGroup={isFirstInGroup}
         showRange={{
           firstItem: firstInviteOnPage,
           lastItem: lastInviteOnPage,
         }}
-        defaultExpanded={false}
       >
         <Table
           aria-label="Clinic patient invites table"
@@ -219,10 +219,9 @@ export default function PatientInvitesTable({
           <TableBody
             emptyContent={EmptyContent}
             loadingContent={LoadingContent}
-            isLoading={isLoading}
-            items={pendingInvites || []}
+            loadingState={isLoading ? 'loading' : 'idle'}
           >
-            {(invite) => (
+            {pendingInvites.map((invite) => (
               <TableRow key={invite.key}>
                 {(columnKey) => (
                   <TableCell>
@@ -238,7 +237,7 @@ export default function PatientInvitesTable({
                   </TableCell>
                 )}
               </TableRow>
-            )}
+            ))}
           </TableBody>
         </Table>
 

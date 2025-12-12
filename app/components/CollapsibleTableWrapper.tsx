@@ -1,5 +1,6 @@
 import React, { ReactNode } from 'react';
 import { ChevronDown } from 'lucide-react';
+import { useCollapsibleGroup } from './CollapsibleGroup';
 
 export type CollapsibleTableWrapperProps = {
   icon: ReactNode;
@@ -13,6 +14,8 @@ export type CollapsibleTableWrapperProps = {
     lastItem: number;
   };
   defaultExpanded?: boolean;
+  /** Mark this as the first collapsible in a CollapsibleGroup to auto-expand it */
+  isFirstInGroup?: boolean;
 };
 
 export default function CollapsibleTableWrapper({
@@ -23,10 +26,18 @@ export default function CollapsibleTableWrapper({
   onToggle,
   children,
   showRange,
-  defaultExpanded = false,
+  defaultExpanded,
+  isFirstInGroup = false,
 }: CollapsibleTableWrapperProps) {
-  const [internalExpanded, setInternalExpanded] =
-    React.useState(defaultExpanded);
+  // If isFirstInGroup is true and we're within a CollapsibleGroup,
+  // use the group's defaultExpanded setting
+  const groupDefaultExpanded = useCollapsibleGroup();
+  const shouldExpandFromGroup = isFirstInGroup && groupDefaultExpanded;
+  const effectiveDefaultExpanded = defaultExpanded ?? shouldExpandFromGroup;
+
+  const [internalExpanded, setInternalExpanded] = React.useState(
+    effectiveDefaultExpanded,
+  );
 
   // Use controlled state if provided, otherwise use internal state
   const isExpanded =

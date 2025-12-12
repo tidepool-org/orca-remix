@@ -9,6 +9,7 @@ import TabTitle from '~/components/ui/TabTitle';
 import StatusChip from '~/components/ui/StatusChip';
 import SettingsToggleRow from '~/components/ui/SettingsToggleRow';
 import SectionPanel from '~/components/ui/SectionPanel';
+import { CollapsibleGroup } from '~/components/CollapsibleGroup';
 import type { Clinician, ClinicianClinicMembership } from './types';
 import { formatShortDate } from '~/utils/dateFormatters';
 
@@ -150,13 +151,16 @@ export default function ClinicianProfile({
             }
           >
             <div className="pt-6">
-              <ClinicsTable
-                clinics={clinics}
-                totalClinics={totalClinics}
-                isLoading={clinicsLoading}
-                totalPages={1}
-                currentPage={1}
-              />
+              <CollapsibleGroup>
+                <ClinicsTable
+                  clinics={clinics}
+                  totalClinics={totalClinics}
+                  isLoading={clinicsLoading}
+                  totalPages={1}
+                  currentPage={1}
+                  isFirstInGroup
+                />
+              </CollapsibleGroup>
             </div>
           </Tab>
 

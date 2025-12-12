@@ -31,6 +31,8 @@ export type DataSetsTableProps = {
   dataSets: DataSet[];
   totalDataSets: number;
   isLoading?: boolean;
+  /** Mark this as the first table in a CollapsibleGroup to auto-expand it */
+  isFirstInGroup?: boolean;
 };
 
 type Column = {
@@ -48,6 +50,7 @@ export default function DataSetsTable({
   dataSets = [],
   totalDataSets = 0,
   isLoading = false,
+  isFirstInGroup = false,
 }: DataSetsTableProps) {
   const { locale } = useLocale();
   const fetcher = useFetcher();
@@ -341,7 +344,7 @@ export default function DataSetsTable({
         icon={<Upload className="h-5 w-5" />}
         title="Data Uploads"
         totalItems={totalDataSets}
-        defaultExpanded={false}
+        isFirstInGroup={isFirstInGroup}
       >
         {topContent}
         <Table

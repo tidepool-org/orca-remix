@@ -3,10 +3,6 @@ import { useRecentItems } from './RecentItemsContext';
 import RecentItemsTable from '~/components/ui/RecentItemsTable';
 import type { RecentClinician } from './types';
 
-export type RecentCliniciansProps = {
-  recentClinicians?: RecentClinician[]; // Keep for backward compatibility but use context
-};
-
 const columns = [
   { key: 'name', label: 'Name' },
   { key: 'email', label: 'Email Address' },

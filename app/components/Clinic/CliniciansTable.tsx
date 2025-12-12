@@ -35,6 +35,8 @@ export type CliniciansTableProps = {
   onSearch?: (search: string) => void;
   currentSearch?: string;
   onRemoveClinician?: (clinicianId: string) => void;
+  /** Mark this as the first table in a CollapsibleGroup to auto-expand it */
+  isFirstInGroup?: boolean;
 };
 
 type Column = {
@@ -54,11 +56,11 @@ export default function CliniciansTable({
   onSearch,
   currentSearch,
   onRemoveClinician,
+  isFirstInGroup = false,
 }: CliniciansTableProps) {
   const { locale } = useLocale();
   const navigate = useNavigate();
   const params = useParams();
-  const [isExpanded, setIsExpanded] = useState(false);
   const [removeModalOpen, setRemoveModalOpen] = useState(false);
   const [selectedClinician, setSelectedClinician] = useState<Clinician | null>(
     null,
@@ -193,13 +195,11 @@ export default function CliniciansTable({
         icon={<UserCheck className="h-5 w-5" />}
         title="Clinicians"
         totalItems={totalClinicians}
-        isExpanded={isExpanded}
-        onToggle={() => setIsExpanded(!isExpanded)}
+        isFirstInGroup={isFirstInGroup}
         showRange={{
           firstItem: firstClinicianOnPage,
           lastItem: lastClinicianOnPage,
         }}
-        defaultExpanded={false}
       >
         {/* Search Controls */}
         <div className="flex justify-start mb-4">

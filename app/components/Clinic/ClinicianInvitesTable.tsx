@@ -24,6 +24,8 @@ export type ClinicianInvitesTableProps = {
   totalInvites: number;
   isLoading?: boolean;
   onRevokeInvite?: (inviteId: string) => void;
+  /** Mark this as the first table in a CollapsibleGroup to auto-expand it */
+  isFirstInGroup?: boolean;
 };
 
 type Column = {
@@ -46,9 +48,9 @@ export default function ClinicianInvitesTable({
   totalInvites: _totalInvites = 0,
   isLoading = false,
   onRevokeInvite,
+  isFirstInGroup = false,
 }: ClinicianInvitesTableProps) {
   const { locale } = useLocale();
-  const [isExpanded, setIsExpanded] = useState(false);
   const [revokeModalOpen, setRevokeModalOpen] = useState(false);
   const [selectedInvite, setSelectedInvite] = useState<ClinicianInvite | null>(
     null,
@@ -135,9 +137,7 @@ export default function ClinicianInvitesTable({
         icon={<UserPlus className="h-5 w-5" />}
         title="Pending Clinician Invites"
         totalItems={pendingInvites.length}
-        isExpanded={isExpanded}
-        onToggle={() => setIsExpanded(!isExpanded)}
-        defaultExpanded={false}
+        isFirstInGroup={isFirstInGroup}
       >
         <Table
           aria-label="Clinic clinician invites table"
@@ -159,10 +159,9 @@ export default function ClinicianInvitesTable({
           <TableBody
             emptyContent={EmptyContent}
             loadingContent={LoadingContent}
-            isLoading={isLoading}
-            items={pendingInvites || []}
+            loadingState={isLoading ? 'loading' : 'idle'}
           >
-            {(invite) => (
+            {pendingInvites.map((invite) => (
               <TableRow key={invite.inviteId}>
                 {(columnKey) => (
                   <TableCell>
@@ -170,7 +169,7 @@ export default function ClinicianInvitesTable({
                   </TableCell>
                 )}
               </TableRow>
-            )}
+            ))}
           </TableBody>
         </Table>
       </CollapsibleTableWrapper>

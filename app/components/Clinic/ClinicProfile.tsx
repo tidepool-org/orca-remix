@@ -38,6 +38,7 @@ import DangerZoneSection, {
   DangerZoneAction,
 } from '~/components/ui/DangerZoneSection';
 import SectionPanel from '~/components/ui/SectionPanel';
+import { CollapsibleGroup } from '~/components/CollapsibleGroup';
 
 // Common timezones for selection
 const timezoneOptions = [
@@ -298,27 +299,30 @@ export default function ClinicProfile({
             }
           >
             <div className="pt-6 flex flex-col gap-6">
-              <CliniciansTable
-                clinicians={clinicians}
-                totalClinicians={totalClinicians}
-                isLoading={cliniciansLoading}
-                totalPages={cliniciansTotalPages}
-                currentPage={cliniciansCurrentPage}
-                pageSize={cliniciansPageSize}
-                onPageChange={onCliniciansPageChange}
-                onSearch={onCliniciansSearch}
-                currentSearch={currentCliniciansSearch}
-                onRemoveClinician={onRemoveClinician}
-              />
+              <CollapsibleGroup>
+                <CliniciansTable
+                  clinicians={clinicians}
+                  totalClinicians={totalClinicians}
+                  isLoading={cliniciansLoading}
+                  totalPages={cliniciansTotalPages}
+                  currentPage={cliniciansCurrentPage}
+                  pageSize={cliniciansPageSize}
+                  onPageChange={onCliniciansPageChange}
+                  onSearch={onCliniciansSearch}
+                  currentSearch={currentCliniciansSearch}
+                  onRemoveClinician={onRemoveClinician}
+                  isFirstInGroup
+                />
 
-              <ClinicianInvitesTable
-                invites={clinicianInvites}
-                isLoading={clinicianInvitesLoading}
-                totalInvites={totalClinicianInvites}
-                onRevokeInvite={onRevokeClinicianInvite}
-              />
+                <ClinicianInvitesTable
+                  invites={clinicianInvites}
+                  isLoading={clinicianInvitesLoading}
+                  totalInvites={totalClinicianInvites}
+                  onRevokeInvite={onRevokeClinicianInvite}
+                />
 
-              <RecentClinicians />
+                <RecentClinicians />
+              </CollapsibleGroup>
             </div>
           </Tab>
 
@@ -330,29 +334,32 @@ export default function ClinicProfile({
             }
           >
             <div className="pt-6 flex flex-col gap-6">
-              <PatientsTable
-                patients={patients}
-                isLoading={patientsLoading}
-                totalPages={totalPages}
-                totalPatients={totalPatients}
-                currentPage={currentPage}
-                pageSize={pageSize}
-                onPageChange={onPageChange}
-                onSort={onSort}
-                onSearch={onSearch}
-                currentSort={currentSort}
-                currentSearch={currentSearch}
-                clinic={clinic}
-              />
+              <CollapsibleGroup>
+                <PatientsTable
+                  patients={patients}
+                  isLoading={patientsLoading}
+                  totalPages={totalPages}
+                  totalPatients={totalPatients}
+                  currentPage={currentPage}
+                  pageSize={pageSize}
+                  onPageChange={onPageChange}
+                  onSort={onSort}
+                  onSearch={onSearch}
+                  currentSort={currentSort}
+                  currentSearch={currentSearch}
+                  clinic={clinic}
+                  isFirstInGroup
+                />
 
-              <PatientInvitesTable
-                invites={patientInvites}
-                isLoading={invitesLoading}
-                totalInvites={totalInvites}
-                onRevokeInvite={onRevokePatientInvite}
-              />
+                <PatientInvitesTable
+                  invites={patientInvites}
+                  isLoading={invitesLoading}
+                  totalInvites={totalInvites}
+                  onRevokeInvite={onRevokePatientInvite}
+                />
 
-              <RecentPatients />
+                <RecentPatients />
+              </CollapsibleGroup>
             </div>
           </Tab>
 
@@ -368,12 +375,15 @@ export default function ClinicProfile({
             }
           >
             <div className="pt-6">
-              <PrescriptionsTable
-                prescriptions={prescriptions}
-                totalPrescriptions={totalPrescriptions}
-                isLoading={prescriptionsLoading}
-                clinicId={id}
-              />
+              <CollapsibleGroup>
+                <PrescriptionsTable
+                  prescriptions={prescriptions}
+                  totalPrescriptions={totalPrescriptions}
+                  isLoading={prescriptionsLoading}
+                  clinicId={id}
+                  isFirstInGroup
+                />
+              </CollapsibleGroup>
             </div>
           </Tab>
 

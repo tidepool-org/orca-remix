@@ -49,6 +49,8 @@ export type PatientsTableProps = {
       name: string;
     }[];
   };
+  /** Mark this as the first table in a CollapsibleGroup to auto-expand it */
+  isFirstInGroup?: boolean;
 };
 
 type Column = {
@@ -70,6 +72,7 @@ export default function PatientsTable({
   currentSort,
   currentSearch,
   clinic,
+  isFirstInGroup = false,
 }: PatientsTableProps) {
   const { locale } = useLocale();
   const navigate = useNavigate();
@@ -90,7 +93,6 @@ export default function PatientsTable({
   const [sortDescriptor, setSortDescriptor] = React.useState<SortDescriptor>(
     parseSortString(currentSort),
   );
-  const [isExpanded, setIsExpanded] = React.useState(false);
 
   // Calculate pagination details
   const effectivePageSize =
@@ -298,13 +300,11 @@ export default function PatientsTable({
       icon={<Users className="h-5 w-5" />}
       title="Patients"
       totalItems={totalPatients}
-      isExpanded={isExpanded}
-      onToggle={() => setIsExpanded(!isExpanded)}
+      isFirstInGroup={isFirstInGroup}
       showRange={{
         firstItem: firstPatientOnPage,
         lastItem: lastPatientOnPage,
       }}
-      defaultExpanded={false}
     >
       {/* Search Controls */}
       <div className="flex justify-start mb-4">

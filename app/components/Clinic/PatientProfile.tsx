@@ -14,6 +14,7 @@ import TabTitle from '~/components/ui/TabTitle';
 import DataSourcesTable from '../User/DataSourcesTable';
 import DataExportSection from '../User/DataExportSection';
 import PumpSettingsSection from '../User/PumpSettingsSection';
+import { CollapsibleGroup } from '~/components/CollapsibleGroup';
 import { formatShortDate } from '~/utils/dateFormatters';
 
 export type PatientProfileProps = {
@@ -191,15 +192,18 @@ export default function PatientProfile({
             }
           >
             <div className="pt-6 flex flex-col gap-6">
-              <DataSetsTable
-                dataSets={dataSets}
-                totalDataSets={totalDataSets}
-              />
-              <DataSourcesTable
-                dataSources={dataSources}
-                totalDataSources={totalDataSources}
-              />
-              <DataExportSection userId={id} />
+              <CollapsibleGroup>
+                <DataSetsTable
+                  dataSets={dataSets}
+                  totalDataSets={totalDataSets}
+                  isFirstInGroup
+                />
+                <DataSourcesTable
+                  dataSources={dataSources}
+                  totalDataSources={totalDataSources}
+                />
+                <DataExportSection userId={id} />
+              </CollapsibleGroup>
             </div>
           </Tab>
 
@@ -234,12 +238,15 @@ export default function PatientProfile({
             }
           >
             <div className="pt-6">
-              <PrescriptionsTable
-                prescriptions={prescriptions}
-                totalPrescriptions={totalPrescriptions}
-                isLoading={prescriptionsLoading}
-                clinicId={clinicId}
-              />
+              <CollapsibleGroup>
+                <PrescriptionsTable
+                  prescriptions={prescriptions}
+                  totalPrescriptions={totalPrescriptions}
+                  isLoading={prescriptionsLoading}
+                  clinicId={clinicId}
+                  isFirstInGroup
+                />
+              </CollapsibleGroup>
             </div>
           </Tab>
         </ProfileTabs>

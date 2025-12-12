@@ -25,6 +25,8 @@ export type PrescriptionsTableProps = {
   isLoading?: boolean;
   clinicId?: string;
   showClinicLink?: boolean;
+  /** Mark this as the first table in a CollapsibleGroup to auto-expand it */
+  isFirstInGroup?: boolean;
 };
 
 type Column = {
@@ -38,6 +40,7 @@ export default function PrescriptionsTable({
   isLoading = false,
   clinicId,
   showClinicLink = true,
+  isFirstInGroup = false,
 }: PrescriptionsTableProps) {
   const { locale } = useLocale();
   const [filterValue, setFilterValue] = useState('');
@@ -155,7 +158,7 @@ export default function PrescriptionsTable({
       icon={<FileText className="h-5 w-5" />}
       title="Prescriptions"
       totalItems={totalPrescriptions}
-      defaultExpanded={false}
+      isFirstInGroup={isFirstInGroup}
     >
       {topContent}
       <Table
