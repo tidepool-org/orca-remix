@@ -200,9 +200,7 @@ export default function PatientProfile({
                 dataSources={dataSources}
                 totalDataSources={totalDataSources}
               />
-              <Well>
-                <DataExportSection userId={id} />
-              </Well>
+              <DataExportSection userId={id} />
             </div>
           </Tab>
 
