@@ -129,10 +129,16 @@ export default function PatientProfile({
     [clinicData?.sites],
   );
 
-  // Calculate counts for tab badges
+  // Calculate counts for tab badges (excluding current patient's own entries)
+  const trustingAccountsCount = Object.keys(trustingAccounts).filter(
+    (accountId) => accountId !== id,
+  ).length;
+  const trustedAccountsCount = Object.keys(trustedAccounts).filter(
+    (accountId) => accountId !== id,
+  ).length;
   const dataSharingCount =
-    Object.keys(trustingAccounts).length +
-    Object.keys(trustedAccounts).length +
+    trustingAccountsCount +
+    trustedAccountsCount +
     sentInvites.length +
     receivedInvites.length;
 
@@ -336,8 +342,14 @@ export default function PatientProfile({
             }
           >
             <div className="pt-6 flex flex-col gap-6">
-              <TrustingAccountsTable accounts={trustingAccounts} />
-              <TrustedAccountsTable accounts={trustedAccounts} />
+              <TrustingAccountsTable
+                accounts={trustingAccounts}
+                currentUserId={id}
+              />
+              <TrustedAccountsTable
+                accounts={trustedAccounts}
+                currentUserId={id}
+              />
               <SentInvitesTable invites={sentInvites} />
               <ReceivedInvitesTable invites={receivedInvites} />
             </div>

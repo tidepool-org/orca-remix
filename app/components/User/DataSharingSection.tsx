@@ -43,12 +43,17 @@ const formatPermissions = (permissions: Permissions): string[] => {
 export function TrustingAccountsTable({
   accounts,
   isLoading,
+  currentUserId,
 }: {
   accounts: AccessPermissionsMap;
   isLoading?: boolean;
+  currentUserId?: string;
 }) {
   const navigate = useNavigate();
-  const entries = Object.entries(accounts);
+  // Filter out the current user's own ID from the list
+  const entries = Object.entries(accounts).filter(
+    ([userId]) => userId !== currentUserId,
+  );
   const totalItems = entries.length;
 
   const columns = [
@@ -128,12 +133,17 @@ export function TrustingAccountsTable({
 export function TrustedAccountsTable({
   accounts,
   isLoading,
+  currentUserId,
 }: {
   accounts: AccessPermissionsMap;
   isLoading?: boolean;
+  currentUserId?: string;
 }) {
   const navigate = useNavigate();
-  const entries = Object.entries(accounts);
+  // Filter out the current user's own ID from the list
+  const entries = Object.entries(accounts).filter(
+    ([userId]) => userId !== currentUserId,
+  );
   const totalItems = entries.length;
 
   const columns = [

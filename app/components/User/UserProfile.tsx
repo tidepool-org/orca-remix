@@ -88,10 +88,16 @@ export default function UserProfile({
   // Collapsible details state
   const [isDetailsExpanded, setIsDetailsExpanded] = useState(false);
 
-  // Calculate counts for tab badges
+  // Calculate counts for tab badges (excluding current user's own entries)
+  const trustingAccountsCount = Object.keys(trustingAccounts).filter(
+    (id) => id !== userId,
+  ).length;
+  const trustedAccountsCount = Object.keys(trustedAccounts).filter(
+    (id) => id !== userId,
+  ).length;
   const dataSharingCount =
-    Object.keys(trustingAccounts).length +
-    Object.keys(trustedAccounts).length +
+    trustingAccountsCount +
+    trustedAccountsCount +
     sentInvites.length +
     receivedInvites.length;
 
@@ -253,8 +259,14 @@ export default function UserProfile({
             }
           >
             <div className="pt-6 flex flex-col gap-6">
-              <TrustingAccountsTable accounts={trustingAccounts} />
-              <TrustedAccountsTable accounts={trustedAccounts} />
+              <TrustingAccountsTable
+                accounts={trustingAccounts}
+                currentUserId={userId}
+              />
+              <TrustedAccountsTable
+                accounts={trustedAccounts}
+                currentUserId={userId}
+              />
               <SentInvitesTable invites={sentInvites} />
               <ReceivedInvitesTable invites={receivedInvites} />
             </div>
