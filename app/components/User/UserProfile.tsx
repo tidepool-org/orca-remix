@@ -140,9 +140,7 @@ export default function UserProfile({
       <div className="flex flex-col gap-8 w-full">
         {UserDetailsSection}
 
-        <Well>
-          <UserActions user={user} />
-        </Well>
+        <UserActions user={user} />
 
         <ClinicsTable
           clinics={clinics}
@@ -268,9 +266,7 @@ export default function UserProfile({
             title={<TabTitle icon={Settings} label="Account" />}
           >
             <div className="pt-6">
-              <Well>
-                <UserActions user={user} />
-              </Well>
+              <UserActions user={user} />
             </div>
           </Tab>
         </ProfileTabs>

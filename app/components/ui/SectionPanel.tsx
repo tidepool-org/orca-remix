@@ -2,8 +2,8 @@ import { ReactNode, useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 
 export type SectionPanelProps = {
-  /** Icon to display in the header */
-  icon: ReactNode;
+  /** Icon to display in the header (optional) */
+  icon?: ReactNode;
   /** Section title */
   title: string;
   /** Optional subtitle/description */
@@ -32,9 +32,14 @@ export type SectionPanelProps = {
  *
  * @example
  * ```tsx
- * // Non-collapsible panel
+ * // Non-collapsible panel with icon
  * <SectionPanel icon={<Download />} title="Export Data" subtitle="Download your data">
  *   <ExportForm />
+ * </SectionPanel>
+ *
+ * // Non-collapsible panel without icon
+ * <SectionPanel title="Clinic Settings">
+ *   <SettingsForm />
  * </SectionPanel>
  *
  * // Collapsible panel with header controls

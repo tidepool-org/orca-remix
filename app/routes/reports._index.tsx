@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { type MetaFunction, type ActionFunctionArgs } from 'react-router';
 import { useActionData, useNavigation, useSubmit } from 'react-router';
 
-import Well from '~/partials/Well';
 import ClinicMergeReportSection from '~/components/Reports/ClinicMergeReportSection';
 import { apiRequest, apiRoutes } from '~/api.server';
 import { useToast } from '~/contexts/ToastContext';

@@ -1,7 +1,6 @@
 import { useRouteLoaderData, Link } from 'react-router';
 import { Tab } from '@heroui/react';
 import { Database, Smartphone, FileText, ExternalLink } from 'lucide-react';
-import Well from '~/partials/Well';
 
 import type { Patient, Prescription } from './types';
 import type { DataSet, DataSource, PumpSettings } from '../User/types';

@@ -2,13 +2,14 @@ import { Tab } from '@heroui/react';
 import { Building2, Settings } from 'lucide-react';
 import { useFetcher } from 'react-router';
 import useLocale from '~/hooks/useLocale';
-import Well from '~/partials/Well';
 import ClinicsTable from './ClinicsTable';
 import ProfileHeader from '~/components/ui/ProfileHeader';
 import ProfileTabs from '~/components/ui/ProfileTabs';
 import TabTitle from '~/components/ui/TabTitle';
 import StatusChip from '~/components/ui/StatusChip';
 import SettingsToggleRow from '~/components/ui/SettingsToggleRow';
+import SectionPanel from '~/components/ui/SectionPanel';
+import Well from '~/partials/Well';
 import type { Clinician, ClinicianClinicMembership } from './types';
 import { formatShortDate } from '~/utils/dateFormatters';
 
@@ -182,14 +183,10 @@ export default function ClinicianProfile({
               title={<TabTitle icon={Settings} label="Settings" />}
             >
               <div className="pt-6">
-                <Well>
-                  <h2 className="text-lg font-semibold mb-4">
-                    Clinician Role Settings
-                  </h2>
-                  <p className="text-sm text-default-500 mb-6">
-                    Manage clinician permissions for this clinic.
-                  </p>
-
+                <SectionPanel
+                  title="Clinician Role Settings"
+                  subtitle="Manage clinician permissions for this clinic."
+                >
                   <div className="flex flex-col gap-6">
                     {/* Admin Toggle */}
                     <SettingsToggleRow
@@ -221,7 +218,7 @@ export default function ClinicianProfile({
                       {fetcher.data.error}
                     </div>
                   )}
-                </Well>
+                </SectionPanel>
               </div>
             </Tab>
           )}

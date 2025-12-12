@@ -5,6 +5,7 @@ import { Mail, KeyRound, ShieldCheck, Send, Trash2, UserX } from 'lucide-react';
 
 import ConfirmationModal from '../ConfirmationModal';
 import DangerZoneSection from '~/components/ui/DangerZoneSection';
+import SectionPanel from '~/components/ui/SectionPanel';
 import { useToast } from '~/contexts/ToastContext';
 import type { User } from './types';
 
@@ -123,9 +124,7 @@ export default function UserActions({ user }: UserActionsProps) {
   };
 
   return (
-    <div className="flex flex-col gap-4">
-      <h2 className="text-lg font-semibold">Account Actions</h2>
-
+    <SectionPanel title="Account Actions" aria-label="Account Actions">
       {/* Standard Actions */}
       <div className="flex flex-wrap gap-2">
         <Button
@@ -233,6 +232,6 @@ export default function UserActions({ user }: UserActionsProps) {
           icon={actionConfigs[activeModal].icon}
         />
       )}
-    </div>
+    </SectionPanel>
   );
 }

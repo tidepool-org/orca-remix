@@ -62,6 +62,29 @@ describe('SectionPanel', () => {
         screen.getByRole('button', { name: 'Child button' }),
       ).toBeInTheDocument();
     });
+
+    it('renders without icon when icon prop is not provided', () => {
+      render(
+        <SectionPanel title="Test Section">
+          <p>Content</p>
+        </SectionPanel>,
+      );
+
+      expect(screen.getByText('Test Section')).toBeInTheDocument();
+      expect(screen.getByText('Content')).toBeInTheDocument();
+    });
+
+    it('renders title and subtitle without icon', () => {
+      render(
+        <SectionPanel title="Settings Panel" subtitle="Configure your settings">
+          <p>Settings content</p>
+        </SectionPanel>,
+      );
+
+      expect(screen.getByText('Settings Panel')).toBeInTheDocument();
+      expect(screen.getByText('Configure your settings')).toBeInTheDocument();
+      expect(screen.getByText('Settings content')).toBeInTheDocument();
+    });
   });
 
   describe('Header Controls', () => {

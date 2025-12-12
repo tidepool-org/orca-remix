@@ -37,7 +37,7 @@ import SettingsToggleRow from '~/components/ui/SettingsToggleRow';
 import DangerZoneSection, {
   DangerZoneAction,
 } from '~/components/ui/DangerZoneSection';
-import Well from '~/partials/Well';
+import SectionPanel from '~/components/ui/SectionPanel';
 
 // Common timezones for selection
 const timezoneOptions = [
@@ -384,8 +384,10 @@ export default function ClinicProfile({
           >
             <div className="pt-6 flex flex-col gap-6">
               {/* Clinic Tier Settings */}
-              <Well>
-                <h2 className="text-lg font-medium mb-4">Clinic Tier</h2>
+              <SectionPanel
+                title="Clinic Tier"
+                subtitle="The clinic tier determines the features and limits available to this clinic."
+              >
                 <div className="flex items-center gap-4">
                   <Select
                     size="sm"
@@ -408,15 +410,13 @@ export default function ClinicProfile({
                     ))}
                   </Select>
                 </div>
-                <p className="text-xs text-default-500 mt-2">
-                  The clinic tier determines the features and limits available
-                  to this clinic.
-                </p>
-              </Well>
+              </SectionPanel>
 
               {/* Patient Limit Settings */}
-              <Well>
-                <h2 className="text-lg font-medium mb-4">Patient Limit</h2>
+              <SectionPanel
+                title="Patient Limit"
+                subtitle="Set a maximum number of patients for this clinic. Use the toggle to enable or disable the limit."
+              >
                 {!isPatientLimitApplicable && (
                   <p className="text-xs text-default-500 mb-4 p-2 bg-default-100 rounded-md">
                     Patient limits only apply to tier0100 clinics. Change the
@@ -466,15 +466,10 @@ export default function ClinicProfile({
                     </div>
                   </div>
                 </div>
-                <p className="text-xs text-default-500 mt-4">
-                  Set a maximum number of patients for this clinic. Use the
-                  toggle to enable or disable the limit.
-                </p>
-              </Well>
+              </SectionPanel>
 
               {/* Timezone Settings */}
-              <Well>
-                <h2 className="text-lg font-medium mb-4">Timezone</h2>
+              <SectionPanel title="Timezone">
                 <div className="flex items-center gap-4">
                   {isEditingTimezone ? (
                     <div className="flex items-center gap-2">
@@ -536,11 +531,10 @@ export default function ClinicProfile({
                     </div>
                   )}
                 </div>
-              </Well>
+              </SectionPanel>
 
               {/* MRN Settings */}
-              <Well>
-                <h2 className="text-lg font-medium mb-4">MRN Settings</h2>
+              <SectionPanel title="MRN Settings">
                 <div className="flex flex-col gap-4">
                   <SettingsToggleRow
                     label="MRN Required"
@@ -565,10 +559,10 @@ export default function ClinicProfile({
                     ariaLabel="MRN unique"
                   />
                 </div>
-              </Well>
+              </SectionPanel>
 
               {/* Danger Zone */}
-              <Well>
+              <SectionPanel title="Danger Zone">
                 <DangerZoneSection>
                   <DangerZoneAction
                     title="Delete Clinic Workspace"
@@ -586,7 +580,7 @@ export default function ClinicProfile({
                     }
                   />
                 </DangerZoneSection>
-              </Well>
+              </SectionPanel>
             </div>
           </Tab>
         </ProfileTabs>
