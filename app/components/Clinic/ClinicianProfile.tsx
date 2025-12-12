@@ -184,8 +184,6 @@ export default function ClinicianProfile({
                       onValueChange={handleAdminToggle}
                       isDisabled={isUpdating}
                       ariaLabel="Toggle admin role"
-                      variant="card"
-                      size="md"
                     />
 
                     {/* Prescriber Toggle */}
@@ -196,8 +194,6 @@ export default function ClinicianProfile({
                       onValueChange={handlePrescriberToggle}
                       isDisabled={isUpdating}
                       ariaLabel="Toggle prescriber role"
-                      variant="card"
-                      size="md"
                     />
                   </div>
 
