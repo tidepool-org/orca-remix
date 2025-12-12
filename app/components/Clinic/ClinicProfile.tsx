@@ -1,4 +1,4 @@
-import { intlFormat } from 'date-fns';
+import { formatShortDate } from '~/utils/dateFormatters';
 import { useState, useEffect } from 'react';
 import {
   Select,
@@ -17,8 +17,6 @@ import {
   FileText,
   Settings,
   Trash2,
-  ChevronDown,
-  ChevronUp,
 } from 'lucide-react';
 
 import type {
@@ -41,6 +39,7 @@ import PrescriptionsTable from './PrescriptionsTable';
 import RecentPatients from './RecentPatients';
 import RecentClinicians from './RecentClinicians';
 import ConfirmationModal from '../ConfirmationModal';
+import DetailsToggleButton from '~/components/ui/DetailsToggleButton';
 import Well from '~/partials/Well';
 
 // Common timezones for selection
@@ -271,19 +270,10 @@ export default function ClinicProfile({
         {/* Row 1: Name on left, toggle button on right */}
         <div className="flex items-center justify-between gap-2">
           <h1 className="text-xl font-semibold">{name}</h1>
-          <button
-            onClick={() => setIsDetailsExpanded(!isDetailsExpanded)}
-            className="flex items-center gap-1 text-sm text-primary hover:text-primary-600 transition-colors"
-            aria-expanded={isDetailsExpanded}
-            aria-label={isDetailsExpanded ? 'Hide details' : 'Show details'}
-          >
-            <span>{isDetailsExpanded ? 'Hide Details' : 'Show Details'}</span>
-            {isDetailsExpanded ? (
-              <ChevronUp className="w-4 h-4" aria-hidden="true" />
-            ) : (
-              <ChevronDown className="w-4 h-4" aria-hidden="true" />
-            )}
-          </button>
+          <DetailsToggleButton
+            isExpanded={isDetailsExpanded}
+            onToggle={() => setIsDetailsExpanded(!isDetailsExpanded)}
+          />
         </div>
 
         {/* Row 2: Copyable identifiers */}
@@ -321,22 +311,7 @@ export default function ClinicProfile({
               <div>
                 <span className="text-default-400 block text-xs">Created</span>
                 <span className="text-default-600">
-                  {createdTime
-                    ? (() => {
-                        const date = new Date(createdTime);
-                        return isNaN(date.getTime())
-                          ? createdTime
-                          : intlFormat(
-                              date,
-                              {
-                                year: 'numeric',
-                                month: 'short',
-                                day: 'numeric',
-                              },
-                              { locale },
-                            );
-                      })()
-                    : '—'}
+                  {createdTime ? formatShortDate(createdTime, locale) : '—'}
                 </span>
               </div>
             </div>

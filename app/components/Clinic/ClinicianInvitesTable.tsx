@@ -6,18 +6,20 @@ import {
   TableBody,
   TableRow,
   TableCell,
-  Spinner,
   Chip,
   Button,
   Tooltip,
 } from '@heroui/react';
 import { UserPlus, Trash2 } from 'lucide-react';
-import { intlFormat } from 'date-fns';
 import useLocale from '~/hooks/useLocale';
 import CollapsibleTableWrapper from '../CollapsibleTableWrapper';
 import { collapsibleTableClasses } from '~/utils/tableStyles';
 import ConfirmationModal from '../ConfirmationModal';
 import type { ClinicianInvite } from './types';
+import TableEmptyState from '~/components/ui/TableEmptyState';
+import TableLoadingState from '~/components/ui/TableLoadingState';
+import { formatShortDate } from '~/utils/dateFormatters';
+import { getInviteStatusColor } from '~/utils/statusColors';
 
 export type ClinicianInvitesTableProps = {
   invites: ClinicianInvite[];
@@ -109,26 +111,14 @@ export default function ClinicianInvitesTable({
             return <span className="text-default-400">-</span>;
           return (
             <p className="text-sm text-default-600">
-              {intlFormat(
-                new Date(invite.createdTime),
-                { year: 'numeric', month: 'short', day: 'numeric' },
-                { locale },
-              )}
+              {formatShortDate(invite.createdTime, locale)}
             </p>
           );
         case 'status':
           return (
             <Chip
               className="capitalize"
-              color={
-                invite.status === 'pending'
-                  ? 'warning'
-                  : invite.status === 'accepted'
-                    ? 'success'
-                    : invite.status === 'declined'
-                      ? 'danger'
-                      : 'default'
-              }
+              color={getInviteStatusColor(invite.status)}
               size="sm"
               variant="flat"
             >
@@ -159,24 +149,15 @@ export default function ClinicianInvitesTable({
   );
 
   const EmptyContent = (
-    <div className="flex flex-col items-center justify-center py-8">
-      <UserPlus
-        className="w-12 h-12 text-default-300 mb-4"
-        aria-hidden="true"
-      />
-      <span className="text-default-500">
-        Clinician invites data is not available
-      </span>
-      <span className="text-tiny text-default-400 mt-1">
-        The API does not support listing all clinician invites for a clinic
-      </span>
-    </div>
+    <TableEmptyState
+      icon={UserPlus}
+      message="Clinician invites data is not available"
+      subMessage="The API does not support listing all clinician invites for a clinic"
+    />
   );
 
   const LoadingContent = (
-    <div className="flex justify-center py-8">
-      <Spinner size="lg" label="Loading clinician invites..." />
-    </div>
+    <TableLoadingState label="Loading clinician invites..." />
   );
 
   return (

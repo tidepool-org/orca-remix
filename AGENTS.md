@@ -19,6 +19,7 @@
 - **Types**: Use Zod schemas for validation (`app/schemas/`), infer TS types with `z.infer<typeof Schema>`. Prefer explicit types for props (`type XProps = {...}`)
 - **Naming**: PascalCase for components/types, camelCase for functions/variables. Files: PascalCase for components, camelCase for utilities
 - **Components**: Use HeroUI (`@heroui/react`) for UI primitives. Functional components with default exports
+- **Code Reuse**: Before implementing new UI patterns, check `app/components/ui/` for existing reusable components and `app/utils/` for shared utilities. When adding new functionality, look for opportunities to extract repeated patterns into shared components. See `docs/reusable-components-recommendations.md` for identified patterns
 - **Error Handling**: Use custom error classes (`APIError`, `ValidationError`) from `~/utils/errors`. Use `errorResponse()` helper in loaders/actions
 - **Destructive Actions**: All destructive actions (delete, disconnect, revoke, etc.) must display a confirmation modal requiring explicit user action before dispatching the API call. Use the `ConfirmationModal` component from `~/components/ConfirmationModal`
 - **React Router**: Routes in `app/routes/` with flat-file convention. Export `loader`/`action` for data, `meta` for metadata

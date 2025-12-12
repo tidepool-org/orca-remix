@@ -7,7 +7,6 @@ import {
   TableRow,
   TableCell,
   Chip,
-  Spinner,
   Button,
   Dropdown,
   DropdownTrigger,
@@ -16,7 +15,6 @@ import {
   Input,
 } from '@heroui/react';
 import { Database, MoreVertical, Unplug, Search } from 'lucide-react';
-import { intlFormat } from 'date-fns';
 import { useFetcher } from 'react-router';
 import useLocale from '~/hooks/useLocale';
 import CollapsibleTableWrapper from '../CollapsibleTableWrapper';
@@ -24,6 +22,10 @@ import ConfirmationModal from '../ConfirmationModal';
 import { collapsibleTableClasses } from '~/utils/tableStyles';
 import type { DataSource } from './types';
 import { useToast } from '~/contexts/ToastContext';
+import TableEmptyState from '~/components/ui/TableEmptyState';
+import TableLoadingState from '~/components/ui/TableLoadingState';
+import { formatShortDate, formatDateWithTime } from '~/utils/dateFormatters';
+import { getDataSourceStateColor } from '~/utils/statusColors';
 
 export type DataSourcesTableProps = {
   dataSources: DataSource[];
@@ -146,42 +148,6 @@ export default function DataSourcesTable({
     },
   ];
 
-  const getStateColor = (
-    state: string,
-  ): 'success' | 'warning' | 'danger' | 'default' => {
-    switch (state?.toLowerCase()) {
-      case 'connected':
-        return 'success';
-      case 'disconnected':
-        return 'danger';
-      case 'error':
-        return 'danger';
-      default:
-        return 'default';
-    }
-  };
-
-  const formatDateTime = (dateStr: string | undefined, includeTime = true) => {
-    if (!dateStr) return null;
-    return intlFormat(
-      new Date(dateStr),
-      includeTime
-        ? {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric',
-            hour: 'numeric',
-            minute: 'numeric',
-          }
-        : {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric',
-          },
-      { locale },
-    );
-  };
-
   const handleDisconnect = (dataSource: DataSource) => {
     setDisconnectModal({ isOpen: true, dataSource });
   };
@@ -221,7 +187,7 @@ export default function DataSourcesTable({
         case 'state':
           return (
             <Chip
-              color={getStateColor(item.state || '')}
+              color={getDataSourceStateColor(item.state || '')}
               variant="flat"
               size="sm"
               className="capitalize"
@@ -243,13 +209,13 @@ export default function DataSourcesTable({
                   {item.earliestDataTime && (
                     <span className="text-default-500">
                       <span className="text-default-400 text-xs">From:</span>{' '}
-                      {formatDateTime(item.earliestDataTime, false)}
+                      {formatShortDate(item.earliestDataTime, locale)}
                     </span>
                   )}
                   {item.latestDataTime && (
                     <span className="text-default-500">
                       <span className="text-default-400 text-xs">To:</span>{' '}
-                      {formatDateTime(item.latestDataTime, false)}
+                      {formatShortDate(item.latestDataTime, locale)}
                     </span>
                   )}
                 </>
@@ -262,7 +228,7 @@ export default function DataSourcesTable({
           return (
             <span className="text-sm">
               {item.lastImportTime
-                ? formatDateTime(item.lastImportTime)
+                ? formatDateWithTime(item.lastImportTime, locale)
                 : 'N/A'}
             </span>
           );
@@ -270,7 +236,7 @@ export default function DataSourcesTable({
           return (
             <span className="text-sm">
               {item.expirationTime
-                ? formatDateTime(item.expirationTime, false)
+                ? formatShortDate(item.expirationTime, locale)
                 : 'N/A'}
             </span>
           );
@@ -315,20 +281,10 @@ export default function DataSourcesTable({
   );
 
   const EmptyContent = (
-    <div className="flex flex-col items-center justify-center py-8">
-      <Database
-        className="w-12 h-12 text-default-300 mb-4"
-        aria-hidden="true"
-      />
-      <span className="text-default-500">No data sources found</span>
-    </div>
+    <TableEmptyState icon={Database} message="No data sources found" />
   );
 
-  const LoadingContent = (
-    <div className="flex justify-center py-8">
-      <Spinner size="lg" label="Loading data sources..." />
-    </div>
-  );
+  const LoadingContent = <TableLoadingState label="Loading data sources..." />;
 
   const getModalContent = () => {
     if (!disconnectModal.dataSource) {

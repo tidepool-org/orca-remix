@@ -23,11 +23,19 @@ function customRender(
   return render(ui, { wrapper: AllProviders, ...options });
 }
 
-// Re-export everything from testing-library
-export * from '@testing-library/react';
+// Re-export everything from testing-library except render (which we override)
+export {
+  screen,
+  waitFor,
+  fireEvent,
+  within,
+  cleanup,
+  act,
+  renderHook,
+} from '@testing-library/react';
 export { default as userEvent } from '@testing-library/user-event';
 
-// Override render with custom render
+// Export custom render as the default render
 export { customRender as render };
 
 /**

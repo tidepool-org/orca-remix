@@ -1,16 +1,8 @@
 import { useRouteLoaderData, Link } from 'react-router';
 import { useCallback, useState } from 'react';
 import { Tabs, Tab } from '@heroui/react';
-import {
-  Database,
-  Smartphone,
-  FileText,
-  ChevronDown,
-  ChevronUp,
-  ExternalLink,
-} from 'lucide-react';
+import { Database, Smartphone, FileText, ExternalLink } from 'lucide-react';
 import Well from '~/partials/Well';
-import { intlFormat } from 'date-fns';
 
 import type { Patient, Prescription } from './types';
 import type { DataSet, DataSource, PumpSettings } from '../User/types';
@@ -18,9 +10,11 @@ import useLocale from '~/hooks/useLocale';
 import ClipboardButton from '../ClipboardButton';
 import PrescriptionsTable from './PrescriptionsTable';
 import DataSetsTable from '../User/DataSetsTable';
+import DetailsToggleButton from '~/components/ui/DetailsToggleButton';
 import DataSourcesTable from '../User/DataSourcesTable';
 import DataExportSection from '../User/DataExportSection';
 import PumpSettingsSection from '../User/PumpSettingsSection';
+import { formatShortDate } from '~/utils/dateFormatters';
 
 export type PatientProfileProps = {
   patient: Patient;
@@ -113,19 +107,10 @@ export default function PatientProfile({
       {/* Row 1: Name on left, toggle button on right */}
       <div className="flex items-center justify-between gap-2">
         <h1 className="text-xl font-semibold">{fullName}</h1>
-        <button
-          onClick={() => setIsDetailsExpanded(!isDetailsExpanded)}
-          className="flex items-center gap-1 text-sm text-primary hover:text-primary-600 transition-colors"
-          aria-expanded={isDetailsExpanded}
-          aria-label={isDetailsExpanded ? 'Hide details' : 'Show details'}
-        >
-          <span>{isDetailsExpanded ? 'Hide Details' : 'Show Details'}</span>
-          {isDetailsExpanded ? (
-            <ChevronUp className="w-4 h-4" aria-hidden="true" />
-          ) : (
-            <ChevronDown className="w-4 h-4" aria-hidden="true" />
-          )}
-        </button>
+        <DetailsToggleButton
+          isExpanded={isDetailsExpanded}
+          onToggle={() => setIsDetailsExpanded(!isDetailsExpanded)}
+        />
       </div>
 
       {/* Row 2: Copyable identifiers - order: email, ID, MRN, then View User Account link */}
@@ -136,7 +121,6 @@ export default function PatientProfile({
             <ClipboardButton clipboardText={email} />
           </span>
         )}
-        j{' '}
         <span className="flex items-center gap-1 text-default-500">
           <span className="text-default-400">ID:</span>
           <span className="font-mono text-xs">{id}</span>
@@ -166,23 +150,13 @@ export default function PatientProfile({
             <div>
               <span className="text-default-400 block text-xs">Birth Date</span>
               <span className="text-default-600">
-                {birthDate
-                  ? intlFormat(
-                      new Date(birthDate),
-                      { year: 'numeric', month: 'short', day: 'numeric' },
-                      { locale },
-                    )
-                  : '—'}
+                {birthDate ? formatShortDate(birthDate, locale) : '—'}
               </span>
             </div>
             <div>
               <span className="text-default-400 block text-xs">Added</span>
               <span className="text-default-600">
-                {intlFormat(
-                  new Date(createdTime),
-                  { year: 'numeric', month: 'short', day: 'numeric' },
-                  { locale },
-                )}
+                {formatShortDate(createdTime, locale)}
               </span>
             </div>
             <div>
@@ -190,11 +164,7 @@ export default function PatientProfile({
                 Last Updated
               </span>
               <span className="text-default-600">
-                {intlFormat(
-                  new Date(updatedTime),
-                  { year: 'numeric', month: 'short', day: 'numeric' },
-                  { locale },
-                )}
+                {formatShortDate(updatedTime, locale)}
               </span>
             </div>
             {permissions && (

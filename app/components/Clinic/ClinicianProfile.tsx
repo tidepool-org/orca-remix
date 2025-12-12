@@ -1,13 +1,15 @@
 import { Chip, Tabs, Tab, Switch } from '@heroui/react';
-import { intlFormat } from 'date-fns';
 import { useState } from 'react';
-import { Building2, Settings, ChevronDown, ChevronUp } from 'lucide-react';
+import { Building2, Settings } from 'lucide-react';
 import { useFetcher } from 'react-router';
 import useLocale from '~/hooks/useLocale';
 import Well from '~/partials/Well';
 import ClipboardButton from '../ClipboardButton';
 import ClinicsTable from './ClinicsTable';
+import DetailsToggleButton from '~/components/ui/DetailsToggleButton';
 import type { Clinician, ClinicianClinicMembership } from './types';
+import { formatShortDate } from '~/utils/dateFormatters';
+import { getRoleColor, formatRoleLabel } from '~/utils/statusColors';
 
 export type ClinicianProfileProps = {
   clinician: Clinician | null;
@@ -54,32 +56,6 @@ export default function ClinicianProfile({
       </Well>
     );
   }
-
-  // Check if clinician has specific roles
-  const getRoleColor = (role: string) => {
-    switch (role?.toLowerCase()) {
-      case 'clinic_admin':
-        return 'primary';
-      case 'prescriber':
-        return 'success';
-      case 'clinic_member':
-      default:
-        return 'default';
-    }
-  };
-
-  const getRoleLabel = (role: string) => {
-    switch (role?.toLowerCase()) {
-      case 'clinic_admin':
-        return 'Admin';
-      case 'clinic_member':
-        return 'Member';
-      case 'prescriber':
-        return 'Prescriber';
-      default:
-        return role;
-    }
-  };
 
   // Check if clinician has specific roles
   const hasRole = (role: string) => {
@@ -152,19 +128,10 @@ export default function ClinicianProfile({
       {/* Row 1: Name on left, toggle button on right */}
       <div className="flex items-center justify-between gap-2">
         <h1 className="text-xl font-semibold">{clinician.name}</h1>
-        <button
-          onClick={() => setIsDetailsExpanded(!isDetailsExpanded)}
-          className="flex items-center gap-1 text-sm text-primary hover:text-primary-600 transition-colors"
-          aria-expanded={isDetailsExpanded}
-          aria-label={isDetailsExpanded ? 'Hide details' : 'Show details'}
-        >
-          <span>{isDetailsExpanded ? 'Hide Details' : 'Show Details'}</span>
-          {isDetailsExpanded ? (
-            <ChevronUp className="w-4 h-4" aria-hidden="true" />
-          ) : (
-            <ChevronDown className="w-4 h-4" aria-hidden="true" />
-          )}
-        </button>
+        <DetailsToggleButton
+          isExpanded={isDetailsExpanded}
+          onToggle={() => setIsDetailsExpanded(!isDetailsExpanded)}
+        />
       </div>
 
       {/* Row 2: Copyable identifiers */}
@@ -197,7 +164,7 @@ export default function ClinicianProfile({
                     size="sm"
                     className="capitalize"
                   >
-                    {getRoleLabel(role)}
+                    {formatRoleLabel(role)}
                   </Chip>
                 ))}
               </div>
@@ -207,11 +174,7 @@ export default function ClinicianProfile({
                 Added to Clinic
               </span>
               <span className="text-default-600">
-                {intlFormat(
-                  new Date(clinician.createdTime),
-                  { year: 'numeric', month: 'short', day: 'numeric' },
-                  { locale },
-                )}
+                {formatShortDate(clinician.createdTime, locale)}
               </span>
             </div>
             <div>
@@ -219,11 +182,7 @@ export default function ClinicianProfile({
                 Last Updated
               </span>
               <span className="text-default-600">
-                {intlFormat(
-                  new Date(clinician.updatedTime),
-                  { year: 'numeric', month: 'short', day: 'numeric' },
-                  { locale },
-                )}
+                {formatShortDate(clinician.updatedTime, locale)}
               </span>
             </div>
           </div>

@@ -7,16 +7,18 @@ import {
   TableRow,
   TableCell,
   Chip,
-  Spinner,
   Input,
 } from '@heroui/react';
 import { FileText, Search } from 'lucide-react';
-import { intlFormat } from 'date-fns';
 import { Link } from 'react-router';
 import useLocale from '~/hooks/useLocale';
 import CollapsibleTableWrapper from '../CollapsibleTableWrapper';
 import { collapsibleTableClasses } from '~/utils/tableStyles';
 import type { Prescription, PrescriptionState } from './types';
+import TableEmptyState from '~/components/ui/TableEmptyState';
+import TableLoadingState from '~/components/ui/TableLoadingState';
+import { formatDateTime } from '~/utils/dateFormatters';
+import { getPrescriptionStateColor } from '~/utils/statusColors';
 
 export type PrescriptionsTableProps = {
   prescriptions: Prescription[];
@@ -93,50 +95,6 @@ export default function PrescriptionsTable({
     },
   ];
 
-  const getStateColor = (
-    state: PrescriptionState,
-  ): 'success' | 'warning' | 'danger' | 'default' | 'primary' | 'secondary' => {
-    switch (state) {
-      case 'active':
-        return 'success';
-      case 'claimed':
-        return 'success';
-      case 'submitted':
-        return 'primary';
-      case 'pending':
-        return 'warning';
-      case 'draft':
-        return 'default';
-      case 'inactive':
-        return 'secondary';
-      case 'expired':
-        return 'danger';
-      default:
-        return 'default';
-    }
-  };
-
-  const formatDateTime = (dateStr: string | undefined, includeTime = false) => {
-    if (!dateStr) return null;
-    return intlFormat(
-      new Date(dateStr),
-      includeTime
-        ? {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric',
-            hour: 'numeric',
-            minute: 'numeric',
-          }
-        : {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric',
-          },
-      { locale },
-    );
-  };
-
   const getPatientName = (prescription: Prescription): string => {
     const attrs = prescription.latestRevision?.attributes;
     if (attrs?.firstName && attrs?.lastName) {
@@ -169,7 +127,7 @@ export default function PrescriptionsTable({
         case 'state':
           return (
             <Chip
-              color={getStateColor(item.state)}
+              color={getPrescriptionStateColor(item.state)}
               variant="flat"
               size="sm"
               className="capitalize"
@@ -180,14 +138,16 @@ export default function PrescriptionsTable({
         case 'createdTime':
           return (
             <span className="text-sm">
-              {item.createdTime ? formatDateTime(item.createdTime) : 'N/A'}
+              {item.createdTime
+                ? formatDateTime(item.createdTime, locale)
+                : 'N/A'}
             </span>
           );
         case 'expirationTime':
           return (
             <span className="text-sm">
               {item.expirationTime
-                ? formatDateTime(item.expirationTime)
+                ? formatDateTime(item.expirationTime, locale)
                 : 'N/A'}
             </span>
           );
@@ -203,20 +163,10 @@ export default function PrescriptionsTable({
   );
 
   const EmptyContent = (
-    <div className="flex flex-col items-center justify-center py-8">
-      <FileText
-        className="w-12 h-12 text-default-300 mb-4"
-        aria-hidden="true"
-      />
-      <span className="text-default-500">No prescriptions found</span>
-    </div>
+    <TableEmptyState icon={FileText} message="No prescriptions found" />
   );
 
-  const LoadingContent = (
-    <div className="flex justify-center py-8">
-      <Spinner size="lg" label="Loading prescriptions..." />
-    </div>
-  );
+  const LoadingContent = <TableLoadingState label="Loading prescriptions..." />;
 
   return (
     <CollapsibleTableWrapper

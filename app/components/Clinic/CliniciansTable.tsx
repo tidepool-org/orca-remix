@@ -8,19 +8,20 @@ import {
   TableRow,
   TableCell,
   Pagination,
-  Spinner,
   Chip,
   Button,
   Tooltip,
 } from '@heroui/react';
 import { UserCheck, Trash2 } from 'lucide-react';
-import { intlFormat } from 'date-fns';
 import useLocale from '~/hooks/useLocale';
 import CollapsibleTableWrapper from '../CollapsibleTableWrapper';
 import { collapsibleTableClasses } from '~/utils/tableStyles';
 import type { Clinician } from './types';
 import DebouncedSearchInput from '../DebouncedSearchInput';
 import ConfirmationModal from '../ConfirmationModal';
+import TableEmptyState from '~/components/ui/TableEmptyState';
+import TableLoadingState from '~/components/ui/TableLoadingState';
+import { formatShortDate } from '~/utils/dateFormatters';
 export type CliniciansTableProps = {
   clinicians: Clinician[];
   totalClinicians: number;
@@ -152,15 +153,7 @@ export default function CliniciansTable({
         case 'createdTime':
           return (
             <p className="text-sm">
-              {intlFormat(
-                new Date(cellValue as string),
-                {
-                  year: 'numeric',
-                  month: 'short',
-                  day: 'numeric',
-                },
-                { locale },
-              )}
+              {formatShortDate(cellValue as string, locale)}
             </p>
           );
         case 'actions':
@@ -187,22 +180,13 @@ export default function CliniciansTable({
   );
 
   const EmptyContent = (
-    <div className="flex flex-col items-center justify-center py-8">
-      <UserCheck
-        className="w-12 h-12 text-default-300 mb-4"
-        aria-hidden="true"
-      />
-      <span className="text-default-500">
-        No clinicians found for this clinic
-      </span>
-    </div>
+    <TableEmptyState
+      icon={UserCheck}
+      message="No clinicians found for this clinic"
+    />
   );
 
-  const LoadingContent = (
-    <div className="flex justify-center py-8">
-      <Spinner size="lg" label="Loading clinicians..." />
-    </div>
-  );
+  const LoadingContent = <TableLoadingState label="Loading clinicians..." />;
 
   return (
     <>

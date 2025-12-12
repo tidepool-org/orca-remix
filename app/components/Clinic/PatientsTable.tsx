@@ -9,18 +9,19 @@ import {
   TableRow,
   TableCell,
   Pagination,
-  Spinner,
   Chip,
   SortDescriptor,
   Tooltip,
 } from '@heroui/react';
 import { Users } from 'lucide-react';
-import { intlFormat } from 'date-fns';
 import useLocale from '~/hooks/useLocale';
 import CollapsibleTableWrapper from '../CollapsibleTableWrapper';
 import { collapsibleTableClasses } from '~/utils/tableStyles';
 import type { Patient } from './types';
 import DebouncedSearchInput from '../DebouncedSearchInput';
+import TableEmptyState from '~/components/ui/TableEmptyState';
+import TableLoadingState from '~/components/ui/TableLoadingState';
+import { formatShortDate } from '~/utils/dateFormatters';
 
 export type PatientsTableProps = {
   patients: Patient[];
@@ -180,15 +181,7 @@ export default function PatientsTable({
         case 'birthDate':
           return patient.birthDate ? (
             <p className="text-sm">
-              {intlFormat(
-                new Date(patient.birthDate),
-                {
-                  year: 'numeric',
-                  month: 'short',
-                  day: 'numeric',
-                },
-                { locale },
-              )}
+              {formatShortDate(patient.birthDate, locale)}
             </p>
           ) : (
             <span className="text-default-400">—</span>
@@ -294,15 +287,7 @@ export default function PatientsTable({
         case 'createdTime':
           return (
             <p className="text-sm">
-              {intlFormat(
-                new Date(patient.createdTime),
-                {
-                  year: 'numeric',
-                  month: 'short',
-                  day: 'numeric',
-                },
-                { locale },
-              )}
+              {formatShortDate(patient.createdTime, locale)}
             </p>
           );
         default:
@@ -313,19 +298,10 @@ export default function PatientsTable({
   );
 
   const EmptyContent = (
-    <div className="flex flex-col items-center justify-center py-8">
-      <Users className="w-12 h-12 text-default-300 mb-4" aria-hidden="true" />
-      <span className="text-default-500">
-        No patients found for this clinic
-      </span>
-    </div>
+    <TableEmptyState icon={Users} message="No patients found for this clinic" />
   );
 
-  const LoadingContent = (
-    <div className="flex justify-center py-8">
-      <Spinner size="lg" label="Loading patients..." />
-    </div>
-  );
+  const LoadingContent = <TableLoadingState label="Loading patients..." />;
 
   return (
     <CollapsibleTableWrapper

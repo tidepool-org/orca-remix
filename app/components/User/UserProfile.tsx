@@ -7,11 +7,8 @@ import {
   Settings,
   FileText,
   Smartphone,
-  ChevronDown,
-  ChevronUp,
 } from 'lucide-react';
 import Well from '~/partials/Well';
-import { intlFormat } from 'date-fns';
 import ClinicsTable from '../Clinic/ClinicsTable';
 import DataSetsTable from './DataSetsTable';
 import DataSourcesTable from './DataSourcesTable';
@@ -23,6 +20,7 @@ import {
 } from './DataSharingSection';
 import DataExportSection from './DataExportSection';
 import PumpSettingsSection from './PumpSettingsSection';
+import DetailsToggleButton from '~/components/ui/DetailsToggleButton';
 import PrescriptionsSection from './PrescriptionsSection';
 import UserActions from './UserActions';
 import type { ClinicianClinicMembership, Prescription } from '../Clinic/types';
@@ -38,6 +36,7 @@ import type {
 } from './types';
 import useLocale from '~/hooks/useLocale';
 import ClipboardButton from '../ClipboardButton';
+import { formatShortDate } from '~/utils/dateFormatters';
 
 export type UserProfileProps = {
   user: User;
@@ -107,19 +106,10 @@ export default function UserProfile({
       {/* Row 1: Name on left, toggle button on right */}
       <div className="flex items-center justify-between gap-2">
         <h1 className="text-xl font-semibold">{fullName}</h1>
-        <button
-          onClick={() => setIsDetailsExpanded(!isDetailsExpanded)}
-          className="flex items-center gap-1 text-sm text-primary hover:text-primary-600 transition-colors"
-          aria-expanded={isDetailsExpanded}
-          aria-label={isDetailsExpanded ? 'Hide details' : 'Show details'}
-        >
-          <span>{isDetailsExpanded ? 'Hide Details' : 'Show Details'}</span>
-          {isDetailsExpanded ? (
-            <ChevronUp className="w-4 h-4" aria-hidden="true" />
-          ) : (
-            <ChevronDown className="w-4 h-4" aria-hidden="true" />
-          )}
-        </button>
+        <DetailsToggleButton
+          isExpanded={isDetailsExpanded}
+          onToggle={() => setIsDetailsExpanded(!isDetailsExpanded)}
+        />
       </div>
 
       {/* Row 2: Copyable identifiers */}
@@ -167,11 +157,7 @@ export default function UserProfile({
                   Member Since
                 </span>
                 <span className="text-default-600">
-                  {intlFormat(
-                    new Date(termsAccepted),
-                    { year: 'numeric', month: 'short', day: 'numeric' },
-                    { locale },
-                  )}
+                  {formatShortDate(termsAccepted, locale)}
                 </span>
               </div>
             )}

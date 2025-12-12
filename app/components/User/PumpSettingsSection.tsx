@@ -19,7 +19,7 @@ import {
   TableCell,
 } from '@heroui/react';
 import { Settings, Clock, Target, Utensils, Zap, Info } from 'lucide-react';
-import { intlFormat } from 'date-fns';
+import { formatDateWithTime } from '~/utils/dateFormatters';
 import useLocale from '~/hooks/useLocale';
 import type {
   PumpSettings,
@@ -82,17 +82,7 @@ export default function PumpSettingsSection({
 
   // Format date for display
   const formatDate = (dateStr: string) => {
-    return intlFormat(
-      new Date(dateStr),
-      {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-        hour: 'numeric',
-        minute: 'numeric',
-      },
-      { locale },
-    );
+    return formatDateWithTime(dateStr, locale);
   };
 
   // Get all basal schedule names

@@ -6,15 +6,17 @@ import {
   TableRow,
   TableCell,
   Chip,
-  Spinner,
 } from '@heroui/react';
 import { useNavigate } from 'react-router';
 import { Users, Send, Inbox } from 'lucide-react';
-import { intlFormat } from 'date-fns';
 import useLocale from '~/hooks/useLocale';
 import CollapsibleTableWrapper from '../CollapsibleTableWrapper';
 import { collapsibleTableClasses } from '~/utils/tableStyles';
 import type { AccessPermissionsMap, ShareInvite, Permissions } from './types';
+import TableEmptyState from '~/components/ui/TableEmptyState';
+import TableLoadingState from '~/components/ui/TableLoadingState';
+import { formatShortDate } from '~/utils/dateFormatters';
+import { getInviteStatusColor } from '~/utils/statusColors';
 
 export type DataSharingSectionProps = {
   // Accounts that share data WITH this user (user can view their data)
@@ -62,19 +64,13 @@ export function TrustingAccountsTable({
   ];
 
   const EmptyContent = (
-    <div className="flex flex-col items-center justify-center py-8">
-      <Users className="w-12 h-12 text-default-300 mb-4" aria-hidden="true" />
-      <span className="text-default-500">
-        No accounts are sharing data with this user
-      </span>
-    </div>
+    <TableEmptyState
+      icon={Users}
+      message="No accounts are sharing data with this user"
+    />
   );
 
-  const LoadingContent = (
-    <div className="flex justify-center py-8">
-      <Spinner size="lg" label="Loading..." />
-    </div>
-  );
+  const LoadingContent = <TableLoadingState />;
 
   return (
     <CollapsibleTableWrapper
@@ -152,19 +148,13 @@ export function TrustedAccountsTable({
   ];
 
   const EmptyContent = (
-    <div className="flex flex-col items-center justify-center py-8">
-      <Users className="w-12 h-12 text-default-300 mb-4" aria-hidden="true" />
-      <span className="text-default-500">
-        This user is not sharing data with anyone
-      </span>
-    </div>
+    <TableEmptyState
+      icon={Users}
+      message="This user is not sharing data with anyone"
+    />
   );
 
-  const LoadingContent = (
-    <div className="flex justify-center py-8">
-      <Spinner size="lg" label="Loading..." />
-    </div>
-  );
+  const LoadingContent = <TableLoadingState />;
 
   return (
     <CollapsibleTableWrapper
@@ -237,38 +227,15 @@ export function SentInvitesTable({
     { key: 'created', label: 'Sent Date' },
   ];
 
-  const getStatusColor = (
-    status: string,
-  ): 'success' | 'warning' | 'danger' | 'default' => {
-    switch (status) {
-      case 'pending':
-        return 'warning';
-      case 'completed':
-        return 'success';
-      case 'canceled':
-      case 'declined':
-        return 'danger';
-      default:
-        return 'default';
-    }
-  };
-
   const formatType = (type: string): string => {
     return type.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
   };
 
   const EmptyContent = (
-    <div className="flex flex-col items-center justify-center py-8">
-      <Send className="w-12 h-12 text-default-300 mb-4" aria-hidden="true" />
-      <span className="text-default-500">No pending sent invites</span>
-    </div>
+    <TableEmptyState icon={Send} message="No pending sent invites" />
   );
 
-  const LoadingContent = (
-    <div className="flex justify-center py-8">
-      <Spinner size="lg" label="Loading..." />
-    </div>
-  );
+  const LoadingContent = <TableLoadingState />;
 
   return (
     <CollapsibleTableWrapper
@@ -310,22 +277,14 @@ export function SentInvitesTable({
                 <Chip
                   size="sm"
                   variant="flat"
-                  color={getStatusColor(invite.status)}
+                  color={getInviteStatusColor(invite.status)}
                 >
                   {invite.status}
                 </Chip>
               </TableCell>
               <TableCell>
                 <span className="text-sm">
-                  {intlFormat(
-                    new Date(invite.created),
-                    {
-                      year: 'numeric',
-                      month: 'short',
-                      day: 'numeric',
-                    },
-                    { locale },
-                  )}
+                  {formatShortDate(invite.created, locale)}
                 </span>
               </TableCell>
             </TableRow>
@@ -355,38 +314,15 @@ export function ReceivedInvitesTable({
     { key: 'created', label: 'Received Date' },
   ];
 
-  const getStatusColor = (
-    status: string,
-  ): 'success' | 'warning' | 'danger' | 'default' => {
-    switch (status) {
-      case 'pending':
-        return 'warning';
-      case 'completed':
-        return 'success';
-      case 'canceled':
-      case 'declined':
-        return 'danger';
-      default:
-        return 'default';
-    }
-  };
-
   const formatType = (type: string): string => {
     return type.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
   };
 
   const EmptyContent = (
-    <div className="flex flex-col items-center justify-center py-8">
-      <Inbox className="w-12 h-12 text-default-300 mb-4" aria-hidden="true" />
-      <span className="text-default-500">No pending received invites</span>
-    </div>
+    <TableEmptyState icon={Inbox} message="No pending received invites" />
   );
 
-  const LoadingContent = (
-    <div className="flex justify-center py-8">
-      <Spinner size="lg" label="Loading..." />
-    </div>
-  );
+  const LoadingContent = <TableLoadingState />;
 
   return (
     <CollapsibleTableWrapper
@@ -443,22 +379,14 @@ export function ReceivedInvitesTable({
                 <Chip
                   size="sm"
                   variant="flat"
-                  color={getStatusColor(invite.status)}
+                  color={getInviteStatusColor(invite.status)}
                 >
                   {invite.status}
                 </Chip>
               </TableCell>
               <TableCell>
                 <span className="text-sm">
-                  {intlFormat(
-                    new Date(invite.created),
-                    {
-                      year: 'numeric',
-                      month: 'short',
-                      day: 'numeric',
-                    },
-                    { locale },
-                  )}
+                  {formatShortDate(invite.created, locale)}
                 </span>
               </TableCell>
             </TableRow>

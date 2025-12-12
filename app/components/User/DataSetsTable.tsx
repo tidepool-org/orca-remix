@@ -7,7 +7,6 @@ import {
   TableRow,
   TableCell,
   Chip,
-  Spinner,
   Button,
   Dropdown,
   DropdownTrigger,
@@ -16,7 +15,6 @@ import {
   Input,
 } from '@heroui/react';
 import { Upload, MoreVertical, Trash2, Database, Search } from 'lucide-react';
-import { intlFormat } from 'date-fns';
 import { useFetcher } from 'react-router';
 import useLocale from '~/hooks/useLocale';
 import CollapsibleTableWrapper from '../CollapsibleTableWrapper';
@@ -25,6 +23,9 @@ import ClipboardButton from '../ClipboardButton';
 import { collapsibleTableClasses } from '~/utils/tableStyles';
 import type { DataSet } from './types';
 import { useToast } from '~/contexts/ToastContext';
+import TableEmptyState from '~/components/ui/TableEmptyState';
+import TableLoadingState from '~/components/ui/TableLoadingState';
+import { formatDateWithTime } from '~/utils/dateFormatters';
 
 export type DataSetsTableProps = {
   dataSets: DataSet[];
@@ -211,19 +212,7 @@ export default function DataSetsTable({
           return (
             <div className="flex flex-col">
               <span className="text-sm">
-                {item.time
-                  ? intlFormat(
-                      new Date(item.time),
-                      {
-                        year: 'numeric',
-                        month: 'short',
-                        day: 'numeric',
-                        hour: 'numeric',
-                        minute: 'numeric',
-                      },
-                      { locale },
-                    )
-                  : 'N/A'}
+                {item.time ? formatDateWithTime(item.time, locale) : 'N/A'}
               </span>
               {item.byUser && (
                 <p className="text-xs text-default-400">
@@ -299,17 +288,10 @@ export default function DataSetsTable({
   );
 
   const EmptyContent = (
-    <div className="flex flex-col items-center justify-center py-8">
-      <Upload className="w-12 h-12 text-default-300 mb-4" aria-hidden="true" />
-      <span className="text-default-500">No data uploads found</span>
-    </div>
+    <TableEmptyState icon={Upload} message="No data uploads found" />
   );
 
-  const LoadingContent = (
-    <div className="flex justify-center py-8">
-      <Spinner size="lg" label="Loading data uploads..." />
-    </div>
-  );
+  const LoadingContent = <TableLoadingState label="Loading data uploads..." />;
 
   const getModalContent = () => {
     if (!deleteModal.dataSet || !deleteModal.type) {

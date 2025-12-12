@@ -1,41 +1,19 @@
 import { useState } from 'react';
 import Well from '~/partials/Well';
-import { intlFormat } from 'date-fns';
 import { Chip } from '@heroui/react';
 import { Link } from 'react-router';
-import { ChevronDown, ChevronUp } from 'lucide-react';
 
 import type { Prescription, PrescriptionState, Clinician } from './types';
 import useLocale from '~/hooks/useLocale';
 import ClipboardButton from '../ClipboardButton';
+import DetailsToggleButton from '~/components/ui/DetailsToggleButton';
+import { formatShortDate } from '~/utils/dateFormatters';
+import { getPrescriptionStateColor } from '~/utils/statusColors';
 
 export type PrescriptionProfileProps = {
   prescription: Prescription;
   prescriber?: Clinician | null;
   clinicId: string;
-};
-
-const getStateColor = (
-  state: PrescriptionState,
-): 'success' | 'warning' | 'danger' | 'default' | 'primary' | 'secondary' => {
-  switch (state) {
-    case 'active':
-      return 'success';
-    case 'claimed':
-      return 'success';
-    case 'submitted':
-      return 'primary';
-    case 'pending':
-      return 'warning';
-    case 'draft':
-      return 'default';
-    case 'inactive':
-      return 'secondary';
-    case 'expired':
-      return 'danger';
-    default:
-      return 'default';
-  }
 };
 
 export default function PrescriptionProfile({
@@ -57,19 +35,6 @@ export default function PrescriptionProfile({
 
   const attrs = latestRevision?.attributes || {};
 
-  const formatDate = (dateStr: string | undefined) => {
-    if (!dateStr) return null;
-    return intlFormat(
-      new Date(dateStr),
-      {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-      },
-      { locale },
-    );
-  };
-
   const patientName =
     attrs.firstName && attrs.lastName
       ? `${attrs.firstName} ${attrs.lastName}`
@@ -89,7 +54,7 @@ export default function PrescriptionProfile({
               Prescription for {patientName}
             </h1>
             <Chip
-              color={getStateColor(state)}
+              color={getPrescriptionStateColor(state)}
               variant="flat"
               size="sm"
               className="capitalize"
@@ -97,19 +62,10 @@ export default function PrescriptionProfile({
               {state}
             </Chip>
           </div>
-          <button
-            onClick={() => setIsDetailsExpanded(!isDetailsExpanded)}
-            className="flex items-center gap-1 text-sm text-primary hover:text-primary-600 transition-colors"
-            aria-expanded={isDetailsExpanded}
-            aria-label={isDetailsExpanded ? 'Hide details' : 'Show details'}
-          >
-            <span>{isDetailsExpanded ? 'Hide Details' : 'Show Details'}</span>
-            {isDetailsExpanded ? (
-              <ChevronUp className="w-4 h-4" aria-hidden="true" />
-            ) : (
-              <ChevronDown className="w-4 h-4" aria-hidden="true" />
-            )}
-          </button>
+          <DetailsToggleButton
+            isExpanded={isDetailsExpanded}
+            onToggle={() => setIsDetailsExpanded(!isDetailsExpanded)}
+          />
         </div>
 
         {/* Row 2: Copyable identifiers */}
@@ -135,19 +91,19 @@ export default function PrescriptionProfile({
               <div>
                 <span className="text-default-400 block text-xs">Created</span>
                 <span className="text-default-600">
-                  {formatDate(createdTime) || 'N/A'}
+                  {formatShortDate(createdTime, locale) || 'N/A'}
                 </span>
               </div>
               <div>
                 <span className="text-default-400 block text-xs">Modified</span>
                 <span className="text-default-600">
-                  {formatDate(modifiedTime) || 'N/A'}
+                  {formatShortDate(modifiedTime, locale) || 'N/A'}
                 </span>
               </div>
               <div>
                 <span className="text-default-400 block text-xs">Expires</span>
                 <span className="text-default-600">
-                  {formatDate(expirationTime) || 'N/A'}
+                  {formatShortDate(expirationTime, locale) || 'N/A'}
                 </span>
               </div>
               {latestRevision?.revisionId !== undefined && (
@@ -182,7 +138,7 @@ export default function PrescriptionProfile({
               <span className="text-default-400 block text-xs">Birthday</span>
               <span className="text-default-600">
                 {attrs.birthday
-                  ? formatDate(attrs.birthday) || attrs.birthday
+                  ? formatShortDate(attrs.birthday, locale) || attrs.birthday
                   : 'N/A'}
               </span>
             </div>

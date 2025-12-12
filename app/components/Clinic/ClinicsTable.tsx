@@ -8,12 +8,10 @@ import {
   TableRow,
   TableCell,
   Pagination,
-  Spinner,
   Chip,
   Input,
 } from '@heroui/react';
 import { Building2, Search } from 'lucide-react';
-import { intlFormat } from 'date-fns';
 import useLocale from '~/hooks/useLocale';
 import CollapsibleTableWrapper from '../CollapsibleTableWrapper';
 import { collapsibleTableClasses } from '~/utils/tableStyles';
@@ -22,6 +20,9 @@ import type {
   ClinicianClinicMembership,
   PatientClinicMembership,
 } from './types';
+import TableEmptyState from '~/components/ui/TableEmptyState';
+import TableLoadingState from '~/components/ui/TableLoadingState';
+import { formatShortDate } from '~/utils/dateFormatters';
 
 export type ClinicsTableProps = {
   clinics: ClinicianClinicMembership[] | PatientClinicMembership[];
@@ -188,15 +189,7 @@ export default function ClinicsTable({
           return (
             <div className="text-sm">
               {clinic.createdTime
-                ? intlFormat(
-                    new Date(clinic.createdTime),
-                    {
-                      year: 'numeric',
-                      month: 'short',
-                      day: 'numeric',
-                    },
-                    { locale },
-                  )
+                ? formatShortDate(clinic.createdTime, locale)
                 : 'N/A'}
             </div>
           );
@@ -212,20 +205,10 @@ export default function ClinicsTable({
   };
 
   const EmptyContent = (
-    <div className="flex flex-col items-center justify-center py-8">
-      <Building2
-        className="w-12 h-12 text-default-300 mb-4"
-        aria-hidden="true"
-      />
-      <span className="text-default-500">No clinics found</span>
-    </div>
+    <TableEmptyState icon={Building2} message="No clinics found" />
   );
 
-  const LoadingContent = (
-    <div className="flex justify-center py-8">
-      <Spinner size="lg" label="Loading clinics..." />
-    </div>
-  );
+  const LoadingContent = <TableLoadingState label="Loading clinics..." />;
 
   return (
     <CollapsibleTableWrapper

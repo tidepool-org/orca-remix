@@ -8,17 +8,18 @@ import {
   TableRow,
   TableCell,
   Pagination,
-  Spinner,
   Button,
   Tooltip,
 } from '@heroui/react';
 import { Mail, Trash2 } from 'lucide-react';
-import { intlFormat } from 'date-fns';
 import useLocale from '~/hooks/useLocale';
 import CollapsibleTableWrapper from '../CollapsibleTableWrapper';
 import { collapsibleTableClasses } from '~/utils/tableStyles';
 import type { PatientInvite } from './types';
 import ConfirmationModal from '../ConfirmationModal';
+import TableEmptyState from '~/components/ui/TableEmptyState';
+import TableLoadingState from '~/components/ui/TableLoadingState';
+import { formatShortDate } from '~/utils/dateFormatters';
 
 export type PatientInvitesTableProps = {
   invites: PatientInvite[];
@@ -119,10 +120,9 @@ export default function PatientInvitesTable({
           return (
             <p className="text-sm text-default-600">
               {invite.creator.profile.patient.birthday
-                ? intlFormat(
-                    new Date(invite.creator.profile.patient.birthday),
-                    { year: 'numeric', month: 'short', day: 'numeric' },
-                    { locale },
+                ? formatShortDate(
+                    invite.creator.profile.patient.birthday,
+                    locale,
                   )
                 : '—'}
             </p>
@@ -133,22 +133,14 @@ export default function PatientInvitesTable({
           if (!cellValue) return <span className="text-default-400">—</span>;
           return (
             <p className="text-sm text-default-600">
-              {intlFormat(
-                new Date(cellValue as string),
-                { year: 'numeric', month: 'short', day: 'numeric' },
-                { locale },
-              )}
+              {formatShortDate(cellValue as string, locale)}
             </p>
           );
         case 'expiresAt':
           if (!cellValue) return <span className="text-default-400">—</span>;
           return (
             <p className="text-sm text-default-600">
-              {intlFormat(
-                new Date(cellValue as string),
-                { year: 'numeric', month: 'short', day: 'numeric' },
-                { locale },
-              )}
+              {formatShortDate(cellValue as string, locale)}
             </p>
           );
         case 'actions':
@@ -175,18 +167,14 @@ export default function PatientInvitesTable({
   );
 
   const EmptyContent = (
-    <div className="flex flex-col items-center justify-center py-8">
-      <Mail className="w-12 h-12 text-default-300 mb-4" aria-hidden="true" />
-      <span className="text-default-500">
-        No pending patient invites found for this clinic
-      </span>
-    </div>
+    <TableEmptyState
+      icon={Mail}
+      message="No pending patient invites found for this clinic"
+    />
   );
 
   const LoadingContent = (
-    <div className="flex justify-center py-8">
-      <Spinner size="lg" label="Loading patient invites..." />
-    </div>
+    <TableLoadingState label="Loading patient invites..." />
   );
 
   return (
