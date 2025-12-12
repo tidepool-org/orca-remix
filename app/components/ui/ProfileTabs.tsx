@@ -1,5 +1,5 @@
 import { Tabs } from '@heroui/react';
-import type { ReactNode } from 'react';
+import type { Key, ReactNode } from 'react';
 
 type ProfileTabsProps = {
   /**
@@ -11,9 +11,17 @@ type ProfileTabsProps = {
    */
   children: ReactNode;
   /**
-   * Default selected tab key
+   * Default selected tab key (uncontrolled mode)
    */
   defaultSelectedKey?: string;
+  /**
+   * Selected tab key (controlled mode)
+   */
+  selectedKey?: string;
+  /**
+   * Callback when selection changes (controlled mode)
+   */
+  onSelectionChange?: (key: Key) => void;
   /**
    * Additional className for the tabs container
    */
@@ -24,13 +32,26 @@ type ProfileTabsProps = {
  * Standardized tabs wrapper for profile pages with consistent styling.
  * Use with HeroUI Tab components as children.
  *
+ * Supports both controlled and uncontrolled modes:
+ * - Uncontrolled: use `defaultSelectedKey`
+ * - Controlled: use `selectedKey` and `onSelectionChange`
+ *
  * @example
- * <ProfileTabs aria-label="User profile sections">
+ * // Uncontrolled
+ * <ProfileTabs aria-label="User profile sections" defaultSelectedKey="data">
  *   <Tab key="data" title={<TabTitle icon={Database} label="Data" count={10} />}>
  *     <DataContent />
  *   </Tab>
- *   <Tab key="settings" title={<TabTitle icon={Settings} label="Settings" />}>
- *     <SettingsContent />
+ * </ProfileTabs>
+ *
+ * // Controlled (with URL state)
+ * <ProfileTabs
+ *   aria-label="User profile sections"
+ *   selectedKey={currentTab}
+ *   onSelectionChange={(key) => setCurrentTab(key as string)}
+ * >
+ *   <Tab key="data" title={<TabTitle icon={Database} label="Data" count={10} />}>
+ *     <DataContent />
  *   </Tab>
  * </ProfileTabs>
  */
@@ -38,6 +59,8 @@ export default function ProfileTabs({
   'aria-label': ariaLabel,
   children,
   defaultSelectedKey,
+  selectedKey,
+  onSelectionChange,
   className,
 }: ProfileTabsProps) {
   return (
@@ -45,6 +68,8 @@ export default function ProfileTabs({
       aria-label={ariaLabel}
       variant="underlined"
       defaultSelectedKey={defaultSelectedKey}
+      selectedKey={selectedKey}
+      onSelectionChange={onSelectionChange}
       className={className}
       classNames={{
         tabList:

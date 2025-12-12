@@ -691,6 +691,19 @@ export default function Clinics() {
     [submit],
   );
 
+  // Get current tab from URL search params
+  const currentTab = searchParams.get('tab') || undefined;
+
+  // Handle tab change - persist to URL
+  const handleTabChange = useCallback(
+    (key: React.Key) => {
+      const newSearchParams = new URLSearchParams(searchParams);
+      newSearchParams.set('tab', key.toString());
+      submit(newSearchParams, { method: 'GET', replace: true });
+    },
+    [searchParams, submit],
+  );
+
   // Check if we're currently submitting a tier update
   const isSubmitting =
     navigation.state === 'submitting' &&
@@ -754,6 +767,8 @@ export default function Clinics() {
             onRemoveClinician={handleRemoveClinician}
             onRevokePatientInvite={handleRevokePatientInvite}
             isSubmitting={isSubmitting}
+            selectedTab={currentTab}
+            onTabChange={handleTabChange}
           />
         )}
       </div>

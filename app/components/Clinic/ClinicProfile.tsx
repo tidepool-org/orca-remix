@@ -10,6 +10,7 @@ import {
   Settings,
   Trash2,
 } from 'lucide-react';
+import type { Key } from 'react';
 
 import type {
   Clinic,
@@ -118,6 +119,8 @@ export type ClinicProfileProps = {
   onRemoveClinician?: (clinicianId: string) => void;
   onRevokePatientInvite?: (inviteId: string) => void;
   isSubmitting?: boolean;
+  selectedTab?: string;
+  onTabChange?: (key: Key) => void;
 };
 
 export default function ClinicProfile({
@@ -162,6 +165,8 @@ export default function ClinicProfile({
   onRemoveClinician,
   onRevokePatientInvite,
   isSubmitting = false,
+  selectedTab,
+  onTabChange,
 }: ClinicProfileProps) {
   const { id, shareCode, name, createdTime, canMigrate, tier, timezone } =
     clinic;
@@ -286,7 +291,11 @@ export default function ClinicProfile({
 
       {/* Tabbed Interface */}
       <div className="w-full">
-        <ProfileTabs aria-label="Clinic profile sections">
+        <ProfileTabs
+          aria-label="Clinic profile sections"
+          selectedKey={selectedTab}
+          onSelectionChange={onTabChange}
+        >
           {/* Clinicians Tab */}
           <Tab
             key="clinicians"

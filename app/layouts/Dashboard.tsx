@@ -1,6 +1,11 @@
 import { useState } from 'react';
 
-import { Outlet, useMatches, useNavigation } from 'react-router';
+import {
+  Outlet,
+  useMatches,
+  useNavigation,
+  useSearchParams,
+} from 'react-router';
 import { Breadcrumbs, BreadcrumbItem, Spinner } from '@heroui/react';
 import { Home } from 'lucide-react';
 import filter from 'lodash/filter';
@@ -30,12 +35,23 @@ function Dashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const matches = useMatches() as IMatch[];
   const navigation = useNavigation();
+  const [searchParams] = useSearchParams();
 
   const isLoading = navigation.state === 'loading';
 
+  // Get the tab param if it exists (for preserving clinic tab state in breadcrumbs)
+  const tabParam = searchParams.get('tab');
+
   const breadcrumbs: Breadcrumb[] = map(
     filter(matches, (match) => match.handle?.breadcrumb) as IMatch[],
-    (match) => ({ ...match.handle?.breadcrumb, href: match.pathname }),
+    (match) => {
+      let href = match.pathname;
+      // Preserve tab param for clinic profile breadcrumbs when navigating back from nested routes
+      if (tabParam && match.pathname.match(/^\/clinics\/[^/]+$/)) {
+        href = `${match.pathname}?tab=${tabParam}`;
+      }
+      return { ...match.handle?.breadcrumb, href };
+    },
   );
 
   return (

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate, useParams } from 'react-router';
+import { useNavigate, useParams, useSearchParams } from 'react-router';
 import {
   Table,
   TableHeader,
@@ -61,6 +61,7 @@ export default function CliniciansTable({
   const { locale } = useLocale();
   const navigate = useNavigate();
   const params = useParams();
+  const [searchParams] = useSearchParams();
   const [removeModalOpen, setRemoveModalOpen] = useState(false);
   const [selectedClinician, setSelectedClinician] = useState<Clinician | null>(
     null,
@@ -219,8 +220,14 @@ export default function CliniciansTable({
           selectionMode="single"
           onSelectionChange={(keys: 'all' | Set<React.Key>) => {
             const key = keys instanceof Set ? Array.from(keys)[0] : keys;
-            if (key && key !== 'all')
-              navigate(`/clinics/${params.clinicId}/clinicians/${key}`);
+            if (key && key !== 'all') {
+              // Preserve tab param for breadcrumb navigation back to clinic
+              const tab = searchParams.get('tab');
+              const queryString = tab ? `?tab=${tab}` : '';
+              navigate(
+                `/clinics/${params.clinicId}/clinicians/${key}${queryString}`,
+              );
+            }
           }}
           classNames={collapsibleTableClasses}
         >
