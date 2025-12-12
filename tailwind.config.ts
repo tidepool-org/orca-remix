@@ -112,6 +112,15 @@ export default {
         mono: ['"Basis Mono"', ...defaultTheme.fontFamily.mono],
         sans: ['Basis', ...defaultTheme.fontFamily.sans],
       },
+      // Moderately rounded corners for custom components using Tailwind classes
+      borderRadius: {
+        sm: '4px',
+        DEFAULT: '6px',
+        md: '6px',
+        lg: '8px',
+        xl: '10px',
+        '2xl': '12px',
+      },
     },
   },
   plugins: [
@@ -137,6 +146,14 @@ export default {
       });
     }),
     heroui({
+      // Moderately rounded corners for HeroUI components (Button, Input, Card, Chip, etc.)
+      layout: {
+        radius: {
+          small: '4px',
+          medium: '6px',
+          large: '8px',
+        },
+      },
       themes: {
         light: {
           colors: {
