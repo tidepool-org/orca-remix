@@ -1,4 +1,4 @@
-import { Tab, Switch } from '@heroui/react';
+import { Tab } from '@heroui/react';
 import { Building2, Settings } from 'lucide-react';
 import { useFetcher } from 'react-router';
 import useLocale from '~/hooks/useLocale';
@@ -8,6 +8,7 @@ import ProfileHeader from '~/components/ui/ProfileHeader';
 import ProfileTabs from '~/components/ui/ProfileTabs';
 import TabTitle from '~/components/ui/TabTitle';
 import StatusChip from '~/components/ui/StatusChip';
+import SettingsToggleRow from '~/components/ui/SettingsToggleRow';
 import type { Clinician, ClinicianClinicMembership } from './types';
 import { formatShortDate } from '~/utils/dateFormatters';
 
@@ -191,38 +192,28 @@ export default function ClinicianProfile({
 
                   <div className="flex flex-col gap-6">
                     {/* Admin Toggle */}
-                    <div className="flex items-center justify-between p-4 bg-content2 rounded-lg">
-                      <div className="flex flex-col gap-1">
-                        <span className="font-medium">Clinic Admin</span>
-                        <span className="text-sm text-default-500">
-                          Admin users can manage clinic settings, invite other
-                          clinicians, and manage patients.
-                        </span>
-                      </div>
-                      <Switch
-                        isSelected={isAdmin}
-                        onValueChange={handleAdminToggle}
-                        isDisabled={isUpdating}
-                        aria-label="Toggle admin role"
-                      />
-                    </div>
+                    <SettingsToggleRow
+                      label="Clinic Admin"
+                      description="Admin users can manage clinic settings, invite other clinicians, and manage patients."
+                      isSelected={isAdmin}
+                      onValueChange={handleAdminToggle}
+                      isDisabled={isUpdating}
+                      ariaLabel="Toggle admin role"
+                      variant="card"
+                      size="md"
+                    />
 
                     {/* Prescriber Toggle */}
-                    <div className="flex items-center justify-between p-4 bg-content2 rounded-lg">
-                      <div className="flex flex-col gap-1">
-                        <span className="font-medium">Prescriber</span>
-                        <span className="text-sm text-default-500">
-                          Prescribers can create and manage prescriptions for
-                          patients.
-                        </span>
-                      </div>
-                      <Switch
-                        isSelected={isPrescriber}
-                        onValueChange={handlePrescriberToggle}
-                        isDisabled={isUpdating}
-                        aria-label="Toggle prescriber role"
-                      />
-                    </div>
+                    <SettingsToggleRow
+                      label="Prescriber"
+                      description="Prescribers can create and manage prescriptions for patients."
+                      isSelected={isPrescriber}
+                      onValueChange={handlePrescriberToggle}
+                      isDisabled={isUpdating}
+                      ariaLabel="Toggle prescriber role"
+                      variant="card"
+                      size="md"
+                    />
                   </div>
 
                   {fetcher.data?.error && (

@@ -1,17 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useFetcher } from 'react-router';
 import { Button, Divider } from '@heroui/react';
-import {
-  Mail,
-  KeyRound,
-  ShieldCheck,
-  Send,
-  Trash2,
-  UserX,
-  AlertTriangle,
-} from 'lucide-react';
+import { Mail, KeyRound, ShieldCheck, Send, Trash2, UserX } from 'lucide-react';
 
 import ConfirmationModal from '../ConfirmationModal';
+import DangerZoneSection from '~/components/ui/DangerZoneSection';
 import { useToast } from '~/contexts/ToastContext';
 import type { User } from './types';
 
@@ -183,32 +176,29 @@ export default function UserActions({ user }: UserActionsProps) {
       {/* Danger Zone */}
       <Divider className="my-2" />
 
-      <div className="flex items-center gap-2 text-danger">
-        <AlertTriangle size={18} />
-        <h3 className="text-sm font-semibold">Danger Zone</h3>
-      </div>
+      <DangerZoneSection showIcon size="sm" className="mb-0">
+        <div className="flex flex-wrap gap-2">
+          <Button
+            size="sm"
+            variant="flat"
+            color="danger"
+            startContent={<Trash2 size={16} />}
+            onPress={() => openModal('delete-data')}
+          >
+            Delete User Data
+          </Button>
 
-      <div className="flex flex-wrap gap-2">
-        <Button
-          size="sm"
-          variant="flat"
-          color="danger"
-          startContent={<Trash2 size={16} />}
-          onPress={() => openModal('delete-data')}
-        >
-          Delete User Data
-        </Button>
-
-        <Button
-          size="sm"
-          variant="flat"
-          color="danger"
-          startContent={<UserX size={16} />}
-          onPress={() => openModal('delete-account')}
-        >
-          Delete Account
-        </Button>
-      </div>
+          <Button
+            size="sm"
+            variant="flat"
+            color="danger"
+            startContent={<UserX size={16} />}
+            onPress={() => openModal('delete-account')}
+          >
+            Delete Account
+          </Button>
+        </div>
+      </DangerZoneSection>
 
       {/* Confirmation Modals */}
       {activeModal && (

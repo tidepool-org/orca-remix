@@ -1,6 +1,6 @@
 import { formatShortDate } from '~/utils/dateFormatters';
 import { useState, useEffect } from 'react';
-import { Select, SelectItem, Button, Tab, Switch, Input } from '@heroui/react';
+import { Select, SelectItem, Button, Tab, Input } from '@heroui/react';
 import {
   Edit2,
   X,
@@ -33,6 +33,10 @@ import ConfirmationModal from '../ConfirmationModal';
 import ProfileHeader from '~/components/ui/ProfileHeader';
 import ProfileTabs from '~/components/ui/ProfileTabs';
 import TabTitle from '~/components/ui/TabTitle';
+import SettingsToggleRow from '~/components/ui/SettingsToggleRow';
+import DangerZoneSection, {
+  DangerZoneAction,
+} from '~/components/ui/DangerZoneSection';
 import Well from '~/partials/Well';
 
 // Common timezones for selection
@@ -420,21 +424,14 @@ export default function ClinicProfile({
                   </p>
                 )}
                 <div className="flex flex-col gap-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium">Limit Applied</p>
-                      <p className="text-xs text-default-500">
-                        Enable patient count limit for this clinic
-                      </p>
-                    </div>
-                    <Switch
-                      isSelected={isLimitEnabled}
-                      onValueChange={handleLimitToggleChange}
-                      isDisabled={isSubmitting || !isPatientLimitApplicable}
-                      size="sm"
-                      aria-label="Enable patient count limit"
-                    />
-                  </div>
+                  <SettingsToggleRow
+                    label="Limit Applied"
+                    description="Enable patient count limit for this clinic"
+                    isSelected={isLimitEnabled}
+                    onValueChange={handleLimitToggleChange}
+                    isDisabled={isSubmitting || !isPatientLimitApplicable}
+                    ariaLabel="Enable patient count limit"
+                  />
                   <div className="flex items-center gap-4">
                     <div className="flex-1">
                       <p className="text-sm font-medium mb-2">
@@ -545,70 +542,50 @@ export default function ClinicProfile({
               <Well>
                 <h2 className="text-lg font-medium mb-4">MRN Settings</h2>
                 <div className="flex flex-col gap-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium">MRN Required</p>
-                      <p className="text-xs text-default-500">
-                        Require MRN when creating or updating patients
-                      </p>
-                    </div>
-                    <Switch
-                      isSelected={mrnRequired}
-                      onValueChange={(value) => {
-                        setMrnRequired(value);
-                        handleMrnSettingsChange(value, mrnUnique);
-                      }}
-                      isDisabled={isSubmitting}
-                      size="sm"
-                      aria-label="MRN required"
-                    />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium">MRN Unique</p>
-                      <p className="text-xs text-default-500">
-                        Enforce MRN uniqueness constraint
-                      </p>
-                    </div>
-                    <Switch
-                      isSelected={mrnUnique}
-                      onValueChange={(value) => {
-                        setMrnUnique(value);
-                        handleMrnSettingsChange(mrnRequired, value);
-                      }}
-                      isDisabled={isSubmitting}
-                      size="sm"
-                      aria-label="MRN unique"
-                    />
-                  </div>
+                  <SettingsToggleRow
+                    label="MRN Required"
+                    description="Require MRN when creating or updating patients"
+                    isSelected={mrnRequired}
+                    onValueChange={(value) => {
+                      setMrnRequired(value);
+                      handleMrnSettingsChange(value, mrnUnique);
+                    }}
+                    isDisabled={isSubmitting}
+                    ariaLabel="MRN required"
+                  />
+                  <SettingsToggleRow
+                    label="MRN Unique"
+                    description="Enforce MRN uniqueness constraint"
+                    isSelected={mrnUnique}
+                    onValueChange={(value) => {
+                      setMrnUnique(value);
+                      handleMrnSettingsChange(mrnRequired, value);
+                    }}
+                    isDisabled={isSubmitting}
+                    ariaLabel="MRN unique"
+                  />
                 </div>
               </Well>
 
               {/* Danger Zone */}
               <Well>
-                <h2 className="text-lg font-medium mb-4 text-danger">
-                  Danger Zone
-                </h2>
-                <div className="flex items-center justify-between p-4 border border-danger rounded-lg">
-                  <div>
-                    <p className="text-sm font-medium">
-                      Delete Clinic Workspace
-                    </p>
-                    <p className="text-xs text-default-500">
-                      Permanently delete this clinic and all associated data.
-                      This action cannot be undone.
-                    </p>
-                  </div>
-                  <Button
-                    color="danger"
-                    variant="flat"
-                    size="sm"
-                    startContent={<Trash2 size={14} />}
-                    onPress={() => setIsDeleteModalOpen(true)}
-                  >
-                    Delete Clinic
-                  </Button>
-                </div>
+                <DangerZoneSection>
+                  <DangerZoneAction
+                    title="Delete Clinic Workspace"
+                    description="Permanently delete this clinic and all associated data. This action cannot be undone."
+                    actionButton={
+                      <Button
+                        color="danger"
+                        variant="flat"
+                        size="sm"
+                        startContent={<Trash2 size={14} />}
+                        onPress={() => setIsDeleteModalOpen(true)}
+                      >
+                        Delete Clinic
+                      </Button>
+                    }
+                  />
+                </DangerZoneSection>
               </Well>
             </div>
           </Tab>
