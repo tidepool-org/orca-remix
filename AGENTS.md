@@ -8,6 +8,9 @@
 - `npm run typecheck` - Run TypeScript type checking
 - `npm run format` - Format code with Prettier
 - `npm run format:check` - Check formatting without changes
+- `npm run test` - Run tests in watch mode
+- `npm run test:run` - Run tests once
+- `npm run test:coverage` - Run tests with coverage report
 
 ## Code Style Guidelines
 
@@ -33,3 +36,23 @@
 
 - **Code Formatting**: After completing a set of changes, run `npm run format` to ensure consistent code formatting with Prettier.
 - **Commit Messages**: After completing a set of changes, provide a suitable git commit message summarizing the work done. Use conventional commit format (e.g., `feat:`, `fix:`, `docs:`, `refactor:`) when appropriate. **Do not execute the git commit** - only provide the message for the user to review and commit themselves.
+
+## Testing Guidelines
+
+- **Framework**: Vitest with React Testing Library for component testing
+- **File Naming**: Test files should be co-located with components using `*.test.tsx` suffix (e.g., `ConfirmationModal.test.tsx`)
+- **Test Utilities**: Import from `~/test-utils` instead of `@testing-library/react` directly. This provides a custom `render` function that wraps components with necessary providers (HeroUI)
+- **Coverage Requirements**: New components should include tests for:
+  - Basic rendering and props
+  - User interactions (clicks, form inputs)
+  - Conditional rendering states
+  - Accessibility (buttons have proper labels, etc.)
+- **Mocking React Router**: For components using `useLoaderData`, `useActionData`, or `useSubmit`, mock the `react-router` module:
+  ```typescript
+  vi.mock('react-router', async () => ({
+    ...(await vi.importActual('react-router')),
+    useLoaderData: () => mockData,
+  }));
+  ```
+- **HeroUI Notes**: HeroUI modifies button accessible names when loading (e.g., "Confirm" becomes "Loading Confirm"). Use regex matchers like `/Loading Confirm/i` when testing loading states
+- **Running Tests**: Run `npm run test:run` before committing to ensure all tests pass
