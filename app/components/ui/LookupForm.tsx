@@ -2,9 +2,8 @@ import { Form, useSearchParams, useNavigation } from 'react-router';
 import { Input, Button } from '@heroui/react';
 import type { LucideIcon } from 'lucide-react';
 import React from 'react';
-import Well from '~/partials/Well';
 import { useToast } from '~/contexts/ToastContext';
-import SectionHeader from '~/components/SectionHeader';
+import SectionPanel from '~/components/ui/SectionPanel';
 import { searchInputClasses } from '~/utils/tableStyles';
 
 type LookupFormProps = {
@@ -116,32 +115,34 @@ export default function LookupForm({
     setSearchValue(e.target.value);
   };
 
+  const Icon = icon;
+
   return (
     <Form action={action}>
-      <Well>
-        <div className="flex flex-col gap-4">
-          <SectionHeader icon={icon} title={title} />
+      <SectionPanel
+        icon={<Icon className="w-5 h-5" />}
+        title={title}
+        aria-label={title}
+      >
+        <div className="flex items-center gap-4">
+          <Input
+            name={inputName ?? searchParamName}
+            type="text"
+            placeholder={placeholder}
+            aria-label={ariaLabel ?? placeholder}
+            value={searchValue || ''}
+            onChange={handleSearchChange}
+            className="flex-1 min-w-48 max-w-xs"
+            classNames={searchInputClasses}
+            isInvalid={!!error && errorType === 'validation'}
+            errorMessage={errorType === 'validation' ? error : undefined}
+          />
 
-          <div className="flex items-center gap-4">
-            <Input
-              name={inputName ?? searchParamName}
-              type="text"
-              placeholder={placeholder}
-              aria-label={ariaLabel ?? placeholder}
-              value={searchValue || ''}
-              onChange={handleSearchChange}
-              className="flex-1 min-w-48 max-w-xs"
-              classNames={searchInputClasses}
-              isInvalid={!!error && errorType === 'validation'}
-              errorMessage={errorType === 'validation' ? error : undefined}
-            />
-
-            <Button type="submit" color="primary" isLoading={isSearching}>
-              {submitText}
-            </Button>
-          </div>
+          <Button type="submit" color="primary" isLoading={isSearching}>
+            {submitText}
+          </Button>
         </div>
-      </Well>
+      </SectionPanel>
     </Form>
   );
 }

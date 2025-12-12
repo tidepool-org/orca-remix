@@ -10,7 +10,7 @@ export const recentTableClasses = {
 
 export const searchInputClasses = {
   base: 'max-w-xs',
-  inputWrapper: 'lightTheme:bg-background',
+  inputWrapper: 'bg-default-100',
   input: 'group-data-[has-value=true]:text-content1-foreground',
 };
 
