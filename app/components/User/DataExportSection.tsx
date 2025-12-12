@@ -84,7 +84,7 @@ export default function DataExportSection({ userId }: DataExportSectionProps) {
   ];
 
   return (
-    <Card className="w-full">
+    <Card className="w-full" shadow="none">
       <CardHeader className="flex gap-3">
         <Download className="w-5 h-5 text-primary" />
         <div className="flex flex-col">

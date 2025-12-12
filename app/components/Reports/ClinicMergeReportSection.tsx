@@ -35,7 +35,7 @@ export default function ClinicMergeReportSection({
   const isValid = sourceClinicId.trim() && targetClinicId.trim();
 
   return (
-    <Card className="w-full">
+    <Card className="w-full" shadow="none">
       <CardHeader className="flex gap-3">
         <Merge className="w-5 h-5 text-primary" />
         <div className="flex flex-col">

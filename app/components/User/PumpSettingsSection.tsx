@@ -136,7 +136,7 @@ export default function PumpSettingsSection({
 
   if (isLoading) {
     return (
-      <Card className="w-full">
+      <Card className="w-full" shadow="none">
         <CardHeader className="flex gap-3">
           <Settings className="w-5 h-5 text-primary" />
           <div className="flex flex-col">
@@ -156,7 +156,7 @@ export default function PumpSettingsSection({
 
   if (pumpSettings.length === 0) {
     return (
-      <Card className="w-full">
+      <Card className="w-full" shadow="none">
         <CardHeader className="flex gap-3">
           <Settings className="w-5 h-5 text-primary" />
           <div className="flex flex-col">
