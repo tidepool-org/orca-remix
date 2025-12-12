@@ -1,5 +1,4 @@
 import { useRouteLoaderData, Link } from 'react-router';
-import { useCallback } from 'react';
 import { Tab } from '@heroui/react';
 import { Database, Smartphone, FileText, ExternalLink } from 'lucide-react';
 import Well from '~/partials/Well';
@@ -7,6 +6,7 @@ import Well from '~/partials/Well';
 import type { Patient, Prescription } from './types';
 import type { DataSet, DataSource, PumpSettings } from '../User/types';
 import useLocale from '~/hooks/useLocale';
+import useClinicResolvers from '~/hooks/useClinicResolvers';
 import PrescriptionsTable from './PrescriptionsTable';
 import DataSetsTable from '../User/DataSetsTable';
 import ProfileHeader from '~/components/ui/ProfileHeader';
@@ -80,24 +80,7 @@ export default function PatientProfile({
       }
     | undefined;
   const clinicData = clinic || parentRouteData?.clinic;
-
-  // Helper function to map tag ID to tag name
-  const getTagName = useCallback(
-    (tagId: string): string => {
-      const tag = clinicData?.patientTags?.find((t) => t.id === tagId);
-      return tag?.name || tagId; // Fallback to ID if name not found
-    },
-    [clinicData?.patientTags],
-  );
-
-  // Helper function to map site ID to site name
-  const getSiteName = useCallback(
-    (siteId: string): string => {
-      const site = clinicData?.sites?.find((s) => s.id === siteId);
-      return site?.name || siteId; // Fallback to ID if name not found
-    },
-    [clinicData?.sites],
-  );
+  const { getTagName, getSiteName } = useClinicResolvers(clinicData);
 
   // ProfileHeader configuration
   const patientIdentifiers = [

@@ -20,6 +20,8 @@ import {
 } from '@heroui/react';
 import { Settings, Clock, Target, Utensils, Zap, Info } from 'lucide-react';
 import { formatDateWithTime } from '~/utils/dateFormatters';
+import { msToTime } from '~/utils/timeConversion';
+import { formatBgValue, formatInsulinSensitivity } from '~/utils/bgUnits';
 import useLocale from '~/hooks/useLocale';
 import type {
   PumpSettings,
@@ -33,38 +35,6 @@ export type PumpSettingsSectionProps = {
   pumpSettings: PumpSettings[];
   isLoading?: boolean;
 };
-
-// Convert milliseconds from midnight to time string (HH:MM)
-function msToTime(ms: number): string {
-  const hours = Math.floor(ms / (1000 * 60 * 60));
-  const minutes = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60));
-  return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
-}
-
-// Convert mg/dL to mmol/L
-function mgdlToMmol(mgdl: number): number {
-  return Math.round((mgdl / 18.0182) * 10) / 10;
-}
-
-// Format BG value with units
-function formatBgValue(
-  value: number | undefined,
-  useMmol: boolean,
-): string | null {
-  if (value === undefined || value === null) return null;
-  if (useMmol) {
-    return `${mgdlToMmol(value)} mmol/L`;
-  }
-  return `${value} mg/dL`;
-}
-
-// Format insulin sensitivity with units
-function formatInsulinSensitivity(value: number, useMmol: boolean): string {
-  if (useMmol) {
-    return `${mgdlToMmol(value)} mmol/L`;
-  }
-  return `${value} mg/dL`;
-}
 
 export default function PumpSettingsSection({
   pumpSettings = [],

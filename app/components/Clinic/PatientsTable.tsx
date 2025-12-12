@@ -1,5 +1,5 @@
 /* eslint-disable react/prop-types */
-import React, { useCallback } from 'react';
+import React from 'react';
 import { useNavigate, useParams } from 'react-router';
 import {
   Table,
@@ -14,6 +14,7 @@ import {
 } from '@heroui/react';
 import { Users } from 'lucide-react';
 import useLocale from '~/hooks/useLocale';
+import useClinicResolvers from '~/hooks/useClinicResolvers';
 import CollapsibleTableWrapper from '../CollapsibleTableWrapper';
 import { collapsibleTableClasses } from '~/utils/tableStyles';
 import type { Patient } from './types';
@@ -73,26 +74,8 @@ export default function PatientsTable({
   const { locale } = useLocale();
   const navigate = useNavigate();
   const params = useParams();
+  const { getTagName, getSiteName } = useClinicResolvers(clinic);
 
-  const clinicData = clinic;
-
-  // Helper function to map tag ID to tag name
-  const getTagName = useCallback(
-    (tagId: string): string => {
-      const tag = clinicData?.patientTags?.find((t) => t.id === tagId);
-      return tag?.name || tagId; // Fallback to ID if name not found
-    },
-    [clinicData?.patientTags],
-  );
-
-  // Helper function to map site ID to site name
-  const getSiteName = useCallback(
-    (siteId: string): string => {
-      const site = clinicData?.sites?.find((s) => s.id === siteId);
-      return site?.name || siteId; // Fallback to ID if name not found
-    },
-    [clinicData?.sites],
-  );
   // Parse current sort to set initial sort descriptor
   const parseSortString = (sortStr?: string) => {
     if (!sortStr)
