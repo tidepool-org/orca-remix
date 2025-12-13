@@ -39,16 +39,38 @@ function Dashboard() {
 
   const isLoading = navigation.state === 'loading';
 
-  // Get the tab param if it exists (for preserving clinic tab state in breadcrumbs)
-  const tabParam = searchParams.get('tab');
+  // Params to preserve for clinic profile breadcrumbs (whitelist approach)
+  const clinicProfileParamKeys = [
+    'tab',
+    'search',
+    'page',
+    'limit',
+    'sort',
+    'cliniciansSearch',
+    'cliniciansPage',
+    'cliniciansLimit',
+  ];
+
+  // Build preserved params string for clinic profile routes
+  const getClinicProfileParams = (): string => {
+    const preservedParams = new URLSearchParams();
+    clinicProfileParamKeys.forEach((key) => {
+      const value = searchParams.get(key);
+      if (value) preservedParams.set(key, value);
+    });
+    return preservedParams.toString();
+  };
 
   const breadcrumbs: Breadcrumb[] = map(
     filter(matches, (match) => match.handle?.breadcrumb) as IMatch[],
     (match) => {
       let href = match.pathname;
-      // Preserve tab param for clinic profile breadcrumbs when navigating back from nested routes
-      if (tabParam && match.pathname.match(/^\/clinics\/[^/]+$/)) {
-        href = `${match.pathname}?tab=${tabParam}`;
+      // Preserve whitelisted params for clinic profile breadcrumbs when navigating back from nested routes
+      if (match.pathname.match(/^\/clinics\/[^/]+$/)) {
+        const paramsString = getClinicProfileParams();
+        if (paramsString) {
+          href = `${match.pathname}?${paramsString}`;
+        }
       }
       return { ...match.handle?.breadcrumb, href };
     },

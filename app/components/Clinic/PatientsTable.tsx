@@ -326,11 +326,10 @@ export default function PatientsTable({
         onSelectionChange={(keys: 'all' | Set<React.Key>) => {
           const key = keys instanceof Set ? Array.from(keys)[0] : keys;
           if (key && key !== 'all') {
-            // Preserve tab param for breadcrumb navigation back to clinic
-            const tab = searchParams.get('tab');
-            const queryString = tab ? `?tab=${tab}` : '';
+            // Preserve all search params for breadcrumb navigation back to clinic
+            const queryString = searchParams.toString();
             navigate(
-              `/clinics/${params.clinicId}/patients/${key}${queryString}`,
+              `/clinics/${params.clinicId}/patients/${key}${queryString ? `?${queryString}` : ''}`,
             );
           }
         }}
