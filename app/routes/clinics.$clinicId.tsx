@@ -133,20 +133,20 @@ export async function action({ request, params }: ActionFunctionArgs) {
     const hardLimitPlan = formData.get('hardLimitPlan');
 
     try {
-      // Build patient count settings - empty object {} removes the limit
+      // Build patient count settings - omit hardLimit entirely to remove the limit
+      // The API requires `plan` if `hardLimit` is present, so we can't send { hardLimit: {} }
       const settings: {
-        hardLimit?: { plan?: number } | Record<string, never>;
+        hardLimit?: { plan: number };
       } = {};
 
-      if (hardLimitPlan === '' || hardLimitPlan === null) {
-        // Remove the hard limit by sending empty object (API doesn't accept null)
-        settings.hardLimit = {};
-      } else {
+      if (hardLimitPlan !== '' && hardLimitPlan !== null) {
         const planValue = parseInt(hardLimitPlan as string, 10);
         if (!isNaN(planValue) && planValue >= 0) {
           settings.hardLimit = { plan: planValue };
         }
       }
+      // When hardLimitPlan is empty/null, settings remains {} (no hardLimit property)
+      // which tells the API to remove any existing limit
 
       // Validate input
       PatientCountSettingsSchema.parse(settings);
