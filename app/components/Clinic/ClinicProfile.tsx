@@ -22,6 +22,7 @@ import type {
   ClinicMrnSettings,
   ClinicPatientCountSettings,
 } from './types';
+import type { ResourceState } from '~/api.types';
 import useLocale from '~/hooks/useLocale';
 import PatientsTable from './PatientsTable';
 import PatientInvitesTable from './PatientInvitesTable';
@@ -91,6 +92,7 @@ export type ClinicProfileProps = {
   totalClinicianInvites?: number;
   clinicianInvitesLoading?: boolean;
   prescriptions?: Prescription[];
+  prescriptionsState?: ResourceState<Prescription[]>;
   totalPrescriptions?: number;
   prescriptionsLoading?: boolean;
   mrnSettings?: ClinicMrnSettings | null;
@@ -144,6 +146,7 @@ export default function ClinicProfile({
   totalClinicianInvites = 0,
   clinicianInvitesLoading = false,
   prescriptions = [],
+  prescriptionsState,
   totalPrescriptions = 0,
   prescriptionsLoading = false,
   mrnSettings,
@@ -387,6 +390,7 @@ export default function ClinicProfile({
               <CollapsibleGroup>
                 <PrescriptionsTable
                   prescriptions={prescriptions}
+                  prescriptionsState={prescriptionsState}
                   totalPrescriptions={totalPrescriptions}
                   isLoading={prescriptionsLoading}
                   clinicId={id}

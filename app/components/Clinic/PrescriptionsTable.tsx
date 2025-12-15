@@ -13,14 +13,17 @@ import useLocale from '~/hooks/useLocale';
 import CollapsibleTableWrapper from '../CollapsibleTableWrapper';
 import { collapsibleTableClasses } from '~/utils/tableStyles';
 import type { Prescription } from './types';
+import type { ResourceState } from '~/api.types';
 import TableEmptyState from '~/components/ui/TableEmptyState';
 import TableLoadingState from '~/components/ui/TableLoadingState';
 import TableFilterInput from '~/components/ui/TableFilterInput';
 import StatusChip from '~/components/ui/StatusChip';
+import ResourceError from '~/components/ui/ResourceError';
 import { formatDateTime } from '~/utils/dateFormatters';
 
 export type PrescriptionsTableProps = {
   prescriptions: Prescription[];
+  prescriptionsState?: ResourceState<Prescription[]>;
   totalPrescriptions: number;
   isLoading?: boolean;
   clinicId?: string;
@@ -36,6 +39,7 @@ type Column = {
 
 export default function PrescriptionsTable({
   prescriptions = [],
+  prescriptionsState,
   totalPrescriptions = 0,
   isLoading = false,
   clinicId,
@@ -153,6 +157,9 @@ export default function PrescriptionsTable({
 
   const LoadingContent = <TableLoadingState label="Loading prescriptions..." />;
 
+  // Check if there's an error state to display
+  const hasError = prescriptionsState?.status === 'error';
+
   return (
     <CollapsibleTableWrapper
       icon={<FileText className="h-5 w-5" />}
@@ -160,32 +167,43 @@ export default function PrescriptionsTable({
       totalItems={totalPrescriptions}
       isFirstInGroup={isFirstInGroup}
     >
-      {topContent}
-      <Table
-        aria-label="Prescriptions table"
-        shadow="none"
-        removeWrapper
-        classNames={collapsibleTableClasses}
-      >
-        <TableHeader columns={columns}>
-          {(column) => (
-            <TableColumn key={column.key}>{column.label}</TableColumn>
-          )}
-        </TableHeader>
-        <TableBody
-          emptyContent={EmptyContent}
-          loadingContent={LoadingContent}
-          loadingState={isLoading ? 'loading' : 'idle'}
-        >
-          {filteredPrescriptions.map((item) => (
-            <TableRow key={item.id}>
-              {(columnKey) => (
-                <TableCell>{renderCell(item, columnKey as string)}</TableCell>
+      {hasError ? (
+        <ResourceError
+          title="Prescriptions"
+          message={prescriptionsState.error.message}
+        />
+      ) : (
+        <>
+          {topContent}
+          <Table
+            aria-label="Prescriptions table"
+            shadow="none"
+            removeWrapper
+            classNames={collapsibleTableClasses}
+          >
+            <TableHeader columns={columns}>
+              {(column) => (
+                <TableColumn key={column.key}>{column.label}</TableColumn>
               )}
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+            </TableHeader>
+            <TableBody
+              emptyContent={EmptyContent}
+              loadingContent={LoadingContent}
+              loadingState={isLoading ? 'loading' : 'idle'}
+            >
+              {filteredPrescriptions.map((item) => (
+                <TableRow key={item.id}>
+                  {(columnKey) => (
+                    <TableCell>
+                      {renderCell(item, columnKey as string)}
+                    </TableCell>
+                  )}
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </>
+      )}
     </CollapsibleTableWrapper>
   );
 }

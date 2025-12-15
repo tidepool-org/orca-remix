@@ -32,7 +32,7 @@ import ToastContainer from './components/ToastContainer';
 // Return the theme from the session storage using the loader
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { getTheme } = await themeSessionResolver(request);
-  authorizeServer();
+  await authorizeServer();
   const locale = getLocale(request);
 
   return {

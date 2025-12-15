@@ -1,6 +1,7 @@
 import { serverAuth } from './auth.server';
 import { z } from 'zod';
 import { APIError } from './utils/errors';
+import type { ResourceState } from './api.types';
 
 export const apiRoutes = {
   user: {
@@ -453,4 +454,42 @@ export const apiRequestFile = async ({
   }
 
   return result;
+};
+
+/**
+ * Wraps an API request and returns a ResourceState instead of throwing.
+ * Use this for non-critical data fetches where you want to show an inline
+ * error state rather than failing the entire page.
+ *
+ * @example
+ * const prescriptions = await apiRequestSafe<Prescription[]>(
+ *   apiRoutes.prescription.getClinicPrescriptions(clinicId)
+ * );
+ * // prescriptions is ResourceState<Prescription[]>
+ * // Either { status: 'success', data: [...] }
+ * // Or { status: 'error', error: { message: '...', code: 403 } }
+ */
+export const apiRequestSafe = async <T = unknown>(
+  request: apiRequestArgs,
+): Promise<ResourceState<T>> => {
+  try {
+    const data = await apiRequest<T>(request);
+    return { status: 'success', data };
+  } catch (err) {
+    const message =
+      err instanceof APIError
+        ? err.message
+        : err instanceof Error
+          ? err.message
+          : 'An unknown error occurred';
+    const code = err instanceof APIError ? err.status : undefined;
+
+    // Still log to console for server-side debugging
+    console.error(`API request failed: ${request.path}`, { message, code });
+
+    return {
+      status: 'error',
+      error: { message, code },
+    };
+  }
 };

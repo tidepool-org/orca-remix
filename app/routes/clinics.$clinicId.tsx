@@ -16,7 +16,13 @@ import type {
   Prescription,
 } from '~/components/Clinic/types';
 import { RecentItemsProvider } from '~/components/Clinic/RecentItemsContext';
-import { apiRequests, apiRoutes, apiRequest } from '~/api.server';
+import {
+  apiRequests,
+  apiRoutes,
+  apiRequest,
+  apiRequestSafe,
+} from '~/api.server';
+import type { ResourceState } from '~/api.types';
 import {
   clinicsSession,
   patientsSession,
@@ -323,19 +329,16 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
       apiRoutes.clinic.getClinicians(clinicId, { limit: cliniciansFetchLimit }),
     ]);
 
-    // Fetch prescriptions separately to avoid breaking the page if the API is unavailable
-    let prescriptions: Prescription[] = [];
-    try {
-      const prescriptionsResponse = await apiRequest(
-        apiRoutes.prescription.getClinicPrescriptions(clinicId),
-      );
-      prescriptions = Array.isArray(prescriptionsResponse)
-        ? prescriptionsResponse
-        : [];
-    } catch (err) {
-      console.error('Error fetching prescriptions:', err);
-      // Continue without prescriptions
-    }
+    // Fetch prescriptions separately using safe wrapper to avoid breaking the page
+    // Returns ResourceState which the frontend can use to show inline error
+    const prescriptionsState = await apiRequestSafe<Prescription[]>(
+      apiRoutes.prescription.getClinicPrescriptions(clinicId),
+    );
+
+    // Extract data for backward compatibility and compute total
+    const prescriptions =
+      prescriptionsState.status === 'success' ? prescriptionsState.data : [];
+    const totalPrescriptions = prescriptions.length;
 
     // Fetch MRN settings separately to avoid breaking the page if the API is unavailable
     let mrnSettings: { required: boolean; unique: boolean } | null = null;
@@ -427,6 +430,8 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
           clinicians,
           clinicianInvites,
           prescriptions,
+          prescriptionsState,
+          totalPrescriptions,
           mrnSettings,
           patientCountSettings,
           recentPatients,
@@ -471,6 +476,10 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     clinicians: [],
     clinicianInvites: [],
     prescriptions: [],
+    prescriptionsState: { status: 'success', data: [] } as ResourceState<
+      Prescription[]
+    >,
+    totalPrescriptions: 0,
     mrnSettings: null,
     patientCountSettings: null,
     recentPatients: [],
@@ -508,6 +517,8 @@ export default function Clinics() {
     clinicians,
     clinicianInvites,
     prescriptions,
+    prescriptionsState,
+    totalPrescriptions,
     mrnSettings,
     patientCountSettings,
     recentPatients,
@@ -748,6 +759,8 @@ export default function Clinics() {
             clinicianInvites={clinicianInvites}
             totalClinicianInvites={invitesPagination.totalClinicianInvites}
             prescriptions={prescriptions}
+            prescriptionsState={prescriptionsState}
+            totalPrescriptions={totalPrescriptions}
             mrnSettings={mrnSettings}
             patientCountSettings={patientCountSettings}
             onPageChange={handlePageChange}
