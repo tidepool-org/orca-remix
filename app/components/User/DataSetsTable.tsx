@@ -21,14 +21,17 @@ import ConfirmationModal from '../ConfirmationModal';
 import CopyableIdentifier from '~/components/ui/CopyableIdentifier';
 import { collapsibleTableClasses } from '~/utils/tableStyles';
 import type { DataSet } from './types';
+import type { ResourceState } from '~/api.types';
 import { useToast } from '~/contexts/ToastContext';
 import TableEmptyState from '~/components/ui/TableEmptyState';
 import TableLoadingState from '~/components/ui/TableLoadingState';
 import TableFilterInput from '~/components/ui/TableFilterInput';
+import ResourceError from '~/components/ui/ResourceError';
 import { formatDateWithTime } from '~/utils/dateFormatters';
 
 export type DataSetsTableProps = {
   dataSets: DataSet[];
+  dataSetsState?: ResourceState<DataSet[]>;
   totalDataSets: number;
   isLoading?: boolean;
   /** Mark this as the first table in a CollapsibleGroup to auto-expand it */
@@ -48,6 +51,7 @@ type DeleteModalState = {
 
 export default function DataSetsTable({
   dataSets = [],
+  dataSetsState,
   totalDataSets = 0,
   isLoading = false,
   isFirstInGroup = false,
@@ -338,6 +342,9 @@ export default function DataSetsTable({
     );
   }, [filterValue, filteredDataSets.length, totalDataSets]);
 
+  // Check if there's an error state to display
+  const hasError = dataSetsState?.status === 'error';
+
   return (
     <>
       <CollapsibleTableWrapper
@@ -346,32 +353,43 @@ export default function DataSetsTable({
         totalItems={totalDataSets}
         isFirstInGroup={isFirstInGroup}
       >
-        {topContent}
-        <Table
-          aria-label="Data uploads table"
-          shadow="none"
-          removeWrapper
-          classNames={collapsibleTableClasses}
-        >
-          <TableHeader columns={columns}>
-            {(column) => (
-              <TableColumn key={column.key}>{column.label}</TableColumn>
-            )}
-          </TableHeader>
-          <TableBody
-            emptyContent={EmptyContent}
-            loadingContent={LoadingContent}
-            loadingState={isLoading ? 'loading' : 'idle'}
-          >
-            {filteredDataSets.map((item) => (
-              <TableRow key={item.uploadId || item.time}>
-                {(columnKey) => (
-                  <TableCell>{renderCell(item, columnKey as string)}</TableCell>
+        {hasError ? (
+          <ResourceError
+            title="Data Uploads"
+            message={dataSetsState.error.message}
+          />
+        ) : (
+          <>
+            {topContent}
+            <Table
+              aria-label="Data uploads table"
+              shadow="none"
+              removeWrapper
+              classNames={collapsibleTableClasses}
+            >
+              <TableHeader columns={columns}>
+                {(column) => (
+                  <TableColumn key={column.key}>{column.label}</TableColumn>
                 )}
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+              </TableHeader>
+              <TableBody
+                emptyContent={EmptyContent}
+                loadingContent={LoadingContent}
+                loadingState={isLoading ? 'loading' : 'idle'}
+              >
+                {filteredDataSets.map((item) => (
+                  <TableRow key={item.uploadId || item.time}>
+                    {(columnKey) => (
+                      <TableCell>
+                        {renderCell(item, columnKey as string)}
+                      </TableCell>
+                    )}
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </>
+        )}
       </CollapsibleTableWrapper>
 
       <ConfirmationModal

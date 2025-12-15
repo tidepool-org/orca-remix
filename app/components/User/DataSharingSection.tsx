@@ -13,9 +13,11 @@ import useLocale from '~/hooks/useLocale';
 import CollapsibleTableWrapper from '../CollapsibleTableWrapper';
 import { collapsibleTableClasses } from '~/utils/tableStyles';
 import type { AccessPermissionsMap, ShareInvite, Permissions } from './types';
+import type { ResourceState } from '~/api.types';
 import TableEmptyState from '~/components/ui/TableEmptyState';
 import TableLoadingState from '~/components/ui/TableLoadingState';
 import StatusChip from '~/components/ui/StatusChip';
+import ResourceError from '~/components/ui/ResourceError';
 import { formatShortDate } from '~/utils/dateFormatters';
 
 // Helper to convert permissions object to readable array
@@ -32,11 +34,13 @@ const formatPermissions = (permissions: Permissions): string[] => {
 // Sub-component for Trusting Accounts (accounts that share WITH user)
 export function TrustingAccountsTable({
   accounts,
+  trustingAccountsState,
   isLoading,
   currentUserId,
   isFirstInGroup,
 }: {
   accounts: AccessPermissionsMap;
+  trustingAccountsState?: ResourceState<AccessPermissionsMap>;
   isLoading?: boolean;
   currentUserId?: string;
   /** Mark this as the first table in a CollapsibleGroup to auto-expand it */
@@ -63,6 +67,9 @@ export function TrustingAccountsTable({
 
   const LoadingContent = <TableLoadingState />;
 
+  // Check if there's an error state to display
+  const hasError = trustingAccountsState?.status === 'error';
+
   return (
     <CollapsibleTableWrapper
       icon={<Users className="h-5 w-5" />}
@@ -70,48 +77,62 @@ export function TrustingAccountsTable({
       totalItems={totalItems}
       isFirstInGroup={isFirstInGroup}
     >
-      <p className="text-sm text-default-500 mb-4">
-        These accounts have granted this user access to view their data.
-      </p>
-      <Table
-        aria-label="Accounts sharing with user"
-        shadow="none"
-        removeWrapper
-        selectionMode="single"
-        onSelectionChange={(keys: 'all' | Set<React.Key>) => {
-          const key = keys instanceof Set ? Array.from(keys)[0] : keys;
-          if (key && key !== 'all') navigate(`/users/${key}`);
-        }}
-        classNames={collapsibleTableClasses}
-      >
-        <TableHeader columns={columns}>
-          {(column) => (
-            <TableColumn key={column.key}>{column.label}</TableColumn>
-          )}
-        </TableHeader>
-        <TableBody
-          emptyContent={EmptyContent}
-          loadingContent={LoadingContent}
-          loadingState={isLoading ? 'loading' : 'idle'}
-        >
-          {entries.map(([userId, permissions]) => (
-            <TableRow key={userId}>
-              <TableCell>
-                <span className="font-mono text-sm">{userId}</span>
-              </TableCell>
-              <TableCell>
-                <div className="flex gap-1 flex-wrap">
-                  {formatPermissions(permissions).map((perm) => (
-                    <Chip key={perm} size="sm" variant="flat" color="primary">
-                      {perm}
-                    </Chip>
-                  ))}
-                </div>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+      {hasError ? (
+        <ResourceError
+          title="Accounts Sharing With User"
+          message={trustingAccountsState.error.message}
+        />
+      ) : (
+        <>
+          <p className="text-sm text-default-500 mb-4">
+            These accounts have granted this user access to view their data.
+          </p>
+          <Table
+            aria-label="Accounts sharing with user"
+            shadow="none"
+            removeWrapper
+            selectionMode="single"
+            onSelectionChange={(keys: 'all' | Set<React.Key>) => {
+              const key = keys instanceof Set ? Array.from(keys)[0] : keys;
+              if (key && key !== 'all') navigate(`/users/${key}`);
+            }}
+            classNames={collapsibleTableClasses}
+          >
+            <TableHeader columns={columns}>
+              {(column) => (
+                <TableColumn key={column.key}>{column.label}</TableColumn>
+              )}
+            </TableHeader>
+            <TableBody
+              emptyContent={EmptyContent}
+              loadingContent={LoadingContent}
+              loadingState={isLoading ? 'loading' : 'idle'}
+            >
+              {entries.map(([userId, permissions]) => (
+                <TableRow key={userId}>
+                  <TableCell>
+                    <span className="font-mono text-sm">{userId}</span>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex gap-1 flex-wrap">
+                      {formatPermissions(permissions).map((perm) => (
+                        <Chip
+                          key={perm}
+                          size="sm"
+                          variant="flat"
+                          color="primary"
+                        >
+                          {perm}
+                        </Chip>
+                      ))}
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </>
+      )}
     </CollapsibleTableWrapper>
   );
 }
@@ -119,11 +140,13 @@ export function TrustingAccountsTable({
 // Sub-component for Trusted Accounts (accounts user shares WITH)
 export function TrustedAccountsTable({
   accounts,
+  trustedAccountsState,
   isLoading,
   currentUserId,
   isFirstInGroup,
 }: {
   accounts: AccessPermissionsMap;
+  trustedAccountsState?: ResourceState<AccessPermissionsMap>;
   isLoading?: boolean;
   currentUserId?: string;
   /** Mark this as the first table in a CollapsibleGroup to auto-expand it */
@@ -150,6 +173,9 @@ export function TrustedAccountsTable({
 
   const LoadingContent = <TableLoadingState />;
 
+  // Check if there's an error state to display
+  const hasError = trustedAccountsState?.status === 'error';
+
   return (
     <CollapsibleTableWrapper
       icon={<Users className="h-5 w-5" />}
@@ -157,48 +183,62 @@ export function TrustedAccountsTable({
       totalItems={totalItems}
       isFirstInGroup={isFirstInGroup}
     >
-      <p className="text-sm text-default-500 mb-4">
-        These accounts can view this user&apos;s data.
-      </p>
-      <Table
-        aria-label="Accounts user shares with"
-        shadow="none"
-        removeWrapper
-        selectionMode="single"
-        onSelectionChange={(keys: 'all' | Set<React.Key>) => {
-          const key = keys instanceof Set ? Array.from(keys)[0] : keys;
-          if (key && key !== 'all') navigate(`/users/${key}`);
-        }}
-        classNames={collapsibleTableClasses}
-      >
-        <TableHeader columns={columns}>
-          {(column) => (
-            <TableColumn key={column.key}>{column.label}</TableColumn>
-          )}
-        </TableHeader>
-        <TableBody
-          emptyContent={EmptyContent}
-          loadingContent={LoadingContent}
-          loadingState={isLoading ? 'loading' : 'idle'}
-        >
-          {entries.map(([userId, permissions]) => (
-            <TableRow key={userId}>
-              <TableCell>
-                <span className="font-mono text-sm">{userId}</span>
-              </TableCell>
-              <TableCell>
-                <div className="flex gap-1 flex-wrap">
-                  {formatPermissions(permissions).map((perm) => (
-                    <Chip key={perm} size="sm" variant="flat" color="secondary">
-                      {perm}
-                    </Chip>
-                  ))}
-                </div>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+      {hasError ? (
+        <ResourceError
+          title="Accounts User Shares With"
+          message={trustedAccountsState.error.message}
+        />
+      ) : (
+        <>
+          <p className="text-sm text-default-500 mb-4">
+            These accounts can view this user&apos;s data.
+          </p>
+          <Table
+            aria-label="Accounts user shares with"
+            shadow="none"
+            removeWrapper
+            selectionMode="single"
+            onSelectionChange={(keys: 'all' | Set<React.Key>) => {
+              const key = keys instanceof Set ? Array.from(keys)[0] : keys;
+              if (key && key !== 'all') navigate(`/users/${key}`);
+            }}
+            classNames={collapsibleTableClasses}
+          >
+            <TableHeader columns={columns}>
+              {(column) => (
+                <TableColumn key={column.key}>{column.label}</TableColumn>
+              )}
+            </TableHeader>
+            <TableBody
+              emptyContent={EmptyContent}
+              loadingContent={LoadingContent}
+              loadingState={isLoading ? 'loading' : 'idle'}
+            >
+              {entries.map(([userId, permissions]) => (
+                <TableRow key={userId}>
+                  <TableCell>
+                    <span className="font-mono text-sm">{userId}</span>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex gap-1 flex-wrap">
+                      {formatPermissions(permissions).map((perm) => (
+                        <Chip
+                          key={perm}
+                          size="sm"
+                          variant="flat"
+                          color="secondary"
+                        >
+                          {perm}
+                        </Chip>
+                      ))}
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </>
+      )}
     </CollapsibleTableWrapper>
   );
 }
@@ -206,10 +246,12 @@ export function TrustedAccountsTable({
 // Sub-component for Sent Invites
 export function SentInvitesTable({
   invites,
+  sentInvitesState,
   isLoading,
   isFirstInGroup,
 }: {
   invites: ShareInvite[];
+  sentInvitesState?: ResourceState<ShareInvite[]>;
   isLoading?: boolean;
   /** Mark this as the first table in a CollapsibleGroup to auto-expand it */
   isFirstInGroup?: boolean;
@@ -234,6 +276,9 @@ export function SentInvitesTable({
 
   const LoadingContent = <TableLoadingState />;
 
+  // Check if there's an error state to display
+  const hasError = sentInvitesState?.status === 'error';
+
   return (
     <CollapsibleTableWrapper
       icon={<Send className="h-5 w-5" />}
@@ -241,47 +286,56 @@ export function SentInvitesTable({
       totalItems={totalItems}
       isFirstInGroup={isFirstInGroup}
     >
-      <p className="text-sm text-default-500 mb-4">
-        Pending invitations sent by this user to share their data.
-      </p>
-      <Table
-        aria-label="Sent invites"
-        shadow="none"
-        removeWrapper
-        classNames={collapsibleTableClasses}
-      >
-        <TableHeader columns={columns}>
-          {(column) => (
-            <TableColumn key={column.key}>{column.label}</TableColumn>
-          )}
-        </TableHeader>
-        <TableBody
-          emptyContent={EmptyContent}
-          loadingContent={LoadingContent}
-          loadingState={isLoading ? 'loading' : 'idle'}
-        >
-          {invites.map((invite) => (
-            <TableRow key={invite.key}>
-              <TableCell>
-                <span className="text-sm">{invite.email}</span>
-              </TableCell>
-              <TableCell>
-                <Chip size="sm" variant="flat">
-                  {formatType(invite.type)}
-                </Chip>
-              </TableCell>
-              <TableCell>
-                <StatusChip status={invite.status} type="invite" />
-              </TableCell>
-              <TableCell>
-                <span className="text-sm">
-                  {formatShortDate(invite.created, locale)}
-                </span>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+      {hasError ? (
+        <ResourceError
+          title="Sent Invites"
+          message={sentInvitesState.error.message}
+        />
+      ) : (
+        <>
+          <p className="text-sm text-default-500 mb-4">
+            Pending invitations sent by this user to share their data.
+          </p>
+          <Table
+            aria-label="Sent invites"
+            shadow="none"
+            removeWrapper
+            classNames={collapsibleTableClasses}
+          >
+            <TableHeader columns={columns}>
+              {(column) => (
+                <TableColumn key={column.key}>{column.label}</TableColumn>
+              )}
+            </TableHeader>
+            <TableBody
+              emptyContent={EmptyContent}
+              loadingContent={LoadingContent}
+              loadingState={isLoading ? 'loading' : 'idle'}
+            >
+              {invites.map((invite) => (
+                <TableRow key={invite.key}>
+                  <TableCell>
+                    <span className="text-sm">{invite.email}</span>
+                  </TableCell>
+                  <TableCell>
+                    <Chip size="sm" variant="flat">
+                      {formatType(invite.type)}
+                    </Chip>
+                  </TableCell>
+                  <TableCell>
+                    <StatusChip status={invite.status} type="invite" />
+                  </TableCell>
+                  <TableCell>
+                    <span className="text-sm">
+                      {formatShortDate(invite.created, locale)}
+                    </span>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </>
+      )}
     </CollapsibleTableWrapper>
   );
 }
@@ -289,10 +343,12 @@ export function SentInvitesTable({
 // Sub-component for Received Invites
 export function ReceivedInvitesTable({
   invites,
+  receivedInvitesState,
   isLoading,
   isFirstInGroup,
 }: {
   invites: ShareInvite[];
+  receivedInvitesState?: ResourceState<ShareInvite[]>;
   isLoading?: boolean;
   /** Mark this as the first table in a CollapsibleGroup to auto-expand it */
   isFirstInGroup?: boolean;
@@ -318,6 +374,9 @@ export function ReceivedInvitesTable({
 
   const LoadingContent = <TableLoadingState />;
 
+  // Check if there's an error state to display
+  const hasError = receivedInvitesState?.status === 'error';
+
   return (
     <CollapsibleTableWrapper
       icon={<Inbox className="h-5 w-5" />}
@@ -325,62 +384,71 @@ export function ReceivedInvitesTable({
       totalItems={totalItems}
       isFirstInGroup={isFirstInGroup}
     >
-      <p className="text-sm text-default-500 mb-4">
-        Pending invitations received by this user from others to view their
-        data.
-      </p>
-      <Table
-        aria-label="Received invites"
-        shadow="none"
-        removeWrapper
-        selectionMode="single"
-        onSelectionChange={(keys: 'all' | Set<React.Key>) => {
-          const key = keys instanceof Set ? Array.from(keys)[0] : keys;
-          // Find the invite by key to get the creatorId
-          const invite = invites.find((i) => i.key === key);
-          if (invite?.creatorId) navigate(`/users/${invite.creatorId}`);
-        }}
-        classNames={collapsibleTableClasses}
-      >
-        <TableHeader columns={columns}>
-          {(column) => (
-            <TableColumn key={column.key}>{column.label}</TableColumn>
-          )}
-        </TableHeader>
-        <TableBody
-          emptyContent={EmptyContent}
-          loadingContent={LoadingContent}
-          loadingState={isLoading ? 'loading' : 'idle'}
-        >
-          {invites.map((invite) => (
-            <TableRow key={invite.key}>
-              <TableCell>
-                <div className="flex flex-col">
-                  <span className="text-sm">
-                    {invite.creator?.profile?.fullName || 'Unknown'}
-                  </span>
-                  <span className="text-xs text-default-400 font-mono">
-                    {invite.creatorId}
-                  </span>
-                </div>
-              </TableCell>
-              <TableCell>
-                <Chip size="sm" variant="flat">
-                  {formatType(invite.type)}
-                </Chip>
-              </TableCell>
-              <TableCell>
-                <StatusChip status={invite.status} type="invite" />
-              </TableCell>
-              <TableCell>
-                <span className="text-sm">
-                  {formatShortDate(invite.created, locale)}
-                </span>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+      {hasError ? (
+        <ResourceError
+          title="Received Invites"
+          message={receivedInvitesState.error.message}
+        />
+      ) : (
+        <>
+          <p className="text-sm text-default-500 mb-4">
+            Pending invitations received by this user from others to view their
+            data.
+          </p>
+          <Table
+            aria-label="Received invites"
+            shadow="none"
+            removeWrapper
+            selectionMode="single"
+            onSelectionChange={(keys: 'all' | Set<React.Key>) => {
+              const key = keys instanceof Set ? Array.from(keys)[0] : keys;
+              // Find the invite by key to get the creatorId
+              const invite = invites.find((i) => i.key === key);
+              if (invite?.creatorId) navigate(`/users/${invite.creatorId}`);
+            }}
+            classNames={collapsibleTableClasses}
+          >
+            <TableHeader columns={columns}>
+              {(column) => (
+                <TableColumn key={column.key}>{column.label}</TableColumn>
+              )}
+            </TableHeader>
+            <TableBody
+              emptyContent={EmptyContent}
+              loadingContent={LoadingContent}
+              loadingState={isLoading ? 'loading' : 'idle'}
+            >
+              {invites.map((invite) => (
+                <TableRow key={invite.key}>
+                  <TableCell>
+                    <div className="flex flex-col">
+                      <span className="text-sm">
+                        {invite.creator?.profile?.fullName || 'Unknown'}
+                      </span>
+                      <span className="text-xs text-default-400 font-mono">
+                        {invite.creatorId}
+                      </span>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <Chip size="sm" variant="flat">
+                      {formatType(invite.type)}
+                    </Chip>
+                  </TableCell>
+                  <TableCell>
+                    <StatusChip status={invite.status} type="invite" />
+                  </TableCell>
+                  <TableCell>
+                    <span className="text-sm">
+                      {formatShortDate(invite.created, locale)}
+                    </span>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </>
+      )}
     </CollapsibleTableWrapper>
   );
 }

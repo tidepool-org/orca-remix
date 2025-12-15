@@ -19,15 +19,18 @@ import CollapsibleTableWrapper from '../CollapsibleTableWrapper';
 import ConfirmationModal from '../ConfirmationModal';
 import { collapsibleTableClasses } from '~/utils/tableStyles';
 import type { DataSource } from './types';
+import type { ResourceState } from '~/api.types';
 import { useToast } from '~/contexts/ToastContext';
 import TableEmptyState from '~/components/ui/TableEmptyState';
 import TableLoadingState from '~/components/ui/TableLoadingState';
 import TableFilterInput from '~/components/ui/TableFilterInput';
 import StatusChip from '~/components/ui/StatusChip';
+import ResourceError from '~/components/ui/ResourceError';
 import { formatShortDate, formatDateWithTime } from '~/utils/dateFormatters';
 
 export type DataSourcesTableProps = {
   dataSources: DataSource[];
+  dataSourcesState?: ResourceState<DataSource[]>;
   totalDataSources: number;
   isLoading?: boolean;
   /** Mark this as the first table in a CollapsibleGroup to auto-expand it */
@@ -46,6 +49,7 @@ type DisconnectModalState = {
 
 export default function DataSourcesTable({
   dataSources = [],
+  dataSourcesState,
   totalDataSources = 0,
   isLoading = false,
   isFirstInGroup = false,
@@ -290,6 +294,9 @@ export default function DataSourcesTable({
 
   const modalContent = getModalContent();
 
+  // Check if there's an error state to display
+  const hasError = dataSourcesState?.status === 'error';
+
   return (
     <>
       <CollapsibleTableWrapper
@@ -298,32 +305,43 @@ export default function DataSourcesTable({
         totalItems={totalDataSources}
         isFirstInGroup={isFirstInGroup}
       >
-        {topContent}
-        <Table
-          aria-label="Data sources table"
-          shadow="none"
-          removeWrapper
-          classNames={collapsibleTableClasses}
-        >
-          <TableHeader columns={columns}>
-            {(column) => (
-              <TableColumn key={column.key}>{column.label}</TableColumn>
-            )}
-          </TableHeader>
-          <TableBody
-            emptyContent={EmptyContent}
-            loadingContent={LoadingContent}
-            loadingState={isLoading ? 'loading' : 'idle'}
-          >
-            {filteredDataSources.map((item) => (
-              <TableRow key={item.dataSourceId || item.providerName}>
-                {(columnKey) => (
-                  <TableCell>{renderCell(item, columnKey as string)}</TableCell>
+        {hasError ? (
+          <ResourceError
+            title="Data Sources"
+            message={dataSourcesState.error.message}
+          />
+        ) : (
+          <>
+            {topContent}
+            <Table
+              aria-label="Data sources table"
+              shadow="none"
+              removeWrapper
+              classNames={collapsibleTableClasses}
+            >
+              <TableHeader columns={columns}>
+                {(column) => (
+                  <TableColumn key={column.key}>{column.label}</TableColumn>
                 )}
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+              </TableHeader>
+              <TableBody
+                emptyContent={EmptyContent}
+                loadingContent={LoadingContent}
+                loadingState={isLoading ? 'loading' : 'idle'}
+              >
+                {filteredDataSources.map((item) => (
+                  <TableRow key={item.dataSourceId || item.providerName}>
+                    {(columnKey) => (
+                      <TableCell>
+                        {renderCell(item, columnKey as string)}
+                      </TableCell>
+                    )}
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </>
+        )}
       </CollapsibleTableWrapper>
 
       <ConfirmationModal

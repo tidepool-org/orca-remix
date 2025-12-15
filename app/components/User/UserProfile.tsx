@@ -25,6 +25,7 @@ import TabTitle from '~/components/ui/TabTitle';
 import UserActions from './UserActions';
 import { CollapsibleGroup } from '~/components/CollapsibleGroup';
 import type { ClinicianClinicMembership, Prescription } from '../Clinic/types';
+import type { ResourceState } from '~/api.types';
 
 import type {
   User,
@@ -56,6 +57,16 @@ export type UserProfileProps = {
   prescriptions?: Prescription[];
   totalPrescriptions?: number;
   prescriptionsLoading?: boolean;
+  // ResourceState props for error display
+  clinicsState?: ResourceState<ClinicianClinicMembership[]>;
+  dataSetsState?: ResourceState<DataSet[]>;
+  dataSourcesState?: ResourceState<DataSource[]>;
+  pumpSettingsState?: ResourceState<PumpSettings[]>;
+  prescriptionsState?: ResourceState<Prescription[]>;
+  trustingAccountsState?: ResourceState<AccessPermissionsMap>;
+  trustedAccountsState?: ResourceState<AccessPermissionsMap>;
+  sentInvitesState?: ResourceState<ShareInvite[]>;
+  receivedInvitesState?: ResourceState<ShareInvite[]>;
 };
 
 export default function UserProfile({
@@ -76,6 +87,16 @@ export default function UserProfile({
   prescriptions = [],
   totalPrescriptions = 0,
   prescriptionsLoading = false,
+  // ResourceState props for error display
+  clinicsState,
+  dataSetsState,
+  dataSourcesState,
+  pumpSettingsState,
+  prescriptionsState,
+  trustingAccountsState,
+  trustedAccountsState,
+  sentInvitesState,
+  receivedInvitesState,
 }: UserProfileProps) {
   const { emailVerified, userid: userId, username, termsAccepted } = user;
   const { fullName, clinic } = profile;
@@ -157,6 +178,7 @@ export default function UserProfile({
                 <CollapsibleGroup>
                   <ClinicsTable
                     clinics={clinics}
+                    clinicsState={clinicsState}
                     totalClinics={totalClinics}
                     totalPages={1}
                     currentPage={1}
@@ -199,6 +221,7 @@ export default function UserProfile({
               <CollapsibleGroup>
                 <ClinicsTable
                   clinics={clinics}
+                  clinicsState={clinicsState}
                   totalClinics={totalClinics}
                   totalPages={1}
                   currentPage={1}
@@ -223,15 +246,23 @@ export default function UserProfile({
               <CollapsibleGroup>
                 <TrustedAccountsTable
                   accounts={trustedAccounts}
+                  trustedAccountsState={trustedAccountsState}
                   currentUserId={userId}
                   isFirstInGroup
                 />
                 <TrustingAccountsTable
                   accounts={trustingAccounts}
+                  trustingAccountsState={trustingAccountsState}
                   currentUserId={userId}
                 />
-                <SentInvitesTable invites={sentInvites} />
-                <ReceivedInvitesTable invites={receivedInvites} />
+                <SentInvitesTable
+                  invites={sentInvites}
+                  sentInvitesState={sentInvitesState}
+                />
+                <ReceivedInvitesTable
+                  invites={receivedInvites}
+                  receivedInvitesState={receivedInvitesState}
+                />
               </CollapsibleGroup>
             </div>
           </Tab>
@@ -247,11 +278,13 @@ export default function UserProfile({
               <CollapsibleGroup>
                 <DataSetsTable
                   dataSets={dataSets}
+                  dataSetsState={dataSetsState}
                   totalDataSets={totalDataSets}
                   isFirstInGroup
                 />
                 <DataSourcesTable
                   dataSources={dataSources}
+                  dataSourcesState={dataSourcesState}
                   totalDataSources={totalDataSources}
                 />
                 <DataExportSection userId={userId} />
@@ -273,6 +306,7 @@ export default function UserProfile({
             <div className="pt-6">
               <PumpSettingsSection
                 pumpSettings={pumpSettings}
+                pumpSettingsState={pumpSettingsState}
                 isLoading={isPumpSettingsLoading}
               />
             </div>
@@ -293,6 +327,7 @@ export default function UserProfile({
               <CollapsibleGroup>
                 <PrescriptionsTable
                   prescriptions={prescriptions}
+                  prescriptionsState={prescriptionsState}
                   totalPrescriptions={totalPrescriptions}
                   isLoading={prescriptionsLoading}
                   isFirstInGroup

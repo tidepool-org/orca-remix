@@ -4,6 +4,7 @@ import { Database, Smartphone, FileText, ExternalLink } from 'lucide-react';
 
 import type { Patient, Prescription } from './types';
 import type { DataSet, DataSource, PumpSettings } from '../User/types';
+import type { ResourceState } from '~/api.types';
 import useLocale from '~/hooks/useLocale';
 import useClinicResolvers from '~/hooks/useClinicResolvers';
 import PrescriptionsTable from './PrescriptionsTable';
@@ -41,6 +42,11 @@ export type PatientProfileProps = {
   // Device tab props
   pumpSettings?: PumpSettings[];
   isPumpSettingsLoading?: boolean;
+  // ResourceState props for error display
+  prescriptionsState?: ResourceState<Prescription[]>;
+  dataSetsState?: ResourceState<DataSet[]>;
+  dataSourcesState?: ResourceState<DataSource[]>;
+  pumpSettingsState?: ResourceState<PumpSettings[]>;
 };
 
 export default function PatientProfile({
@@ -56,6 +62,11 @@ export default function PatientProfile({
   totalDataSources = 0,
   pumpSettings = [],
   isPumpSettingsLoading = false,
+  // ResourceState props
+  prescriptionsState,
+  dataSetsState,
+  dataSourcesState,
+  pumpSettingsState,
 }: PatientProfileProps) {
   const {
     id,
@@ -196,11 +207,13 @@ export default function PatientProfile({
                 <DataSetsTable
                   dataSets={dataSets}
                   totalDataSets={totalDataSets}
+                  dataSetsState={dataSetsState}
                   isFirstInGroup
                 />
                 <DataSourcesTable
                   dataSources={dataSources}
                   totalDataSources={totalDataSources}
+                  dataSourcesState={dataSourcesState}
                 />
                 <DataExportSection userId={id} />
               </CollapsibleGroup>
@@ -221,6 +234,7 @@ export default function PatientProfile({
             <div className="pt-6">
               <PumpSettingsSection
                 pumpSettings={pumpSettings}
+                pumpSettingsState={pumpSettingsState}
                 isLoading={isPumpSettingsLoading}
               />
             </div>
@@ -242,6 +256,7 @@ export default function PatientProfile({
                 <PrescriptionsTable
                   prescriptions={prescriptions}
                   totalPrescriptions={totalPrescriptions}
+                  prescriptionsState={prescriptionsState}
                   isLoading={prescriptionsLoading}
                   clinicId={clinicId}
                   isFirstInGroup

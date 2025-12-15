@@ -22,7 +22,13 @@ import type {
   ClinicianClinicMembership,
   Prescription,
 } from '~/components/Clinic/types';
-import { apiRequest, apiRequests, apiRoutes } from '~/api.server';
+import type { ResourceState } from '~/api.types';
+import {
+  apiRequest,
+  apiRequests,
+  apiRoutes,
+  apiRequestSafe,
+} from '~/api.server';
 import { usersSession } from '~/sessions.server';
 import { useLoaderData } from 'react-router';
 import isArray from 'lodash/isArray';
@@ -56,163 +62,209 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   const user: User = (await results?.[0]) as User;
   const profile: Profile = (await results?.[1]) as Profile;
 
-  // Fetch clinics for both clinician and patient users
-  let clinics: ClinicianClinicMembership[] = [];
-  let totalClinics = 0;
+  // Initialize ResourceState containers for non-critical data
+  type ClinicsResponse =
+    | ClinicianClinicMembership[]
+    | { data: ClinicianClinicMembership[]; meta?: { count: number } };
+
+  let clinicsState: ResourceState<ClinicianClinicMembership[]> = {
+    status: 'success',
+    data: [],
+  };
+  let dataSetsState: ResourceState<DataSet[]> = { status: 'success', data: [] };
+  let dataSourcesState: ResourceState<DataSource[]> = {
+    status: 'success',
+    data: [],
+  };
+  let pumpSettingsState: ResourceState<PumpSettings[]> = {
+    status: 'success',
+    data: [],
+  };
+  let prescriptionsState: ResourceState<Prescription[]> = {
+    status: 'success',
+    data: [],
+  };
+  let trustingAccountsState: ResourceState<AccessPermissionsMap> = {
+    status: 'success',
+    data: {},
+  };
+  let trustedAccountsState: ResourceState<AccessPermissionsMap> = {
+    status: 'success',
+    data: {},
+  };
+  let sentInvitesState: ResourceState<ShareInvite[]> = {
+    status: 'success',
+    data: [],
+  };
+  let receivedInvitesState: ResourceState<ShareInvite[]> = {
+    status: 'success',
+    data: [],
+  };
 
   if (user?.userid) {
-    try {
-      const clinicsResponse = (await apiRequest(
-        profile?.clinic
-          ? apiRoutes.clinic.getClinicsForClinician(user.userid, {
-              limit: 1000,
-              offset: 0,
-            })
-          : apiRoutes.clinic.getClinicsForPatient(user.userid, {
-              limit: 1000,
-              offset: 0,
-            }),
-      )) as
-        | ClinicianClinicMembership[]
-        | { data: ClinicianClinicMembership[]; meta?: { count: number } };
+    // Fetch clinics for both clinician and patient users
+    const clinicsRawState = await apiRequestSafe<ClinicsResponse>(
+      profile?.clinic
+        ? apiRoutes.clinic.getClinicsForClinician(user.userid, {
+            limit: 1000,
+            offset: 0,
+          })
+        : apiRoutes.clinic.getClinicsForPatient(user.userid, {
+            limit: 1000,
+            offset: 0,
+          }),
+    );
 
-      // Handle both array response and object with data property
-      clinics = Array.isArray(clinicsResponse)
-        ? clinicsResponse
-        : clinicsResponse?.data || [];
-      totalClinics = Array.isArray(clinicsResponse)
-        ? clinicsResponse.length
-        : clinicsResponse?.meta?.count || clinics.length;
-    } catch (error) {
-      console.error('Error fetching clinics for user:', error);
-      // Continue without clinics data
+    // Normalize the response to always be an array
+    if (clinicsRawState.status === 'success') {
+      const response = clinicsRawState.data;
+      clinicsState = {
+        status: 'success',
+        data: Array.isArray(response) ? response : response?.data || [],
+      };
+    } else {
+      clinicsState = clinicsRawState as ResourceState<
+        ClinicianClinicMembership[]
+      >;
     }
-  }
 
-  // Fetch data sets and data sources for non-clinician users
-  let dataSets: DataSet[] = [];
-  let totalDataSets = 0;
-  let dataSources: DataSource[] = [];
-  let totalDataSources = 0;
-  let pumpSettings: PumpSettings[] = [];
-  let prescriptions: Prescription[] = [];
-
-  if (user?.userid && !profile?.clinic) {
-    try {
-      const dataSetsResponse = await apiRequest<DataSetsResponse>(
+    // Fetch additional data for non-clinician users
+    if (!profile?.clinic) {
+      // Fetch data sets
+      const dataSetsRawState = await apiRequestSafe<DataSetsResponse>(
         apiRoutes.data.getDataSets(user.userid),
       );
+      if (dataSetsRawState.status === 'success') {
+        const response = dataSetsRawState.data;
+        dataSetsState = {
+          status: 'success',
+          data: Array.isArray(response) ? response : response?.data || [],
+        };
+      } else {
+        dataSetsState = dataSetsRawState as ResourceState<DataSet[]>;
+      }
 
-      // Handle both array response and object with data property
-      dataSets = Array.isArray(dataSetsResponse)
-        ? dataSetsResponse
-        : dataSetsResponse?.data || [];
-      totalDataSets = Array.isArray(dataSetsResponse)
-        ? dataSetsResponse.length
-        : dataSetsResponse?.meta?.count || dataSets.length;
-    } catch (error) {
-      console.error('Error fetching data sets for user:', error);
-      // Continue without data sets
-    }
-
-    try {
-      const dataSourcesResponse = await apiRequest<DataSourcesResponse>(
+      // Fetch data sources
+      const dataSourcesRawState = await apiRequestSafe<DataSourcesResponse>(
         apiRoutes.data.getDataSources(user.userid),
       );
+      if (dataSourcesRawState.status === 'success') {
+        const response = dataSourcesRawState.data;
+        dataSourcesState = {
+          status: 'success',
+          data: Array.isArray(response) ? response : response?.data || [],
+        };
+      } else {
+        dataSourcesState = dataSourcesRawState as ResourceState<DataSource[]>;
+      }
 
-      // Handle both array response and object with data property
-      dataSources = Array.isArray(dataSourcesResponse)
-        ? dataSourcesResponse
-        : dataSourcesResponse?.data || [];
-      totalDataSources = Array.isArray(dataSourcesResponse)
-        ? dataSourcesResponse.length
-        : dataSourcesResponse?.meta?.count || dataSources.length;
-    } catch (error) {
-      console.error('Error fetching data sources for user:', error);
-      // Continue without data sources
-    }
-
-    // Fetch pump settings (latest 10)
-    try {
-      const pumpSettingsResponse = await apiRequest<PumpSettings[]>(
+      // Fetch pump settings (latest 10)
+      const pumpSettingsRawState = await apiRequestSafe<PumpSettings[]>(
         apiRoutes.data.getData(user.userid, {
           type: 'pumpSettings',
           latest: true,
         }),
       );
-      pumpSettings = Array.isArray(pumpSettingsResponse)
-        ? pumpSettingsResponse.slice(0, 10)
-        : [];
-    } catch (error) {
-      console.error('Error fetching pump settings for user:', error);
-      // Continue without pump settings
-    }
+      if (pumpSettingsRawState.status === 'success') {
+        pumpSettingsState = {
+          status: 'success',
+          data: Array.isArray(pumpSettingsRawState.data)
+            ? pumpSettingsRawState.data.slice(0, 10)
+            : [],
+        };
+      } else {
+        pumpSettingsState = pumpSettingsRawState;
+      }
 
-    // Fetch prescriptions for this patient
-    try {
-      const prescriptionsResponse = await apiRequest<Prescription[]>(
+      // Fetch prescriptions for this patient
+      const prescriptionsRawState = await apiRequestSafe<Prescription[]>(
         apiRoutes.prescription.getPatientPrescriptions(user.userid),
       );
-      prescriptions = Array.isArray(prescriptionsResponse)
-        ? prescriptionsResponse
-        : [];
-    } catch (error) {
-      console.error('Error fetching prescriptions for user:', error);
-      // Continue without prescriptions
-    }
-  }
+      if (prescriptionsRawState.status === 'success') {
+        prescriptionsState = {
+          status: 'success',
+          data: Array.isArray(prescriptionsRawState.data)
+            ? prescriptionsRawState.data
+            : [],
+        };
+      } else {
+        prescriptionsState = prescriptionsRawState;
+      }
 
-  // Fetch data sharing information for non-clinician users
-  let trustingAccounts: AccessPermissionsMap = {};
-  let trustedAccounts: AccessPermissionsMap = {};
-  let sentInvites: ShareInvite[] = [];
-  let receivedInvites: ShareInvite[] = [];
-
-  if (user?.userid && !profile?.clinic) {
-    // Fetch accounts that share data WITH this user (user can view their data)
-    try {
-      trustingAccounts = await apiRequest<AccessPermissionsMap>(
+      // Fetch data sharing information
+      trustingAccountsState = await apiRequestSafe<AccessPermissionsMap>(
         apiRoutes.sharing.getGroupsForUser(user.userid),
       );
-    } catch (error) {
-      console.error('Error fetching trusting accounts:', error);
-    }
 
-    // Fetch accounts that this user shares data WITH (they can view user's data)
-    try {
-      trustedAccounts = await apiRequest<AccessPermissionsMap>(
+      trustedAccountsState = await apiRequestSafe<AccessPermissionsMap>(
         apiRoutes.sharing.getUsersInGroup(user.userid),
       );
-    } catch (error) {
-      console.error('Error fetching trusted accounts:', error);
-    }
 
-    // Fetch pending invites sent by this user
-    try {
-      const sentResponse = await apiRequest<ShareInvite[]>(
+      // Fetch pending invites - 404 is expected when none exist
+      const sentInvitesRawState = await apiRequestSafe<ShareInvite[]>(
         apiRoutes.invites.getSentInvites(user.userid),
       );
-      sentInvites = Array.isArray(sentResponse) ? sentResponse : [];
-    } catch (error) {
-      // 404 is expected when user has no sent invites - not an error condition
-      if (!(error instanceof APIError && error.status === 404)) {
-        console.error('Error fetching sent invites:', error);
+      // Treat 404 as empty array (expected when no invites)
+      if (
+        sentInvitesRawState.status === 'error' &&
+        sentInvitesRawState.error.code === 404
+      ) {
+        sentInvitesState = { status: 'success', data: [] };
+      } else if (sentInvitesRawState.status === 'success') {
+        sentInvitesState = {
+          status: 'success',
+          data: Array.isArray(sentInvitesRawState.data)
+            ? sentInvitesRawState.data
+            : [],
+        };
+      } else {
+        sentInvitesState = sentInvitesRawState;
       }
-    }
 
-    // Fetch pending invites received by this user
-    try {
-      const receivedResponse = await apiRequest<ShareInvite[]>(
+      const receivedInvitesRawState = await apiRequestSafe<ShareInvite[]>(
         apiRoutes.invites.getReceivedInvites(user.userid),
       );
-      receivedInvites = Array.isArray(receivedResponse) ? receivedResponse : [];
-    } catch (error) {
-      // 404 is expected when user has no received invites - not an error condition
-      if (!(error instanceof APIError && error.status === 404)) {
-        console.error('Error fetching received invites:', error);
+      // Treat 404 as empty array (expected when no invites)
+      if (
+        receivedInvitesRawState.status === 'error' &&
+        receivedInvitesRawState.error.code === 404
+      ) {
+        receivedInvitesState = { status: 'success', data: [] };
+      } else if (receivedInvitesRawState.status === 'success') {
+        receivedInvitesState = {
+          status: 'success',
+          data: Array.isArray(receivedInvitesRawState.data)
+            ? receivedInvitesRawState.data
+            : [],
+        };
+      } else {
+        receivedInvitesState = receivedInvitesRawState;
       }
     }
   }
+
+  // Extract data for backward compatibility
+  const clinics = clinicsState.status === 'success' ? clinicsState.data : [];
+  const totalClinics = clinics.length;
+  const dataSets = dataSetsState.status === 'success' ? dataSetsState.data : [];
+  const totalDataSets = dataSets.length;
+  const dataSources =
+    dataSourcesState.status === 'success' ? dataSourcesState.data : [];
+  const totalDataSources = dataSources.length;
+  const pumpSettings =
+    pumpSettingsState.status === 'success' ? pumpSettingsState.data : [];
+  const prescriptions =
+    prescriptionsState.status === 'success' ? prescriptionsState.data : [];
+  const trustingAccounts =
+    trustingAccountsState.status === 'success'
+      ? trustingAccountsState.data
+      : {};
+  const trustedAccounts =
+    trustedAccountsState.status === 'success' ? trustedAccountsState.data : {};
+  const sentInvites =
+    sentInvitesState.status === 'success' ? sentInvitesState.data : [];
+  const receivedInvites =
+    receivedInvitesState.status === 'success' ? receivedInvitesState.data : [];
 
   if (user?.userid) {
     const recentUser: RecentUser = pick(user, ['userid', 'username']);
@@ -227,6 +279,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
       {
         user,
         profile,
+        // Data with backward compatibility
         clinics,
         totalClinics,
         dataSets,
@@ -239,6 +292,16 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
         receivedInvites,
         pumpSettings,
         prescriptions,
+        // ResourceState for error display
+        clinicsState,
+        dataSetsState,
+        dataSourcesState,
+        pumpSettingsState,
+        prescriptionsState,
+        trustingAccountsState,
+        trustedAccountsState,
+        sentInvitesState,
+        receivedInvitesState,
       },
       {
         headers: {
@@ -264,6 +327,34 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     receivedInvites: [],
     pumpSettings: [],
     prescriptions: [],
+    // Default ResourceState values
+    clinicsState: { status: 'success', data: [] } as ResourceState<
+      ClinicianClinicMembership[]
+    >,
+    dataSetsState: { status: 'success', data: [] } as ResourceState<DataSet[]>,
+    dataSourcesState: { status: 'success', data: [] } as ResourceState<
+      DataSource[]
+    >,
+    pumpSettingsState: { status: 'success', data: [] } as ResourceState<
+      PumpSettings[]
+    >,
+    prescriptionsState: { status: 'success', data: [] } as ResourceState<
+      Prescription[]
+    >,
+    trustingAccountsState: {
+      status: 'success',
+      data: {},
+    } as ResourceState<AccessPermissionsMap>,
+    trustedAccountsState: {
+      status: 'success',
+      data: {},
+    } as ResourceState<AccessPermissionsMap>,
+    sentInvitesState: { status: 'success', data: [] } as ResourceState<
+      ShareInvite[]
+    >,
+    receivedInvitesState: { status: 'success', data: [] } as ResourceState<
+      ShareInvite[]
+    >,
   };
 }
 
@@ -462,6 +553,15 @@ export default function Users() {
     receivedInvites,
     pumpSettings,
     prescriptions,
+    clinicsState,
+    dataSetsState,
+    dataSourcesState,
+    pumpSettingsState,
+    prescriptionsState,
+    trustingAccountsState,
+    trustedAccountsState,
+    sentInvitesState,
+    receivedInvitesState,
   } = useLoaderData<typeof loader>();
 
   return user && profile ? (
@@ -480,6 +580,15 @@ export default function Users() {
       receivedInvites={receivedInvites}
       pumpSettings={pumpSettings}
       prescriptions={prescriptions}
+      clinicsState={clinicsState}
+      dataSetsState={dataSetsState}
+      dataSourcesState={dataSourcesState}
+      pumpSettingsState={pumpSettingsState}
+      prescriptionsState={prescriptionsState}
+      trustingAccountsState={trustingAccountsState}
+      trustedAccountsState={trustedAccountsState}
+      sentInvitesState={sentInvitesState}
+      receivedInvitesState={receivedInvitesState}
     />
   ) : null;
 }

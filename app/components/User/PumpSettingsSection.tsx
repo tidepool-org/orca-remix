@@ -20,6 +20,7 @@ import { msToTime } from '~/utils/timeConversion';
 import { formatBgValue, formatInsulinSensitivity } from '~/utils/bgUnits';
 import useLocale from '~/hooks/useLocale';
 import SectionPanel from '~/components/ui/SectionPanel';
+import ResourceError from '~/components/ui/ResourceError';
 import type {
   PumpSettings,
   BasalScheduleEntry,
@@ -27,14 +28,17 @@ import type {
   CarbRatioEntry,
   InsulinSensitivityEntry,
 } from './types';
+import type { ResourceState } from '~/api.types';
 
 export type PumpSettingsSectionProps = {
   pumpSettings: PumpSettings[];
+  pumpSettingsState?: ResourceState<PumpSettings[]>;
   isLoading?: boolean;
 };
 
 export default function PumpSettingsSection({
   pumpSettings = [],
+  pumpSettingsState,
   isLoading = false,
 }: PumpSettingsSectionProps) {
   const { locale } = useLocale();
@@ -116,6 +120,23 @@ export default function PumpSettingsSection({
         <div className="flex justify-center items-center py-8">
           <Spinner size="lg" label="Loading pump settings..." />
         </div>
+      </SectionPanel>
+    );
+  }
+
+  // Check if there's an error state to display
+  if (pumpSettingsState?.status === 'error') {
+    return (
+      <SectionPanel
+        icon={<Settings className="w-5 h-5" />}
+        title="Pump Settings"
+        subtitle="View device settings and schedules"
+        aria-label="Pump settings section"
+      >
+        <ResourceError
+          title="Pump Settings"
+          message={pumpSettingsState.error.message}
+        />
       </SectionPanel>
     );
   }

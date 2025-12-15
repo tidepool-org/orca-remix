@@ -18,8 +18,10 @@ import type {
   ClinicianClinicMembership,
   PatientClinicMembership,
 } from './types';
+import type { ResourceState } from '~/api.types';
 import TableEmptyState from '~/components/ui/TableEmptyState';
 import TableLoadingState from '~/components/ui/TableLoadingState';
+import ResourceError from '~/components/ui/ResourceError';
 import TablePagination, {
   getFirstItemOnPage,
   getLastItemOnPage,
@@ -29,6 +31,9 @@ import { formatShortDate } from '~/utils/dateFormatters';
 
 export type ClinicsTableProps = {
   clinics: ClinicianClinicMembership[] | PatientClinicMembership[];
+  clinicsState?: ResourceState<
+    ClinicianClinicMembership[] | PatientClinicMembership[]
+  >;
   totalClinics: number;
   isLoading?: boolean;
   totalPages?: number;
@@ -48,6 +53,7 @@ type Column = {
 
 export default function ClinicsTable({
   clinics = [],
+  clinicsState,
   totalClinics = 0,
   isLoading = false,
   totalPages = 1,
@@ -207,6 +213,9 @@ export default function ClinicsTable({
 
   const LoadingContent = <TableLoadingState label="Loading clinics..." />;
 
+  // Check if there's an error state to display
+  const hasError = clinicsState?.status === 'error';
+
   return (
     <CollapsibleTableWrapper
       icon={<Building2 className="h-5 w-5" />}
@@ -218,47 +227,56 @@ export default function ClinicsTable({
         lastItem: lastClinicOnPage,
       }}
     >
-      {topContent}
-      <Table
-        aria-label="Clinics table"
-        selectionMode="single"
-        onSelectionChange={(keys: 'all' | Set<React.Key>) => {
-          const key = keys instanceof Set ? Array.from(keys)[0] : keys;
-          if (key && key !== 'all') navigate(`/clinics/${key}`);
-        }}
-        shadow="none"
-        removeWrapper
-        classNames={collapsibleTableClasses}
-      >
-        <TableHeader columns={columns}>
-          {(column) => (
-            <TableColumn key={column.key}>{column.label}</TableColumn>
-          )}
-        </TableHeader>
-        <TableBody
-          emptyContent={EmptyContent}
-          loadingContent={LoadingContent}
-          loadingState={isLoading ? 'loading' : 'idle'}
-        >
-          {filteredClinics.map((item) => (
-            <TableRow key={item.clinic?.id || Math.random()}>
-              {(columnKey) => (
-                <TableCell>
-                  {renderCell(item, columnKey as keyof Clinic | 'permissions')}
-                </TableCell>
+      {hasError ? (
+        <ResourceError title="Clinics" message={clinicsState.error.message} />
+      ) : (
+        <>
+          {topContent}
+          <Table
+            aria-label="Clinics table"
+            selectionMode="single"
+            onSelectionChange={(keys: 'all' | Set<React.Key>) => {
+              const key = keys instanceof Set ? Array.from(keys)[0] : keys;
+              if (key && key !== 'all') navigate(`/clinics/${key}`);
+            }}
+            shadow="none"
+            removeWrapper
+            classNames={collapsibleTableClasses}
+          >
+            <TableHeader columns={columns}>
+              {(column) => (
+                <TableColumn key={column.key}>{column.label}</TableColumn>
               )}
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+            </TableHeader>
+            <TableBody
+              emptyContent={EmptyContent}
+              loadingContent={LoadingContent}
+              loadingState={isLoading ? 'loading' : 'idle'}
+            >
+              {filteredClinics.map((item) => (
+                <TableRow key={item.clinic?.id || Math.random()}>
+                  {(columnKey) => (
+                    <TableCell>
+                      {renderCell(
+                        item,
+                        columnKey as keyof Clinic | 'permissions',
+                      )}
+                    </TableCell>
+                  )}
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
 
-      <TablePagination
-        currentPage={currentPage}
-        totalPages={totalPages}
-        totalItems={totalClinics}
-        pageSize={effectivePageSize}
-        onPageChange={onPageChange}
-      />
+          <TablePagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={totalClinics}
+            pageSize={effectivePageSize}
+            onPageChange={onPageChange}
+          />
+        </>
+      )}
     </CollapsibleTableWrapper>
   );
 }
