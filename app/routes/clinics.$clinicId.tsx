@@ -91,10 +91,21 @@ export async function action({ request, params }: ActionFunctionArgs) {
       // Validate input
       const validated = UpdateTimezoneSchema.parse({ timezone });
 
+      // First fetch the current clinic data to get required fields
+      const clinic = (await apiRequest(apiRoutes.clinic.get(clinicId))) as {
+        name: string;
+        preferredBgUnits: string;
+      };
+
       // Make API request to update clinic with new timezone
+      // Include required fields (name, preferredBgUnits) from current clinic data
       await apiRequest({
         ...apiRoutes.clinic.update(clinicId),
-        body: { timezone: validated.timezone },
+        body: {
+          name: clinic.name,
+          preferredBgUnits: clinic.preferredBgUnits,
+          timezone: validated.timezone,
+        },
       });
 
       return Response.json({

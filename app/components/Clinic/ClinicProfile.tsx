@@ -41,25 +41,7 @@ import DangerZoneSection, {
 } from '~/components/ui/DangerZoneSection';
 import SectionPanel from '~/components/ui/SectionPanel';
 import { CollapsibleGroup } from '~/components/CollapsibleGroup';
-
-// Common timezones for selection
-const timezoneOptions = [
-  { key: 'America/New_York', label: 'Eastern Time (US & Canada)' },
-  { key: 'America/Chicago', label: 'Central Time (US & Canada)' },
-  { key: 'America/Denver', label: 'Mountain Time (US & Canada)' },
-  { key: 'America/Los_Angeles', label: 'Pacific Time (US & Canada)' },
-  { key: 'America/Anchorage', label: 'Alaska' },
-  { key: 'Pacific/Honolulu', label: 'Hawaii' },
-  { key: 'America/Phoenix', label: 'Arizona' },
-  { key: 'America/Puerto_Rico', label: 'Atlantic Time (Puerto Rico)' },
-  { key: 'Europe/London', label: 'London' },
-  { key: 'Europe/Paris', label: 'Paris' },
-  { key: 'Europe/Berlin', label: 'Berlin' },
-  { key: 'Asia/Tokyo', label: 'Tokyo' },
-  { key: 'Asia/Shanghai', label: 'Shanghai' },
-  { key: 'Australia/Sydney', label: 'Sydney' },
-  { key: 'UTC', label: 'UTC' },
-];
+import { timezoneNames } from '~/utils/timezoneNames';
 
 const tierOptions = [
   { key: 'tier0100', label: 'Tier 0100' },
@@ -517,10 +499,8 @@ export default function ClinicProfile({
                         isDisabled={isSubmitting}
                         placeholder="Select timezone..."
                       >
-                        {timezoneOptions.map((option) => (
-                          <SelectItem key={option.key}>
-                            {option.label}
-                          </SelectItem>
+                        {timezoneNames.map((tz) => (
+                          <SelectItem key={tz}>{tz}</SelectItem>
                         ))}
                       </Select>
                       <Button
@@ -536,12 +516,7 @@ export default function ClinicProfile({
                     </div>
                   ) : (
                     <div className="flex items-center gap-2">
-                      <span className="text-sm">
-                        {timezone ||
-                          timezoneOptions.find((t) => t.key === timezone)
-                            ?.label ||
-                          'Not set'}
-                      </span>
+                      <span className="text-sm">{timezone || 'Not set'}</span>
                       <Button
                         isIconOnly
                         size="sm"
