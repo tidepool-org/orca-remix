@@ -9,6 +9,7 @@ import TabTitle from '~/components/ui/TabTitle';
 import StatusChip from '~/components/ui/StatusChip';
 import SettingsToggleRow from '~/components/ui/SettingsToggleRow';
 import SectionPanel from '~/components/ui/SectionPanel';
+import ViewUserAccountLink from '~/components/ui/ViewUserAccountLink';
 import { CollapsibleGroup } from '~/components/CollapsibleGroup';
 import type { Clinician, ClinicianClinicMembership } from './types';
 import { formatShortDate } from '~/utils/dateFormatters';
@@ -138,6 +139,7 @@ export default function ClinicianProfile({
       <ProfileHeader
         title={clinician.name}
         identifiers={clinicianIdentifiers}
+        actionLink={<ViewUserAccountLink userId={clinician.id} />}
         detailFields={clinicianDetailFields}
       />
 

@@ -1,6 +1,6 @@
-import { useRouteLoaderData, Link } from 'react-router';
+import { useRouteLoaderData } from 'react-router';
 import { Tab } from '@heroui/react';
-import { Database, Smartphone, FileText, ExternalLink } from 'lucide-react';
+import { Database, Smartphone, FileText } from 'lucide-react';
 
 import type { Patient, Prescription } from './types';
 import type { DataSet, DataSource, PumpSettings } from '../User/types';
@@ -15,6 +15,7 @@ import TabTitle from '~/components/ui/TabTitle';
 import DataSourcesTable from '../User/DataSourcesTable';
 import DataExportSection from '../User/DataExportSection';
 import PumpSettingsSection from '../User/PumpSettingsSection';
+import ViewUserAccountLink from '~/components/ui/ViewUserAccountLink';
 import { CollapsibleGroup } from '~/components/CollapsibleGroup';
 import { formatShortDate } from '~/utils/dateFormatters';
 
@@ -173,23 +174,12 @@ export default function PatientProfile({
       : []),
   ];
 
-  const viewUserAccountLink = (
-    <Link
-      to={`/users/${id}`}
-      className="flex items-center gap-1 px-2 py-1 rounded-md text-default-500 hover:text-foreground hover:bg-default/40 transition-all"
-      aria-label="View user account"
-    >
-      <span className="text-default-400">View User Account</span>
-      <ExternalLink className="w-4 h-4" aria-hidden="true" />
-    </Link>
-  );
-
   return (
     <div className="flex flex-col gap-6 w-full">
       <ProfileHeader
         title={fullName}
         identifiers={patientIdentifiers}
-        actionLink={viewUserAccountLink}
+        actionLink={<ViewUserAccountLink userId={id} />}
         detailFields={patientDetailFields}
       />
 
