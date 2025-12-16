@@ -25,6 +25,7 @@ export default function PrescriptionProfile({
   const {
     id,
     state,
+    accessCode,
     createdTime,
     createdUserId,
     modifiedTime,
@@ -44,6 +45,9 @@ export default function PrescriptionProfile({
   // ProfileHeader configuration
   const prescriptionIdentifiers = [
     { label: 'ID:', value: id, monospace: true },
+    ...(accessCode
+      ? [{ label: 'Access Code:', value: accessCode, monospace: true }]
+      : []),
     ...(patientUserId
       ? [{ label: 'Patient:', value: patientUserId, monospace: true }]
       : []),

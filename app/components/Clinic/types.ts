@@ -262,6 +262,7 @@ export type Prescription = {
   clinicId: string;
   patientUserId?: string;
   prescriberUserId?: string;
+  accessCode?: string;
   state: PrescriptionState;
   createdTime: string;
   createdUserId: string;
