@@ -7,6 +7,7 @@ import StatusChip from '~/components/ui/StatusChip';
 import CopyableIdentifier from '~/components/ui/CopyableIdentifier';
 import DetailGrid from '~/components/ui/DetailGrid';
 import SectionPanel from '~/components/ui/SectionPanel';
+import ViewUserAccountLink from '~/components/ui/ViewUserAccountLink';
 import { formatShortDate } from '~/utils/dateFormatters';
 
 export type PrescriptionProfileProps = {
@@ -25,6 +26,7 @@ export default function PrescriptionProfile({
     id,
     state,
     createdTime,
+    createdUserId,
     modifiedTime,
     expirationTime,
     patientUserId,
@@ -71,6 +73,7 @@ export default function PrescriptionProfile({
         title={`Prescription for ${patientName}`}
         titleRowExtra={stateChip}
         identifiers={prescriptionIdentifiers}
+        actionLink={<ViewUserAccountLink userId={createdUserId} />}
         detailFields={prescriptionDetailFields}
       />
 
