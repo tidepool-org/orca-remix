@@ -8,7 +8,7 @@ import {
   TableCell,
 } from '@heroui/react';
 import { FileText } from 'lucide-react';
-import { Link } from 'react-router';
+import { useNavigate, useParams, useSearchParams } from 'react-router';
 import useLocale from '~/hooks/useLocale';
 import CollapsibleTableWrapper from '../CollapsibleTableWrapper';
 import { collapsibleTableClasses } from '~/utils/tableStyles';
@@ -27,7 +27,6 @@ export type PrescriptionsTableProps = {
   totalPrescriptions: number;
   isLoading?: boolean;
   clinicId?: string;
-  showClinicLink?: boolean;
   /** Mark this as the first table in a CollapsibleGroup to auto-expand it */
   isFirstInGroup?: boolean;
 };
@@ -43,10 +42,12 @@ export default function PrescriptionsTable({
   totalPrescriptions = 0,
   isLoading = false,
   clinicId,
-  showClinicLink = true,
   isFirstInGroup = false,
 }: PrescriptionsTableProps) {
   const { locale } = useLocale();
+  const navigate = useNavigate();
+  const params = useParams();
+  const [searchParams] = useSearchParams();
   const [filterValue, setFilterValue] = useState('');
 
   const filteredPrescriptions = useMemo(() => {
@@ -108,19 +109,12 @@ export default function PrescriptionsTable({
       switch (columnKey) {
         case 'patientName': {
           const patientName = getPatientName(item);
-          const linkClinicId = clinicId || item.clinicId;
-
-          if (showClinicLink && linkClinicId) {
-            return (
-              <Link
-                to={`/clinics/${linkClinicId}/prescriptions/${item.id}`}
-                className="text-primary hover:underline font-medium"
-              >
-                {patientName}
-              </Link>
-            );
-          }
-          return <span className="font-medium">{patientName}</span>;
+          return (
+            <div className="flex flex-col">
+              <p className="text-bold text-sm">{patientName}</p>
+              <p className="text-tiny text-default-400">ID: {item.id}</p>
+            </div>
+          );
         }
         case 'state':
           return <StatusChip status={item.state} type="prescription" />;
@@ -148,7 +142,7 @@ export default function PrescriptionsTable({
           );
       }
     },
-    [clinicId, locale, showClinicLink],
+    [locale],
   );
 
   const EmptyContent = (
@@ -179,6 +173,18 @@ export default function PrescriptionsTable({
             aria-label="Prescriptions table"
             shadow="none"
             removeWrapper
+            selectionMode="single"
+            onSelectionChange={(keys: 'all' | Set<React.Key>) => {
+              const key = keys instanceof Set ? Array.from(keys)[0] : keys;
+              if (key && key !== 'all') {
+                // Preserve all search params for breadcrumb navigation back to clinic
+                const queryString = searchParams.toString();
+                const targetClinicId = clinicId || params.clinicId;
+                navigate(
+                  `/clinics/${targetClinicId}/prescriptions/${key}${queryString ? `?${queryString}` : ''}`,
+                );
+              }
+            }}
             classNames={collapsibleTableClasses}
           >
             <TableHeader columns={columns}>
