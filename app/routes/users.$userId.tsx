@@ -54,13 +54,27 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     ? recentlyViewed.get('users')
     : [];
 
-  const results = await apiRequests([
+  // Fetch user data (required)
+  const user: User = (await apiRequest(
     apiRoutes.user.get(params.userId as string),
-    apiRoutes.user.getMetadata(params.userId as string, 'profile'),
-  ]);
+  )) as User;
 
-  const user: User = (await results?.[0]) as User;
-  const profile: Profile = (await results?.[1]) as Profile;
+  // Fetch profile data (optional - may not exist for all users)
+  const profileState = await apiRequestSafe<Profile>(
+    apiRoutes.user.getMetadata(params.userId as string, 'profile'),
+  );
+
+  // Treat 404 as empty profile (expected when user has no profile metadata)
+  let profile: Profile;
+  if (profileState.status === 'error' && profileState.error.code === 404) {
+    profile = {} as Profile;
+  } else if (profileState.status === 'success') {
+    profile = profileState.data;
+  } else {
+    // For other errors, use empty profile but log the error
+    console.error('[getMetadata] Error fetching profile:', profileState.error);
+    profile = {} as Profile;
+  }
 
   // Initialize ResourceState containers for non-critical data
   type ClinicsResponse =
@@ -180,7 +194,14 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
       const prescriptionsRawState = await apiRequestSafe<Prescription[]>(
         apiRoutes.prescription.getPatientPrescriptions(user.userid),
       );
-      if (prescriptionsRawState.status === 'success') {
+
+      // Treat 404 as empty array (expected when no prescriptions exist)
+      if (
+        prescriptionsRawState.status === 'error' &&
+        prescriptionsRawState.error.code === 404
+      ) {
+        prescriptionsState = { status: 'success', data: [] };
+      } else if (prescriptionsRawState.status === 'success') {
         prescriptionsState = {
           status: 'success',
           data: Array.isArray(prescriptionsRawState.data)
@@ -270,10 +291,11 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     const recentUser: RecentUser = pick(user, ['userid', 'username']);
     if (profile?.fullName) recentUser.fullName = profile?.fullName;
     recentUsers.unshift(recentUser);
-    recentlyViewed.set(
-      'users',
-      uniqBy(recentUsers, 'userid').slice(0, recentUsersMax),
+    const updatedRecentUsers = uniqBy(recentUsers, 'userid').slice(
+      0,
+      recentUsersMax,
     );
+    recentlyViewed.set('users', updatedRecentUsers);
 
     return Response.json(
       {
@@ -564,10 +586,11 @@ export default function Users() {
     receivedInvitesState,
   } = useLoaderData<typeof loader>();
 
-  return user && profile ? (
+  // Render profile if user exists (profile may be empty object for users without profile metadata)
+  return user ? (
     <UserProfile
       user={user}
-      profile={profile}
+      profile={profile || {}}
       clinics={clinics}
       totalClinics={totalClinics}
       dataSets={dataSets}

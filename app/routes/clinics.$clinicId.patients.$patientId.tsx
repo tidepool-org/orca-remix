@@ -141,9 +141,14 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     >;
   }
 
-  // Normalize prescriptions response
+  // Normalize prescriptions response - treat 404 as empty array
   let prescriptionsState: ResourceState<Prescription[]>;
-  if (prescriptionsRawState.status === 'success') {
+  if (
+    prescriptionsRawState.status === 'error' &&
+    prescriptionsRawState.error.code === 404
+  ) {
+    prescriptionsState = { status: 'success', data: [] };
+  } else if (prescriptionsRawState.status === 'success') {
     prescriptionsState = {
       status: 'success',
       data: Array.isArray(prescriptionsRawState.data)
