@@ -564,10 +564,11 @@ export default function Clinics() {
     }
   }, [actionData, showToast]);
 
-  // Check if we're on a nested route (like patient or clinician details)
+  // Check if we're on a nested route (like patient, clinician, or prescription details)
   const isNestedRoute =
     location.pathname.includes('/patients/') ||
-    location.pathname.includes('/clinicians/');
+    location.pathname.includes('/clinicians/') ||
+    location.pathname.includes('/prescriptions/');
 
   const handlePageChange = useCallback(
     (page: number) => {
