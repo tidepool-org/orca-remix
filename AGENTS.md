@@ -57,3 +57,42 @@
   ```
 - **HeroUI Notes**: HeroUI modifies button accessible names when loading (e.g., "Confirm" becomes "Loading Confirm"). Use regex matchers like `/Loading Confirm/i` when testing loading states
 - **Running Tests**: Run `npm run test:run` before committing to ensure all tests pass
+
+### When to Write Tests
+
+**IMPORTANT**: Tests are required for all new components. When creating or modifying components:
+
+1. **New Components**: Every new component in `app/components/` must have a corresponding `*.test.tsx` file
+2. **Modified Components**: When adding significant new functionality to existing components, add tests covering the new behavior
+3. **Reusable UI Components**: Components in `app/components/ui/` are especially important to test as they are used across multiple features
+
+### Test Structure Best Practices
+
+Organize tests using `describe` blocks for logical groupings:
+
+```typescript
+describe('ComponentName', () => {
+  describe('Rendering', () => {
+    // Basic rendering tests
+  });
+
+  describe('User Interactions', () => {
+    // Click handlers, form inputs, etc.
+  });
+
+  describe('Conditional States', () => {
+    // Loading, error, empty states
+  });
+
+  describe('Accessibility', () => {
+    // aria-labels, roles, etc.
+  });
+});
+```
+
+### Common Testing Patterns
+
+- **User Events**: Use `userEvent.setup()` for simulating user interactions
+- **Async Operations**: Use `await` with user events and `waitFor` for async state changes
+- **Finding Elements**: Prefer accessible queries (`getByRole`, `getByLabelText`) over `getByTestId`
+- **Table Testing**: Use `within()` to scope queries to specific table rows

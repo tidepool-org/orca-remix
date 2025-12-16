@@ -24,7 +24,6 @@ export type PatientProfileProps = {
   prescriptions?: Prescription[];
   totalPrescriptions?: number;
   prescriptionsLoading?: boolean;
-  clinicId?: string;
   clinic?: {
     patientTags?: {
       id: string;
@@ -55,7 +54,6 @@ export default function PatientProfile({
   prescriptions = [],
   totalPrescriptions = 0,
   prescriptionsLoading = false,
-  clinicId,
   clinic,
   dataSets = [],
   totalDataSets = 0,
@@ -248,7 +246,7 @@ export default function PatientProfile({
                   totalPrescriptions={totalPrescriptions}
                   prescriptionsState={prescriptionsState}
                   isLoading={prescriptionsLoading}
-                  clinicId={clinicId}
+                  context="user"
                   isFirstInGroup
                 />
               </CollapsibleGroup>

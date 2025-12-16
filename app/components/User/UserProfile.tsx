@@ -330,6 +330,7 @@ export default function UserProfile({
                   prescriptionsState={prescriptionsState}
                   totalPrescriptions={totalPrescriptions}
                   isLoading={prescriptionsLoading}
+                  context="user"
                   isFirstInGroup
                 />
               </CollapsibleGroup>

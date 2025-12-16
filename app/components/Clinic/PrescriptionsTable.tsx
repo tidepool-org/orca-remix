@@ -21,14 +21,24 @@ import StatusChip from '~/components/ui/StatusChip';
 import ResourceError from '~/components/ui/ResourceError';
 import { formatDateTime } from '~/utils/dateFormatters';
 
+/**
+ * Context determines how navigation works when selecting a prescription:
+ * - 'clinic': Uses clinicId prop or route params, preserves search params (default)
+ * - 'user': Uses clinicId from each prescription's data
+ */
+export type PrescriptionsTableContext = 'clinic' | 'user';
+
 export type PrescriptionsTableProps = {
   prescriptions: Prescription[];
   prescriptionsState?: ResourceState<Prescription[]>;
   totalPrescriptions: number;
   isLoading?: boolean;
+  /** Clinic ID for navigation in 'clinic' context. Falls back to route params if not provided. */
   clinicId?: string;
   /** Mark this as the first table in a CollapsibleGroup to auto-expand it */
   isFirstInGroup?: boolean;
+  /** Context determines navigation behavior. Defaults to 'clinic'. */
+  context?: PrescriptionsTableContext;
 };
 
 type Column = {
@@ -43,6 +53,7 @@ export default function PrescriptionsTable({
   isLoading = false,
   clinicId,
   isFirstInGroup = false,
+  context = 'clinic',
 }: PrescriptionsTableProps) {
   const { locale } = useLocale();
   const navigate = useNavigate();
@@ -177,12 +188,25 @@ export default function PrescriptionsTable({
             onSelectionChange={(keys: 'all' | Set<React.Key>) => {
               const key = keys instanceof Set ? Array.from(keys)[0] : keys;
               if (key && key !== 'all') {
-                // Preserve all search params for breadcrumb navigation back to clinic
-                const queryString = searchParams.toString();
-                const targetClinicId = clinicId || params.clinicId;
-                navigate(
-                  `/clinics/${targetClinicId}/prescriptions/${key}${queryString ? `?${queryString}` : ''}`,
-                );
+                let targetClinicId: string | undefined;
+
+                if (context === 'user') {
+                  // In user context, get clinicId from the prescription itself
+                  const prescription = prescriptions.find((p) => p.id === key);
+                  targetClinicId = prescription?.clinicId;
+                } else {
+                  // In clinic context, use prop or route params, preserve search params
+                  targetClinicId = clinicId || params.clinicId;
+                }
+
+                if (targetClinicId) {
+                  // Only preserve search params in clinic context
+                  const queryString =
+                    context === 'clinic' ? searchParams.toString() : '';
+                  navigate(
+                    `/clinics/${targetClinicId}/prescriptions/${key}${queryString ? `?${queryString}` : ''}`,
+                  );
+                }
               }
             }}
             classNames={collapsibleTableClasses}

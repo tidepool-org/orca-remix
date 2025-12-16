@@ -103,9 +103,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
       apiRoutes.clinic.getClinicsForPatient(patientId),
     ),
     apiRequestSafe<Prescription[]>(
-      apiRoutes.prescription.getClinicPrescriptions(clinicId, {
-        patientUserId: patientId,
-      }),
+      apiRoutes.prescription.getPatientPrescriptions(patientId),
     ),
     apiRequestSafe<DataSetsResponse>(apiRoutes.data.getDataSets(patientId)),
     apiRequestSafe<DataSourcesResponse>(
