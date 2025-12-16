@@ -213,10 +213,14 @@ export const UserSearchSchema = z.object({
     .min(1, 'Search term is required')
     .refine(
       (val) => {
-        // Must be valid email OR valid user ID (alphanumeric)
+        // Must be valid email OR valid user ID (UUID format or alphanumeric)
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        const uuidRegex =
+          /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
         const userIdRegex = /^[a-zA-Z0-9]+$/;
-        return emailRegex.test(val) || userIdRegex.test(val);
+        return (
+          emailRegex.test(val) || uuidRegex.test(val) || userIdRegex.test(val)
+        );
       },
       {
         message: 'Must be a valid email address or user ID',
