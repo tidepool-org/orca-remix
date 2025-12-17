@@ -1,4 +1,10 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  useMemo,
+} from 'react';
 import type { RecentPatient, RecentClinician } from './types';
 
 type RecentItemsContextType = {
@@ -67,17 +73,27 @@ export function RecentItemsProvider({
     [],
   );
 
+  const contextValue = useMemo(
+    () => ({
+      recentPatients,
+      recentClinicians,
+      addRecentPatient,
+      addRecentClinician,
+      updateRecentPatients,
+      updateRecentClinicians,
+    }),
+    [
+      recentPatients,
+      recentClinicians,
+      addRecentPatient,
+      addRecentClinician,
+      updateRecentPatients,
+      updateRecentClinicians,
+    ],
+  );
+
   return (
-    <RecentItemsContext.Provider
-      value={{
-        recentPatients,
-        recentClinicians,
-        addRecentPatient,
-        addRecentClinician,
-        updateRecentPatients,
-        updateRecentClinicians,
-      }}
-    >
+    <RecentItemsContext.Provider value={contextValue}>
       {children}
     </RecentItemsContext.Provider>
   );

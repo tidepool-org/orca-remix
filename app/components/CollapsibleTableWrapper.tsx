@@ -76,6 +76,7 @@ export default function CollapsibleTableWrapper({
             className={`w-5 h-5 transition-transform ${
               isExpanded ? 'rotate-180' : ''
             }`}
+            aria-hidden="true"
           />
         </div>
       </button>

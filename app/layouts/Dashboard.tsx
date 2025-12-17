@@ -93,9 +93,11 @@ function Dashboard() {
             {isLoading && (
               <div
                 className="absolute inset-0 bg-background/50 backdrop-blur-sm z-10 flex items-center justify-center"
+                role="status"
+                aria-live="polite"
                 aria-label="Loading content"
               >
-                <Spinner size="lg" />
+                <Spinner size="lg" aria-hidden="true" />
               </div>
             )}
 
@@ -113,7 +115,8 @@ function Dashboard() {
                   }}
                 >
                   <BreadcrumbItem href="/">
-                    <Home className="w-4" />
+                    <Home className="w-4" aria-hidden="true" />
+                    <span className="sr-only">Home</span>
                   </BreadcrumbItem>
 
                   {breadcrumbs.map(({ href, label }) => (

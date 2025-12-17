@@ -471,7 +471,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
         },
         {
           headers: {
-            'Cache-Control': 'public, s-maxage=60',
+            'Cache-Control': 'private, max-age=60',
             'Set-Cookie': await commitSession(recentlyViewed),
           },
         },

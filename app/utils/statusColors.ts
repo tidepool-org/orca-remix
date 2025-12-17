@@ -55,36 +55,42 @@ export const roleColors: Record<string, ChipColor> = {
 /**
  * Get prescription state color
  */
-export function getPrescriptionStateColor(state: string): ChipColor {
-  return prescriptionStateColors[state?.toLowerCase()] ?? 'default';
+export function getPrescriptionStateColor(
+  state: string | undefined | null,
+): ChipColor {
+  return prescriptionStateColors[state?.toLowerCase() ?? ''] ?? 'default';
 }
 
 /**
  * Get invite status color
  */
-export function getInviteStatusColor(status: string): ChipColor {
-  return inviteStatusColors[status?.toLowerCase()] ?? 'default';
+export function getInviteStatusColor(
+  status: string | undefined | null,
+): ChipColor {
+  return inviteStatusColors[status?.toLowerCase() ?? ''] ?? 'default';
 }
 
 /**
  * Get data source state color
  */
-export function getDataSourceStateColor(state: string): ChipColor {
-  return dataSourceStateColors[state?.toLowerCase()] ?? 'default';
+export function getDataSourceStateColor(
+  state: string | undefined | null,
+): ChipColor {
+  return dataSourceStateColors[state?.toLowerCase() ?? ''] ?? 'default';
 }
 
 /**
  * Get role color
  */
-export function getRoleColor(role: string): ChipColor {
-  return roleColors[role?.toLowerCase()] ?? 'default';
+export function getRoleColor(role: string | undefined | null): ChipColor {
+  return roleColors[role?.toLowerCase() ?? ''] ?? 'default';
 }
 
 /**
  * Generic status color getter supporting multiple types
  */
 export function getStatusColor(
-  status: string,
+  status: string | undefined | null,
   type: 'prescription' | 'invite' | 'dataSource' | 'role',
 ): ChipColor {
   switch (type) {
@@ -104,7 +110,7 @@ export function getStatusColor(
 /**
  * Format role label for display
  */
-export function formatRoleLabel(role: string): string {
+export function formatRoleLabel(role: string | undefined | null): string {
   switch (role?.toLowerCase()) {
     case 'clinic_admin':
       return 'Admin';
@@ -113,6 +119,6 @@ export function formatRoleLabel(role: string): string {
     case 'prescriber':
       return 'Prescriber';
     default:
-      return role?.replace('CLINIC_', '').toLowerCase() ?? role;
+      return role?.replace('CLINIC_', '').toLowerCase() ?? '';
   }
 }

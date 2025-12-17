@@ -42,9 +42,21 @@ export function msToMinutes(ms: number): number {
  * Convert time string (HH:MM) to milliseconds from midnight
  * @param time - Time string in HH:MM format
  * @returns Milliseconds from midnight
+ * @throws Error if time format is invalid
  */
 export function timeToMs(time: string): number {
-  const [hours, minutes] = time.split(':').map(Number);
+  const match = time.match(/^(\d{1,2}):(\d{2})$/);
+  if (!match) {
+    throw new Error(`Invalid time format: "${time}". Expected HH:MM`);
+  }
+  const [, hoursStr, minutesStr] = match;
+  const hours = Number(hoursStr);
+  const minutes = Number(minutesStr);
+  if (hours > 23 || minutes > 59) {
+    throw new Error(
+      `Invalid time value: "${time}". Hours must be 0-23, minutes must be 0-59`,
+    );
+  }
   return hours * MS_PER_HOUR + minutes * MS_PER_MINUTE;
 }
 

@@ -1,6 +1,14 @@
 import { intlFormat } from 'date-fns';
 
 /**
+ * Safely parse a date string and return null if invalid
+ */
+function parseDate(dateStr: string): Date | null {
+  const date = new Date(dateStr);
+  return isNaN(date.getTime()) ? null : date;
+}
+
+/**
  * Formats a date string in short format (e.g., "Jan 15, 2024")
  */
 export function formatShortDate(
@@ -8,15 +16,21 @@ export function formatShortDate(
   locale: string,
 ): string | null {
   if (!dateStr) return null;
-  return intlFormat(
-    new Date(dateStr),
-    {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    },
-    { locale },
-  );
+  const date = parseDate(dateStr);
+  if (!date) return null;
+  try {
+    return intlFormat(
+      date,
+      {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+      },
+      { locale },
+    );
+  } catch {
+    return null;
+  }
 }
 
 /**
@@ -27,17 +41,23 @@ export function formatDateWithTime(
   locale: string,
 ): string | null {
   if (!dateStr) return null;
-  return intlFormat(
-    new Date(dateStr),
-    {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: 'numeric',
-      minute: 'numeric',
-    },
-    { locale },
-  );
+  const date = parseDate(dateStr);
+  if (!date) return null;
+  try {
+    return intlFormat(
+      date,
+      {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: 'numeric',
+      },
+      { locale },
+    );
+  } catch {
+    return null;
+  }
 }
 
 /**
@@ -61,13 +81,19 @@ export function formatLongDate(
   locale: string,
 ): string | null {
   if (!dateStr) return null;
-  return intlFormat(
-    new Date(dateStr),
-    {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    },
-    { locale },
-  );
+  const date = parseDate(dateStr);
+  if (!date) return null;
+  try {
+    return intlFormat(
+      date,
+      {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      },
+      { locale },
+    );
+  } catch {
+    return null;
+  }
 }
