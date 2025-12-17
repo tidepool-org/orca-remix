@@ -57,10 +57,6 @@ export default function UserMenu() {
           <p className="font-semibold">{agent?.name}</p>
           <em>{agent?.email}</em>
         </DropdownItem>
-        <DropdownItem key="settings">My Settings</DropdownItem>
-        <DropdownItem key="logout" color="danger">
-          Log Out
-        </DropdownItem>
       </DropdownMenu>
     </Dropdown>
   );
