@@ -420,15 +420,11 @@ export const apiRequest = async <T = unknown>({
 };
 
 export const apiRequests = async (requests: apiRequestArgs[]) => {
-  try {
-    const results = await Promise.all(
-      requests.map((request) => apiRequest(request)),
-    );
+  const results = await Promise.all(
+    requests.map((request) => apiRequest(request)),
+  );
 
-    return results;
-  } catch (err) {
-    console.log(err);
-  }
+  return results;
 };
 
 // Special request function for file exports that returns raw Response

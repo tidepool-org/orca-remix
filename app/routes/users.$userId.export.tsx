@@ -1,15 +1,41 @@
 import { type LoaderFunctionArgs } from 'react-router';
 import { apiRequestFile, apiRoutes } from '~/api.server';
+import { z } from 'zod';
+
+// Schema for validating export query parameters
+const ExportParamsSchema = z.object({
+  format: z.enum(['json', 'xlsx']).default('xlsx'),
+  bgUnits: z.enum(['mmol/L', 'mg/dL']).default('mg/dL'),
+  startDate: z.string().optional(),
+  endDate: z.string().optional(),
+});
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
   const userId = params.userId as string;
   const url = new URL(request.url);
 
-  const format = (url.searchParams.get('format') as 'json' | 'xlsx') || 'xlsx';
-  const bgUnits =
-    (url.searchParams.get('bgUnits') as 'mmol/L' | 'mg/dL') || 'mg/dL';
-  const startDate = url.searchParams.get('startDate') || undefined;
-  const endDate = url.searchParams.get('endDate') || undefined;
+  // Validate query parameters
+  const parseResult = ExportParamsSchema.safeParse({
+    format: url.searchParams.get('format') ?? undefined,
+    bgUnits: url.searchParams.get('bgUnits') ?? undefined,
+    startDate: url.searchParams.get('startDate') ?? undefined,
+    endDate: url.searchParams.get('endDate') ?? undefined,
+  });
+
+  if (!parseResult.success) {
+    return new Response(
+      JSON.stringify({
+        error: 'Invalid export parameters',
+        details: parseResult.error.errors,
+      }),
+      {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      },
+    );
+  }
+
+  const { format, bgUnits, startDate, endDate } = parseResult.data;
 
   try {
     const apiResponse = await apiRequestFile(

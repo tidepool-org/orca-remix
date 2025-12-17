@@ -47,7 +47,7 @@ import {
   PatientCountSettingsSchema,
   UpdateTimezoneSchema,
 } from '~/schemas';
-import { errorResponse } from '~/utils/errors';
+import { errorResponse, APIError } from '~/utils/errors';
 import { useToast } from '~/contexts/ToastContext';
 
 export const meta: MetaFunction = () => {
@@ -478,46 +478,20 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
       );
     }
   } catch (error) {
-    console.error('Error fetching clinic or patients:', error);
+    // Handle specific error cases
+    if (error instanceof APIError) {
+      if (error.status === 404) {
+        throw new Response('Clinic not found', { status: 404 });
+      }
+      // For other API errors, throw with the original status
+      throw new Response(error.message, { status: error.status || 500 });
+    }
+    // Re-throw unknown errors to be handled by error boundary
+    throw error;
   }
 
-  return {
-    clinic: null,
-    patients: [],
-    clinicians: [],
-    clinicianInvites: [],
-    prescriptions: [],
-    prescriptionsState: { status: 'success', data: [] } as ResourceState<
-      Prescription[]
-    >,
-    totalPrescriptions: 0,
-    mrnSettings: null,
-    patientCountSettings: null,
-    recentPatients: [],
-    recentClinicians: [],
-    pagination: {
-      currentPage: 1,
-      totalPages: 1,
-      totalPatients: 0,
-      pageSize: defaultPageSize,
-    },
-    cliniciansPagination: {
-      currentPage: 1,
-      totalPages: 1,
-      totalClinicians: 0,
-      pageSize: defaultPageSize,
-    },
-    patientInvites: [],
-    invitesPagination: {
-      totalInvites: 0,
-      totalClinicianInvites: 0,
-    },
-    sorting: {
-      sort: undefined,
-      search: undefined,
-      cliniciansSearch: undefined,
-    },
-  };
+  // If we get here without a clinic, it wasn't found
+  throw new Response('Clinic not found', { status: 404 });
 }
 
 export default function Clinics() {

@@ -11,6 +11,7 @@ import type {
 } from '~/components/Clinic/types';
 import { useEffect } from 'react';
 import { APIError } from '~/utils/errors';
+import { z } from 'zod';
 
 type ClinicianLoaderData = {
   clinician: Clinician;
@@ -133,8 +134,24 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
       return Response.json({ error: 'Invalid roles data' }, { status: 400 });
     }
 
+    // Schema for validating roles array
+    const RolesSchema = z
+      .array(z.string())
+      .min(1, 'At least one role is required');
+
     try {
-      const roles = JSON.parse(rolesJson) as string[];
+      // Parse and validate the JSON input
+      let parsedRoles: unknown;
+      try {
+        parsedRoles = JSON.parse(rolesJson);
+      } catch {
+        return Response.json(
+          { error: 'Invalid JSON format for roles' },
+          { status: 400 },
+        );
+      }
+
+      const roles = RolesSchema.parse(parsedRoles);
 
       // Validate that we have at least one base role
       const hasBaseRole = roles.some(
@@ -159,6 +176,12 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
       return Response.json({ success: true });
     } catch (error) {
       console.error('Error updating clinician roles:', error);
+      if (error instanceof z.ZodError) {
+        return Response.json(
+          { error: error.errors[0]?.message || 'Invalid roles data' },
+          { status: 400 },
+        );
+      }
       if (error instanceof APIError) {
         return Response.json(
           { error: error.message },
