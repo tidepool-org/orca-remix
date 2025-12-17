@@ -28,9 +28,13 @@ import ErrorStack from './components/ErrorStack';
 import getLocale from './utils/getLocale';
 import { ToastProvider } from './contexts/ToastContext';
 import ToastContainer from './components/ToastContainer';
+import { requireAuth } from './utils/auth.server';
 
 // Return the theme from the session storage using the loader
 export const loader = async ({ request }: LoaderFunctionArgs) => {
+  // Verify authentication (defense-in-depth alongside Pomerium proxy)
+  requireAuth(request);
+
   const { getTheme } = await themeSessionResolver(request);
   await authorizeServer();
   const locale = getLocale(request);

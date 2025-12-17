@@ -1,12 +1,17 @@
 import { createCookieSessionStorage } from 'react-router';
 import { createThemeSessionResolver } from 'remix-themes';
 
+const SESSION_SECRET = process.env.SESSION_SECRET;
+if (!SESSION_SECRET) {
+  throw new Error('Missing SESSION_SECRET environment variable');
+}
+
 const commonCookieOptions = {
   httpOnly: true,
   maxAge: 60 * 60 * 24 * 30, // 30 days
   path: '/',
   sameSite: 'lax' as const,
-  secrets: [process.env.SESSION_SECRET || 'default-secret'],
+  secrets: [SESSION_SECRET],
   secure: process.env.NODE_ENV === 'production',
 };
 

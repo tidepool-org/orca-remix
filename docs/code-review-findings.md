@@ -31,6 +31,7 @@ secrets: [process.env.SESSION_SECRET || 'default-secret'],
 **Issue:** Falls back to a hardcoded secret if `SESSION_SECRET` is not set. This is a critical security vulnerability in production as all sessions would use a predictable secret.
 
 **Recommendation:**
+
 ```typescript
 const SESSION_SECRET = process.env.SESSION_SECRET;
 if (!SESSION_SECRET) throw new Error('Missing SESSION_SECRET env variable');
@@ -90,11 +91,12 @@ export const serverAuth = {
   serverSecret: SERVER_SECRET,
   serverName: SERVER_NAME,
   apiHost: API_HOST,
-  serverSessionToken: '',  // Mutable module-level state
+  serverSessionToken: '', // Mutable module-level state
 };
 ```
 
 **Issue:** The server session token is stored in mutable module-level state. In a multi-process or serverless environment, this could lead to:
+
 - Token not being refreshed properly across instances
 - Race conditions during token refresh
 
@@ -113,6 +115,7 @@ export const serverAuth = {
 **Issue:** If server authentication fails, the error is logged but the application continues with an empty session token, which will cause all subsequent API calls to fail with confusing errors.
 
 **Recommendation:**
+
 ```typescript
 export const authorizeServer = async () => {
   try {
@@ -144,7 +147,7 @@ export const apiRequests = async (requests: apiRequestArgs[]) => {
     );
     return results;
   } catch (err) {
-    console.log(err);  // Returns undefined!
+    console.log(err); // Returns undefined!
   }
 };
 ```
@@ -152,6 +155,7 @@ export const apiRequests = async (requests: apiRequestArgs[]) => {
 **Issue:** When any request in the batch fails, the entire batch fails silently and returns `undefined`. This can cause null reference errors downstream.
 
 **Recommendation:**
+
 ```typescript
 export const apiRequests = async (requests: apiRequestArgs[]) => {
   const results = await Promise.all(
@@ -179,6 +183,7 @@ return {
 **Issue:** All errors are caught and swallowed, returning an empty state. Users see an empty page with no indication of what went wrong.
 
 **Recommendation:** Return error state or throw Response with appropriate status:
+
 ```typescript
 } catch (error) {
   if (error instanceof APIError && error.status === 404) {
@@ -193,6 +198,7 @@ return {
 **Files:** Multiple route loaders
 
 **Issue:** Many API calls don't use schema validation:
+
 ```typescript
 const results = await apiRequests([
   apiRoutes.clinic.get(clinicId),  // No schema
@@ -202,6 +208,7 @@ const clinic: Clinic = results?.[0] as Clinic;  // Unsafe assertion
 ```
 
 **Recommendation:** Add schema validation to all critical API calls:
+
 ```typescript
 const clinic = await apiRequest({
   ...apiRoutes.clinic.get(clinicId),
@@ -215,12 +222,13 @@ const clinic = await apiRequest({
 
 ```typescript
 const rolesJson = formData.get('roles');
-const roles = JSON.parse(rolesJson) as string[];  // No validation!
+const roles = JSON.parse(rolesJson) as string[]; // No validation!
 ```
 
 **Issue:** Form data is parsed as JSON without validation. Malformed input could cause runtime errors.
 
 **Recommendation:**
+
 ```typescript
 const RolesSchema = z.array(z.string());
 const roles = RolesSchema.parse(JSON.parse(rolesJson as string));
@@ -232,12 +240,14 @@ const roles = RolesSchema.parse(JSON.parse(rolesJson as string));
 
 ```typescript
 const format = (url.searchParams.get('format') as 'json' | 'xlsx') || 'xlsx';
-const bgUnits = (url.searchParams.get('bgUnits') as 'mmol/L' | 'mg/dL') || 'mg/dL';
+const bgUnits =
+  (url.searchParams.get('bgUnits') as 'mmol/L' | 'mg/dL') || 'mg/dL';
 ```
 
 **Issue:** Query parameters are cast directly to expected types without validation.
 
 **Recommendation:**
+
 ```typescript
 const ExportParamsSchema = z.object({
   format: z.enum(['json', 'xlsx']).default('xlsx'),
@@ -263,6 +273,7 @@ export function formatShortDate(dateStr: string | undefined, locale: string): st
 **Issue:** Invalid date strings (e.g., "not-a-date") cause `new Date()` to return "Invalid Date", which may throw in `intlFormat`.
 
 **Recommendation:**
+
 ```typescript
 export function formatShortDate(dateStr: string | undefined, locale: string): string | null {
   if (!dateStr) return null;
@@ -290,6 +301,7 @@ export function timeToMs(time: string): number {
 **Issue:** No validation that input matches "HH:MM" format. Malformed input returns `NaN`.
 
 **Recommendation:**
+
 ```typescript
 export function timeToMs(time: string): number {
   const match = time.match(/^(\d{1,2}):(\d{2})$/);
@@ -305,11 +317,12 @@ export function timeToMs(time: string): number {
 
 ```typescript
 const languages = acceptLanguage.parse(
-  request.headers.get('Accept-Language') as string,  // Can be null
+  request.headers.get('Accept-Language') as string, // Can be null
 );
 ```
 
 **Recommendation:**
+
 ```typescript
 const languages = acceptLanguage.parse(
   request.headers.get('Accept-Language') || '',
@@ -340,8 +353,9 @@ try {
 **Issue:** MRN settings and patient count settings are fetched sequentially after the main batch.
 
 **Recommendation:** Include in parallel batch:
+
 ```typescript
-const [clinic, patients, clinicians, invites, mrnSettings, patientCountSettings] = 
+const [clinic, patients, clinicians, invites, mrnSettings, patientCountSettings] =
   await Promise.all([
     apiRequestSafe(apiRoutes.clinic.get(clinicId)),
     apiRequestSafe(apiRoutes.clinic.getPatients(...)),
@@ -354,6 +368,7 @@ const [clinic, patients, clinicians, invites, mrnSettings, patientCountSettings]
 **File:** `app/routes/users.$userId.tsx:118-264`
 
 **Issue:** Many API calls made sequentially rather than in parallel:
+
 ```typescript
 const clinicsRawState = await apiRequestSafe<...>(...);
 // Then later...
@@ -389,6 +404,7 @@ headers: {
 **Issue:** Using `public` cache for authenticated, mutable data.
 
 **Recommendation:** Use `private` for authenticated data:
+
 ```typescript
 'Cache-Control': 'private, max-age=60'
 ```
@@ -413,6 +429,7 @@ headers: {
 **Issue:** Context value object is created on every render, causing all consumers to re-render.
 
 **Recommendation:**
+
 ```typescript
 const contextValue = useMemo(
   () => ({
@@ -450,6 +467,7 @@ return (
 **File:** `app/components/CollapsibleTableWrapper.tsx:65`
 
 The component correctly implements `aria-expanded` and `aria-controls`:
+
 ```typescript
 aria-expanded={isExpanded}
 aria-controls={`${title.toLowerCase().replace(/\s+/g, '-')}-table-content`}
@@ -469,6 +487,7 @@ aria-controls={`${title.toLowerCase().replace(/\s+/g, '-')}-table-content`}
 **Issue:** The loading overlay has an aria-label but no role. Screen readers may not announce it properly.
 
 **Recommendation:**
+
 ```typescript
 <div
   role="status"
@@ -491,6 +510,7 @@ aria-controls={`${title.toLowerCase().replace(/\s+/g, '-')}-table-content`}
 **Issue:** Icon-only breadcrumb item lacks accessible text.
 
 **Recommendation:**
+
 ```typescript
 <BreadcrumbItem href="/" aria-label="Home">
   <Home className="w-4" aria-hidden="true" />
@@ -510,6 +530,7 @@ aria-controls={`${title.toLowerCase().replace(/\s+/g, '-')}-table-content`}
 **Issue:** Decorative icon should be hidden from screen readers.
 
 **Recommendation:**
+
 ```typescript
 <ChevronDown
   className={`w-5 h-5 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
@@ -519,7 +540,8 @@ aria-controls={`${title.toLowerCase().replace(/\s+/g, '-')}-table-content`}
 
 ### 4.5 Missing Error Boundaries on Routes
 
-**Files:** 
+**Files:**
+
 - `app/routes/clinics._index.tsx`
 - `app/routes/clinics.$clinicId.clinicians.$clinicianId.tsx`
 - `app/routes/clinics.$clinicId.patients.$patientId.tsx`
@@ -542,26 +564,31 @@ aria-controls={`${title.toLowerCase().replace(/\s+/g, '-')}-table-content`}
 **File:** `app/utils/statusColors.ts:58-81`
 
 Four nearly identical functions:
+
 - `getPrescriptionStateColor`
 - `getInviteStatusColor`
 - `getDataSourceStateColor`
 - `getRoleColor`
 
 **Recommendation:** Create a generic factory:
+
 ```typescript
 function createStatusColorGetter(colorMap: Record<string, ChipColor>) {
   return (status: string | null | undefined): ChipColor =>
     colorMap[status?.toLowerCase() ?? ''] ?? 'default';
 }
 
-export const getPrescriptionStateColor = createStatusColorGetter(prescriptionStateColors);
+export const getPrescriptionStateColor = createStatusColorGetter(
+  prescriptionStateColors,
+);
 export const getInviteStatusColor = createStatusColorGetter(inviteStatusColors);
 // etc.
 ```
 
 ### 5.2 Duplicate Recent Items Session Logic
 
-**Files:** 
+**Files:**
+
 - `app/routes/clinics.$clinicId.tsx`
 - `app/routes/clinics.$clinicId.patients.$patientId.tsx`
 - `app/routes/clinics.$clinicId.clinicians.$clinicianId.tsx`
@@ -569,6 +596,7 @@ export const getInviteStatusColor = createStatusColorGetter(inviteStatusColors);
 **Issue:** Session-based recent items logic is duplicated.
 
 **Recommendation:** Extract to a shared utility:
+
 ```typescript
 // app/utils/recentItems.server.ts
 export async function getAndUpdateRecentItems<T extends { id: string }>(
@@ -576,7 +604,7 @@ export async function getAndUpdateRecentItems<T extends { id: string }>(
   sessionKey: string,
   cookieName: string,
   newItem: T,
-  maxItems: number = 10
+  maxItems: number = 10,
 ): Promise<{ items: T[]; headers: Headers }> {
   const cookie = request.headers.get('Cookie');
   const sessionData = await session.getSession(cookie);
@@ -589,6 +617,7 @@ export async function getAndUpdateRecentItems<T extends { id: string }>(
 **File:** `app/schemas/index.ts:73-100`
 
 Repeated connection request shape:
+
 ```typescript
 connectionRequests: z.object({
   twiist: z.array(z.object({ createdTime: z.string(), providerName: z.enum([...]) })),
@@ -598,17 +627,20 @@ connectionRequests: z.object({
 ```
 
 **Recommendation:**
+
 ```typescript
 const ConnectionRequestSchema = z.object({
   createdTime: z.string(),
   providerName: z.enum(['dexcom', 'twiist', 'abbott']),
 });
 
-const connectionRequests = z.object({
-  twiist: z.array(ConnectionRequestSchema).optional(),
-  dexcom: z.array(ConnectionRequestSchema).optional(),
-  abbott: z.array(ConnectionRequestSchema).optional(),
-}).optional();
+const connectionRequests = z
+  .object({
+    twiist: z.array(ConnectionRequestSchema).optional(),
+    dexcom: z.array(ConnectionRequestSchema).optional(),
+    abbott: z.array(ConnectionRequestSchema).optional(),
+  })
+  .optional();
 ```
 
 ### 5.4 Consider DataTable Composite Component
@@ -634,6 +666,7 @@ const cliniciansFetchLimit = 1000;
 ```
 
 **Recommendation:** Move to a shared constants file:
+
 ```typescript
 // app/constants.ts
 export const PAGINATION = {
@@ -650,7 +683,7 @@ export const PAGINATION = {
 ```typescript
 import {
   apiRequest,
-  apiRequests,  // Never used
+  apiRequests, // Never used
   apiRoutes,
   apiRequestSafe,
 } from '~/api.server';
@@ -665,6 +698,7 @@ import {
 **Issue:** Types are defined in both places, potentially diverging.
 
 **Recommendation:** Use Zod-inferred types as the single source of truth:
+
 ```typescript
 // api.types.ts
 import type { z } from 'zod';
@@ -687,8 +721,11 @@ export function getPrescriptionStateColor(state: string): ChipColor {
 **Issue:** Signature says `state: string` but uses optional chaining, suggesting null could be passed.
 
 **Recommendation:** Update type signature to be accurate:
+
 ```typescript
-export function getPrescriptionStateColor(state: string | null | undefined): ChipColor
+export function getPrescriptionStateColor(
+  state: string | null | undefined,
+): ChipColor;
 ```
 
 ### 6.5 TODO Comment with Typos
@@ -713,6 +750,7 @@ const id = Math.random().toString(36).substring(7);
 **Issue:** Could produce collisions. While unlikely to cause issues in practice, using `crypto.randomUUID()` is safer.
 
 **Recommendation:**
+
 ```typescript
 const id = crypto.randomUUID();
 ```
@@ -722,45 +760,50 @@ const id = crypto.randomUUID();
 ## 7. Summary & Prioritized Action Items
 
 ### Critical (Address Immediately)
-| # | Issue | File | Effort |
-|---|-------|------|--------|
-| 1 | Hardcoded default session secret | `sessions.server.ts:9` | Low |
-| 2 | Add route-level auth verification | All routes | Medium |
-| 3 | Fix silent auth failure | `auth.server.ts:34-36` | Low |
+
+| #   | Issue                             | File                   | Effort |
+| --- | --------------------------------- | ---------------------- | ------ |
+| 1   | Hardcoded default session secret  | `sessions.server.ts:9` | Low    |
+| 2   | Add route-level auth verification | All routes             | Medium |
+| 3   | Fix silent auth failure           | `auth.server.ts:34-36` | Low    |
 
 ### High Priority
-| # | Issue | File | Effort |
-|---|-------|------|--------|
-| 4 | Fix apiRequests silent failure | `api.server.ts:429-431` | Low |
-| 5 | Add error handling to clinic loader | `clinics.$clinicId.tsx:480-482` | Medium |
-| 6 | Add schema validation to API calls | Multiple routes | Medium |
-| 7 | Validate form data JSON.parse | `clinicians.$clinicianId.tsx` | Low |
-| 8 | Add input validation to export route | `users.$userId.export.tsx` | Low |
+
+| #   | Issue                                | File                            | Effort |
+| --- | ------------------------------------ | ------------------------------- | ------ |
+| 4   | Fix apiRequests silent failure       | `api.server.ts:429-431`         | Low    |
+| 5   | Add error handling to clinic loader  | `clinics.$clinicId.tsx:480-482` | Medium |
+| 6   | Add schema validation to API calls   | Multiple routes                 | Medium |
+| 7   | Validate form data JSON.parse        | `clinicians.$clinicianId.tsx`   | Low    |
+| 8   | Add input validation to export route | `users.$userId.export.tsx`      | Low    |
 
 ### Medium Priority
-| # | Issue | File | Effort |
-|---|-------|------|--------|
-| 9 | Parallelize sequential API calls | `clinics.$clinicId.tsx`, `users.$userId.tsx` | Medium |
-| 10 | Fix Cache-Control headers | Multiple routes | Low |
-| 11 | Memoize RecentItemsContext value | `RecentItemsContext.tsx` | Low |
-| 12 | Add route-level ErrorBoundary | 8 routes | Medium |
-| 13 | Fix accessibility issues | Multiple components | Low |
+
+| #   | Issue                            | File                                         | Effort |
+| --- | -------------------------------- | -------------------------------------------- | ------ |
+| 9   | Parallelize sequential API calls | `clinics.$clinicId.tsx`, `users.$userId.tsx` | Medium |
+| 10  | Fix Cache-Control headers        | Multiple routes                              | Low    |
+| 11  | Memoize RecentItemsContext value | `RecentItemsContext.tsx`                     | Low    |
+| 12  | Add route-level ErrorBoundary    | 8 routes                                     | Medium |
+| 13  | Fix accessibility issues         | Multiple components                          | Low    |
 
 ### Low Priority
-| # | Issue | File | Effort |
-|---|-------|------|--------|
-| 14 | Refactor status color functions | `statusColors.ts` | Low |
-| 15 | Extract recent items utilities | Multiple routes | Medium |
-| 16 | Extract schema patterns | `schemas/index.ts` | Low |
-| 17 | Create constants file | Multiple files | Low |
-| 18 | Remove unused imports | `users.$userId.tsx` | Low |
-| 19 | Consolidate type definitions | `api.types.ts`, `schemas/` | Medium |
+
+| #   | Issue                           | File                       | Effort |
+| --- | ------------------------------- | -------------------------- | ------ |
+| 14  | Refactor status color functions | `statusColors.ts`          | Low    |
+| 15  | Extract recent items utilities  | Multiple routes            | Medium |
+| 16  | Extract schema patterns         | `schemas/index.ts`         | Low    |
+| 17  | Create constants file           | Multiple files             | Low    |
+| 18  | Remove unused imports           | `users.$userId.tsx`        | Low    |
+| 19  | Consolidate type definitions    | `api.types.ts`, `schemas/` | Medium |
 
 ---
 
 ## Architecture Observations
 
 ### Strengths
+
 - **Clean component architecture** with good separation between UI primitives (`app/components/ui/`) and domain components
 - **Consistent use of Zod schemas** for API response validation where applied
 - **Well-implemented reusable components** like `RecentItemsTable`, `ProfileHeader`, `SectionPanel`
@@ -769,6 +812,7 @@ const id = crypto.randomUUID();
 - **Type safety** with TypeScript throughout the codebase
 
 ### Areas for Improvement
+
 - **Error handling consistency** - need standardized patterns across all routes
 - **Authentication defense-in-depth** - add server-side verification beyond proxy
 - **API response validation** - apply Zod schemas consistently to all API calls

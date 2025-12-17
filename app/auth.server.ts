@@ -26,12 +26,25 @@ export const authorizeServer = async () => {
       },
     );
 
-    const { headers } = await serverTokenData;
-    const serverSessionToken = headers.get('x-tidepool-session-token');
-    if (typeof serverSessionToken == 'string') {
-      serverAuth.serverSessionToken = serverSessionToken;
+    if (!serverTokenData.ok) {
+      throw new Error(
+        `Server login failed with status ${serverTokenData.status}: ${serverTokenData.statusText}`,
+      );
     }
+
+    const serverSessionToken = serverTokenData.headers.get(
+      'x-tidepool-session-token',
+    );
+
+    if (!serverSessionToken) {
+      throw new Error(
+        'Server authentication failed: no session token received',
+      );
+    }
+
+    serverAuth.serverSessionToken = serverSessionToken;
   } catch (e) {
-    console.error(e);
+    console.error('Server authentication failed:', e);
+    throw e;
   }
 };
