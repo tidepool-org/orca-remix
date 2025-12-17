@@ -90,6 +90,56 @@ describe('timeConversion', () => {
       const expected = 23 * 60 * 60 * 1000 + 59 * 60 * 1000;
       expect(timeToMs('23:59')).toBe(expected);
     });
+
+    it('handles single digit hours', () => {
+      expect(timeToMs('9:30')).toBe(9 * 60 * 60 * 1000 + 30 * 60 * 1000);
+    });
+
+    describe('validation', () => {
+      it('throws error for invalid format', () => {
+        expect(() => timeToMs('invalid')).toThrow(
+          'Invalid time format: "invalid". Expected HH:MM',
+        );
+      });
+
+      it('throws error for empty string', () => {
+        expect(() => timeToMs('')).toThrow(
+          'Invalid time format: "". Expected HH:MM',
+        );
+      });
+
+      it('throws error for time without colon', () => {
+        expect(() => timeToMs('1230')).toThrow(
+          'Invalid time format: "1230". Expected HH:MM',
+        );
+      });
+
+      it('throws error for time with seconds', () => {
+        expect(() => timeToMs('12:30:45')).toThrow(
+          'Invalid time format: "12:30:45". Expected HH:MM',
+        );
+      });
+
+      it('throws error for hours > 23', () => {
+        expect(() => timeToMs('24:00')).toThrow(
+          'Invalid time value: "24:00". Hours must be 0-23, minutes must be 0-59',
+        );
+      });
+
+      it('throws error for minutes > 59', () => {
+        expect(() => timeToMs('12:60')).toThrow(
+          'Invalid time value: "12:60". Hours must be 0-23, minutes must be 0-59',
+        );
+      });
+
+      it('throws error for negative values', () => {
+        expect(() => timeToMs('-1:30')).toThrow('Invalid time format');
+      });
+
+      it('throws error for non-numeric values', () => {
+        expect(() => timeToMs('ab:cd')).toThrow('Invalid time format');
+      });
+    });
   });
 
   describe('hoursToMs', () => {
