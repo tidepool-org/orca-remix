@@ -40,12 +40,13 @@ describe('DeleteActionButton', () => {
       expect(button).toHaveClass('px-0');
     });
 
-    it('renders with danger color styling', () => {
+    it('applies danger color variant', () => {
       render(<DeleteActionButton {...defaultProps} />);
 
       const button = screen.getByRole('button', { name: /delete item/i });
-      // Button should be rendered correctly
+      // Verify the button exists and is clickable (danger styling is applied via HeroUI internals)
       expect(button).toBeInTheDocument();
+      expect(button).not.toBeDisabled();
     });
   });
 

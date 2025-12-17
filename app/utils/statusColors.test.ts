@@ -14,217 +14,164 @@ import {
 
 describe('statusColors', () => {
   describe('getPrescriptionStateColor', () => {
-    it('returns success for active state', () => {
-      expect(getPrescriptionStateColor('active')).toBe('success');
+    it.each([
+      ['active', 'success'],
+      ['claimed', 'success'],
+      ['submitted', 'primary'],
+      ['pending', 'warning'],
+      ['draft', 'default'],
+      ['inactive', 'secondary'],
+      ['expired', 'danger'],
+    ])('returns %s color for %s state', (state, expected) => {
+      expect(getPrescriptionStateColor(state)).toBe(expected);
     });
 
-    it('returns success for claimed state', () => {
-      expect(getPrescriptionStateColor('claimed')).toBe('success');
+    it.each([
+      ['ACTIVE', 'success'],
+      ['Active', 'success'],
+      ['PENDING', 'warning'],
+    ])('handles case insensitivity: %s returns %s', (state, expected) => {
+      expect(getPrescriptionStateColor(state)).toBe(expected);
     });
 
-    it('returns primary for submitted state', () => {
-      expect(getPrescriptionStateColor('submitted')).toBe('primary');
-    });
-
-    it('returns warning for pending state', () => {
-      expect(getPrescriptionStateColor('pending')).toBe('warning');
-    });
-
-    it('returns default for draft state', () => {
-      expect(getPrescriptionStateColor('draft')).toBe('default');
-    });
-
-    it('returns secondary for inactive state', () => {
-      expect(getPrescriptionStateColor('inactive')).toBe('secondary');
-    });
-
-    it('returns danger for expired state', () => {
-      expect(getPrescriptionStateColor('expired')).toBe('danger');
-    });
-
-    it('handles case insensitivity', () => {
-      expect(getPrescriptionStateColor('ACTIVE')).toBe('success');
-      expect(getPrescriptionStateColor('Active')).toBe('success');
-    });
-
-    it('returns default for unknown states', () => {
-      expect(getPrescriptionStateColor('unknown')).toBe('default');
-    });
-
-    it('returns default for null', () => {
-      expect(getPrescriptionStateColor(null)).toBe('default');
-    });
-
-    it('returns default for undefined', () => {
-      expect(getPrescriptionStateColor(undefined)).toBe('default');
-    });
+    it.each([['unknown'], [null], [undefined]])(
+      'returns default for %s',
+      (state) => {
+        expect(getPrescriptionStateColor(state)).toBe('default');
+      },
+    );
   });
 
   describe('getInviteStatusColor', () => {
-    it('returns warning for pending status', () => {
-      expect(getInviteStatusColor('pending')).toBe('warning');
+    it.each([
+      ['pending', 'warning'],
+      ['accepted', 'success'],
+      ['completed', 'success'],
+      ['declined', 'danger'],
+      ['canceled', 'default'],
+      ['expired', 'danger'],
+    ])('returns %s color for %s status', (status, expected) => {
+      expect(getInviteStatusColor(status)).toBe(expected);
     });
 
-    it('returns success for accepted status', () => {
-      expect(getInviteStatusColor('accepted')).toBe('success');
+    it.each([
+      ['PENDING', 'warning'],
+      ['Accepted', 'success'],
+    ])('handles case insensitivity: %s returns %s', (status, expected) => {
+      expect(getInviteStatusColor(status)).toBe(expected);
     });
 
-    it('returns success for completed status', () => {
-      expect(getInviteStatusColor('completed')).toBe('success');
-    });
-
-    it('returns danger for declined status', () => {
-      expect(getInviteStatusColor('declined')).toBe('danger');
-    });
-
-    it('returns default for canceled status', () => {
-      expect(getInviteStatusColor('canceled')).toBe('default');
-    });
-
-    it('returns danger for expired status', () => {
-      expect(getInviteStatusColor('expired')).toBe('danger');
-    });
-
-    it('handles case insensitivity', () => {
-      expect(getInviteStatusColor('PENDING')).toBe('warning');
-      expect(getInviteStatusColor('Accepted')).toBe('success');
-    });
-
-    it('returns default for unknown statuses', () => {
-      expect(getInviteStatusColor('unknown')).toBe('default');
-    });
-
-    it('returns default for null', () => {
-      expect(getInviteStatusColor(null)).toBe('default');
-    });
-
-    it('returns default for undefined', () => {
-      expect(getInviteStatusColor(undefined)).toBe('default');
-    });
+    it.each([['unknown'], [null], [undefined]])(
+      'returns default for %s',
+      (status) => {
+        expect(getInviteStatusColor(status)).toBe('default');
+      },
+    );
   });
 
   describe('getDataSourceStateColor', () => {
-    it('returns success for connected state', () => {
-      expect(getDataSourceStateColor('connected')).toBe('success');
+    it.each([
+      ['connected', 'success'],
+      ['disconnected', 'danger'],
+      ['error', 'danger'],
+    ])('returns %s color for %s state', (state, expected) => {
+      expect(getDataSourceStateColor(state)).toBe(expected);
     });
 
-    it('returns danger for disconnected state', () => {
-      expect(getDataSourceStateColor('disconnected')).toBe('danger');
+    it.each([
+      ['CONNECTED', 'success'],
+      ['Connected', 'success'],
+    ])('handles case insensitivity: %s returns %s', (state, expected) => {
+      expect(getDataSourceStateColor(state)).toBe(expected);
     });
 
-    it('returns danger for error state', () => {
-      expect(getDataSourceStateColor('error')).toBe('danger');
-    });
-
-    it('handles case insensitivity', () => {
-      expect(getDataSourceStateColor('CONNECTED')).toBe('success');
-      expect(getDataSourceStateColor('Connected')).toBe('success');
-    });
-
-    it('returns default for unknown states', () => {
-      expect(getDataSourceStateColor('unknown')).toBe('default');
-    });
-
-    it('returns default for null', () => {
-      expect(getDataSourceStateColor(null)).toBe('default');
-    });
-
-    it('returns default for undefined', () => {
-      expect(getDataSourceStateColor(undefined)).toBe('default');
-    });
+    it.each([['unknown'], [null], [undefined]])(
+      'returns default for %s',
+      (state) => {
+        expect(getDataSourceStateColor(state)).toBe('default');
+      },
+    );
   });
 
   describe('getRoleColor', () => {
-    it('returns primary for clinic_admin role', () => {
-      expect(getRoleColor('clinic_admin')).toBe('primary');
+    it.each([
+      ['clinic_admin', 'primary'],
+      ['prescriber', 'success'],
+      ['clinic_member', 'default'],
+    ])('returns %s color for %s role', (role, expected) => {
+      expect(getRoleColor(role)).toBe(expected);
     });
 
-    it('returns success for prescriber role', () => {
-      expect(getRoleColor('prescriber')).toBe('success');
+    it.each([
+      ['CLINIC_ADMIN', 'primary'],
+      ['Prescriber', 'success'],
+    ])('handles case insensitivity: %s returns %s', (role, expected) => {
+      expect(getRoleColor(role)).toBe(expected);
     });
 
-    it('returns default for clinic_member role', () => {
-      expect(getRoleColor('clinic_member')).toBe('default');
-    });
-
-    it('handles case insensitivity', () => {
-      expect(getRoleColor('CLINIC_ADMIN')).toBe('primary');
-      expect(getRoleColor('Prescriber')).toBe('success');
-    });
-
-    it('returns default for unknown roles', () => {
-      expect(getRoleColor('unknown')).toBe('default');
-    });
-
-    it('returns default for null', () => {
-      expect(getRoleColor(null)).toBe('default');
-    });
-
-    it('returns default for undefined', () => {
-      expect(getRoleColor(undefined)).toBe('default');
-    });
+    it.each([['unknown'], [null], [undefined]])(
+      'returns default for %s',
+      (role) => {
+        expect(getRoleColor(role)).toBe('default');
+      },
+    );
   });
 
   describe('getStatusColor', () => {
-    it('delegates to getPrescriptionStateColor for prescription type', () => {
-      expect(getStatusColor('active', 'prescription')).toBe('success');
-      expect(getStatusColor('expired', 'prescription')).toBe('danger');
-    });
+    it.each([
+      ['active', 'prescription', 'success'],
+      ['expired', 'prescription', 'danger'],
+      ['pending', 'invite', 'warning'],
+      ['accepted', 'invite', 'success'],
+      ['connected', 'dataSource', 'success'],
+      ['disconnected', 'dataSource', 'danger'],
+      ['clinic_admin', 'role', 'primary'],
+      ['prescriber', 'role', 'success'],
+    ] as const)(
+      'returns %s for status=%s type=%s',
+      (status, type, expected) => {
+        expect(getStatusColor(status, type)).toBe(expected);
+      },
+    );
 
-    it('delegates to getInviteStatusColor for invite type', () => {
-      expect(getStatusColor('pending', 'invite')).toBe('warning');
-      expect(getStatusColor('accepted', 'invite')).toBe('success');
-    });
-
-    it('delegates to getDataSourceStateColor for dataSource type', () => {
-      expect(getStatusColor('connected', 'dataSource')).toBe('success');
-      expect(getStatusColor('disconnected', 'dataSource')).toBe('danger');
-    });
-
-    it('delegates to getRoleColor for role type', () => {
-      expect(getStatusColor('clinic_admin', 'role')).toBe('primary');
-      expect(getStatusColor('prescriber', 'role')).toBe('success');
-    });
-
-    it('handles null status', () => {
-      expect(getStatusColor(null, 'prescription')).toBe('default');
-      expect(getStatusColor(null, 'invite')).toBe('default');
-    });
-
-    it('handles undefined status', () => {
-      expect(getStatusColor(undefined, 'prescription')).toBe('default');
-      expect(getStatusColor(undefined, 'role')).toBe('default');
-    });
+    it.each([
+      [null, 'prescription'],
+      [null, 'invite'],
+      [undefined, 'prescription'],
+      [undefined, 'role'],
+    ] as const)(
+      'returns default for %s status with %s type',
+      (status, type) => {
+        expect(getStatusColor(status, type)).toBe('default');
+      },
+    );
   });
 
   describe('formatRoleLabel', () => {
-    it('formats clinic_admin as Admin', () => {
-      expect(formatRoleLabel('clinic_admin')).toBe('Admin');
+    it.each([
+      ['clinic_admin', 'Admin'],
+      ['clinic_member', 'Member'],
+      ['prescriber', 'Prescriber'],
+    ])('formats %s as %s', (role, expected) => {
+      expect(formatRoleLabel(role)).toBe(expected);
     });
 
-    it('formats clinic_member as Member', () => {
-      expect(formatRoleLabel('clinic_member')).toBe('Member');
-    });
-
-    it('formats prescriber as Prescriber', () => {
-      expect(formatRoleLabel('prescriber')).toBe('Prescriber');
-    });
-
-    it('handles case insensitivity', () => {
-      expect(formatRoleLabel('CLINIC_ADMIN')).toBe('Admin');
-      expect(formatRoleLabel('Clinic_Member')).toBe('Member');
+    it.each([
+      ['CLINIC_ADMIN', 'Admin'],
+      ['Clinic_Member', 'Member'],
+    ])('handles case insensitivity: %s returns %s', (role, expected) => {
+      expect(formatRoleLabel(role)).toBe(expected);
     });
 
     it('handles unknown roles by stripping CLINIC_ prefix', () => {
       expect(formatRoleLabel('CLINIC_VIEWER')).toBe('viewer');
     });
 
-    it('returns empty string for null', () => {
-      expect(formatRoleLabel(null)).toBe('');
-    });
-
-    it('returns empty string for undefined', () => {
-      expect(formatRoleLabel(undefined)).toBe('');
+    it.each([
+      [null, ''],
+      [undefined, ''],
+    ])('returns empty string for %s', (role, expected) => {
+      expect(formatRoleLabel(role)).toBe(expected);
     });
 
     it('returns role as-is if no pattern matches', () => {
@@ -234,34 +181,46 @@ describe('statusColors', () => {
 
   describe('color maps', () => {
     it('prescriptionStateColors contains all expected states', () => {
-      expect(Object.keys(prescriptionStateColors)).toContain('active');
-      expect(Object.keys(prescriptionStateColors)).toContain('claimed');
-      expect(Object.keys(prescriptionStateColors)).toContain('submitted');
-      expect(Object.keys(prescriptionStateColors)).toContain('pending');
-      expect(Object.keys(prescriptionStateColors)).toContain('draft');
-      expect(Object.keys(prescriptionStateColors)).toContain('inactive');
-      expect(Object.keys(prescriptionStateColors)).toContain('expired');
+      const expectedStates = [
+        'active',
+        'claimed',
+        'submitted',
+        'pending',
+        'draft',
+        'inactive',
+        'expired',
+      ];
+      expectedStates.forEach((state) => {
+        expect(Object.keys(prescriptionStateColors)).toContain(state);
+      });
     });
 
     it('inviteStatusColors contains all expected statuses', () => {
-      expect(Object.keys(inviteStatusColors)).toContain('pending');
-      expect(Object.keys(inviteStatusColors)).toContain('accepted');
-      expect(Object.keys(inviteStatusColors)).toContain('completed');
-      expect(Object.keys(inviteStatusColors)).toContain('declined');
-      expect(Object.keys(inviteStatusColors)).toContain('canceled');
-      expect(Object.keys(inviteStatusColors)).toContain('expired');
+      const expectedStatuses = [
+        'pending',
+        'accepted',
+        'completed',
+        'declined',
+        'canceled',
+        'expired',
+      ];
+      expectedStatuses.forEach((status) => {
+        expect(Object.keys(inviteStatusColors)).toContain(status);
+      });
     });
 
     it('dataSourceStateColors contains all expected states', () => {
-      expect(Object.keys(dataSourceStateColors)).toContain('connected');
-      expect(Object.keys(dataSourceStateColors)).toContain('disconnected');
-      expect(Object.keys(dataSourceStateColors)).toContain('error');
+      const expectedStates = ['connected', 'disconnected', 'error'];
+      expectedStates.forEach((state) => {
+        expect(Object.keys(dataSourceStateColors)).toContain(state);
+      });
     });
 
     it('roleColors contains all expected roles', () => {
-      expect(Object.keys(roleColors)).toContain('clinic_admin');
-      expect(Object.keys(roleColors)).toContain('prescriber');
-      expect(Object.keys(roleColors)).toContain('clinic_member');
+      const expectedRoles = ['clinic_admin', 'prescriber', 'clinic_member'];
+      expectedRoles.forEach((role) => {
+        expect(Object.keys(roleColors)).toContain(role);
+      });
     });
   });
 });
