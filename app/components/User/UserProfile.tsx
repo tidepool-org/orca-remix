@@ -4,11 +4,11 @@ import {
   Share2,
   Database,
   Settings,
-  FileText,
+  // FileText,
   Smartphone,
 } from 'lucide-react';
 import ClinicsTable from '../Clinic/ClinicsTable';
-import PrescriptionsTable from '../Clinic/PrescriptionsTable';
+// import PrescriptionsTable from '../Clinic/PrescriptionsTable';
 import DataSetsTable from './DataSetsTable';
 import DataSourcesTable from './DataSourcesTable';
 import {
@@ -84,15 +84,20 @@ export default function UserProfile({
   receivedInvites = [],
   pumpSettings = [],
   isPumpSettingsLoading = false,
-  prescriptions = [],
-  totalPrescriptions = 0,
-  prescriptionsLoading = false,
+  // Prescriptions props - temporarily unused while tab is hidden
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  prescriptions: _prescriptions = [],
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  totalPrescriptions: _totalPrescriptions = 0,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  prescriptionsLoading: _prescriptionsLoading = false,
   // ResourceState props for error display
   clinicsState,
   dataSetsState,
   dataSourcesState,
   pumpSettingsState,
-  prescriptionsState,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  prescriptionsState: _prescriptionsState,
   trustingAccountsState,
   trustedAccountsState,
   sentInvitesState,
@@ -312,8 +317,8 @@ export default function UserProfile({
             </div>
           </Tab>
 
-          {/* Prescriptions Tab */}
-          <Tab
+          {/* Prescriptions Tab - Hidden for now, will be re-enabled later */}
+          {/* <Tab
             key="prescriptions"
             title={
               <TabTitle
@@ -335,7 +340,7 @@ export default function UserProfile({
                 />
               </CollapsibleGroup>
             </div>
-          </Tab>
+          </Tab> */}
 
           {/* Account Tab */}
           <Tab

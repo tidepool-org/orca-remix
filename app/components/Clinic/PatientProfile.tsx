@@ -1,13 +1,13 @@
 import { useRouteLoaderData } from 'react-router';
 import { Tab } from '@heroui/react';
-import { Database, Smartphone, FileText } from 'lucide-react';
+import { Database, Smartphone /* FileText */ } from 'lucide-react';
 
 import type { Patient, Prescription } from './types';
 import type { DataSet, DataSource, PumpSettings } from '../User/types';
 import type { ResourceState } from '~/api.types';
 import useLocale from '~/hooks/useLocale';
 import useClinicResolvers from '~/hooks/useClinicResolvers';
-import PrescriptionsTable from './PrescriptionsTable';
+// import PrescriptionsTable from './PrescriptionsTable';
 import DataSetsTable from '../User/DataSetsTable';
 import ProfileHeader from '~/components/ui/ProfileHeader';
 import ProfileTabs from '~/components/ui/ProfileTabs';
@@ -51,9 +51,13 @@ export type PatientProfileProps = {
 
 export default function PatientProfile({
   patient,
-  prescriptions = [],
-  totalPrescriptions = 0,
-  prescriptionsLoading = false,
+  // Prescriptions props - temporarily unused while tab is hidden
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  prescriptions: _prescriptions = [],
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  totalPrescriptions: _totalPrescriptions = 0,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  prescriptionsLoading: _prescriptionsLoading = false,
   clinic,
   dataSets = [],
   totalDataSets = 0,
@@ -62,7 +66,8 @@ export default function PatientProfile({
   pumpSettings = [],
   isPumpSettingsLoading = false,
   // ResourceState props
-  prescriptionsState,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  prescriptionsState: _prescriptionsState,
   dataSetsState,
   dataSourcesState,
   pumpSettingsState,
@@ -228,8 +233,8 @@ export default function PatientProfile({
             </div>
           </Tab>
 
-          {/* Prescriptions Tab */}
-          <Tab
+          {/* Prescriptions Tab - Hidden for now, will be re-enabled later */}
+          {/* <Tab
             key="prescriptions"
             title={
               <TabTitle
@@ -251,7 +256,7 @@ export default function PatientProfile({
                 />
               </CollapsibleGroup>
             </div>
-          </Tab>
+          </Tab> */}
         </ProfileTabs>
       </div>
     </div>
