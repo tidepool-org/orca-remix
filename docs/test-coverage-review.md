@@ -2,8 +2,10 @@
 
 > **Review Date**: December 17, 2025
 > **Reviewed By**: OpenCode
-> **Total Test Files**: 31
-> **Total Tests**: ~613
+> **Total Test Files**: 35
+> **Total Tests**: 680
+
+**Related**: See [Testing Strategy](./testing-strategy.md) for guidelines on when to write tests and component prioritization.
 
 ## Overview
 
@@ -62,16 +64,16 @@ This document tracks findings from a comprehensive review of all test files in t
 
 #### Other Components (`app/components/`)
 
-| Component                 | Priority | Status         |
-| ------------------------- | -------- | -------------- |
-| `ClipboardButton`         | Medium   | ✅ Completed   |
-| `CollapsibleTableWrapper` | Medium   | ⬜ Not Started |
-| `DebouncedSearchInput`    | Medium   | ✅ Completed   |
-| `ErrorStack`              | Medium   | ✅ Completed   |
-| `ToastContainer`          | Medium   | ⬜ Not Started |
-| `UserMenu`                | Medium   | ⬜ Not Started |
-| `SectionHeader`           | Low      | ⬜ Not Started |
-| `ThemeSwitcher`           | Low      | ⬜ Not Started |
+| Component                 | Priority | Status                               |
+| ------------------------- | -------- | ------------------------------------ |
+| `ClipboardButton`         | Medium   | ✅ Completed                         |
+| `CollapsibleTableWrapper` | Medium   | ✅ Completed                         |
+| `DebouncedSearchInput`    | Medium   | ✅ Completed                         |
+| `ErrorStack`              | Medium   | ✅ Completed                         |
+| `ToastContainer`          | Medium   | ✅ Completed                         |
+| `UserMenu`                | Low      | ⏭️ Skipped (see testing-strategy.md) |
+| `SectionHeader`           | Low      | ✅ Completed                         |
+| `ThemeSwitcher`           | Low      | ✅ Completed                         |
 
 #### Reports Components (`app/components/Reports/`)
 
@@ -263,21 +265,24 @@ All route files lack test coverage for their loaders and actions:
 
 | Category                                    | Count                  |
 | ------------------------------------------- | ---------------------- |
-| Components without tests                    | 28                     |
+| Components without tests                    | 24                     |
 | Hooks without tests                         | 0                      |
-| Routes without tests                        | 9                      |
+| Routes without tests                        | 9 (E2E recommended)    |
 | Tests with potential false positives        | 0 (5 verified correct) |
 | Tests with description mismatches           | 1 (fixed)              |
 | Test files with consolidation opportunities | 2 (completed)          |
+
+> **Note**: Many untested components are intentionally skipped per the [Testing Strategy](./testing-strategy.md). Route loaders/actions are recommended for E2E testing rather than unit tests.
 
 ---
 
 ## Progress Tracking
 
 - **Total Issues Identified**: 55
-- **Issues Resolved**: 16
+- **Issues Resolved**: 20
 - **Issues Verified Correct**: 9
-- **Percentage Complete**: ~45%
+- **Components Skipped (per strategy)**: 9
+- **Percentage Complete**: ~53%
 
 ---
 
@@ -288,3 +293,5 @@ All route files lack test coverage for their loaders and actions:
 | 2025-12-17 | Initial review completed                                                                                                                                                                                                    |
 | 2025-12-17 | Phase 1 completed: Fixed test description in DeleteActionButton, consolidated statusColors.test.ts and bgUnits.test.ts using it.each(), verified existing tests for false positives (all correct)                           |
 | 2025-12-17 | Phase 2 completed: Added tests for useResourceState (14 tests), useClinicResolvers (20 tests), useLocale (6 tests), ClipboardButton (14 tests), DebouncedSearchInput (17 tests), ErrorStack (15 tests). Total: 86 new tests |
+| 2025-12-18 | Phase 3 completed: Added tests for SectionHeader (15 tests), CollapsibleTableWrapper (23 tests), ThemeSwitcher (12 tests), ToastContainer (17 tests). Total: 67 new tests                                                   |
+| 2025-12-18 | Created testing-strategy.md to document testing guidelines and component prioritization                                                                                                                                     |
