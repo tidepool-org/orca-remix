@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, userEvent } from '~/test-utils';
-import { Settings, Download } from 'lucide-react';
+import { Settings } from 'lucide-react';
 import SectionPanel from './SectionPanel';
 
 describe('SectionPanel', () => {
@@ -335,58 +335,6 @@ describe('SectionPanel', () => {
       const button = screen.getByRole('button');
       const controlsId = button.getAttribute('aria-controls');
       expect(document.getElementById(controlsId!)).toBeInTheDocument();
-    });
-  });
-
-  describe('Styling', () => {
-    it('has correct border and background classes', () => {
-      render(
-        <SectionPanel icon={<Settings />} title="Test Section">
-          <p>Content</p>
-        </SectionPanel>,
-      );
-
-      const panel = screen.getByText('Content').closest('.rounded-lg');
-      expect(panel).toHaveClass('border-2', 'border-content2');
-    });
-
-    it('header has correct background class', () => {
-      render(
-        <SectionPanel icon={<Settings />} title="Test Section">
-          <p>Content</p>
-        </SectionPanel>,
-      );
-
-      const header = screen.getByText('Test Section').closest('.bg-content1');
-      expect(header).toBeInTheDocument();
-    });
-  });
-
-  describe('Different Icon Types', () => {
-    it('renders with Settings icon', () => {
-      render(
-        <SectionPanel
-          icon={<Settings data-testid="settings-icon" />}
-          title="Settings"
-        >
-          <p>Content</p>
-        </SectionPanel>,
-      );
-
-      expect(screen.getByTestId('settings-icon')).toBeInTheDocument();
-    });
-
-    it('renders with Download icon', () => {
-      render(
-        <SectionPanel
-          icon={<Download data-testid="download-icon" />}
-          title="Download"
-        >
-          <p>Content</p>
-        </SectionPanel>,
-      );
-
-      expect(screen.getByTestId('download-icon')).toBeInTheDocument();
     });
   });
 });

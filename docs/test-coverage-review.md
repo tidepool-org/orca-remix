@@ -1,9 +1,9 @@
 # Test Coverage Review
 
-> **Review Date**: December 17, 2025
+> **Review Date**: December 18, 2025
 > **Reviewed By**: OpenCode
-> **Total Test Files**: 35
-> **Total Tests**: 680
+> **Total Test Files**: 28
+> **Total Tests**: 557
 
 **Related**: See [Testing Strategy](./testing-strategy.md) for guidelines on when to write tests and component prioritization.
 
@@ -64,16 +64,16 @@ This document tracks findings from a comprehensive review of all test files in t
 
 #### Other Components (`app/components/`)
 
-| Component                 | Priority | Status                               |
-| ------------------------- | -------- | ------------------------------------ |
-| `ClipboardButton`         | Medium   | ✅ Completed                         |
-| `CollapsibleTableWrapper` | Medium   | ✅ Completed                         |
-| `DebouncedSearchInput`    | Medium   | ✅ Completed                         |
-| `ErrorStack`              | Medium   | ✅ Completed                         |
-| `ToastContainer`          | Medium   | ✅ Completed                         |
-| `UserMenu`                | Low      | ⏭️ Skipped (see testing-strategy.md) |
-| `SectionHeader`           | Low      | ✅ Completed                         |
-| `ThemeSwitcher`           | Low      | ✅ Completed                         |
+| Component                 | Priority | Status                                |
+| ------------------------- | -------- | ------------------------------------- |
+| `ClipboardButton`         | Medium   | ✅ Completed                          |
+| `CollapsibleTableWrapper` | Medium   | ✅ Completed                          |
+| `DebouncedSearchInput`    | Medium   | ✅ Completed                          |
+| `ErrorStack`              | Medium   | ✅ Completed                          |
+| `ToastContainer`          | Medium   | ✅ Completed                          |
+| `UserMenu`                | Low      | ⏭️ Skipped (see testing-strategy.md)  |
+| `SectionHeader`           | Low      | ⏭️ Pruned (purely presentational)     |
+| `ThemeSwitcher`           | Low      | ⏭️ Pruned (tests third-party library) |
 
 #### Reports Components (`app/components/Reports/`)
 
@@ -180,7 +180,7 @@ All route files lack test coverage for their loaders and actions:
 - **Issue**: Fragile SVG selector for icon testing
 - **Location**: `app/components/ui/StatusChip.test.tsx`
 - **Details**: Tests focus on text content rather than fragile SVG selectors
-- **Status**: ✅ Verified - Tests are correct
+- **Status**: ⏭️ Pruned - Duplicates `statusColors.test.ts` coverage
 
 ---
 
@@ -271,6 +271,8 @@ All route files lack test coverage for their loaders and actions:
 | Tests with potential false positives        | 0 (5 verified correct) |
 | Tests with description mismatches           | 1 (fixed)              |
 | Test files with consolidation opportunities | 2 (completed)          |
+| Test files pruned (low value)               | 7                      |
+| Test files trimmed (CSS/styling tests)      | 4                      |
 
 > **Note**: Many untested components are intentionally skipped per the [Testing Strategy](./testing-strategy.md). Route loaders/actions are recommended for E2E testing rather than unit tests.
 
@@ -282,16 +284,18 @@ All route files lack test coverage for their loaders and actions:
 - **Issues Resolved**: 20
 - **Issues Verified Correct**: 9
 - **Components Skipped (per strategy)**: 9
+- **Tests Pruned**: 123 tests across 11 files
 - **Percentage Complete**: ~53%
 
 ---
 
 ## Changelog
 
-| Date       | Changes                                                                                                                                                                                                                     |
-| ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 2025-12-17 | Initial review completed                                                                                                                                                                                                    |
-| 2025-12-17 | Phase 1 completed: Fixed test description in DeleteActionButton, consolidated statusColors.test.ts and bgUnits.test.ts using it.each(), verified existing tests for false positives (all correct)                           |
-| 2025-12-17 | Phase 2 completed: Added tests for useResourceState (14 tests), useClinicResolvers (20 tests), useLocale (6 tests), ClipboardButton (14 tests), DebouncedSearchInput (17 tests), ErrorStack (15 tests). Total: 86 new tests |
-| 2025-12-18 | Phase 3 completed: Added tests for SectionHeader (15 tests), CollapsibleTableWrapper (23 tests), ThemeSwitcher (12 tests), ToastContainer (17 tests). Total: 67 new tests                                                   |
-| 2025-12-18 | Created testing-strategy.md to document testing guidelines and component prioritization                                                                                                                                     |
+| Date       | Changes                                                                                                                                                                                                                                                                                                                                                               |
+| ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2025-12-17 | Initial review completed                                                                                                                                                                                                                                                                                                                                              |
+| 2025-12-17 | Phase 1 completed: Fixed test description in DeleteActionButton, consolidated statusColors.test.ts and bgUnits.test.ts using it.each(), verified existing tests for false positives (all correct)                                                                                                                                                                     |
+| 2025-12-17 | Phase 2 completed: Added tests for useResourceState (14 tests), useClinicResolvers (20 tests), useLocale (6 tests), ClipboardButton (14 tests), DebouncedSearchInput (17 tests), ErrorStack (15 tests). Total: 86 new tests                                                                                                                                           |
+| 2025-12-18 | Phase 3 completed: Added tests for SectionHeader (15 tests), CollapsibleTableWrapper (23 tests), ThemeSwitcher (12 tests), ToastContainer (17 tests). Total: 67 new tests                                                                                                                                                                                             |
+| 2025-12-18 | Created testing-strategy.md to document testing guidelines and component prioritization                                                                                                                                                                                                                                                                               |
+| 2025-12-18 | Phase 4 completed: Pruned low-value tests per testing strategy. Deleted 7 test files (SectionHeader, ThemeSwitcher, TableEmptyState, TableLoadingState, TabTitle, DetailsToggleButton, StatusChip). Trimmed CSS/styling tests from 4 files (ToastContainer, CollapsibleTableWrapper, SectionPanel, DangerZoneSection). Reduced from 680 to 557 tests (~18% reduction) |

@@ -234,22 +234,4 @@ describe('CollapsibleTableWrapper', () => {
       expect(button).toHaveFocus();
     });
   });
-
-  describe('Visual feedback', () => {
-    it('rotates chevron when expanded', async () => {
-      const user = userEvent.setup();
-      render(<CollapsibleTableWrapper {...defaultProps} />);
-
-      const button = screen.getByRole('button');
-      const chevron = button.querySelector('svg:not([data-testid])');
-
-      // Initially not rotated
-      expect(chevron?.classList.contains('rotate-180')).toBe(false);
-
-      await user.click(button);
-
-      // Should be rotated when expanded
-      expect(chevron?.classList.contains('rotate-180')).toBe(true);
-    });
-  });
 });

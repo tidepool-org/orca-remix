@@ -102,53 +102,6 @@ describe('DangerZoneSection', () => {
       const header = screen.getByText('Danger Zone');
       expect(header).toHaveClass('text-sm', 'font-semibold');
     });
-
-    it('renders with large size when specified explicitly', () => {
-      render(
-        <DangerZoneSection size="lg">
-          <div>Content</div>
-        </DangerZoneSection>,
-      );
-
-      const header = screen.getByText('Danger Zone');
-      expect(header).toHaveClass('text-lg', 'font-medium');
-    });
-  });
-
-  describe('Custom className', () => {
-    it('applies custom className to container', () => {
-      const { container } = render(
-        <DangerZoneSection className="custom-class mb-4">
-          <div>Content</div>
-        </DangerZoneSection>,
-      );
-
-      expect(container.innerHTML).toContain('custom-class');
-      expect(container.innerHTML).toContain('mb-4');
-    });
-
-    it('works without custom className', () => {
-      const { container } = render(
-        <DangerZoneSection>
-          <div>Content</div>
-        </DangerZoneSection>,
-      );
-
-      expect(container.firstChild).toBeInTheDocument();
-    });
-  });
-
-  describe('Danger styling', () => {
-    it('applies danger text color to header', () => {
-      const { container } = render(
-        <DangerZoneSection>
-          <div>Content</div>
-        </DangerZoneSection>,
-      );
-
-      const headerContainer = container.querySelector('.text-danger');
-      expect(headerContainer).toBeInTheDocument();
-    });
   });
 });
 
@@ -192,75 +145,6 @@ describe('DangerZoneAction', () => {
       expect(
         screen.getByRole('button', { name: 'Delete Now' }),
       ).toBeInTheDocument();
-    });
-  });
-
-  describe('Styling', () => {
-    it('has danger border styling', () => {
-      const { container } = render(
-        <DangerZoneAction
-          title="Test"
-          description="Test description"
-          actionButton={<button>Action</button>}
-        />,
-      );
-
-      expect(container.innerHTML).toContain('border-danger');
-      expect(container.innerHTML).toContain('rounded-lg');
-    });
-
-    it('has proper padding', () => {
-      const { container } = render(
-        <DangerZoneAction
-          title="Test"
-          description="Test description"
-          actionButton={<button>Action</button>}
-        />,
-      );
-
-      expect(container.innerHTML).toContain('p-4');
-    });
-
-    it('has flex layout with justify-between', () => {
-      const { container } = render(
-        <DangerZoneAction
-          title="Test"
-          description="Test description"
-          actionButton={<button>Action</button>}
-        />,
-      );
-
-      expect(container.innerHTML).toContain('flex');
-      expect(container.innerHTML).toContain('items-center');
-      expect(container.innerHTML).toContain('justify-between');
-    });
-  });
-
-  describe('Text styling', () => {
-    it('applies correct styling to title', () => {
-      render(
-        <DangerZoneAction
-          title="Test Title"
-          description="Description"
-          actionButton={<button>Action</button>}
-        />,
-      );
-
-      const title = screen.getByText('Test Title');
-      expect(title).toHaveClass('text-sm', 'font-medium');
-    });
-
-    it('applies correct styling to description', () => {
-      render(
-        <DangerZoneAction
-          title="Title"
-          description="Test Description"
-          actionButton={<button>Action</button>}
-        />,
-      );
-
-      const description = screen.getByText('Test Description');
-      expect(description).toHaveClass('text-xs', 'text-default-500');
     });
   });
 
