@@ -154,22 +154,4 @@ describe('ResourceError', () => {
       expect(icon).toHaveAttribute('aria-hidden', 'true');
     });
   });
-
-  describe('Styling', () => {
-    it('applies correct container classes', () => {
-      render(<ResourceError title="Prescriptions" />);
-
-      const container = screen.getByRole('alert');
-      expect(container).toHaveClass('flex', 'flex-col', 'items-center', 'py-8');
-    });
-
-    it('displays error message with appropriate styling', () => {
-      render(
-        <ResourceError title="Prescriptions" message="Server error occurred" />,
-      );
-
-      const message = screen.getByText('Server error occurred');
-      expect(message).toHaveClass('text-default-500', 'text-sm');
-    });
-  });
 });

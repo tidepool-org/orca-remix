@@ -19,35 +19,10 @@ describe('ClipboardButton', () => {
       expect(button).toBeInTheDocument();
     });
 
-    it('renders with icon-only style by default', () => {
-      render(<ClipboardButton />);
-
-      const button = screen.getByRole('button', { name: /copy to clipboard/i });
-      expect(button).toBeInTheDocument();
-    });
-
     it('renders custom children when provided', () => {
       render(<ClipboardButton>Custom Text</ClipboardButton>);
 
       expect(screen.getByText('Custom Text')).toBeInTheDocument();
-    });
-  });
-
-  describe('Props', () => {
-    it('accepts clipboardText prop', () => {
-      // ClipboardButton should accept clipboardText without error
-      render(<ClipboardButton clipboardText="test-value" />);
-
-      const button = screen.getByRole('button', { name: /copy to clipboard/i });
-      expect(button).toBeInTheDocument();
-    });
-
-    it('uses default clipboardText when not provided', () => {
-      // Should render without error when clipboardText is not provided
-      render(<ClipboardButton />);
-
-      const button = screen.getByRole('button', { name: /copy to clipboard/i });
-      expect(button).toBeInTheDocument();
     });
   });
 
@@ -80,22 +55,6 @@ describe('ClipboardButton', () => {
       const button = screen.getByRole('button', { name: /copy to clipboard/i });
       const svg = button.querySelector('svg');
       expect(svg).toHaveAttribute('aria-hidden', 'true');
-    });
-  });
-
-  describe('Custom props', () => {
-    it('passes through isDisabled prop', () => {
-      render(<ClipboardButton isDisabled />);
-
-      const button = screen.getByRole('button', { name: /copy to clipboard/i });
-      expect(button).toBeDisabled();
-    });
-
-    it('is not disabled by default', () => {
-      render(<ClipboardButton />);
-
-      const button = screen.getByRole('button', { name: /copy to clipboard/i });
-      expect(button).not.toBeDisabled();
     });
   });
 

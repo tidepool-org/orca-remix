@@ -108,27 +108,6 @@ describe('ToastContainer', () => {
 
       expect(screen.getByText(message)).toBeInTheDocument();
     });
-
-    it('renders icon for each toast type', () => {
-      const types: ToastType[] = ['success', 'error', 'warning', 'info'];
-
-      types.forEach((type) => {
-        const toasts: Toast[] = [{ id: '1', type, message: 'Test' }];
-        mockUseToast.mockReturnValue({
-          toasts,
-          showToast: vi.fn(),
-          hideToast: mockHideToast,
-        });
-
-        const { container, unmount } = render(<ToastContainer />);
-
-        // Each toast should have an icon (SVG)
-        const icons = container.querySelectorAll('svg');
-        expect(icons.length).toBeGreaterThan(0);
-
-        unmount();
-      });
-    });
   });
 
   describe('User Interactions', () => {

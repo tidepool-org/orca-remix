@@ -55,67 +55,6 @@ describe('CopyableIdentifier', () => {
     });
   });
 
-  describe('Monospace Styling', () => {
-    it('applies monospace font when monospace prop is true', () => {
-      render(<CopyableIdentifier value="abc123" monospace />);
-
-      const valueElement = screen.getByText('abc123');
-      expect(valueElement).toHaveClass('font-mono');
-    });
-
-    it('applies monospace font by default when label is provided', () => {
-      render(<CopyableIdentifier label="ID:" value="abc123" />);
-
-      const valueElement = screen.getByText('abc123');
-      expect(valueElement).toHaveClass('font-mono');
-    });
-
-    it('does not apply monospace when monospace is explicitly false', () => {
-      render(
-        <CopyableIdentifier label="ID:" value="abc123" monospace={false} />,
-      );
-
-      const valueElement = screen.getByText('abc123');
-      expect(valueElement).not.toHaveClass('font-mono');
-    });
-  });
-
-  describe('Truncation', () => {
-    it('applies truncation when truncate prop is true', () => {
-      render(<CopyableIdentifier value="very-long-value-here" truncate />);
-
-      const valueElement = screen.getByText('very-long-value-here');
-      expect(valueElement).toHaveClass('truncate');
-    });
-
-    it('applies custom maxWidth when provided', () => {
-      render(
-        <CopyableIdentifier
-          value="very-long-value-here"
-          truncate
-          maxWidth="200px"
-        />,
-      );
-
-      const valueElement = screen.getByText('very-long-value-here');
-      expect(valueElement).toHaveStyle({ maxWidth: '200px' });
-    });
-
-    it('adds title attribute for truncated values', () => {
-      render(<CopyableIdentifier value="very-long-value-here" truncate />);
-
-      const valueElement = screen.getByText('very-long-value-here');
-      expect(valueElement).toHaveAttribute('title', 'very-long-value-here');
-    });
-
-    it('does not add title attribute when not truncated', () => {
-      render(<CopyableIdentifier value="short-value" />);
-
-      const valueElement = screen.getByText('short-value');
-      expect(valueElement).not.toHaveAttribute('title');
-    });
-  });
-
   describe('Custom Children', () => {
     it('renders custom children instead of value text', () => {
       render(

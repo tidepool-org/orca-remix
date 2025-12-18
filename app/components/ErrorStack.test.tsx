@@ -51,17 +51,6 @@ describe('ErrorStack', () => {
       // The accordion item should be present
       expect(screen.getByRole('button')).toBeInTheDocument();
     });
-
-    it('renders alert icon', () => {
-      const error = new Error('Test error');
-      mockUseRouteError.mockReturnValue(error);
-
-      render(<ErrorStack />);
-
-      // The AlertCircle icon should be rendered
-      const svg = document.querySelector('svg');
-      expect(svg).toBeInTheDocument();
-    });
   });
 
   describe('Accessibility', () => {

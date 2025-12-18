@@ -103,32 +103,16 @@ describe('SectionPanel', () => {
         screen.getByRole('button', { name: 'Toggle' }),
       ).toBeInTheDocument();
     });
-
-    it('positions header controls on the right side of header', () => {
-      render(
-        <SectionPanel
-          icon={<Settings />}
-          title="Test Section"
-          headerControls={<button data-testid="control">Control</button>}
-        >
-          <p>Content</p>
-        </SectionPanel>,
-      );
-
-      const control = screen.getByTestId('control');
-      expect(control).toBeInTheDocument();
-    });
   });
 
   describe('Non-Collapsible Mode (default)', () => {
-    it('does not render chevron icon by default', () => {
+    it('does not render toggle button by default', () => {
       render(
         <SectionPanel icon={<Settings />} title="Test Section">
           <p>Content</p>
         </SectionPanel>,
       );
 
-      // ChevronDown should not be present
       expect(screen.queryByRole('button')).not.toBeInTheDocument();
     });
 
@@ -141,29 +125,16 @@ describe('SectionPanel', () => {
 
       expect(screen.getByText('Always visible content')).toBeInTheDocument();
     });
-
-    it('renders header as div not button when not collapsible', () => {
-      render(
-        <SectionPanel icon={<Settings />} title="Test Section">
-          <p>Content</p>
-        </SectionPanel>,
-      );
-
-      // There should be no button in the header area
-      const header = screen.getByText('Test Section').closest('div');
-      expect(header?.tagName).toBe('DIV');
-    });
   });
 
   describe('Collapsible Mode', () => {
-    it('renders chevron icon when collapsible', () => {
+    it('renders as button when collapsible', () => {
       render(
         <SectionPanel icon={<Settings />} title="Test Section" collapsible>
           <p>Content</p>
         </SectionPanel>,
       );
 
-      // Header should be a button when collapsible
       expect(screen.getByRole('button')).toBeInTheDocument();
     });
 

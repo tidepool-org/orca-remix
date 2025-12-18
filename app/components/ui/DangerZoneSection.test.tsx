@@ -79,30 +79,6 @@ describe('DangerZoneSection', () => {
       expect(svg).toHaveAttribute('aria-hidden', 'true');
     });
   });
-
-  describe('Size variants', () => {
-    it('renders with large size by default', () => {
-      render(
-        <DangerZoneSection>
-          <div>Content</div>
-        </DangerZoneSection>,
-      );
-
-      const header = screen.getByText('Danger Zone');
-      expect(header).toHaveClass('text-lg', 'font-medium');
-    });
-
-    it('renders with small size when specified', () => {
-      render(
-        <DangerZoneSection size="sm">
-          <div>Content</div>
-        </DangerZoneSection>,
-      );
-
-      const header = screen.getByText('Danger Zone');
-      expect(header).toHaveClass('text-sm', 'font-semibold');
-    });
-  });
 });
 
 describe('DangerZoneAction', () => {

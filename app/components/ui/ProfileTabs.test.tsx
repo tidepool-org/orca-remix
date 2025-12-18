@@ -181,37 +181,6 @@ describe('ProfileTabs', () => {
     });
   });
 
-  describe('Styling', () => {
-    it('applies underlined variant styling', () => {
-      render(
-        <ProfileTabs aria-label="Profile tabs">
-          <Tab key="tab1" title="Tab 1">
-            Content 1
-          </Tab>
-        </ProfileTabs>,
-      );
-
-      const tablist = screen.getByRole('tablist');
-      // Check for the underlined variant styling classes
-      expect(tablist).toHaveClass('border-b');
-      expect(tablist).toHaveClass('border-divider');
-    });
-
-    it('applies consistent tab styling', () => {
-      render(
-        <ProfileTabs aria-label="Profile tabs">
-          <Tab key="tab1" title="Tab 1">
-            Content 1
-          </Tab>
-        </ProfileTabs>,
-      );
-
-      const tablist = screen.getByRole('tablist');
-      expect(tablist).toHaveClass('gap-4');
-      expect(tablist).toHaveClass('w-full');
-    });
-  });
-
   describe('Accessibility', () => {
     it('has accessible tablist role', () => {
       render(

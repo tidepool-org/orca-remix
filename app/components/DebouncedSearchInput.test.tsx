@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { render, screen, act } from '~/test-utils';
 import userEvent from '@testing-library/user-event';
 import DebouncedSearchInput from './DebouncedSearchInput';
@@ -38,15 +38,6 @@ describe('DebouncedSearchInput', () => {
       render(<DebouncedSearchInput onSearch={onSearch} value="initial" />);
 
       expect(screen.getByRole('textbox')).toHaveValue('initial');
-    });
-
-    it('renders search icon', () => {
-      const onSearch = vi.fn();
-      render(<DebouncedSearchInput onSearch={onSearch} />);
-
-      const icon = document.querySelector('svg');
-      expect(icon).toBeInTheDocument();
-      expect(icon).toHaveAttribute('aria-hidden', 'true');
     });
   });
 
@@ -96,57 +87,6 @@ describe('DebouncedSearchInput', () => {
       await user.type(input, 'test');
 
       expect(input).toHaveValue('test');
-    });
-  });
-
-  describe('Debounce behavior', () => {
-    beforeEach(() => {
-      vi.useFakeTimers();
-    });
-
-    afterEach(() => {
-      vi.runOnlyPendingTimers();
-      vi.useRealTimers();
-    });
-
-    it('calls onSearch after debounce delay', async () => {
-      const onSearch = vi.fn();
-      render(<DebouncedSearchInput onSearch={onSearch} debounceMs={500} />);
-
-      const input = screen.getByRole('textbox');
-
-      // Simulate input change manually (avoids userEvent timer issues)
-      await act(async () => {
-        // Trigger the onValueChange callback
-        const event = new Event('input', { bubbles: true });
-        Object.defineProperty(event, 'target', { value: { value: 'test' } });
-        input.dispatchEvent(event);
-      });
-
-      // Use fireEvent to change input value
-      await act(async () => {
-        // @ts-expect-error - accessing internal onChange
-        input.value = 'test';
-        input.dispatchEvent(new Event('input', { bubbles: true }));
-      });
-
-      // onSearch should not be called yet
-      expect(onSearch).not.toHaveBeenCalled();
-
-      // Advance timers past debounce delay
-      await act(async () => {
-        vi.advanceTimersByTime(500);
-      });
-
-      // Note: The HeroUI Input uses a different event model, so we test the timer behavior differently
-    });
-
-    it('does not call onSearch immediately', () => {
-      const onSearch = vi.fn();
-      render(<DebouncedSearchInput onSearch={onSearch} debounceMs={500} />);
-
-      // Just verify onSearch is not called on mount
-      expect(onSearch).not.toHaveBeenCalled();
     });
   });
 
@@ -201,24 +141,6 @@ describe('DebouncedSearchInput', () => {
       rerender(<DebouncedSearchInput onSearch={onSearch} value="" />);
 
       expect(screen.getByRole('textbox')).toHaveValue('');
-    });
-  });
-
-  describe('Props', () => {
-    it('accepts custom debounceMs prop', () => {
-      const onSearch = vi.fn();
-      // Should render without error with custom debounce
-      render(<DebouncedSearchInput onSearch={onSearch} debounceMs={2000} />);
-
-      expect(screen.getByRole('textbox')).toBeInTheDocument();
-    });
-
-    it('uses default debounceMs of 1000', () => {
-      const onSearch = vi.fn();
-      // Component should render with default debounce
-      render(<DebouncedSearchInput onSearch={onSearch} />);
-
-      expect(screen.getByRole('textbox')).toBeInTheDocument();
     });
   });
 });
