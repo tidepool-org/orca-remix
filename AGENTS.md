@@ -58,13 +58,34 @@
 - **HeroUI Notes**: HeroUI modifies button accessible names when loading (e.g., "Confirm" becomes "Loading Confirm"). Use regex matchers like `/Loading Confirm/i` when testing loading states
 - **Running Tests**: Run `npm run test:run` before committing to ensure all tests pass
 
-### When to Write Tests
+### Test Value Assessment
 
-**IMPORTANT**: Tests are required for all new components. When creating or modifying components:
+Before writing tests, evaluate whether they provide sufficient value. Not all components need unit tests.
 
-1. **New Components**: Every new component in `app/components/` must have a corresponding `*.test.tsx` file
-2. **Modified Components**: When adding significant new functionality to existing components, add tests covering the new behavior
-3. **Reusable UI Components**: Components in `app/components/ui/` are especially important to test as they are used across multiple features
+**Write unit tests when:**
+
+- Complex state logic (filtering, sorting, pagination)
+- User interactions with side effects (form submissions, delete confirmations)
+- Business rule validation (data transformations, permission checks)
+- Reusable utility functions (date formatters, converters)
+- Error handling paths (API errors, validation errors)
+
+**Skip unit tests when:**
+
+- Thin wrapper components (e.g., `ClinicLookup` wrapping `LookupForm` - parent is already tested)
+- Purely presentational components (TypeScript enforces prop types)
+- CSS/styling verification (fragile, low value)
+- Third-party library behavior (HeroUI internals)
+- Route loaders/actions (prefer E2E tests - too much mocking required)
+
+**Test quality guidelines:**
+
+- Test behavior, not implementation ("filters patients by search term" not "sets filterText state")
+- Don't test what TypeScript already enforces (required props, type constraints)
+- Avoid duplicate coverage (if `CopyableIdentifier` is tested, don't re-test copy behavior in every component using it)
+- Every test should answer: "What bug would this catch that nothing else would?"
+
+See `docs/testing-strategy.md` for detailed component assessments and examples.
 
 ### Test Structure Best Practices
 
