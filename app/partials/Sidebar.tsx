@@ -148,7 +148,7 @@ function Sidebar({ sidebarOpen, setSidebarOpen }: SidebarOpenProps) {
                   to={href}
                   className="text-content4-foreground hover:text-content4-foreground/80 [&.active]:bg-primary-600 [&.active]:text-content4-foreground rounded-md p-2 block"
                 >
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 justify-center sidebar-expanded:justify-start">
                     <div className="block sidebar-expanded:block">
                       <Icon />
                     </div>
@@ -163,7 +163,7 @@ function Sidebar({ sidebarOpen, setSidebarOpen }: SidebarOpenProps) {
         </nav>
 
         {/* Expand / collapse button */}
-        <div className="pt-3 hidden lg:inline-flex 2xl:hidden justify-end mt-auto">
+        <div className="pt-3 hidden lg:inline-flex 2xl:hidden justify-center sidebar-expanded:justify-end mt-auto">
           <div className="px-2 py-2">
             <Button
               className="bg-transparent text-content4-foreground"
