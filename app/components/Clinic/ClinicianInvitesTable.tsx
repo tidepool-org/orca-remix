@@ -120,11 +120,7 @@ export default function ClinicianInvitesTable({
   );
 
   const EmptyContent = (
-    <TableEmptyState
-      icon={UserPlus}
-      message="Clinician invites data is not available"
-      subMessage="The API does not support listing all clinician invites for a clinic"
-    />
+    <TableEmptyState icon={UserPlus} message="No pending clinician invites" />
   );
 
   const LoadingContent = (

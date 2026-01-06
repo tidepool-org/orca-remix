@@ -398,13 +398,36 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     const patientInvites = patientInvitesResponse || [];
     const totalInvites = patientInvites.length;
 
-    // Clinician invites - not available via API (no list endpoint exists)
-    // Would need GET /v1/clinics/{clinicId}/invites/clinicians but only individual invite retrieval is supported
-    const clinicianInvites: ClinicianInvite[] = [];
-    const totalClinicianInvites = 0;
+    // Process clinicians data - API returns both clinicians AND pending invites in the same list
+    // Clinicians have 'id' (no 'inviteId'), invites have 'inviteId' (no 'id')
+    const allRecords = (cliniciansResponse || []) as Array<{
+      id?: string;
+      inviteId?: string;
+      email?: string;
+      name?: string;
+      roles?: string[];
+      createdTime?: string;
+      updatedTime?: string;
+    }>;
 
-    // Process clinicians data - we fetch all clinicians and paginate on frontend
-    const allClinicians = cliniciansResponse || [];
+    // Separate actual clinicians from pending invites
+    const allClinicians = allRecords.filter(
+      (record) => record.id && !record.inviteId,
+    );
+
+    // Extract pending clinician invites and map to ClinicianInvite type
+    const clinicianInvites: ClinicianInvite[] = allRecords
+      .filter((record) => record.inviteId)
+      .map((invite) => ({
+        inviteId: invite.inviteId!,
+        email: invite.email || '',
+        roles: invite.roles || [],
+        clinicId: clinicId,
+        createdTime: invite.createdTime || '',
+        status: 'pending' as const,
+      }));
+
+    const totalClinicianInvites = clinicianInvites.length;
 
     // Filter clinicians by search term (frontend search)
     const filteredClinicians = cliniciansSearch

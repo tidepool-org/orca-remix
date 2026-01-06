@@ -200,9 +200,9 @@ export const apiRoutes = {
       method: 'get',
       path: `/v1/clinics/${clinicId}/invites/patients`,
     }),
-    // Note: There is no API endpoint to list all clinician invites for a clinic
-    // GET /v1/clinics/{clinicId}/invites/clinicians only works with a specific {inviteId}
-    // Use getClinicianInvite(clinicId, inviteId) to get a specific invite instead
+    // Note: Clinician invites are returned in the getClinicians endpoint response.
+    // Records with 'inviteId' (no 'id') are pending invites; records with 'id' are accepted clinicians.
+    // Use getClinicianInvite to get a specific invite by its ID.
     getClinicianInvite: (clinicId: string, inviteId: string) => ({
       method: 'get',
       path: `/v1/clinics/${clinicId}/invites/clinicians/${inviteId}`,
