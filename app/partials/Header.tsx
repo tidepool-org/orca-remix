@@ -20,10 +20,7 @@ function Header({ sidebarOpen, setSidebarOpen }: SidebarOpenProps) {
               isIconOnly
               aria-controls="sidebar"
               aria-expanded={sidebarOpen}
-              onPress={(e) => {
-                e.stopPropagation();
-                setSidebarOpen(!sidebarOpen);
-              }}
+              onPress={() => setSidebarOpen(!sidebarOpen)}
             >
               <span className="sr-only">Open sidebar</span>
               <Menu />

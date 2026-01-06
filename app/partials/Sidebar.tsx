@@ -106,12 +106,12 @@ function Sidebar({ sidebarOpen, setSidebarOpen }: SidebarOpenProps) {
       <div
         id="sidebar"
         ref={sidebar}
-        className={`flex flex-col absolute z-40 left-0 top-0 lg:static lg:left-auto lg:top-auto lg:translate-x-0 h-screen overflow-y-scroll lg:overflow-y-auto no-scrollbar w-64 lg:w-20 lg:sidebar-expanded:!w-64 2xl:!w-64 shrink-0 bg-content4 text-content4-foreground p-4 pt-0 transition-all duration-200 ease-in-out ${
+        className={`flex flex-col absolute z-40 left-0 top-0 lg:static lg:left-auto lg:top-auto lg:translate-x-0 h-screen overflow-y-scroll lg:overflow-y-auto no-scrollbar w-64 lg:w-24 lg:sidebar-expanded:!w-64 2xl:!w-64 shrink-0 bg-content4 text-content4-foreground p-4 pt-0 transition-all duration-200 ease-in-out ${
           sidebarOpen ? 'translate-x-0' : '-translate-x-64'
         }`}
       >
         {/* Sidebar header */}
-        <div className="flex items-center justify-between mb-5 pr-3 sm:px-2 h-16">
+        <div className="flex items-center justify-between lg:justify-center sidebar-expanded:justify-between mb-5 pr-3 sm:px-2 h-16">
           {/* Close button */}
           <Button
             ref={trigger}
@@ -128,31 +128,29 @@ function Sidebar({ sidebarOpen, setSidebarOpen }: SidebarOpenProps) {
 
           <NavLink to="/">
             <Logo
-              className={`hidden md:block 2xl:hidden right-${
-                sidebarOpen || sidebarExpanded ? 3 : 0
+              className={`hidden lg:block 2xl:hidden right-${
+                sidebarExpanded ? 3 : 0
               }`}
-              src={sidebarOpen || sidebarExpanded ? undefined : SmallLogo}
-              width={sidebarOpen || sidebarExpanded ? undefined : 32}
+              src={sidebarExpanded ? undefined : SmallLogo}
+              width={sidebarExpanded ? undefined : 32}
               theme={Theme.DARK}
             />
-            <Logo className="md:hidden 2xl:block right-2" theme={Theme.DARK} />
+            <Logo className="lg:hidden 2xl:block right-2" theme={Theme.DARK} />
           </NavLink>
         </div>
 
         {/* Links */}
         <nav className="space-y-8">
-          <ul>
+          <ul className="px-3">
             {links.map(({ href, text, icon: Icon }, i) => (
-              <li className="mx-3" key={i}>
+              <li key={i}>
                 <NavLink
                   to={href}
                   className="text-content4-foreground hover:text-content4-foreground/80 [&.active]:bg-primary-600 [&.active]:text-content4-foreground rounded-md p-2 block"
                 >
-                  <div className="flex gap-2 justify-center sidebar-expanded:justify-start">
-                    <div className="block sidebar-expanded:block">
-                      <Icon />
-                    </div>
-                    <div className="hidden sidebar-expanded:block whitespace-nowrap">
+                  <div className="flex gap-2 lg:justify-center sidebar-expanded:justify-start">
+                    <Icon className="shrink-0 w-6 h-6" />
+                    <div className="lg:hidden sidebar-expanded:block whitespace-nowrap">
                       {text}
                     </div>
                   </div>
