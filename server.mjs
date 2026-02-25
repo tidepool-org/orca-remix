@@ -41,4 +41,8 @@ app.all(
 );
 
 const port = 3000;
-app.listen(port, () => console.log('http://localhost:' + port));
+
+const host =
+  process.env.NODE_ENV === 'production' ? 'http://0.0.0.0' : 'http://localhost';
+
+app.listen(port, () => console.log(host + ':' + port));
