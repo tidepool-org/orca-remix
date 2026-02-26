@@ -25,7 +25,12 @@ import type {
 import type { ResourceState } from '~/api.types';
 import { apiRequest, apiRoutes, apiRequestSafe } from '~/api.server';
 import { usersSession } from '~/sessions.server';
-import { useLoaderData } from 'react-router';
+import {
+  useLoaderData,
+  useSearchParams,
+  useSubmit,
+} from 'react-router';
+import { useCallback } from 'react';
 import isArray from 'lodash/isArray';
 import pick from 'lodash/pick';
 import uniqBy from 'lodash/uniqBy';
@@ -581,6 +586,22 @@ export default function Users() {
     receivedInvitesState,
   } = useLoaderData<typeof loader>();
 
+  const [searchParams] = useSearchParams();
+  const submit = useSubmit();
+
+  // Get current tab from URL search params
+  const currentTab = searchParams.get('tab') || undefined;
+
+  // Handle tab change - persist to URL
+  const handleTabChange = useCallback(
+    (key: React.Key) => {
+      const newSearchParams = new URLSearchParams(searchParams);
+      newSearchParams.set('tab', key.toString());
+      submit(newSearchParams, { method: 'GET', replace: true });
+    },
+    [searchParams, submit],
+  );
+
   // Render profile if user exists (profile may be empty object for users without profile metadata)
   return user ? (
     <UserProfile
@@ -607,6 +628,8 @@ export default function Users() {
       trustedAccountsState={trustedAccountsState}
       sentInvitesState={sentInvitesState}
       receivedInvitesState={receivedInvitesState}
+      selectedTab={currentTab}
+      onTabChange={handleTabChange}
     />
   ) : null;
 }

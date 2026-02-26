@@ -67,6 +67,9 @@ export type UserProfileProps = {
   trustedAccountsState?: ResourceState<AccessPermissionsMap>;
   sentInvitesState?: ResourceState<ShareInvite[]>;
   receivedInvitesState?: ResourceState<ShareInvite[]>;
+  // Tab control props
+  selectedTab?: string;
+  onTabChange?: (key: React.Key) => void;
 };
 
 export default function UserProfile({
@@ -102,6 +105,9 @@ export default function UserProfile({
   trustedAccountsState,
   sentInvitesState,
   receivedInvitesState,
+  // Tab control props
+  selectedTab,
+  onTabChange,
 }: UserProfileProps) {
   const { emailVerified, userid: userId, username, termsAccepted } = user;
   const { fullName, clinic } = profile;
@@ -167,7 +173,11 @@ export default function UserProfile({
         {UserDetailsSection}
 
         <div className="w-full">
-          <ProfileTabs aria-label="Clinician profile sections">
+          <ProfileTabs
+            aria-label="Clinician profile sections"
+            selectedKey={selectedTab}
+            onSelectionChange={onTabChange}
+          >
             {/* Clinics Tab */}
             <Tab
               key="clinics"
@@ -214,7 +224,11 @@ export default function UserProfile({
       {UserDetailsSection}
 
       <div className="w-full">
-        <ProfileTabs aria-label="User profile sections">
+        <ProfileTabs
+          aria-label="User profile sections"
+          selectedKey={selectedTab}
+          onSelectionChange={onTabChange}
+        >
           {/* Clinics Tab */}
           <Tab
             key="clinics"
