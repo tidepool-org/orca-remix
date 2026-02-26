@@ -297,6 +297,12 @@ export const apiRoutes = {
       path: `/v1/clinics/${targetClinicId}/merge`,
       body: { sourceId: sourceClinicId },
     }),
+    // Generate merge report (xlsx) for merging source clinic into target clinic
+    generateMergeReport: (targetClinicId: string, sourceClinicId: string) => ({
+      method: 'post',
+      path: `/v1/clinics/${targetClinicId}/reports/merge`,
+      body: { sourceId: sourceClinicId },
+    }),
     // Delete clinician invitation
     // ref https://tidepool.redocly.app/reference/clinic.v1/confirmations/deleteclinicianinvite
     deleteClinicianInvite: (clinicId: string, inviteId: string) => ({
@@ -431,12 +437,15 @@ export const apiRequests = async (requests: apiRequestArgs[]) => {
 export const apiRequestFile = async ({
   path,
   method,
+  body,
 }: apiRequestArgs): Promise<Response> => {
   const result = await fetch(`${process.env.API_HOST}${path}`, {
     method,
     headers: {
       'x-tidepool-session-token': serverAuth.serverSessionToken,
+      ...(body && { 'Content-Type': 'application/json' }),
     },
+    ...(body && { body: JSON.stringify(body) }),
   });
 
   if (!result.ok) {
