@@ -611,10 +611,12 @@ export default function Users() {
   } = useLoaderData<typeof loader>();
 
   // Tab persistence with localStorage + URL sync
+  // Clinician accounts default to "clinics", patient accounts default to "data"
+  const defaultTab = profile?.clinic ? 'clinics' : 'data';
   const { currentTab, handleTabChange } = usePersistedTab(
     'user',
     user?.userid,
-    'clinics',
+    defaultTab,
   );
 
   // Render profile if user exists (profile may be empty object for users without profile metadata)

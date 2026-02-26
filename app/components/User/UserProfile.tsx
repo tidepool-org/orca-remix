@@ -229,6 +229,51 @@ export default function UserProfile({
           selectedKey={selectedTab}
           onSelectionChange={onTabChange}
         >
+          {/* Data Tab */}
+          <Tab
+            key="data"
+            title={
+              <TabTitle icon={Database} label="Data" count={totalDataSets} />
+            }
+          >
+            <div className="pt-6 flex flex-col gap-6">
+              <CollapsibleGroup>
+                <DataSetsTable
+                  dataSets={dataSets}
+                  dataSetsState={dataSetsState}
+                  totalDataSets={totalDataSets}
+                  isFirstInGroup
+                />
+                <DataSourcesTable
+                  dataSources={dataSources}
+                  dataSourcesState={dataSourcesState}
+                  totalDataSources={totalDataSources}
+                />
+                <DataExportSection userId={userId} />
+              </CollapsibleGroup>
+            </div>
+          </Tab>
+
+          {/* Device Tab */}
+          <Tab
+            key="device"
+            title={
+              <TabTitle
+                icon={Smartphone}
+                label="Device"
+                count={pumpSettings.length}
+              />
+            }
+          >
+            <div className="pt-6">
+              <PumpSettingsSection
+                pumpSettings={pumpSettings}
+                pumpSettingsState={pumpSettingsState}
+                isLoading={isPumpSettingsLoading}
+              />
+            </div>
+          </Tab>
+
           {/* Clinics Tab */}
           <Tab
             key="clinics"
@@ -283,51 +328,6 @@ export default function UserProfile({
                   receivedInvitesState={receivedInvitesState}
                 />
               </CollapsibleGroup>
-            </div>
-          </Tab>
-
-          {/* Data Tab */}
-          <Tab
-            key="data"
-            title={
-              <TabTitle icon={Database} label="Data" count={totalDataSets} />
-            }
-          >
-            <div className="pt-6 flex flex-col gap-6">
-              <CollapsibleGroup>
-                <DataSetsTable
-                  dataSets={dataSets}
-                  dataSetsState={dataSetsState}
-                  totalDataSets={totalDataSets}
-                  isFirstInGroup
-                />
-                <DataSourcesTable
-                  dataSources={dataSources}
-                  dataSourcesState={dataSourcesState}
-                  totalDataSources={totalDataSources}
-                />
-                <DataExportSection userId={userId} />
-              </CollapsibleGroup>
-            </div>
-          </Tab>
-
-          {/* Device Tab */}
-          <Tab
-            key="device"
-            title={
-              <TabTitle
-                icon={Smartphone}
-                label="Device"
-                count={pumpSettings.length}
-              />
-            }
-          >
-            <div className="pt-6">
-              <PumpSettingsSection
-                pumpSettings={pumpSettings}
-                pumpSettingsState={pumpSettingsState}
-                isLoading={isPumpSettingsLoading}
-              />
             </div>
           </Tab>
 
