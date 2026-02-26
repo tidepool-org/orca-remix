@@ -1,4 +1,5 @@
 import { Tab } from '@heroui/react';
+import { useState } from 'react';
 import { Building2, Settings } from 'lucide-react';
 import { useFetcher } from 'react-router';
 import useLocale from '~/hooks/useLocale';
@@ -8,6 +9,7 @@ import ProfileTabs from '~/components/ui/ProfileTabs';
 import TabTitle from '~/components/ui/TabTitle';
 import StatusChip from '~/components/ui/StatusChip';
 import SettingsToggleRow from '~/components/ui/SettingsToggleRow';
+import SaveCancelButtons from '~/components/ui/SaveCancelButtons';
 import SectionPanel from '~/components/ui/SectionPanel';
 import ViewUserAccountLink from '~/components/ui/ViewUserAccountLink';
 import { CollapsibleGroup } from '~/components/CollapsibleGroup';
@@ -53,30 +55,37 @@ export default function ClinicianProfile({
     return clinician.roles?.some((r) => r.toLowerCase() === role.toLowerCase());
   };
 
-  const isAdmin = hasRole('CLINIC_ADMIN');
-  const isPrescriber = hasRole('PRESCRIBER');
+  const serverIsAdmin = hasRole('CLINIC_ADMIN');
+  const serverIsPrescriber = hasRole('PRESCRIBER');
+
+  // Staged local state for role toggles
+  const [stagedAdmin, setStagedAdmin] = useState(serverIsAdmin);
+  const [stagedPrescriber, setStagedPrescriber] = useState(serverIsPrescriber);
+
+  // Reset staged state when server roles change (after successful save)
+  const rolesKey = clinician.roles?.join(',');
+  const [prevRolesKey, setPrevRolesKey] = useState(rolesKey);
+  if (rolesKey !== prevRolesKey) {
+    setPrevRolesKey(rolesKey);
+    setStagedAdmin(serverIsAdmin);
+    setStagedPrescriber(serverIsPrescriber);
+  }
 
   // Check if the fetcher is currently updating
   const isUpdating = fetcher.state === 'submitting';
 
-  // Handle toggle changes
-  const handleAdminToggle = (checked: boolean) => {
+  // Dirty detection
+  const isAdminDirty = stagedAdmin !== serverIsAdmin;
+  const isPrescriberDirty = stagedPrescriber !== serverIsPrescriber;
+
+  // Build roles array from staged state and submit
+  const submitRoles = (admin: boolean, prescriber: boolean) => {
     if (!clinicId) return;
 
-    // Build new roles array
-    let newRoles: string[];
-    if (checked) {
-      // Setting admin: remove CLINIC_MEMBER, add CLINIC_ADMIN
-      newRoles = clinician.roles
-        .filter((r) => r !== 'CLINIC_MEMBER')
-        .filter((r) => r !== 'CLINIC_ADMIN');
-      newRoles.push('CLINIC_ADMIN');
-    } else {
-      // Unsetting admin: remove CLINIC_ADMIN, add CLINIC_MEMBER
-      newRoles = clinician.roles
-        .filter((r) => r !== 'CLINIC_ADMIN')
-        .filter((r) => r !== 'CLINIC_MEMBER');
-      newRoles.push('CLINIC_MEMBER');
+    const newRoles: string[] = [];
+    newRoles.push(admin ? 'CLINIC_ADMIN' : 'CLINIC_MEMBER');
+    if (prescriber) {
+      newRoles.push('PRESCRIBER');
     }
 
     fetcher.submit(
@@ -88,29 +97,21 @@ export default function ClinicianProfile({
     );
   };
 
-  const handlePrescriberToggle = (checked: boolean) => {
-    if (!clinicId) return;
+  // Save/cancel handlers
+  const handleAdminSave = () => {
+    submitRoles(stagedAdmin, serverIsPrescriber);
+  };
 
-    // Build new roles array
-    let newRoles: string[];
-    if (checked) {
-      // Add PRESCRIBER role
-      newRoles = [
-        ...clinician.roles.filter((r) => r !== 'PRESCRIBER'),
-        'PRESCRIBER',
-      ];
-    } else {
-      // Remove PRESCRIBER role
-      newRoles = clinician.roles.filter((r) => r !== 'PRESCRIBER');
-    }
+  const handleAdminCancel = () => {
+    setStagedAdmin(serverIsAdmin);
+  };
 
-    fetcher.submit(
-      {
-        intent: 'update-roles',
-        roles: JSON.stringify(newRoles),
-      },
-      { method: 'POST' },
-    );
+  const handlePrescriberSave = () => {
+    submitRoles(serverIsAdmin, stagedPrescriber);
+  };
+
+  const handlePrescriberCancel = () => {
+    setStagedPrescriber(serverIsPrescriber);
   };
 
   // Clinician details section - using ProfileHeader component
@@ -189,24 +190,50 @@ export default function ClinicianProfile({
                 >
                   <div className="flex flex-col gap-6">
                     {/* Admin Toggle */}
-                    <SettingsToggleRow
-                      label="Clinic Admin"
-                      description="Admin users can manage clinic settings, invite other clinicians, and manage patients."
-                      isSelected={isAdmin}
-                      onValueChange={handleAdminToggle}
-                      isDisabled={isUpdating}
-                      ariaLabel="Toggle admin role"
-                    />
+                    <div className="flex items-center gap-4">
+                      <div className="flex-1">
+                        <SettingsToggleRow
+                          label="Clinic Admin"
+                          description="Admin users can manage clinic settings, invite other clinicians, and manage patients."
+                          isSelected={stagedAdmin}
+                          onValueChange={setStagedAdmin}
+                          isDisabled={isUpdating}
+                          ariaLabel="Toggle admin role"
+                        />
+                      </div>
+                      {isAdminDirty && (
+                        <SaveCancelButtons
+                          onSave={handleAdminSave}
+                          onCancel={handleAdminCancel}
+                          isDisabled={isUpdating}
+                          saveAriaLabel="Save admin role change"
+                          cancelAriaLabel="Cancel admin role change"
+                        />
+                      )}
+                    </div>
 
                     {/* Prescriber Toggle */}
-                    <SettingsToggleRow
-                      label="Prescriber"
-                      description="Prescribers can create and manage prescriptions for patients."
-                      isSelected={isPrescriber}
-                      onValueChange={handlePrescriberToggle}
-                      isDisabled={isUpdating}
-                      ariaLabel="Toggle prescriber role"
-                    />
+                    <div className="flex items-center gap-4">
+                      <div className="flex-1">
+                        <SettingsToggleRow
+                          label="Prescriber"
+                          description="Prescribers can create and manage prescriptions for patients."
+                          isSelected={stagedPrescriber}
+                          onValueChange={setStagedPrescriber}
+                          isDisabled={isUpdating}
+                          ariaLabel="Toggle prescriber role"
+                        />
+                      </div>
+                      {isPrescriberDirty && (
+                        <SaveCancelButtons
+                          onSave={handlePrescriberSave}
+                          onCancel={handlePrescriberCancel}
+                          isDisabled={isUpdating}
+                          saveAriaLabel="Save prescriber role change"
+                          cancelAriaLabel="Cancel prescriber role change"
+                        />
+                      )}
+                    </div>
                   </div>
 
                   {fetcher.data?.error && (
