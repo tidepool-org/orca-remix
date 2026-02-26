@@ -1,15 +1,15 @@
 import { formatShortDate } from '~/utils/dateFormatters';
 import { useState, useEffect } from 'react';
-import { Select, SelectItem, Button, Tab, Input } from '@heroui/react';
 import {
-  Edit2,
-  X,
-  Users,
-  UserCog,
-  FileText,
-  Settings,
-  Trash2,
-} from 'lucide-react';
+  Select,
+  SelectItem,
+  Autocomplete,
+  AutocompleteItem,
+  Button,
+  Tab,
+  Input,
+} from '@heroui/react';
+import { Users, UserCog, FileText, Settings, Trash2 } from 'lucide-react';
 import type { Key } from 'react';
 
 import type {
@@ -39,6 +39,7 @@ import SettingsToggleRow from '~/components/ui/SettingsToggleRow';
 import DangerZoneSection, {
   DangerZoneAction,
 } from '~/components/ui/DangerZoneSection';
+import SaveCancelButtons from '~/components/ui/SaveCancelButtons';
 import SectionPanel from '~/components/ui/SectionPanel';
 import { CollapsibleGroup } from '~/components/CollapsibleGroup';
 import { timezoneNames } from '~/utils/timezoneNames';
@@ -157,8 +158,10 @@ export default function ClinicProfile({
     clinic;
   const { locale } = useLocale();
 
+  // Staged tier state (for 2-step save/cancel)
+  const [stagedTier, setStagedTier] = useState(tier);
+
   // Timezone editing state
-  const [isEditingTimezone, setIsEditingTimezone] = useState(false);
   const [selectedTimezone, setSelectedTimezone] = useState(timezone || '');
 
   // MRN settings editing state
@@ -199,10 +202,14 @@ export default function ClinicProfile({
     },
   ];
 
+  // Reset staged tier when server value changes
+  useEffect(() => {
+    setStagedTier(tier);
+  }, [tier]);
+
   // Reset timezone state when it changes
   useEffect(() => {
     setSelectedTimezone(timezone || '');
-    setIsEditingTimezone(false);
   }, [timezone]);
 
   // Reset MRN settings when they change
@@ -221,41 +228,75 @@ export default function ClinicProfile({
     );
   }, [patientCountSettings]);
 
-  const handleCancelTimezoneEdit = () => {
-    setSelectedTimezone(timezone || '');
-    setIsEditingTimezone(false);
-  };
+  // Dirty detection helpers
+  const isTierDirty = stagedTier !== tier;
+  const isTimezoneDirty = selectedTimezone !== (timezone || '');
+  const isMrnRequiredDirty = mrnRequired !== (mrnSettings?.required ?? false);
+  const isMrnUniqueDirty = mrnUnique !== (mrnSettings?.unique ?? false);
+  const serverLimitEnabled =
+    patientCountSettings?.hardLimit?.plan !== undefined;
+  const serverLimitValue =
+    patientCountSettings?.hardLimit?.plan?.toString() ??
+    DEFAULT_PATIENT_LIMIT.toString();
+  const isPatientLimitDirty =
+    isLimitEnabled !== serverLimitEnabled ||
+    (isLimitEnabled && patientLimitValue !== serverLimitValue);
 
-  const handleMrnSettingsChange = (
-    newRequired: boolean,
-    newUnique: boolean,
-  ) => {
-    if (onMrnSettingsUpdate) {
-      onMrnSettingsUpdate(id, newRequired, newUnique);
+  // Save handlers — call the API callbacks
+  const handleTierSave = () => {
+    if (onTierUpdate && stagedTier !== tier) {
+      onTierUpdate(id, stagedTier);
     }
   };
 
-  const handleLimitToggleChange = (enabled: boolean) => {
-    setIsLimitEnabled(enabled);
+  const handleTierCancel = () => {
+    setStagedTier(tier);
+  };
+
+  const handleTimezoneSave = () => {
+    if (onTimezoneUpdate && selectedTimezone) {
+      onTimezoneUpdate(id, selectedTimezone);
+    }
+  };
+
+  const handleTimezoneCancel = () => {
+    setSelectedTimezone(timezone || '');
+  };
+
+  const handleMrnRequiredSave = () => {
+    if (onMrnSettingsUpdate) {
+      onMrnSettingsUpdate(id, mrnRequired, mrnSettings?.unique ?? false);
+    }
+  };
+
+  const handleMrnRequiredCancel = () => {
+    setMrnRequired(mrnSettings?.required ?? false);
+  };
+
+  const handleMrnUniqueSave = () => {
+    if (onMrnSettingsUpdate) {
+      onMrnSettingsUpdate(id, mrnSettings?.required ?? false, mrnUnique);
+    }
+  };
+
+  const handleMrnUniqueCancel = () => {
+    setMrnUnique(mrnSettings?.unique ?? false);
+  };
+
+  const handlePatientLimitSave = () => {
     if (onPatientLimitUpdate) {
-      if (enabled) {
-        // Enable limit with current value or default
+      if (isLimitEnabled) {
         const value = parseInt(patientLimitValue, 10);
         onPatientLimitUpdate(id, isNaN(value) ? DEFAULT_PATIENT_LIMIT : value);
       } else {
-        // Disable limit - send null to indicate removal
         onPatientLimitUpdate(id, null);
       }
     }
   };
 
-  const handlePatientLimitSave = () => {
-    if (onPatientLimitUpdate && isLimitEnabled) {
-      const value = parseInt(patientLimitValue, 10);
-      if (!isNaN(value) && value >= 0) {
-        onPatientLimitUpdate(id, value);
-      }
-    }
+  const handlePatientLimitCancel = () => {
+    setIsLimitEnabled(serverLimitEnabled);
+    setPatientLimitValue(serverLimitValue);
   };
 
   const handleDeleteClinic = () => {
@@ -396,11 +437,11 @@ export default function ClinicProfile({
                 <div className="flex items-center gap-4">
                   <Select
                     size="sm"
-                    selectedKeys={[tier]}
+                    selectedKeys={[stagedTier]}
                     onSelectionChange={(keys) => {
                       const key = Array.from(keys)[0] as string;
-                      if (key && key !== tier && onTierUpdate) {
-                        onTierUpdate(id, key);
+                      if (key) {
+                        setStagedTier(key);
                       }
                     }}
                     className="w-48"
@@ -414,6 +455,15 @@ export default function ClinicProfile({
                       <SelectItem key={option.key}>{option.label}</SelectItem>
                     ))}
                   </Select>
+                  {isTierDirty && (
+                    <SaveCancelButtons
+                      onSave={handleTierSave}
+                      onCancel={handleTierCancel}
+                      isDisabled={isSubmitting}
+                      saveAriaLabel="Save tier change"
+                      cancelAriaLabel="Cancel tier change"
+                    />
+                  )}
                 </div>
               </SectionPanel>
 
@@ -429,45 +479,46 @@ export default function ClinicProfile({
                   </p>
                 )}
                 <div className="flex flex-col gap-4">
-                  <SettingsToggleRow
-                    label="Limit Applied"
-                    description="Enable patient count limit for this clinic"
-                    isSelected={isLimitEnabled}
-                    onValueChange={handleLimitToggleChange}
-                    isDisabled={isSubmitting || !isPatientLimitApplicable}
-                    ariaLabel="Enable patient count limit"
-                  />
                   <div className="flex items-center gap-4">
                     <div className="flex-1">
-                      <p className="text-sm font-medium mb-2">
-                        Maximum Patients
-                      </p>
-                      <div className="flex items-center gap-2">
-                        <Input
-                          type="number"
-                          size="sm"
-                          placeholder="Enter limit"
-                          value={isLimitEnabled ? patientLimitValue : ''}
-                          onValueChange={setPatientLimitValue}
-                          className="w-40"
-                          min={0}
-                          step={PATIENT_LIMIT_STEP}
-                          isDisabled={
-                            isSubmitting ||
-                            !isPatientLimitApplicable ||
-                            !isLimitEnabled
-                          }
-                          onBlur={handlePatientLimitSave}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
-                              handlePatientLimitSave();
-                            }
-                          }}
+                      <SettingsToggleRow
+                        label="Limit Applied"
+                        description="Enable patient count limit for this clinic"
+                        isSelected={isLimitEnabled}
+                        onValueChange={setIsLimitEnabled}
+                        isDisabled={isSubmitting || !isPatientLimitApplicable}
+                        ariaLabel="Enable patient count limit"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium mb-2">Maximum Patients</p>
+                    <div className="flex items-center gap-2">
+                      <Input
+                        type="number"
+                        size="sm"
+                        placeholder="Enter limit"
+                        value={isLimitEnabled ? patientLimitValue : ''}
+                        onValueChange={setPatientLimitValue}
+                        className="w-40"
+                        min={0}
+                        step={PATIENT_LIMIT_STEP}
+                        isDisabled={
+                          isSubmitting ||
+                          !isPatientLimitApplicable ||
+                          !isLimitEnabled
+                        }
+                      />
+                      <span className="text-sm text-default-500">patients</span>
+                      {isPatientLimitApplicable && isPatientLimitDirty && (
+                        <SaveCancelButtons
+                          onSave={handlePatientLimitSave}
+                          onCancel={handlePatientLimitCancel}
+                          isDisabled={isSubmitting}
+                          saveAriaLabel="Save patient limit changes"
+                          cancelAriaLabel="Cancel patient limit changes"
                         />
-                        <span className="text-sm text-default-500">
-                          patients
-                        </span>
-                      </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -476,57 +527,32 @@ export default function ClinicProfile({
               {/* Timezone Settings */}
               <SectionPanel title="Timezone">
                 <div className="flex items-center gap-4">
-                  {isEditingTimezone ? (
-                    <div className="flex items-center gap-2">
-                      <Select
-                        size="sm"
-                        selectedKeys={
-                          selectedTimezone ? [selectedTimezone] : []
-                        }
-                        onSelectionChange={(keys) => {
-                          const key = Array.from(keys)[0] as string;
-                          if (key) {
-                            setSelectedTimezone(key);
-                            if (onTimezoneUpdate) {
-                              onTimezoneUpdate(id, key);
-                            }
-                          }
-                        }}
-                        className="w-80"
-                        classNames={{
-                          trigger: 'h-10 min-h-10',
-                        }}
-                        isDisabled={isSubmitting}
-                        placeholder="Select timezone..."
-                      >
-                        {timezoneNames.map((tz) => (
-                          <SelectItem key={tz}>{tz}</SelectItem>
-                        ))}
-                      </Select>
-                      <Button
-                        isIconOnly
-                        size="sm"
-                        variant="light"
-                        onPress={handleCancelTimezoneEdit}
-                        isDisabled={isSubmitting}
-                        aria-label="Cancel timezone edit"
-                      >
-                        <X size={14} />
-                      </Button>
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm">{timezone || 'Not set'}</span>
-                      <Button
-                        isIconOnly
-                        size="sm"
-                        variant="light"
-                        onPress={() => setIsEditingTimezone(true)}
-                        aria-label="Edit timezone"
-                      >
-                        <Edit2 size={14} />
-                      </Button>
-                    </div>
+                  <Autocomplete
+                    size="sm"
+                    selectedKey={selectedTimezone || null}
+                    onSelectionChange={(key) => {
+                      if (key !== null) {
+                        setSelectedTimezone(key as string);
+                      }
+                    }}
+                    className="w-80"
+                    isDisabled={isSubmitting}
+                    placeholder="Select timezone..."
+                    aria-label="Select timezone"
+                    defaultInputValue={selectedTimezone}
+                  >
+                    {timezoneNames.map((tz) => (
+                      <AutocompleteItem key={tz}>{tz}</AutocompleteItem>
+                    ))}
+                  </Autocomplete>
+                  {isTimezoneDirty && (
+                    <SaveCancelButtons
+                      onSave={handleTimezoneSave}
+                      onCancel={handleTimezoneCancel}
+                      isDisabled={isSubmitting}
+                      saveAriaLabel="Save timezone change"
+                      cancelAriaLabel="Cancel timezone change"
+                    />
                   )}
                 </div>
               </SectionPanel>
@@ -534,28 +560,48 @@ export default function ClinicProfile({
               {/* MRN Settings */}
               <SectionPanel title="MRN Settings">
                 <div className="flex flex-col gap-4">
-                  <SettingsToggleRow
-                    label="MRN Required"
-                    description="Require MRN when creating or updating patients"
-                    isSelected={mrnRequired}
-                    onValueChange={(value) => {
-                      setMrnRequired(value);
-                      handleMrnSettingsChange(value, mrnUnique);
-                    }}
-                    isDisabled={isSubmitting}
-                    ariaLabel="MRN required"
-                  />
-                  <SettingsToggleRow
-                    label="MRN Unique"
-                    description="Enforce MRN uniqueness constraint"
-                    isSelected={mrnUnique}
-                    onValueChange={(value) => {
-                      setMrnUnique(value);
-                      handleMrnSettingsChange(mrnRequired, value);
-                    }}
-                    isDisabled={isSubmitting}
-                    ariaLabel="MRN unique"
-                  />
+                  <div className="flex items-center gap-4">
+                    <div className="flex-1">
+                      <SettingsToggleRow
+                        label="MRN Required"
+                        description="Require MRN when creating or updating patients"
+                        isSelected={mrnRequired}
+                        onValueChange={setMrnRequired}
+                        isDisabled={isSubmitting}
+                        ariaLabel="MRN required"
+                      />
+                    </div>
+                    {isMrnRequiredDirty && (
+                      <SaveCancelButtons
+                        onSave={handleMrnRequiredSave}
+                        onCancel={handleMrnRequiredCancel}
+                        isDisabled={isSubmitting}
+                        saveAriaLabel="Save MRN required change"
+                        cancelAriaLabel="Cancel MRN required change"
+                      />
+                    )}
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <div className="flex-1">
+                      <SettingsToggleRow
+                        label="MRN Unique"
+                        description="Enforce MRN uniqueness constraint"
+                        isSelected={mrnUnique}
+                        onValueChange={setMrnUnique}
+                        isDisabled={isSubmitting}
+                        ariaLabel="MRN unique"
+                      />
+                    </div>
+                    {isMrnUniqueDirty && (
+                      <SaveCancelButtons
+                        onSave={handleMrnUniqueSave}
+                        onCancel={handleMrnUniqueCancel}
+                        isDisabled={isSubmitting}
+                        saveAriaLabel="Save MRN unique change"
+                        cancelAriaLabel="Cancel MRN unique change"
+                      />
+                    )}
+                  </div>
                 </div>
               </SectionPanel>
 
