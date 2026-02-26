@@ -20,6 +20,9 @@ export type ClinicianProfileProps = {
   totalClinics?: number;
   clinicsLoading?: boolean;
   clinicId?: string;
+  // Tab control props
+  selectedTab?: string;
+  onTabChange?: (key: React.Key) => void;
 };
 
 export default function ClinicianProfile({
@@ -28,6 +31,9 @@ export default function ClinicianProfile({
   totalClinics = 0,
   clinicsLoading = false,
   clinicId,
+  // Tab control props
+  selectedTab,
+  onTabChange,
 }: ClinicianProfileProps) {
   const { locale } = useLocale();
   const fetcher = useFetcher();
@@ -144,7 +150,11 @@ export default function ClinicianProfile({
       />
 
       <div className="w-full">
-        <ProfileTabs aria-label="Clinician profile sections">
+        <ProfileTabs
+          aria-label="Clinician profile sections"
+          selectedKey={selectedTab}
+          onSelectionChange={onTabChange}
+        >
           {/* Clinics Tab */}
           <Tab
             key="clinics"

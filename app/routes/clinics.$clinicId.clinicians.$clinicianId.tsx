@@ -1,4 +1,8 @@
-import type { LoaderFunctionArgs, ActionFunctionArgs } from 'react-router';
+import type {
+  LoaderFunctionArgs,
+  ActionFunctionArgs,
+  ShouldRevalidateFunctionArgs,
+} from 'react-router';
 import { useLoaderData, useParams } from 'react-router';
 import { useRecentItems } from '~/components/Clinic/RecentItemsContext';
 import { apiRequest, apiRoutes } from '~/api.server';
@@ -12,6 +16,7 @@ import type {
 import { useEffect } from 'react';
 import { APIError } from '~/utils/errors';
 import { z } from 'zod';
+import { usePersistedTab } from '~/hooks/usePersistedTab';
 
 type ClinicianLoaderData = {
   clinician: Clinician;
@@ -19,6 +24,33 @@ type ClinicianLoaderData = {
   clinics: ClinicianClinicMembership[];
   totalClinics: number;
 };
+
+/**
+ * Skip loader revalidation when only the 'tab' search param changed.
+ */
+export function shouldRevalidate({
+  currentUrl,
+  nextUrl,
+  defaultShouldRevalidate,
+}: ShouldRevalidateFunctionArgs) {
+  if (currentUrl.pathname === nextUrl.pathname) {
+    const currentParams = new URLSearchParams(currentUrl.search);
+    const nextParams = new URLSearchParams(nextUrl.search);
+    const currentTab = currentParams.get('tab');
+    const nextTab = nextParams.get('tab');
+    currentParams.delete('tab');
+    nextParams.delete('tab');
+
+    if (
+      currentTab !== nextTab &&
+      currentParams.toString() === nextParams.toString()
+    ) {
+      return false;
+    }
+  }
+
+  return defaultShouldRevalidate;
+}
 
 export const loader = async ({ request, params }: LoaderFunctionArgs) => {
   const { clinicId, clinicianId } = params;
@@ -204,6 +236,13 @@ export default function ClinicianRoute() {
   const { clinicId } = useParams();
   const { addRecentClinician } = useRecentItems();
 
+  // Tab persistence with localStorage + URL sync
+  const { currentTab, handleTabChange } = usePersistedTab(
+    'clinician',
+    clinician?.id,
+    'clinics',
+  );
+
   // Add clinician to recent list immediately when component mounts
   useEffect(() => {
     if (clinician) {
@@ -224,6 +263,8 @@ export default function ClinicianRoute() {
       clinics={clinics}
       totalClinics={totalClinics}
       clinicId={clinicId}
+      selectedTab={currentTab || undefined}
+      onTabChange={handleTabChange}
     />
   );
 }

@@ -1,4 +1,8 @@
-import { type LoaderFunctionArgs, type MetaFunction } from 'react-router';
+import {
+  type LoaderFunctionArgs,
+  type MetaFunction,
+  type ShouldRevalidateFunctionArgs,
+} from 'react-router';
 
 import PatientProfile from '~/components/Clinic/PatientProfile';
 import type {
@@ -26,6 +30,7 @@ import isArray from 'lodash/isArray';
 import pick from 'lodash/pick';
 import uniqBy from 'lodash/uniqBy';
 import { PatientSchema } from '~/schemas';
+import { usePersistedTab } from '~/hooks/usePersistedTab';
 
 type PatientLoaderData = {
   patient: Patient | null;
@@ -59,6 +64,33 @@ export const meta: MetaFunction = () => {
     { name: 'description', content: 'Tidepool ORCA Patient Profile' },
   ];
 };
+
+/**
+ * Skip loader revalidation when only the 'tab' search param changed.
+ */
+export function shouldRevalidate({
+  currentUrl,
+  nextUrl,
+  defaultShouldRevalidate,
+}: ShouldRevalidateFunctionArgs) {
+  if (currentUrl.pathname === nextUrl.pathname) {
+    const currentParams = new URLSearchParams(currentUrl.search);
+    const nextParams = new URLSearchParams(nextUrl.search);
+    const currentTab = currentParams.get('tab');
+    const nextTab = nextParams.get('tab');
+    currentParams.delete('tab');
+    nextParams.delete('tab');
+
+    if (
+      currentTab !== nextTab &&
+      currentParams.toString() === nextParams.toString()
+    ) {
+      return false;
+    }
+  }
+
+  return defaultShouldRevalidate;
+}
 
 const recentPatientsMax = 10;
 
@@ -379,6 +411,13 @@ export default function PatientDetails() {
   } = useLoaderData<PatientLoaderData>();
   const { addRecentPatient } = useRecentItems();
 
+  // Tab persistence with localStorage + URL sync
+  const { currentTab, handleTabChange } = usePersistedTab(
+    'patient',
+    patient?.id,
+    'data',
+  );
+
   // Add patient to recent list immediately when component mounts
   useEffect(() => {
     if (patient) {
@@ -404,6 +443,8 @@ export default function PatientDetails() {
       totalDataSources={totalDataSources}
       pumpSettings={pumpSettings}
       pumpSettingsState={pumpSettingsState}
+      selectedTab={currentTab || undefined}
+      onTabChange={handleTabChange}
     />
   ) : null;
 }

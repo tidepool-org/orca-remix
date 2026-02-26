@@ -2,6 +2,7 @@ import {
   type LoaderFunctionArgs,
   type ActionFunctionArgs,
   type MetaFunction,
+  type ShouldRevalidateFunctionArgs,
   redirect,
 } from 'react-router';
 
@@ -25,16 +26,12 @@ import type {
 import type { ResourceState } from '~/api.types';
 import { apiRequest, apiRoutes, apiRequestSafe } from '~/api.server';
 import { usersSession } from '~/sessions.server';
-import {
-  useLoaderData,
-  useSearchParams,
-  useSubmit,
-} from 'react-router';
-import { useCallback } from 'react';
+import { useLoaderData } from 'react-router';
 import isArray from 'lodash/isArray';
 import pick from 'lodash/pick';
 import uniqBy from 'lodash/uniqBy';
 import { APIError } from '~/utils/errors';
+import { usePersistedTab } from '~/hooks/usePersistedTab';
 
 export const meta: MetaFunction = () => {
   return [
@@ -44,6 +41,33 @@ export const meta: MetaFunction = () => {
 };
 
 const recentUsersMax = 10;
+
+/**
+ * Skip loader revalidation when only the 'tab' search param changed.
+ */
+export function shouldRevalidate({
+  currentUrl,
+  nextUrl,
+  defaultShouldRevalidate,
+}: ShouldRevalidateFunctionArgs) {
+  if (currentUrl.pathname === nextUrl.pathname) {
+    const currentParams = new URLSearchParams(currentUrl.search);
+    const nextParams = new URLSearchParams(nextUrl.search);
+    const currentTab = currentParams.get('tab');
+    const nextTab = nextParams.get('tab');
+    currentParams.delete('tab');
+    nextParams.delete('tab');
+
+    if (
+      currentTab !== nextTab &&
+      currentParams.toString() === nextParams.toString()
+    ) {
+      return false;
+    }
+  }
+
+  return defaultShouldRevalidate;
+}
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
   const { getSession, commitSession } = usersSession;
@@ -586,20 +610,11 @@ export default function Users() {
     receivedInvitesState,
   } = useLoaderData<typeof loader>();
 
-  const [searchParams] = useSearchParams();
-  const submit = useSubmit();
-
-  // Get current tab from URL search params
-  const currentTab = searchParams.get('tab') || undefined;
-
-  // Handle tab change - persist to URL
-  const handleTabChange = useCallback(
-    (key: React.Key) => {
-      const newSearchParams = new URLSearchParams(searchParams);
-      newSearchParams.set('tab', key.toString());
-      submit(newSearchParams, { method: 'GET', replace: true });
-    },
-    [searchParams, submit],
+  // Tab persistence with localStorage + URL sync
+  const { currentTab, handleTabChange } = usePersistedTab(
+    'user',
+    user?.userid,
+    'clinics',
   );
 
   // Render profile if user exists (profile may be empty object for users without profile metadata)
@@ -628,7 +643,7 @@ export default function Users() {
       trustedAccountsState={trustedAccountsState}
       sentInvitesState={sentInvitesState}
       receivedInvitesState={receivedInvitesState}
-      selectedTab={currentTab}
+      selectedTab={currentTab || undefined}
       onTabChange={handleTabChange}
     />
   ) : null;

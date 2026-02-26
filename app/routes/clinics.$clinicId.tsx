@@ -29,6 +29,7 @@ import {
   cliniciansSession,
 } from '~/sessions.server';
 import {
+  type ShouldRevalidateFunctionArgs,
   useLoaderData,
   useSearchParams,
   useSubmit,
@@ -49,6 +50,7 @@ import {
 } from '~/schemas';
 import { errorResponse, APIError } from '~/utils/errors';
 import { useToast } from '~/contexts/ToastContext';
+import { usePersistedTab } from '~/hooks/usePersistedTab';
 
 export const meta: MetaFunction = () => {
   return [
@@ -56,6 +58,34 @@ export const meta: MetaFunction = () => {
     { name: 'description', content: 'Tidepool ORCA Clinic Profile' },
   ];
 };
+
+/**
+ * Skip loader revalidation when only the 'tab' search param changed.
+ * The loader doesn't use the tab param, so re-fetching is unnecessary.
+ */
+export function shouldRevalidate({
+  currentUrl,
+  nextUrl,
+  defaultShouldRevalidate,
+}: ShouldRevalidateFunctionArgs) {
+  if (currentUrl.pathname === nextUrl.pathname) {
+    const currentParams = new URLSearchParams(currentUrl.search);
+    const nextParams = new URLSearchParams(nextUrl.search);
+    const currentTab = currentParams.get('tab');
+    const nextTab = nextParams.get('tab');
+    currentParams.delete('tab');
+    nextParams.delete('tab');
+
+    if (
+      currentTab !== nextTab &&
+      currentParams.toString() === nextParams.toString()
+    ) {
+      return false;
+    }
+  }
+
+  return defaultShouldRevalidate;
+}
 
 export async function action({ request, params }: ActionFunctionArgs) {
   const formData = await request.formData();
@@ -547,6 +577,32 @@ export default function Clinics() {
   const location = useLocation();
   const { showToast } = useToast();
 
+  // Check if we're on a nested route (like patient, clinician, or prescription details)
+  const isNestedRoute =
+    location.pathname.includes('/patients/') ||
+    location.pathname.includes('/clinicians/') ||
+    location.pathname.includes('/prescriptions/');
+
+  // Tab persistence with localStorage + URL sync
+  // Disabled on nested routes so the child route's search params don't overwrite the clinic's persisted state
+  const { currentTab, handleTabChange } = usePersistedTab(
+    'clinic',
+    clinic.id,
+    'clinicians',
+    {
+      paramKeys: [
+        'search',
+        'page',
+        'limit',
+        'sort',
+        'cliniciansSearch',
+        'cliniciansPage',
+        'cliniciansLimit',
+      ],
+      enabled: !isNestedRoute,
+    },
+  );
+
   // Show toast on action result
   useEffect(() => {
     if (actionData) {
@@ -560,12 +616,6 @@ export default function Clinics() {
       }
     }
   }, [actionData, showToast]);
-
-  // Check if we're on a nested route (like patient, clinician, or prescription details)
-  const isNestedRoute =
-    location.pathname.includes('/patients/') ||
-    location.pathname.includes('/clinicians/') ||
-    location.pathname.includes('/prescriptions/');
 
   const handlePageChange = useCallback(
     (page: number) => {
@@ -711,19 +761,6 @@ export default function Clinics() {
     [submit],
   );
 
-  // Get current tab from URL search params
-  const currentTab = searchParams.get('tab') || undefined;
-
-  // Handle tab change - persist to URL
-  const handleTabChange = useCallback(
-    (key: React.Key) => {
-      const newSearchParams = new URLSearchParams(searchParams);
-      newSearchParams.set('tab', key.toString());
-      submit(newSearchParams, { method: 'GET', replace: true });
-    },
-    [searchParams, submit],
-  );
-
   // Check if we're currently submitting a tier update
   const isSubmitting =
     navigation.state === 'submitting' &&
@@ -789,7 +826,7 @@ export default function Clinics() {
             onRemoveClinician={handleRemoveClinician}
             onRevokePatientInvite={handleRevokePatientInvite}
             isSubmitting={isSubmitting}
-            selectedTab={currentTab}
+            selectedTab={currentTab || undefined}
             onTabChange={handleTabChange}
           />
         )}

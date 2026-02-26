@@ -1,11 +1,6 @@
 import { useState } from 'react';
 
-import {
-  Outlet,
-  useMatches,
-  useNavigation,
-  useSearchParams,
-} from 'react-router';
+import { Outlet, useMatches, useNavigation } from 'react-router';
 import { Breadcrumbs, BreadcrumbItem, Spinner } from '@heroui/react';
 import { Home } from 'lucide-react';
 import filter from 'lodash/filter';
@@ -13,6 +8,7 @@ import map from 'lodash/map';
 
 import Sidebar from '../partials/Sidebar';
 import Header from '../partials/Header';
+import { getPersistedParamsString } from '~/utils/viewStatePersistence';
 
 export type SidebarOpenProps = {
   sidebarOpen: boolean;
@@ -35,43 +31,23 @@ function Dashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const matches = useMatches() as IMatch[];
   const navigation = useNavigation();
-  const [searchParams] = useSearchParams();
 
   const isLoading = navigation.state === 'loading';
-
-  // Params to preserve for clinic profile breadcrumbs (whitelist approach)
-  const clinicProfileParamKeys = [
-    'tab',
-    'search',
-    'page',
-    'limit',
-    'sort',
-    'cliniciansSearch',
-    'cliniciansPage',
-    'cliniciansLimit',
-  ];
-
-  // Build preserved params string for clinic profile routes
-  const getClinicProfileParams = (): string => {
-    const preservedParams = new URLSearchParams();
-    clinicProfileParamKeys.forEach((key) => {
-      const value = searchParams.get(key);
-      if (value) preservedParams.set(key, value);
-    });
-    return preservedParams.toString();
-  };
 
   const breadcrumbs: Breadcrumb[] = map(
     filter(matches, (match) => match.handle?.breadcrumb) as IMatch[],
     (match) => {
       let href = match.pathname;
-      // Preserve whitelisted params for clinic profile breadcrumbs when navigating back from nested routes
-      if (match.pathname.match(/^\/clinics\/[^/]+$/)) {
-        const paramsString = getClinicProfileParams();
+
+      // For clinic profile breadcrumbs, restore persisted view state from localStorage
+      const clinicMatch = match.pathname.match(/^\/clinics\/([^/]+)$/);
+      if (clinicMatch) {
+        const paramsString = getPersistedParamsString('clinic', clinicMatch[1]);
         if (paramsString) {
           href = `${match.pathname}?${paramsString}`;
         }
       }
+
       return { ...match.handle?.breadcrumb, href };
     },
   );

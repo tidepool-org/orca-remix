@@ -47,6 +47,9 @@ export type PatientProfileProps = {
   dataSetsState?: ResourceState<DataSet[]>;
   dataSourcesState?: ResourceState<DataSource[]>;
   pumpSettingsState?: ResourceState<PumpSettings[]>;
+  // Tab control props
+  selectedTab?: string;
+  onTabChange?: (key: React.Key) => void;
 };
 
 export default function PatientProfile({
@@ -71,6 +74,9 @@ export default function PatientProfile({
   dataSetsState,
   dataSourcesState,
   pumpSettingsState,
+  // Tab control props
+  selectedTab,
+  onTabChange,
 }: PatientProfileProps) {
   const {
     id,
@@ -187,7 +193,11 @@ export default function PatientProfile({
       />
 
       <div className="w-full">
-        <ProfileTabs aria-label="Patient profile sections">
+        <ProfileTabs
+          aria-label="Patient profile sections"
+          selectedKey={selectedTab}
+          onSelectionChange={onTabChange}
+        >
           {/* Data Tab */}
           <Tab
             key="data"

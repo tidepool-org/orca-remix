@@ -1,6 +1,6 @@
 /* eslint-disable react/prop-types */
 import React from 'react';
-import { useNavigate, useParams, useSearchParams } from 'react-router';
+import { useNavigate, useParams } from 'react-router';
 import {
   Table,
   TableHeader,
@@ -77,7 +77,6 @@ export default function PatientsTable({
   const { locale } = useLocale();
   const navigate = useNavigate();
   const params = useParams();
-  const [searchParams] = useSearchParams();
   const { getTagName, getSiteName } = useClinicResolvers(clinic);
 
   // Parse current sort to set initial sort descriptor
@@ -326,11 +325,7 @@ export default function PatientsTable({
         onSelectionChange={(keys: 'all' | Set<React.Key>) => {
           const key = keys instanceof Set ? Array.from(keys)[0] : keys;
           if (key && key !== 'all') {
-            // Preserve all search params for breadcrumb navigation back to clinic
-            const queryString = searchParams.toString();
-            navigate(
-              `/clinics/${params.clinicId}/patients/${key}${queryString ? `?${queryString}` : ''}`,
-            );
+            navigate(`/clinics/${params.clinicId}/patients/${key}`);
           }
         }}
         sortDescriptor={sortDescriptor}
