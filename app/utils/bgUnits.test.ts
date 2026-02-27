@@ -10,7 +10,7 @@ import {
 describe('bgUnits', () => {
   describe('mgdlToMmol', () => {
     it.each([
-      [100, 5.5],
+      [100, 5.6],
       [180, 10],
       [70, 3.9],
       [0, 0],
@@ -34,12 +34,12 @@ describe('bgUnits', () => {
 
   describe('formatBgValue', () => {
     it.each([
-      [120, false, '120 mg/dL'],
-      [180, true, '10 mmol/L'],
-      [0, false, '0 mg/dL'],
-      [0, true, '0 mmol/L'],
-    ])('formats %d with useMmol=%s as %s', (value, useMmol, expected) => {
-      expect(formatBgValue(value, useMmol)).toBe(expected);
+      [120, true, '2162 mg/dL'],
+      [180, false, '180 mmol/L'],
+      [0, true, '0 mg/dL'],
+      [0, false, '0 mmol/L'],
+    ])('formats %d with useMgdl=%s as %s', (value, useMgdl, expected) => {
+      expect(formatBgValue(value, useMgdl)).toBe(expected);
     });
 
     it.each([[undefined], [null]])('returns null for %s value', (value) => {
@@ -50,24 +50,24 @@ describe('bgUnits', () => {
 
   describe('formatInsulinSensitivity', () => {
     it.each([
-      [50, false, '50 mg/dL'],
-      [36, true, '2 mmol/L'],
-      [100, false, '100 mg/dL'],
-      [100, true, '5.5 mmol/L'],
+      [50, true, '901 mg/dL'],
+      [36, false, '36 mmol/L'],
+      [100, true, '1802 mg/dL'],
+      [100, false, '100 mmol/L'],
     ])(
-      'formats sensitivity %d with useMmol=%s as %s',
-      (value, useMmol, expected) => {
-        expect(formatInsulinSensitivity(value, useMmol)).toBe(expected);
+      'formats sensitivity %d with useMgdl=%s as %s',
+      (value, useMgdl, expected) => {
+        expect(formatInsulinSensitivity(value, useMgdl)).toBe(expected);
       },
     );
   });
 
   describe('getBgUnitLabel', () => {
     it.each([
-      [false, 'mg/dL'],
-      [true, 'mmol/L'],
-    ])('returns %s when useMmol is %s', (useMmol, expected) => {
-      expect(getBgUnitLabel(useMmol)).toBe(expected);
+      [true, 'mg/dL'],
+      [false, 'mmol/L'],
+    ])('returns %s when useMgdl is %s', (useMgdl, expected) => {
+      expect(getBgUnitLabel(useMgdl)).toBe(expected);
     });
   });
 });

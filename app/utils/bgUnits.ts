@@ -1,10 +1,10 @@
 /**
  * Blood glucose unit conversion utilities
  *
- * Standard conversion factor: 1 mmol/L = 18.0182 mg/dL
+ * Standard conversion factor: 1 mmol/L = 18.01559 mg/dL
  */
 
-const CONVERSION_FACTOR = 18.0182;
+const CONVERSION_FACTOR = 18.01559;
 
 /**
  * Convert mg/dL to mmol/L
@@ -27,43 +27,43 @@ export function mmolToMgdl(mmol: number): number {
 /**
  * Format a blood glucose value with units
  * @param value - Blood glucose value in mg/dL
- * @param useMmol - Whether to display in mmol/L (true) or mg/dL (false)
+ * @param useMgdl - Whether to display in mmol/L (false) or mg/dL (true)
  * @returns Formatted string with units, or null if value is undefined/null
  */
 export function formatBgValue(
   value: number | undefined | null,
-  useMmol: boolean,
+  useMgdl: boolean,
 ): string | null {
   if (value === undefined || value === null) return null;
 
-  if (useMmol) {
-    return `${mgdlToMmol(value)} mmol/L`;
+  if (useMgdl) {
+    return `${mmolToMgdl(value)} mg/dL`;
   }
-  return `${value} mg/dL`;
+  return `${value} mmol/L`;
 }
 
 /**
  * Format an insulin sensitivity value with units
  * Insulin sensitivity is expressed as mg/dL or mmol/L per unit of insulin
  * @param value - Insulin sensitivity value in mg/dL per unit
- * @param useMmol - Whether to display in mmol/L (true) or mg/dL (false)
+ * @param useMgdl - Whether to display in mmol/L (false) or mg/dL (true)
  * @returns Formatted string with units
  */
 export function formatInsulinSensitivity(
   value: number,
-  useMmol: boolean,
+  useMgdl: boolean,
 ): string {
-  if (useMmol) {
-    return `${mgdlToMmol(value)} mmol/L`;
+  if (useMgdl) {
+    return `${mmolToMgdl(value)} mg/dL`;
   }
-  return `${value} mg/dL`;
+  return `${value} mmol/L`;
 }
 
 /**
  * Get the unit label for blood glucose
- * @param useMmol - Whether to use mmol/L (true) or mg/dL (false)
+ * @param useMgdl - Whether to use mmol/L (false) or mg/dL (true)
  * @returns Unit label string
  */
-export function getBgUnitLabel(useMmol: boolean): string {
-  return useMmol ? 'mmol/L' : 'mg/dL';
+export function getBgUnitLabel(useMgdl: boolean): string {
+  return useMgdl ? 'mg/dL' : 'mmol/L';
 }

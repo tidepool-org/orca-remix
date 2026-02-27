@@ -43,11 +43,12 @@ export default function PumpSettingsSection({
 }: PumpSettingsSectionProps) {
   const { locale } = useLocale();
   const [selectedSettingIndex, setSelectedSettingIndex] = useState<number>(0);
-  const [useMmol, setUseMmol] = useState(false);
+  const [useMgdl, setUseMgdl] = useState(false);
 
   // Get selected pump settings
   const selectedSettings = useMemo(() => {
     if (pumpSettings.length === 0) return null;
+    setUseMgdl(pumpSettings[0]?.units?.bg === 'mg/dL');
     return pumpSettings[selectedSettingIndex] || pumpSettings[0];
   }, [pumpSettings, selectedSettingIndex]);
 
@@ -101,9 +102,12 @@ export default function PumpSettingsSection({
       <span className="text-sm text-default-500">mg/dL</span>
       <Switch
         size="sm"
-        isSelected={useMmol}
-        onValueChange={setUseMmol}
+        isSelected={!useMgdl}
+        onValueChange={(val) => setUseMgdl(!val)}
         aria-label="Toggle BG units"
+        classNames={{
+          wrapper: '!bg-primary',
+        }}
       />
       <span className="text-sm text-default-500">mmol/L</span>
     </div>
@@ -236,13 +240,13 @@ export default function PumpSettingsSection({
               <TableRow key={`${scheduleName}-${idx}`}>
                 <TableCell>{msToTime(entry.start)}</TableCell>
                 <TableCell>
-                  {formatBgValue(entry.target, useMmol) || '-'}
+                  {formatBgValue(entry.target, useMgdl) || '-'}
                 </TableCell>
                 <TableCell>
-                  {formatBgValue(entry.low, useMmol) || '-'}
+                  {formatBgValue(entry.low, useMgdl) || '-'}
                 </TableCell>
                 <TableCell>
-                  {formatBgValue(entry.high, useMmol) || '-'}
+                  {formatBgValue(entry.high, useMgdl) || '-'}
                 </TableCell>
               </TableRow>
             ))}
@@ -310,7 +314,7 @@ export default function PumpSettingsSection({
               <TableRow key={`${scheduleName}-${idx}`}>
                 <TableCell>{msToTime(entry.start)}</TableCell>
                 <TableCell>
-                  {formatInsulinSensitivity(entry.amount, useMmol)}
+                  {formatInsulinSensitivity(entry.amount, useMgdl)}
                 </TableCell>
               </TableRow>
             ))}
