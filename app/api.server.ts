@@ -100,11 +100,10 @@ export const apiRoutes = {
       method: 'delete',
       path: `/v1/data_sets/${dataSetId}/data`,
     }),
-    // Data source management (cloud/passive connections)
-    // ref https://tidepool.redocly.app/reference/data.v1/internal
-    deleteDataSource: (dataSourceId: string) => ({
+    // Data source management (disconnect cloud/passive connections)
+    disconnectDataSource: (userId: string, providerName: string) => ({
       method: 'delete',
-      path: `/v1/data_sources/${dataSourceId}`,
+      path: `/v1/users/${userId}/oauth/${providerName}/authorize`,
     }),
   },
   export: {
@@ -387,7 +386,6 @@ export const apiRequest = async <T = unknown>({
   schema,
 }: apiRequestWithSchemaArgs<T>): Promise<T> => {
   try {
-    if (body) console.log(method, JSON.stringify(body));
     const result = await fetch(`${process.env.API_HOST}${path}`, {
       method,
       headers: {

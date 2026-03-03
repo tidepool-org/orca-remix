@@ -552,14 +552,14 @@ export async function action({ request, params }: ActionFunctionArgs) {
       }
 
       case 'disconnect-data-source': {
-        const dataSourceId = formData.get('dataSourceId') as string;
-        if (!dataSourceId) {
+        const providerName = formData.get('providerName') as string;
+        if (!providerName) {
           return Response.json(
-            { success: false, error: 'Data source ID is required' },
+            { success: false, error: 'Provider name is required' },
             { status: 400 },
           );
         }
-        await apiRequest(apiRoutes.data.deleteDataSource(dataSourceId));
+        await apiRequest(apiRoutes.data.disconnectDataSource(userId, providerName));
         return Response.json({
           success: true,
           action: 'disconnect-data-source',

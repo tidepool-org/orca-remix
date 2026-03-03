@@ -13,7 +13,7 @@ import {
   DropdownItem,
 } from '@heroui/react';
 import { Database, MoreVertical, Unplug } from 'lucide-react';
-import { useFetcher } from 'react-router';
+import { useFetcher, useParams } from 'react-router';
 import useLocale from '~/hooks/useLocale';
 import CollapsibleTableWrapper from '../CollapsibleTableWrapper';
 import ConfirmationModal from '../ConfirmationModal';
@@ -55,7 +55,8 @@ export default function DataSourcesTable({
   isFirstInGroup = false,
 }: DataSourcesTableProps) {
   const { locale } = useLocale();
-  const fetcher = useFetcher();
+  const { userId, patientId } = useParams();
+  const fetcher = useFetcher({ key: 'disconnect-data-source' });
   const { showToast } = useToast();
   const [filterValue, setFilterValue] = useState('');
   const [disconnectModal, setDisconnectModal] = useState<DisconnectModalState>({
@@ -151,13 +152,17 @@ export default function DataSourcesTable({
   };
 
   const handleConfirmDisconnect = () => {
-    if (!disconnectModal.dataSource?.dataSourceId) return;
+    if (!disconnectModal.dataSource?.providerName) return;
 
+    const targetUserId = userId || patientId;
     const formData = new FormData();
     formData.append('intent', 'disconnect-data-source');
-    formData.append('dataSourceId', disconnectModal.dataSource.dataSourceId);
+    formData.append('providerName', disconnectModal.dataSource.providerName);
 
-    fetcher.submit(formData, { method: 'post' });
+    fetcher.submit(formData, {
+      method: 'post',
+      action: `/users/${targetUserId}`,
+    });
   };
 
   const handleCloseModal = () => {
@@ -232,6 +237,7 @@ export default function DataSourcesTable({
             </span>
           );
         case 'actions':
+          if (item.state === 'disconnected') return null;
           return (
             <Dropdown>
               <DropdownTrigger>
