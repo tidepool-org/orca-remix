@@ -387,6 +387,7 @@ export const apiRequest = async <T = unknown>({
   schema,
 }: apiRequestWithSchemaArgs<T>): Promise<T> => {
   try {
+    if (body) console.log(method, JSON.stringify(body));
     const result = await fetch(`${process.env.API_HOST}${path}`, {
       method,
       headers: {
@@ -489,8 +490,13 @@ export const apiRequestSafe = async <T = unknown>(
           : 'An unknown error occurred';
     const code = err instanceof APIError ? err.status : undefined;
 
-    // Still log to console for server-side debugging
-    console.error(`API request failed: ${request.path}`, { message, code });
+    // Log to console for server-side debugging
+    // Use warn for auth errors (403) since they're expected for optional data fetches
+    if (code === 403) {
+      console.warn(`API request not authorized: ${request.path}`);
+    } else {
+      console.error(`API request failed: ${request.path}`, { message, code });
+    }
 
     return {
       status: 'error',

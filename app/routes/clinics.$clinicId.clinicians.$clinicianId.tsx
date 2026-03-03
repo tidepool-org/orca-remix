@@ -161,9 +161,14 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
 
   if (intent === 'update-roles') {
     const rolesJson = formData.get('roles');
+    const clinicianJson = formData.get('clinician');
 
     if (!rolesJson || typeof rolesJson !== 'string') {
       return Response.json({ error: 'Invalid roles data' }, { status: 400 });
+    }
+
+    if (!clinicianJson || typeof clinicianJson !== 'string') {
+      return Response.json({ error: 'Invalid clinician data' }, { status: 400 });
     }
 
     // Schema for validating roles array
@@ -174,11 +179,13 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
     try {
       // Parse and validate the JSON input
       let parsedRoles: unknown;
+      let parsedClinician: Clinician;
       try {
         parsedRoles = JSON.parse(rolesJson);
+        parsedClinician = JSON.parse(clinicianJson);
       } catch {
         return Response.json(
-          { error: 'Invalid JSON format for roles' },
+          { error: 'Invalid JSON format' },
           { status: 400 },
         );
       }
@@ -199,10 +206,11 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
         );
       }
 
-      // Update the clinician roles via the API
+      // Update the clinician with the new roles
+      // Uses the already-loaded clinician data from the client to avoid an extra API call
       await apiRequest({
         ...apiRoutes.clinic.updateClinician(clinicId, clinicianId),
-        body: { roles },
+        body: { ...parsedClinician, roles },
       });
 
       return Response.json({ success: true });

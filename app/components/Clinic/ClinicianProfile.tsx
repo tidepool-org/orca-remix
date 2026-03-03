@@ -1,5 +1,5 @@
 import { Tab } from '@heroui/react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Building2, Settings } from 'lucide-react';
 import { useFetcher } from 'react-router';
 import useLocale from '~/hooks/useLocale';
@@ -13,6 +13,7 @@ import SaveCancelButtons from '~/components/ui/SaveCancelButtons';
 import SectionPanel from '~/components/ui/SectionPanel';
 import ViewUserAccountLink from '~/components/ui/ViewUserAccountLink';
 import { CollapsibleGroup } from '~/components/CollapsibleGroup';
+import { useToast } from '~/contexts/ToastContext';
 import type { Clinician, ClinicianClinicMembership } from './types';
 import { formatShortDate } from '~/utils/dateFormatters';
 
@@ -39,20 +40,30 @@ export default function ClinicianProfile({
 }: ClinicianProfileProps) {
   const { locale } = useLocale();
   const fetcher = useFetcher();
+  const { showToast } = useToast();
 
-  if (!clinician) {
-    return (
-      <div className="w-full rounded-lg border-2 border-content2 overflow-hidden">
-        <div className="p-4 bg-content1">
-          <p className="text-default-600">Clinician not found</p>
-        </div>
-      </div>
-    );
-  }
+  // Show toast on fetcher response
+  useEffect(() => {
+    if (fetcher.state === 'idle' && fetcher.data) {
+      const data = fetcher.data as {
+        success?: boolean;
+        error?: string;
+        message?: string;
+      };
+
+      if (data.success) {
+        showToast(data.message || 'Clinician roles updated successfully', 'success');
+      } else if (data.error) {
+        showToast(data.error, 'error');
+      }
+    }
+  }, [fetcher.state, fetcher.data, showToast]);
 
   // Check if clinician has specific roles
   const hasRole = (role: string) => {
-    return clinician.roles?.some((r) => r.toLowerCase() === role.toLowerCase());
+    return clinician?.roles?.some(
+      (r) => r.toLowerCase() === role.toLowerCase(),
+    );
   };
 
   const serverIsAdmin = hasRole('CLINIC_ADMIN');
@@ -63,12 +74,22 @@ export default function ClinicianProfile({
   const [stagedPrescriber, setStagedPrescriber] = useState(serverIsPrescriber);
 
   // Reset staged state when server roles change (after successful save)
-  const rolesKey = clinician.roles?.join(',');
+  const rolesKey = clinician?.roles?.join(',');
   const [prevRolesKey, setPrevRolesKey] = useState(rolesKey);
   if (rolesKey !== prevRolesKey) {
     setPrevRolesKey(rolesKey);
     setStagedAdmin(serverIsAdmin);
     setStagedPrescriber(serverIsPrescriber);
+  }
+
+  if (!clinician) {
+    return (
+      <div className="w-full rounded-lg border-2 border-content2 overflow-hidden">
+        <div className="p-4 bg-content1">
+          <p className="text-default-600">Clinician not found</p>
+        </div>
+      </div>
+    );
   }
 
   // Check if the fetcher is currently updating
@@ -92,6 +113,7 @@ export default function ClinicianProfile({
       {
         intent: 'update-roles',
         roles: JSON.stringify(newRoles),
+        clinician: JSON.stringify(clinician),
       },
       { method: 'POST' },
     );
