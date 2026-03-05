@@ -31,6 +31,7 @@ function getSearchRoute(value: string): string {
 
 export default function HeaderSearch() {
   const [value, setValue] = useState('');
+  const [isFocused, setIsFocused] = useState(false);
   const navigate = useNavigate();
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -72,26 +73,32 @@ export default function HeaderSearch() {
       <Input
         ref={inputRef}
         type="text"
-        placeholder="User ID, email, clinic ID, or share code"
+        placeholder={
+          isFocused ? 'User ID, Email, Clinic ID, or Share Code' : 'Search'
+        }
         aria-label="Search for a user or clinic"
         value={value}
         onChange={(e) => setValue(e.target.value)}
+        onFocus={() => setIsFocused(true)}
+        onBlur={() => setIsFocused(false)}
         size="sm"
-        className="w-72"
+        className={`transition-[width] duration-200 ease-in-out ${isFocused || value ? 'w-80' : 'w-28'}`}
         classNames={{
           inputWrapper: 'bg-default-100',
           input: 'group-data-[has-value=true]:text-content1-foreground',
         }}
         startContent={
-          <Search className="w-4 h-4 text-default-400" aria-hidden="true" />
+          <Search className="w-4 h-4 shrink-0 text-default-400" aria-hidden="true" />
         }
         endContent={
-          <kbd
-            className="hidden sm:inline-flex items-center px-1.5 border border-default-300 rounded text-xs text-default-400 font-sans"
-            aria-hidden="true"
-          >
-            /
-          </kbd>
+          !isFocused && !value ? (
+            <kbd
+              className="hidden sm:inline-flex items-center px-1.5 border border-default-300 rounded text-xs text-default-400 font-sans"
+              aria-hidden="true"
+            >
+              /
+            </kbd>
+          ) : null
         }
       />
     </form>
