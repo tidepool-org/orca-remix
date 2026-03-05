@@ -69,7 +69,11 @@ function Dashboard() {
         {/* Content area */}
         <div className="relative flex flex-col flex-1 overflow-y-auto overflow-x-hidden">
           {/*  Site header */}
-          <Header sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
+          <Header
+            sidebarOpen={sidebarOpen}
+            setSidebarOpen={setSidebarOpen}
+            onOpenShortcuts={openHelpModal}
+          />
 
           <main className="relative flex-1">
             {/* Loading overlay */}

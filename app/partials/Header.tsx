@@ -7,7 +7,11 @@ import { Menu } from 'lucide-react';
 
 import { type SidebarOpenProps } from '~/layouts/Dashboard';
 
-function Header({ sidebarOpen, setSidebarOpen }: SidebarOpenProps) {
+type HeaderProps = SidebarOpenProps & {
+  onOpenShortcuts: () => void;
+};
+
+function Header({ sidebarOpen, setSidebarOpen, onOpenShortcuts }: HeaderProps) {
   return (
     <header className="sticky top-0 bg-content1 border-b border-content3 z-30">
       <div className="px-4 sm:px-6 lg:px-8">
@@ -43,7 +47,7 @@ function Header({ sidebarOpen, setSidebarOpen }: SidebarOpenProps) {
               {/*  Divider */}
               <hr className="w-px h-6 bg-slate-200 dark:bg-slate-700 border-none" />
             </div>
-            <UserMenu />
+            <UserMenu onOpenShortcuts={onOpenShortcuts} />
           </div>
         </div>
       </div>

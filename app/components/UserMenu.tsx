@@ -3,14 +3,20 @@ import {
   DropdownTrigger,
   Dropdown,
   DropdownMenu,
+  DropdownSection,
   Avatar,
+  Kbd,
 } from '@heroui/react';
 import { useMemo } from 'react';
 
 import { type RootLoaderType } from '~/root';
 import { useLoaderData } from 'react-router';
 
-export default function UserMenu() {
+type UserMenuProps = {
+  onOpenShortcuts: () => void;
+};
+
+export default function UserMenu({ onOpenShortcuts }: UserMenuProps) {
   const { agent } = useLoaderData<RootLoaderType>();
 
   // Memoize the avatar src to prevent unnecessary re-renders and refetches
@@ -52,11 +58,22 @@ export default function UserMenu() {
     <Dropdown placement="bottom-end">
       <DropdownTrigger>{memoizedAvatar}</DropdownTrigger>
       <DropdownMenu aria-label="Profile Actions" variant="flat">
-        <DropdownItem key="profile" className="h-14 gap-2">
-          <p>Signed in as</p>
-          <p className="font-semibold">{agent?.name}</p>
-          <em>{agent?.email}</em>
-        </DropdownItem>
+        <DropdownSection showDivider>
+          <DropdownItem key="profile" className="h-14 gap-2" isReadOnly>
+            <p>Signed in as</p>
+            <p className="font-semibold">{agent?.name}</p>
+            <em>{agent?.email}</em>
+          </DropdownItem>
+        </DropdownSection>
+        <DropdownSection>
+          <DropdownItem
+            key="shortcuts"
+            onPress={onOpenShortcuts}
+            endContent={<Kbd className="text-xs">?</Kbd>}
+          >
+            Shortcuts
+          </DropdownItem>
+        </DropdownSection>
       </DropdownMenu>
     </Dropdown>
   );

@@ -139,9 +139,7 @@ function Sidebar({ sidebarOpen, setSidebarOpen }: SidebarOpenProps) {
 
           <NavLink to="/">
             <Logo
-              className={`hidden lg:block right-${
-                sidebarExpanded ? 3 : 0
-              }`}
+              className={`hidden lg:block right-${sidebarExpanded ? 3 : 0}`}
               src={sidebarExpanded ? undefined : SmallLogo}
               width={sidebarExpanded ? undefined : 32}
               theme={Theme.DARK}
