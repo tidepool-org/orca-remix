@@ -80,6 +80,12 @@ export default function useKeyboardShortcuts({
             .querySelector<HTMLInputElement>('#header-search input')
             ?.focus();
           break;
+        case 'h':
+        case 'j':
+        case 'k':
+        case 'l':
+          dispatchArrowKey(e);
+          break;
       }
     };
 
@@ -89,6 +95,20 @@ export default function useKeyboardShortcuts({
       clearChord();
     };
   }, [navigate, openHelpModal, clearChord]);
+}
+
+const VIM_TO_ARROW: Record<string, string> = {
+  h: 'ArrowLeft',
+  j: 'ArrowDown',
+  k: 'ArrowUp',
+  l: 'ArrowRight',
+};
+
+function dispatchArrowKey(e: KeyboardEvent) {
+  const target = e.target as HTMLElement;
+  target.dispatchEvent(
+    new KeyboardEvent('keydown', { key: VIM_TO_ARROW[e.key], bubbles: true }),
+  );
 }
 
 function toggleSidebar() {
