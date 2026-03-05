@@ -47,6 +47,17 @@ function Sidebar({ sidebarOpen, setSidebarOpen }: SidebarOpenProps) {
     }
   }, [sidebarExpanded]);
 
+  // sync sidebar state from keyboard shortcut toggle
+  useEffect(() => {
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === 'sidebar-expanded') {
+        setSidebarExpanded(localStorage.getItem('sidebar-expanded') === 'true');
+      }
+    };
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
+  }, []);
+
   // close on click outside
   useEffect(() => {
     const clickHandler = ({ target }: Event) => {

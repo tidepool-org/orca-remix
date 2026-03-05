@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { Input } from '@heroui/react';
 import { Search } from 'lucide-react';
@@ -35,29 +35,6 @@ export default function HeaderSearch() {
   const navigate = useNavigate();
   const inputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key !== '/') return;
-
-      const target = e.target as HTMLElement;
-      const tagName = target.tagName;
-      if (
-        tagName === 'INPUT' ||
-        tagName === 'TEXTAREA' ||
-        tagName === 'SELECT' ||
-        target.isContentEditable
-      ) {
-        return;
-      }
-
-      e.preventDefault();
-      inputRef.current?.focus();
-    };
-
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, []);
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const trimmed = value.trim();
@@ -69,7 +46,7 @@ export default function HeaderSearch() {
   };
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form id="header-search" onSubmit={handleSubmit}>
       <Input
         ref={inputRef}
         type="text"
@@ -88,7 +65,10 @@ export default function HeaderSearch() {
           input: 'group-data-[has-value=true]:text-content1-foreground',
         }}
         startContent={
-          <Search className="w-4 h-4 shrink-0 text-default-400" aria-hidden="true" />
+          <Search
+            className="w-4 h-4 shrink-0 text-default-400"
+            aria-hidden="true"
+          />
         }
         endContent={
           !isFocused && !value ? (

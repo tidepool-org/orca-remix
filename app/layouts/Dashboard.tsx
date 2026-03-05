@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 
-import { Outlet, useMatches, useNavigation } from 'react-router';
+import { Outlet, useMatches, useNavigate, useNavigation } from 'react-router';
 import { Breadcrumbs, BreadcrumbItem, Spinner } from '@heroui/react';
 import { Home } from 'lucide-react';
 import filter from 'lodash/filter';
@@ -8,6 +8,8 @@ import map from 'lodash/map';
 
 import Sidebar from '../partials/Sidebar';
 import Header from '../partials/Header';
+import KeyboardShortcutsModal from '~/components/ui/KeyboardShortcutsModal';
+import useKeyboardShortcuts from '~/hooks/useKeyboardShortcuts';
 import { getPersistedParamsString } from '~/utils/viewStatePersistence';
 
 export type SidebarOpenProps = {
@@ -29,8 +31,13 @@ interface IMatch {
 
 function Dashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isShortcutsModalOpen, setIsShortcutsModalOpen] = useState(false);
   const matches = useMatches() as IMatch[];
   const navigation = useNavigation();
+  const navigate = useNavigate();
+
+  const openHelpModal = useCallback(() => setIsShortcutsModalOpen(true), []);
+  useKeyboardShortcuts({ navigate, openHelpModal });
 
   const isLoading = navigation.state === 'loading';
 
@@ -108,6 +115,11 @@ function Dashboard() {
           </main>
         </div>
       </div>
+
+      <KeyboardShortcutsModal
+        isOpen={isShortcutsModalOpen}
+        onClose={() => setIsShortcutsModalOpen(false)}
+      />
     </div>
   );
 }
