@@ -168,7 +168,10 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
     }
 
     if (!clinicianJson || typeof clinicianJson !== 'string') {
-      return Response.json({ error: 'Invalid clinician data' }, { status: 400 });
+      return Response.json(
+        { error: 'Invalid clinician data' },
+        { status: 400 },
+      );
     }
 
     // Schema for validating roles array
@@ -184,10 +187,7 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
         parsedRoles = JSON.parse(rolesJson);
         parsedClinician = JSON.parse(clinicianJson);
       } catch {
-        return Response.json(
-          { error: 'Invalid JSON format' },
-          { status: 400 },
-        );
+        return Response.json({ error: 'Invalid JSON format' }, { status: 400 });
       }
 
       const roles = RolesSchema.parse(parsedRoles);

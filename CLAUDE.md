@@ -26,6 +26,7 @@ Always run `npm run format` after completing changes. Run `npm run test:run` bef
 **Stack**: React 18 + React Router v7 + Vite + Express SSR + Tailwind CSS + HeroUI
 
 **Key directories**:
+
 - `app/routes/` - Flat-file routing with `$param` for dynamic segments (e.g., `clinics.$clinicId.tsx`)
 - `app/components/` - Feature-organized components (`Clinic/`, `User/`, `Reports/`, `ui/`)
 - `app/components/ui/` - Reusable UI primitives (check here before building new patterns)
@@ -36,6 +37,7 @@ Always run `npm run format` after completing changes. Run `npm run test:run` bef
 - `app/test-utils/` - Custom `render` wrapping HeroUI provider
 
 **Server-side files** (`.server.ts` suffix):
+
 - `api.server.ts` - Centralized API route definitions and `apiRequest()`/`apiRequestSafe()` helpers
 - `auth.server.ts` - Authentication logic with `authorizeServer()`
 - `sessions.server.ts` - Cookie session storage (theme, users, clinics, patients, clinicians)

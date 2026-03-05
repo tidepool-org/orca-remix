@@ -2,6 +2,7 @@ import { Button, Link } from '@heroui/react';
 import Logo from '~/components/Logo/Logo';
 import ThemeSwitcher from '~/components/ThemeSwitcher';
 import UserMenu from '~/components/UserMenu';
+import HeaderSearch from '~/components/ui/HeaderSearch';
 import { Menu } from 'lucide-react';
 
 import { type SidebarOpenProps } from '~/layouts/Dashboard';
@@ -12,7 +13,7 @@ function Header({ sidebarOpen, setSidebarOpen }: SidebarOpenProps) {
       <div className="px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 -mb-px">
           {/* Header: Left side */}
-          <div className="flex items-center">
+          <div className="flex items-center gap-4">
             {/* Hamburger button */}
             <Button
               className="bg-transparent text-foreground lg:hidden"
@@ -29,6 +30,9 @@ function Header({ sidebarOpen, setSidebarOpen }: SidebarOpenProps) {
               <Link className="lg:hidden" href="/">
                 <Logo />
               </Link>
+            </div>
+            <div className="hidden sm:block">
+              <HeaderSearch />
             </div>
           </div>
 

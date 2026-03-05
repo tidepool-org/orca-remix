@@ -559,7 +559,9 @@ export async function action({ request, params }: ActionFunctionArgs) {
             { status: 400 },
           );
         }
-        await apiRequest(apiRoutes.data.disconnectDataSource(userId, providerName));
+        await apiRequest(
+          apiRoutes.data.disconnectDataSource(userId, providerName),
+        );
         return Response.json({
           success: true,
           action: 'disconnect-data-source',

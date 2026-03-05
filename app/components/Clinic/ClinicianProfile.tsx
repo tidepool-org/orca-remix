@@ -52,7 +52,10 @@ export default function ClinicianProfile({
       };
 
       if (data.success) {
-        showToast(data.message || 'Clinician roles updated successfully', 'success');
+        showToast(
+          data.message || 'Clinician roles updated successfully',
+          'success',
+        );
       } else if (data.error) {
         showToast(data.error, 'error');
       }
