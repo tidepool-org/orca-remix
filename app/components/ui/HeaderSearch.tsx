@@ -73,7 +73,7 @@ export default function HeaderSearch() {
         endContent={
           !isFocused && !value ? (
             <kbd
-              className="hidden sm:inline-flex items-center px-1.5 border border-default-300 rounded text-xs text-default-400 font-sans"
+              className="hidden sm:inline-flex items-center px-1.5 border border-default-300 rounded text-xs text-default-400 font-mono"
               aria-hidden="true"
             >
               /

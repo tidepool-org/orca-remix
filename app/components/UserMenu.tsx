@@ -69,7 +69,7 @@ export default function UserMenu({ onOpenShortcuts }: UserMenuProps) {
           <DropdownItem
             key="shortcuts"
             onPress={onOpenShortcuts}
-            endContent={<Kbd className="text-xs">?</Kbd>}
+            endContent={<Kbd className="font-mono text-xs">?</Kbd>}
           >
             Shortcuts
           </DropdownItem>

@@ -81,7 +81,7 @@ export default function KeyboardShortcutsModal({
                               then
                             </span>
                           )}
-                          <Kbd>{key}</Kbd>
+                          <Kbd className="font-mono">{key}</Kbd>
                         </span>
                       ))}
                     </div>
