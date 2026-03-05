@@ -234,8 +234,8 @@ export const ClinicSearchSchema = z.object({
     .min(1, 'Search term is required')
     .refine(
       (val) => {
-        // Must be clinic ID (UUID format or 10+ hex chars) or share code (uppercase letters/numbers, no vowels/0/1)
-        const clinicIdRegex = /^[0-9a-f]{10,}$/i; // 10 or more hex chars, case insensitive
+        // Must be clinic ID (exactly 24 hex chars) or share code (uppercase letters/numbers, no vowels/0/1)
+        const clinicIdRegex = /^[a-f0-9]{24}$/; // exactly 24 lowercase hex chars
         const uuidRegex =
           /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i; // UUID format
         const shareCodeRegex =

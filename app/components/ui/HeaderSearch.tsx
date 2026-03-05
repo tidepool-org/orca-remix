@@ -7,7 +7,7 @@ import { Search } from 'lucide-react';
  * Determines the search route based on the input value.
  * - Email addresses → /users
  * - Share codes (XXXX-XXXX-XXXX) → /clinics
- * - Hex strings 10+ chars → /clinics (clinic IDs are hex)
+ * - Exactly 24 hex chars → /clinics (clinic IDs)
  * - Everything else → /users
  */
 function getSearchRoute(value: string): string {
@@ -21,8 +21,8 @@ function getSearchRoute(value: string): string {
     /^[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{4}-[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{4}-[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{4}$/;
   if (shareCodeRegex.test(trimmed)) return '/clinics';
 
-  // Hex string 10+ chars (no dashes) → clinic
-  const clinicIdRegex = /^[0-9a-f]{10,}$/i;
+  // Exactly 24 hex chars → clinic
+  const clinicIdRegex = /^[a-f0-9]{24}$/;
   if (clinicIdRegex.test(trimmed)) return '/clinics';
 
   // Default → user
