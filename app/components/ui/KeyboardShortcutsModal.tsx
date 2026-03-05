@@ -54,7 +54,10 @@ export default function KeyboardShortcutsModal({
       onClose={onClose}
       size="md"
       aria-label="Keyboard shortcuts"
-      classNames={{ closeButton: 'outline-none' }}
+      classNames={{
+        closeButton:
+          'outline-none ring-0 shadow-none data-[focus-visible=true]:ring-2 data-[focus-visible=true]:ring-focus',
+      }}
     >
       <ModalContent>
         <ModalHeader>Keyboard Shortcuts</ModalHeader>
