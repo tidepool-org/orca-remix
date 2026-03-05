@@ -34,7 +34,7 @@ const SHORTCUT_GROUPS: ShortcutGroup[] = [
     title: 'General',
     shortcuts: [
       { keys: ['?'], description: 'Open this help' },
-      { keys: ['Esc'], description: 'Close modal / sidebar' },
+      { keys: ['Esc'], description: 'Close modal' },
     ],
   },
 ];
