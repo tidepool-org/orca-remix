@@ -27,7 +27,7 @@ const SHORTCUT_GROUPS: ShortcutGroup[] = [
     title: 'Actions',
     shortcuts: [
       { keys: ['s'], description: 'Toggle sidebar' },
-      { keys: ['/'], description: 'Focus search' },
+      { keys: ['/'], description: 'Focus global search' },
     ],
   },
   {
