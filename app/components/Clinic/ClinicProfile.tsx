@@ -24,6 +24,7 @@ import type {
 } from './types';
 import type { ResourceState } from '~/api.types';
 import useLocale from '~/hooks/useLocale';
+import useProfileExpanded from '~/hooks/useProfileExpanded';
 import PatientsTable from './PatientsTable';
 import PatientInvitesTable from './PatientInvitesTable';
 import CliniciansTable from './CliniciansTable';
@@ -157,6 +158,7 @@ export default function ClinicProfile({
   const { id, shareCode, name, createdTime, canMigrate, tier, timezone } =
     clinic;
   const { locale } = useLocale();
+  const profileExpandedProps = useProfileExpanded('clinic');
 
   // Staged tier state (for 2-step save/cancel)
   const [stagedTier, setStagedTier] = useState(tier);
@@ -313,6 +315,7 @@ export default function ClinicProfile({
         title={name}
         identifiers={clinicIdentifiers}
         detailFields={clinicDetailFields}
+        {...profileExpandedProps}
       />
 
       {/* Tabbed Interface */}

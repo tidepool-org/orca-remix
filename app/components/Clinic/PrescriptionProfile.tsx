@@ -2,6 +2,7 @@ import { Link } from 'react-router';
 
 import type { Prescription, Clinician } from './types';
 import useLocale from '~/hooks/useLocale';
+import useProfileExpanded from '~/hooks/useProfileExpanded';
 import ProfileHeader from '~/components/ui/ProfileHeader';
 import StatusChip from '~/components/ui/StatusChip';
 import CopyableIdentifier from '~/components/ui/CopyableIdentifier';
@@ -22,6 +23,7 @@ export default function PrescriptionProfile({
   clinicId,
 }: PrescriptionProfileProps) {
   const { locale } = useLocale();
+  const profileExpandedProps = useProfileExpanded('prescription');
   const {
     id,
     state,
@@ -79,6 +81,7 @@ export default function PrescriptionProfile({
         identifiers={prescriptionIdentifiers}
         actionLink={<ViewUserAccountLink userId={createdUserId} />}
         detailFields={prescriptionDetailFields}
+        {...profileExpandedProps}
       />
 
       {/* Patient & Prescriber Info - Side by side on larger screens */}

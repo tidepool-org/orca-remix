@@ -6,6 +6,7 @@ import type { Patient, Prescription } from './types';
 import type { DataSet, DataSource, PumpSettings } from '../User/types';
 import type { ResourceState } from '~/api.types';
 import useLocale from '~/hooks/useLocale';
+import useProfileExpanded from '~/hooks/useProfileExpanded';
 import useClinicResolvers from '~/hooks/useClinicResolvers';
 // import PrescriptionsTable from './PrescriptionsTable';
 import DataSetsTable from '../User/DataSetsTable';
@@ -90,6 +91,7 @@ export default function PatientProfile({
     permissions,
   } = patient;
   const { locale } = useLocale();
+  const profileExpandedProps = useProfileExpanded('patient');
 
   // Try to get clinic data from parent route if not provided as prop
   const parentRouteData = useRouteLoaderData('routes/clinics.$clinicId') as
@@ -190,6 +192,7 @@ export default function PatientProfile({
         identifiers={patientIdentifiers}
         actionLink={<ViewUserAccountLink userId={id} />}
         detailFields={patientDetailFields}
+        {...profileExpandedProps}
       />
 
       <div className="w-full">

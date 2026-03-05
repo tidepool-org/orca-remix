@@ -37,6 +37,7 @@ import type {
   PumpSettings,
 } from './types';
 import useLocale from '~/hooks/useLocale';
+import useProfileExpanded from '~/hooks/useProfileExpanded';
 import { formatShortDate } from '~/utils/dateFormatters';
 
 export type UserProfileProps = {
@@ -112,6 +113,7 @@ export default function UserProfile({
   const { emailVerified, userid: userId, username, termsAccepted } = user;
   const { fullName, clinic } = profile;
   const { locale } = useLocale();
+  const profileExpandedProps = useProfileExpanded('user');
 
   // Determine if this is an unclaimed/custodial account
   const isUnclaimedAccount = !emailVerified && !termsAccepted;
@@ -163,6 +165,7 @@ export default function UserProfile({
       title={fullName || username || 'Unknown User'}
       identifiers={userIdentifiers}
       detailFields={userDetailFields}
+      {...profileExpandedProps}
     />
   );
 

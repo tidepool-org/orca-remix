@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { Building2, Settings } from 'lucide-react';
 import { useFetcher } from 'react-router';
 import useLocale from '~/hooks/useLocale';
+import useProfileExpanded from '~/hooks/useProfileExpanded';
 import ClinicsTable from './ClinicsTable';
 import ProfileHeader from '~/components/ui/ProfileHeader';
 import ProfileTabs from '~/components/ui/ProfileTabs';
@@ -39,6 +40,7 @@ export default function ClinicianProfile({
   onTabChange,
 }: ClinicianProfileProps) {
   const { locale } = useLocale();
+  const profileExpandedProps = useProfileExpanded('clinician');
   const fetcher = useFetcher();
   const { showToast } = useToast();
 
@@ -173,6 +175,7 @@ export default function ClinicianProfile({
         identifiers={clinicianIdentifiers}
         actionLink={<ViewUserAccountLink userId={clinician.id} />}
         detailFields={clinicianDetailFields}
+        {...profileExpandedProps}
       />
 
       <div className="w-full">
