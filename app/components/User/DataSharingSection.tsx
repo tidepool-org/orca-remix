@@ -18,6 +18,7 @@ import TableEmptyState from '~/components/ui/TableEmptyState';
 import TableLoadingState from '~/components/ui/TableLoadingState';
 import StatusChip from '~/components/ui/StatusChip';
 import ResourceError from '~/components/ui/ResourceError';
+import CopyableIdentifier from '~/components/ui/CopyableIdentifier';
 import { formatShortDate } from '~/utils/dateFormatters';
 
 // Helper to convert permissions object to readable array
@@ -111,7 +112,7 @@ export function TrustingAccountsTable({
               {entries.map(([userId, permissions]) => (
                 <TableRow key={userId}>
                   <TableCell>
-                    <span className="font-mono text-sm">{userId}</span>
+                    <CopyableIdentifier value={userId} monospace size="sm" />
                   </TableCell>
                   <TableCell>
                     <div className="flex gap-1 flex-wrap">
@@ -217,7 +218,7 @@ export function TrustedAccountsTable({
               {entries.map(([userId, permissions]) => (
                 <TableRow key={userId}>
                   <TableCell>
-                    <span className="font-mono text-sm">{userId}</span>
+                    <CopyableIdentifier value={userId} monospace size="sm" />
                   </TableCell>
                   <TableCell>
                     <div className="flex gap-1 flex-wrap">
@@ -315,7 +316,7 @@ export function SentInvitesTable({
               {invites.map((invite) => (
                 <TableRow key={invite.key}>
                   <TableCell>
-                    <span className="text-sm">{invite.email}</span>
+                    <CopyableIdentifier value={invite.email} size="sm" />
                   </TableCell>
                   <TableCell>
                     <Chip size="sm" variant="flat">

@@ -25,6 +25,7 @@ import TablePagination, {
   getFirstItemOnPage,
   getLastItemOnPage,
 } from '~/components/ui/TablePagination';
+import CopyableIdentifier from '~/components/ui/CopyableIdentifier';
 import { formatShortDate } from '~/utils/dateFormatters';
 
 export type PatientsTableProps = {
@@ -163,13 +164,11 @@ export default function PatientsTable({
           return (
             <div className="flex flex-col">
               <p className="text-bold text-sm capitalize">{patient.fullName}</p>
-              <p className="text-tiny text-default-400 capitalize">
-                ID: {patient.id}
-              </p>
+              <CopyableIdentifier label="ID:" value={patient.id} size="sm" />
             </div>
           );
         case 'email':
-          return <p className="text-sm text-default-600">{patient.email}</p>;
+          return <CopyableIdentifier value={patient.email} size="sm" />;
         case 'birthDate':
           return patient.birthDate ? (
             <p className="text-sm">

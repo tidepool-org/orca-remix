@@ -21,6 +21,7 @@ import TablePagination, {
   getLastItemOnPage,
 } from '~/components/ui/TablePagination';
 import DeleteActionButton from '~/components/ui/DeleteActionButton';
+import CopyableIdentifier from '~/components/ui/CopyableIdentifier';
 import { formatShortDate } from '~/utils/dateFormatters';
 
 export type PatientInvitesTableProps = {
@@ -136,7 +137,13 @@ export default function PatientInvitesTable({
             </p>
           );
         case 'userId':
-          return <p className="text-sm font-mono">{invite.creator.userid}</p>;
+          return (
+            <CopyableIdentifier
+              value={invite.creator.userid}
+              monospace
+              size="sm"
+            />
+          );
         case 'created':
           if (!cellValue) return <span className="text-default-400">—</span>;
           return (

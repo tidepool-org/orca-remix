@@ -17,6 +17,7 @@ import TableEmptyState from '~/components/ui/TableEmptyState';
 import TableLoadingState from '~/components/ui/TableLoadingState';
 import DeleteActionButton from '~/components/ui/DeleteActionButton';
 import StatusChip from '~/components/ui/StatusChip';
+import CopyableIdentifier from '~/components/ui/CopyableIdentifier';
 import { formatShortDate } from '~/utils/dateFormatters';
 
 export type ClinicianInvitesTableProps = {
@@ -80,10 +81,12 @@ export default function ClinicianInvitesTable({
         case 'email':
           return (
             <div className="flex flex-col">
-              <p className="text-bold text-sm">{invite.email}</p>
-              <p className="text-tiny text-default-400">
-                ID: {invite.inviteId}
-              </p>
+              <CopyableIdentifier value={invite.email} size="sm" />
+              <CopyableIdentifier
+                label="ID:"
+                value={invite.inviteId}
+                size="sm"
+              />
             </div>
           );
         case 'roles': {

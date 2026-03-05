@@ -57,6 +57,8 @@ export default function CopyableIdentifier({
   className = '',
   size = 'md',
 }: CopyableIdentifierProps) {
+  if (!value) return null;
+
   // Default monospace to true if a label is provided (follows existing ProfileHeader pattern)
   const useMonospace = monospace ?? !!label;
 

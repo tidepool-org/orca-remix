@@ -23,6 +23,7 @@ import TablePagination, {
   getLastItemOnPage,
 } from '~/components/ui/TablePagination';
 import DeleteActionButton from '~/components/ui/DeleteActionButton';
+import CopyableIdentifier from '~/components/ui/CopyableIdentifier';
 import { formatShortDate } from '~/utils/dateFormatters';
 export type CliniciansTableProps = {
   clinicians: Clinician[];
@@ -131,13 +132,11 @@ export default function CliniciansTable({
           return (
             <div className="flex flex-col">
               <p className="text-bold text-sm capitalize">{cellValue}</p>
-              <p className="text-tiny text-default-400 capitalize">
-                ID: {clinician.id}
-              </p>
+              <CopyableIdentifier label="ID:" value={clinician.id} size="sm" />
             </div>
           );
         case 'email':
-          return <p className="text-sm text-default-600">{cellValue}</p>;
+          return <CopyableIdentifier value={cellValue as string} size="sm" />;
         case 'roles': {
           // Handle roles array - display the first role or join them
           const rolesArray = cellValue as string[];

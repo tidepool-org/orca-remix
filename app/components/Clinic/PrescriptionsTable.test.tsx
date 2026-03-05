@@ -117,9 +117,9 @@ describe('PrescriptionsTable', () => {
     it('renders prescription IDs', () => {
       renderExpanded(defaultProps);
 
-      expect(screen.getByText('ID: rx-1')).toBeInTheDocument();
-      expect(screen.getByText('ID: rx-2')).toBeInTheDocument();
-      expect(screen.getByText('ID: rx-3')).toBeInTheDocument();
+      expect(screen.getByText('rx-1')).toBeInTheDocument();
+      expect(screen.getByText('rx-2')).toBeInTheDocument();
+      expect(screen.getByText('rx-3')).toBeInTheDocument();
     });
 
     it('renders status chips for prescription states', () => {

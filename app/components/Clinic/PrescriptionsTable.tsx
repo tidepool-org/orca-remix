@@ -19,6 +19,7 @@ import TableLoadingState from '~/components/ui/TableLoadingState';
 import TableFilterInput from '~/components/ui/TableFilterInput';
 import StatusChip from '~/components/ui/StatusChip';
 import ResourceError from '~/components/ui/ResourceError';
+import CopyableIdentifier from '~/components/ui/CopyableIdentifier';
 import { formatDateTime } from '~/utils/dateFormatters';
 
 /**
@@ -123,7 +124,7 @@ export default function PrescriptionsTable({
           return (
             <div className="flex flex-col">
               <p className="text-bold text-sm">{patientName}</p>
-              <p className="text-tiny text-default-400">ID: {item.id}</p>
+              <CopyableIdentifier label="ID:" value={item.id} size="sm" />
             </div>
           );
         }

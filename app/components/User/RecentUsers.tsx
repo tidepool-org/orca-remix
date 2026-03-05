@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router';
 import RecentItemsTable from '~/components/ui/RecentItemsTable';
+import CopyableIdentifier from '~/components/ui/CopyableIdentifier';
 import type { RecentUser } from './types';
 
 export type RecentUsersProps = {
@@ -9,6 +10,7 @@ export type RecentUsersProps = {
 const columns = [
   { key: 'fullName', label: 'Name' },
   { key: 'username', label: 'Email Address' },
+  { key: 'userid', label: 'ID' },
 ];
 
 export default function RecentUsers({ rows }: RecentUsersProps) {
@@ -26,6 +28,23 @@ export default function RecentUsers({ rows }: RecentUsersProps) {
       aria-label="Recently viewed users"
       title="Recently Viewed Users"
       emptyMessage="There are no recently viewed users to show"
+      renderCell={(item, columnKey) => {
+        if (columnKey === 'username' && item.username) {
+          return <CopyableIdentifier value={item.username} size="sm" />;
+        }
+        if (columnKey === 'userid') {
+          return (
+            <CopyableIdentifier
+              value={item.userid}
+              size="sm"
+              truncate
+              maxWidth="120px"
+              monospace
+            />
+          );
+        }
+        return item[columnKey as keyof RecentUser];
+      }}
     />
   );
 }

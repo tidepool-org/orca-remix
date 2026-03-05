@@ -27,6 +27,7 @@ import TablePagination, {
   getLastItemOnPage,
 } from '~/components/ui/TablePagination';
 import TableFilterInput from '~/components/ui/TableFilterInput';
+import CopyableIdentifier from '~/components/ui/CopyableIdentifier';
 import { formatShortDate } from '~/utils/dateFormatters';
 
 export type ClinicsTableProps = {
@@ -150,7 +151,7 @@ export default function ClinicsTable({
           return (
             <div className="flex flex-col">
               <p className="text-bold text-sm">{clinic.name}</p>
-              <p className="text-xs text-default-400 font-mono">{clinic.id}</p>
+              <CopyableIdentifier value={clinic.id} monospace size="sm" />
             </div>
           );
         case 'tier':
