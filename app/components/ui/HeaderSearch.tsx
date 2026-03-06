@@ -69,6 +69,7 @@ export default function HeaderSearch() {
   const navigate = useNavigate();
   const location = useLocation();
   const autocompleteRef = useRef<HTMLInputElement>(null);
+  const hasArrowNavigated = useRef(false);
 
   const fetchEntities = useCallback(async () => {
     if (hasFetched) return;
@@ -120,7 +121,10 @@ export default function HeaderSearch() {
       <Autocomplete
         ref={autocompleteRef}
         inputValue={inputValue}
-        onInputChange={setInputValue}
+        onInputChange={(val) => {
+          setInputValue(val);
+          hasArrowNavigated.current = false;
+        }}
         allowsCustomValue
         size="sm"
         placeholder={isFocused ? 'Name, ID, Email, or Share Code' : 'Search'}
@@ -129,13 +133,20 @@ export default function HeaderSearch() {
         onBlur={() => setIsFocused(false)}
         onSelectionChange={navigateToEntity}
         onKeyDown={(e) => {
+          if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+            hasArrowNavigated.current = true;
+          }
           if (e.key === 'Enter') {
-            // If an item is highlighted in the dropdown, let Autocomplete handle it.
-            // e.currentTarget may be the input itself or a wrapper div, so handle both.
+            // If the user has actively navigated the dropdown with arrow keys
+            // and an item is highlighted, let Autocomplete handle the selection.
             const el = e.currentTarget;
             const input =
               el instanceof HTMLInputElement ? el : el.querySelector('input');
-            if (input?.getAttribute('aria-activedescendant')) return;
+            if (
+              hasArrowNavigated.current &&
+              input?.getAttribute('aria-activedescendant')
+            )
+              return;
 
             const trimmed = inputValue.trim();
             if (trimmed) {
@@ -143,6 +154,7 @@ export default function HeaderSearch() {
               const route = getSearchRoute(trimmed);
               navigate(`${route}?search=${encodeURIComponent(trimmed)}`);
               setInputValue('');
+              hasArrowNavigated.current = false;
             }
           }
         }}
