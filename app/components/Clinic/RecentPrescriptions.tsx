@@ -38,7 +38,7 @@ export default function RecentPrescriptions() {
               value={item.id}
               size="sm"
               truncate
-              maxWidth="120px"
+              maxWidth="100%"
               monospace
             />
           );

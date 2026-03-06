@@ -29,7 +29,14 @@ export default function RecentPatients() {
       emptyMessage="There are no recently viewed patients to show"
       renderCell={(item, columnKey) => {
         if (columnKey === 'email' && item.email) {
-          return <CopyableIdentifier value={item.email} size="sm" />;
+          return (
+            <CopyableIdentifier
+              value={item.email}
+              size="sm"
+              truncate
+              maxWidth="100%"
+            />
+          );
         }
         if (columnKey === 'id') {
           return (
@@ -37,7 +44,7 @@ export default function RecentPatients() {
               value={item.id}
               size="sm"
               truncate
-              maxWidth="120px"
+              maxWidth="100%"
               monospace
             />
           );

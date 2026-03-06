@@ -45,7 +45,7 @@ export default function RecentUsers({ rows }: RecentUsersProps) {
               value={item.userid}
               size="sm"
               truncate
-              maxWidth="120px"
+              maxWidth="100%"
               monospace
             />
           );
