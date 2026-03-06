@@ -1,7 +1,7 @@
 import { ExternalLink } from 'lucide-react';
 
 const ROLLBAR_BASE_URL =
-  'https://app.rollbar.com/a/tidepool/fix/items?prj=341746&isSnoozed=false&from=all&query=user_id:';
+  'https://app.rollbar.com/a/tidepool/fix/items?prj=341746&prj=132318&isSnoozed=false&from=all&query=user_id%3A';
 
 export type RollbarLinkProps = {
   userId: string;
