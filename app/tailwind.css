@@ -2,6 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Force white input background in light mode for header search */
+.light #header-search [data-slot='input-wrapper'] {
+  background-color: #fff !important;
+}
+
 @layer base {
   @font-face {
     font-family: 'Basis';
