@@ -222,9 +222,16 @@ export default function DataSetsTable({
                 {item.time ? formatDateWithTime(item.time, locale) : 'N/A'}
               </span>
               {item.byUser && (
-                <p className="text-xs text-default-400">
-                  by: {item.byUser.slice(0, 8)}...
-                </p>
+                <CopyableIdentifier
+                  label="by:"
+                  value={item.byUser}
+                  monospace
+                  size="sm"
+                >
+                  <span className="text-xs font-mono text-default-400">
+                    {item.byUser.slice(0, 8)}...
+                  </span>
+                </CopyableIdentifier>
               )}
             </div>
           );
