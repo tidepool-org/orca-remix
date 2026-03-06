@@ -125,9 +125,11 @@ export default function RecentItemsTable<T extends { id?: string }>({
         removeWrapper
         selectionMode="single"
         onSelectionChange={handleSelection}
+        layout="fixed"
         classNames={{
           th: recentTableClasses.th,
           tr: recentTableClasses.tr,
+          table: 'table-fixed',
         }}
       >
         <TableHeader columns={columns}>

@@ -30,7 +30,14 @@ export default function RecentUsers({ rows }: RecentUsersProps) {
       emptyMessage="There are no recently viewed users to show"
       renderCell={(item, columnKey) => {
         if (columnKey === 'username' && item.username) {
-          return <CopyableIdentifier value={item.username} size="sm" />;
+          return (
+            <CopyableIdentifier
+              value={item.username}
+              size="sm"
+              truncate
+              maxWidth="100%"
+            />
+          );
         }
         if (columnKey === 'userid') {
           return (
