@@ -5,11 +5,13 @@ import {
   clinicsSession,
   patientsSession,
   cliniciansSession,
+  prescriptionsSession,
 } from '~/sessions.server';
 import type {
   RecentClinic,
   RecentClinician,
   RecentPatient,
+  RecentPrescription,
 } from '~/components/Clinic/types';
 import type { RecentUser } from '~/components/User/types';
 
@@ -17,20 +19,26 @@ export type RecentEntity = {
   id: string;
   label: string;
   sublabel?: string;
-  type: 'clinic' | 'user' | 'patient' | 'clinician';
+  type: 'clinic' | 'user' | 'patient' | 'clinician' | 'prescription';
   href: string;
 };
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const cookie = request.headers.get('Cookie');
 
-  const [usersData, clinicsData, patientsData, cliniciansData] =
-    await Promise.all([
-      usersSession.getSession(cookie),
-      clinicsSession.getSession(cookie),
-      patientsSession.getSession(cookie),
-      cliniciansSession.getSession(cookie),
-    ]);
+  const [
+    usersData,
+    clinicsData,
+    patientsData,
+    cliniciansData,
+    prescriptionsData,
+  ] = await Promise.all([
+    usersSession.getSession(cookie),
+    clinicsSession.getSession(cookie),
+    patientsSession.getSession(cookie),
+    cliniciansSession.getSession(cookie),
+    prescriptionsSession.getSession(cookie),
+  ]);
 
   const entities: RecentEntity[] = [];
 
@@ -101,6 +109,31 @@ export async function loader({ request }: LoaderFunctionArgs) {
           sublabel: clinician.email,
           type: 'clinician',
           href: `/clinics/${clinic.id}/clinicians/${clinician.id}`,
+        });
+      }
+    }
+
+    let prescriptions: RecentPrescription[] = [];
+    try {
+      const raw = prescriptionsData.get(`recentPrescriptions-${clinic.id}`);
+      if (raw && typeof raw === 'string') {
+        prescriptions = JSON.parse(raw);
+      }
+    } catch {
+      // ignore
+    }
+    for (const prescription of prescriptions) {
+      if (
+        !entities.some(
+          (e) => e.id === prescription.id && e.type === 'prescription',
+        )
+      ) {
+        entities.push({
+          id: prescription.id,
+          label: prescription.patientName,
+          sublabel: prescription.state,
+          type: 'prescription',
+          href: `/clinics/${clinic.id}/prescriptions/${prescription.id}`,
         });
       }
     }

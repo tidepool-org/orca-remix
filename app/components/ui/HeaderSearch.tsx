@@ -5,7 +5,14 @@ import {
   AutocompleteItem,
   AutocompleteSection,
 } from '@heroui/react';
-import { Search, Building2, User, UserCheck, Users } from 'lucide-react';
+import {
+  Search,
+  Building2,
+  User,
+  UserCheck,
+  Users,
+  FileText,
+} from 'lucide-react';
 import type { RecentEntity } from '~/routes/action.recent-entities';
 
 /**
@@ -35,6 +42,7 @@ const typeIcons = {
   user: User,
   patient: Users,
   clinician: UserCheck,
+  prescription: FileText,
 };
 
 const typeLabels = {
@@ -42,13 +50,15 @@ const typeLabels = {
   user: 'Users',
   patient: 'Patients',
   clinician: 'Clinicians',
+  prescription: 'Prescriptions',
 };
 
 const typeOrder: RecentEntity['type'][] = [
+  'clinician',
   'clinic',
   'user',
   'patient',
-  'clinician',
+  'prescription',
 ];
 
 export default function HeaderSearch() {
@@ -114,7 +124,7 @@ export default function HeaderSearch() {
         allowsCustomValue
         size="sm"
         placeholder={isFocused ? 'Name, ID, Email, or Share Code' : 'Search'}
-        aria-label="Search for a user, clinic, patient, or clinician"
+        aria-label="Search for a user, clinic, patient, clinician, or prescription"
         onFocus={handleFocus}
         onBlur={() => setIsFocused(false)}
         onSelectionChange={navigateToEntity}
