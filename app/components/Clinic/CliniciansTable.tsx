@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate, useParams } from 'react-router';
+import { useNavigate, useParams, useHref } from 'react-router';
 import {
   Table,
   TableHeader,
@@ -62,6 +62,9 @@ export default function CliniciansTable({
   const { locale } = useLocale();
   const navigate = useNavigate();
   const params = useParams();
+  const exportHref = useHref(
+    `/clinics/${params.clinicId}/export?type=clinicians`,
+  );
   const [removeModalOpen, setRemoveModalOpen] = useState(false);
   const [selectedClinician, setSelectedClinician] = useState<Clinician | null>(
     null,
@@ -195,6 +198,7 @@ export default function CliniciansTable({
         title="Clinicians"
         totalItems={totalClinicians}
         isFirstInGroup={isFirstInGroup}
+        exportHref={exportHref}
         showRange={{
           firstItem: firstClinicianOnPage,
           lastItem: lastClinicianOnPage,

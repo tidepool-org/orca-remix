@@ -26,6 +26,7 @@ vi.mock('react-router', async () => {
     useNavigate: () => mockNavigate,
     useParams: () => ({ clinicId: 'clinic-123' }),
     useSearchParams: () => [new URLSearchParams('tab=prescriptions')],
+    useHref: (to: string) => to,
   };
 });
 

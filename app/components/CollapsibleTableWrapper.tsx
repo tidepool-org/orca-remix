@@ -1,5 +1,6 @@
 import React, { ReactNode } from 'react';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, Download } from 'lucide-react';
+import { Tooltip } from '@heroui/react';
 import { useCollapsibleGroup } from './CollapsibleGroup';
 
 export type CollapsibleTableWrapperProps = {
@@ -16,6 +17,8 @@ export type CollapsibleTableWrapperProps = {
   defaultExpanded?: boolean;
   /** Mark this as the first collapsible in a CollapsibleGroup to auto-expand it */
   isFirstInGroup?: boolean;
+  /** When provided, renders a CSV export button that downloads from this URL */
+  exportHref?: string;
 };
 
 export default function CollapsibleTableWrapper({
@@ -28,6 +31,7 @@ export default function CollapsibleTableWrapper({
   showRange,
   defaultExpanded,
   isFirstInGroup = false,
+  exportHref,
 }: CollapsibleTableWrapperProps) {
   // If isFirstInGroup is true and we're within a CollapsibleGroup,
   // use the group's defaultExpanded setting
@@ -72,6 +76,19 @@ export default function CollapsibleTableWrapper({
           <h2 className="text-lg font-semibold">{headerText}</h2>
         </div>
         <div className="flex items-center gap-2">
+          {exportHref && (
+            <Tooltip content="Export as CSV">
+              <a
+                href={exportHref}
+                download
+                aria-label={`Export ${title} as CSV`}
+                className="p-1 rounded-md hover:bg-default-200 transition-colors"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <Download className="w-4 h-4" aria-hidden="true" />
+              </a>
+            </Tooltip>
+          )}
           <ChevronDown
             className={`w-5 h-5 transition-transform ${
               isExpanded ? 'rotate-180' : ''

@@ -1,6 +1,6 @@
 /* eslint-disable react/prop-types */
 import React from 'react';
-import { useNavigate, useParams } from 'react-router';
+import { useNavigate, useParams, useHref } from 'react-router';
 import {
   Table,
   TableHeader,
@@ -79,6 +79,9 @@ export default function PatientsTable({
   const navigate = useNavigate();
   const params = useParams();
   const { getTagName, getSiteName } = useClinicResolvers(clinic);
+  const exportHref = useHref(
+    `/clinics/${params.clinicId}/export?type=patients`,
+  );
 
   // Parse current sort to set initial sort descriptor
   const parseSortString = (sortStr?: string) => {
@@ -300,6 +303,7 @@ export default function PatientsTable({
       title="Patients"
       totalItems={totalPatients}
       isFirstInGroup={isFirstInGroup}
+      exportHref={exportHref}
       showRange={{
         firstItem: firstPatientOnPage,
         lastItem: lastPatientOnPage,

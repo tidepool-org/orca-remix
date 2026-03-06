@@ -8,7 +8,7 @@ import {
   TableCell,
 } from '@heroui/react';
 import { FileText } from 'lucide-react';
-import { useNavigate, useParams, useSearchParams } from 'react-router';
+import { useNavigate, useParams, useSearchParams, useHref } from 'react-router';
 import useLocale from '~/hooks/useLocale';
 import CollapsibleTableWrapper from '../CollapsibleTableWrapper';
 import { collapsibleTableClasses } from '~/utils/tableStyles';
@@ -61,6 +61,10 @@ export default function PrescriptionsTable({
   const params = useParams();
   const [searchParams] = useSearchParams();
   const [filterValue, setFilterValue] = useState('');
+  const effectiveClinicId = clinicId || params.clinicId;
+  const exportHref = useHref(
+    `/clinics/${effectiveClinicId}/export?type=prescriptions`,
+  );
 
   const filteredPrescriptions = useMemo(() => {
     if (!filterValue.trim()) return prescriptions;
@@ -172,6 +176,7 @@ export default function PrescriptionsTable({
       title="Prescriptions"
       totalItems={totalPrescriptions}
       isFirstInGroup={isFirstInGroup}
+      exportHref={context === 'clinic' ? exportHref : undefined}
     >
       {hasError ? (
         <ResourceError
