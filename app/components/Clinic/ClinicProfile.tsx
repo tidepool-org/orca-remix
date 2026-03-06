@@ -154,8 +154,7 @@ export default function ClinicProfile({
   selectedTab,
   onTabChange,
 }: ClinicProfileProps) {
-  const { id, shareCode, name, createdTime, canMigrate, tier, timezone } =
-    clinic;
+  const { id, shareCode, name, createdTime, tier, timezone } = clinic;
   const { locale } = useLocale();
   const profileExpandedProps = useProfileExpanded('clinic');
 
@@ -196,7 +195,6 @@ export default function ClinicProfile({
 
   const clinicDetailFields = [
     { label: 'Tier', value: tier || '—' },
-    { label: 'Can Migrate', value: canMigrate ? 'Yes' : 'No' },
     {
       label: 'Created',
       value: createdTime ? formatShortDate(createdTime, locale) : '—',
