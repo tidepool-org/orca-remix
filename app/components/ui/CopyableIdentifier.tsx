@@ -68,7 +68,7 @@ export default function CopyableIdentifier({
   };
 
   const valueClasses = [
-    useMonospace ? 'font-mono text-xs' : sizeClasses[size],
+    useMonospace ? `font-mono ${sizeClasses[size]}` : sizeClasses[size],
     truncate ? 'truncate' : '',
   ]
     .filter(Boolean)
