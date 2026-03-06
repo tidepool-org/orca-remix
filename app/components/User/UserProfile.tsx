@@ -213,7 +213,7 @@ export default function UserProfile({
               key="account"
               title={<TabTitle icon={Settings} label="Account" />}
             >
-              <div className="pt-6">
+              <div className="pt-6 flex flex-col gap-6">
                 <UserActions user={user} />
               </div>
             </Tab>
@@ -366,7 +366,7 @@ export default function UserProfile({
             key="account"
             title={<TabTitle icon={Settings} label="Account" />}
           >
-            <div className="pt-6">
+            <div className="pt-6 flex flex-col gap-6">
               <UserActions user={user} />
             </div>
           </Tab>

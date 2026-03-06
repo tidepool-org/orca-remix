@@ -90,7 +90,46 @@ export function DangerZoneAction({
   actionButton,
 }: DangerZoneActionProps) {
   return (
-    <div className="flex items-center justify-between p-4 border border-danger rounded-lg">
+    <ActionCard
+      title={title}
+      description={description}
+      actionButton={actionButton}
+      borderColor="border-danger"
+    />
+  );
+}
+
+export type ActionCardProps = {
+  /** Action title */
+  title: string;
+  /** Action description */
+  description: string;
+  /** The action button element */
+  actionButton: ReactNode;
+  /** Border color class (default: border-default) */
+  borderColor?: string;
+};
+
+/**
+ * A generic action card with title, description, and action button.
+ *
+ * @example
+ * <ActionCard
+ *   title="Send Password Reset"
+ *   description="Send a password reset email to this user."
+ *   actionButton={<Button color="primary" variant="flat" size="sm">Send Reset</Button>}
+ * />
+ */
+export function ActionCard({
+  title,
+  description,
+  actionButton,
+  borderColor = 'border-default',
+}: ActionCardProps) {
+  return (
+    <div
+      className={`flex items-center justify-between p-4 border ${borderColor} rounded-lg`}
+    >
       <div>
         <p className="text-sm font-medium">{title}</p>
         <p className="text-xs text-default-500">{description}</p>

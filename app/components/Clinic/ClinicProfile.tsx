@@ -38,9 +38,7 @@ import ProfileHeader from '~/components/ui/ProfileHeader';
 import ProfileTabs from '~/components/ui/ProfileTabs';
 import TabTitle from '~/components/ui/TabTitle';
 import SettingsToggleRow from '~/components/ui/SettingsToggleRow';
-import DangerZoneSection, {
-  DangerZoneAction,
-} from '~/components/ui/DangerZoneSection';
+import { DangerZoneAction } from '~/components/ui/DangerZoneSection';
 import SaveCancelButtons from '~/components/ui/SaveCancelButtons';
 import SectionPanel from '~/components/ui/SectionPanel';
 import { CollapsibleGroup } from '~/components/CollapsibleGroup';
@@ -612,24 +610,27 @@ export default function ClinicProfile({
               </SectionPanel>
 
               {/* Danger Zone */}
-              <SectionPanel title="Danger Zone">
-                <DangerZoneSection>
-                  <DangerZoneAction
-                    title="Delete Clinic Workspace"
-                    description="Permanently delete this clinic and all associated data. This action cannot be undone."
-                    actionButton={
-                      <Button
-                        color="danger"
-                        variant="flat"
-                        size="sm"
-                        startContent={<Trash2 size={14} />}
-                        onPress={() => setIsDeleteModalOpen(true)}
-                      >
-                        Delete Clinic
-                      </Button>
-                    }
-                  />
-                </DangerZoneSection>
+              <SectionPanel
+                title="Danger Zone"
+                titleClassName="text-danger"
+                collapsible
+                defaultExpanded={false}
+              >
+                <DangerZoneAction
+                  title="Delete Clinic Workspace"
+                  description="Permanently delete this clinic and all associated data. This action cannot be undone."
+                  actionButton={
+                    <Button
+                      color="danger"
+                      variant="flat"
+                      size="sm"
+                      startContent={<Trash2 size={14} />}
+                      onPress={() => setIsDeleteModalOpen(true)}
+                    >
+                      Delete Clinic
+                    </Button>
+                  }
+                />
               </SectionPanel>
             </div>
           </Tab>

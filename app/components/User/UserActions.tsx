@@ -1,10 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useFetcher } from 'react-router';
-import { Button, Divider } from '@heroui/react';
+import { Button } from '@heroui/react';
 import { Mail, KeyRound, ShieldCheck, Send, Trash2, UserX } from 'lucide-react';
 
 import ConfirmationModal from '../ConfirmationModal';
-import DangerZoneSection from '~/components/ui/DangerZoneSection';
+import {
+  DangerZoneAction,
+  ActionCard,
+} from '~/components/ui/DangerZoneSection';
 import SectionPanel from '~/components/ui/SectionPanel';
 import { useToast } from '~/contexts/ToastContext';
 import type { User } from './types';
@@ -124,80 +127,115 @@ export default function UserActions({ user }: UserActionsProps) {
   };
 
   return (
-    <SectionPanel title="Account Actions" aria-label="Account Actions">
-      {/* Standard Actions */}
-      <div className="flex flex-wrap gap-3 mb-4">
-        <Button
-          size="sm"
-          variant="flat"
-          color="primary"
-          startContent={<ShieldCheck size={16} />}
-          onPress={() => openModal('verify-email')}
-          isDisabled={user.emailVerified || isUnclaimedAccount}
-        >
-          Verify Email
-        </Button>
-
-        <Button
-          size="sm"
-          variant="flat"
-          color="primary"
-          startContent={<KeyRound size={16} />}
-          onPress={() => openModal('password-reset')}
-          isDisabled={isUnclaimedAccount}
-        >
-          Send Password Reset
-        </Button>
-
-        <Button
-          size="sm"
-          variant="flat"
-          color="primary"
-          startContent={<Send size={16} />}
-          onPress={() => openModal('send-confirmation')}
-          isDisabled={user.emailVerified || isUnclaimedAccount}
-        >
-          Send Confirmation
-        </Button>
-
-        <Button
-          size="sm"
-          variant="flat"
-          color="primary"
-          startContent={<Mail size={16} />}
-          onPress={() => openModal('resend-confirmation')}
-          isDisabled={user.emailVerified || isUnclaimedAccount}
-        >
-          Resend Confirmation
-        </Button>
-      </div>
-
-      {/* Danger Zone */}
-      <Divider className="my-4" />
-
-      <DangerZoneSection showIcon size="sm" className="mt-2">
-        <div className="flex flex-wrap gap-3">
-          <Button
-            size="sm"
-            variant="flat"
-            color="danger"
-            startContent={<Trash2 size={16} />}
-            onPress={() => openModal('delete-data')}
-          >
-            Delete User Data
-          </Button>
-
-          <Button
-            size="sm"
-            variant="flat"
-            color="danger"
-            startContent={<UserX size={16} />}
-            onPress={() => openModal('delete-account')}
-          >
-            Delete Account
-          </Button>
+    <>
+      <SectionPanel title="Account Actions" aria-label="Account Actions">
+        <div className="flex flex-col gap-4">
+          <ActionCard
+            title="Verify Email"
+            description="Manually verify this user's email address, allowing them to log in immediately."
+            actionButton={
+              <Button
+                size="sm"
+                variant="flat"
+                color="primary"
+                startContent={<ShieldCheck size={14} />}
+                onPress={() => openModal('verify-email')}
+                isDisabled={user.emailVerified || isUnclaimedAccount}
+              >
+                Verify Email
+              </Button>
+            }
+          />
+          <ActionCard
+            title="Send Password Reset"
+            description="Send a password reset email with instructions to create a new password."
+            actionButton={
+              <Button
+                size="sm"
+                variant="flat"
+                color="primary"
+                startContent={<KeyRound size={14} />}
+                onPress={() => openModal('password-reset')}
+                isDisabled={isUnclaimedAccount}
+              >
+                Send Reset
+              </Button>
+            }
+          />
+          <ActionCard
+            title="Send Confirmation"
+            description="Send a new account confirmation email if the user never received their initial confirmation."
+            actionButton={
+              <Button
+                size="sm"
+                variant="flat"
+                color="primary"
+                startContent={<Send size={14} />}
+                onPress={() => openModal('send-confirmation')}
+                isDisabled={user.emailVerified || isUnclaimedAccount}
+              >
+                Send
+              </Button>
+            }
+          />
+          <ActionCard
+            title="Resend Confirmation"
+            description="Resend the account confirmation email if the previous one expired."
+            actionButton={
+              <Button
+                size="sm"
+                variant="flat"
+                color="primary"
+                startContent={<Mail size={14} />}
+                onPress={() => openModal('resend-confirmation')}
+                isDisabled={user.emailVerified || isUnclaimedAccount}
+              >
+                Resend
+              </Button>
+            }
+          />
         </div>
-      </DangerZoneSection>
+      </SectionPanel>
+
+      <SectionPanel
+        title="Danger Zone"
+        titleClassName="text-danger"
+        collapsible
+        defaultExpanded={false}
+      >
+        <div className="flex flex-col gap-4">
+          <DangerZoneAction
+            title="Delete User Data"
+            description="Permanently delete all upload data for this user. The account will remain intact, but all diabetes data will be removed. This action cannot be undone."
+            actionButton={
+              <Button
+                size="sm"
+                variant="flat"
+                color="danger"
+                startContent={<Trash2 size={14} />}
+                onPress={() => openModal('delete-data')}
+              >
+                Delete Data
+              </Button>
+            }
+          />
+          <DangerZoneAction
+            title="Delete User Account"
+            description="Permanently delete this account and all associated data. This action cannot be undone."
+            actionButton={
+              <Button
+                size="sm"
+                variant="flat"
+                color="danger"
+                startContent={<UserX size={14} />}
+                onPress={() => openModal('delete-account')}
+              >
+                Delete Account
+              </Button>
+            }
+          />
+        </div>
+      </SectionPanel>
 
       {/* Confirmation Modals */}
       {activeModal && (
@@ -232,6 +270,6 @@ export default function UserActions({ user }: UserActionsProps) {
           icon={actionConfigs[activeModal].icon}
         />
       )}
-    </SectionPanel>
+    </>
   );
 }

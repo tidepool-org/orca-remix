@@ -20,6 +20,8 @@ export type SectionPanelProps = {
   onToggle?: () => void;
   /** Default expanded state for uncontrolled collapsible panels */
   defaultExpanded?: boolean;
+  /** Additional className for the title text */
+  titleClassName?: string;
   /** Aria label for the section */
   'aria-label'?: string;
 };
@@ -64,6 +66,7 @@ export default function SectionPanel({
   isExpanded: controlledExpanded,
   onToggle,
   defaultExpanded = true,
+  titleClassName,
   'aria-label': ariaLabel,
 }: SectionPanelProps) {
   const [internalExpanded, setInternalExpanded] = useState(defaultExpanded);
@@ -92,7 +95,9 @@ export default function SectionPanel({
       <div className="flex gap-2 items-center">
         {icon}
         <div className="flex flex-col">
-          <h2 className="text-lg font-semibold">{title}</h2>
+          <h2 className={`text-lg font-semibold ${titleClassName || ''}`}>
+            {title}
+          </h2>
           {subtitle && <p className="text-sm text-default-500">{subtitle}</p>}
         </div>
       </div>
