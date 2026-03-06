@@ -37,6 +37,12 @@ export type ClinicPatientCountSettings = {
 
 export type RecentClinic = Pick<Clinic, 'shareCode' | 'id' | 'name'>;
 
+export type RecentPrescription = {
+  id: string;
+  patientName: string;
+  state: string;
+};
+
 export type Patient = {
   id: string;
   email?: string;

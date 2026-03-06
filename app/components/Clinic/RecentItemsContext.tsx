@@ -5,15 +5,22 @@ import React, {
   useCallback,
   useMemo,
 } from 'react';
-import type { RecentPatient, RecentClinician } from './types';
+import type {
+  RecentPatient,
+  RecentClinician,
+  RecentPrescription,
+} from './types';
 
 type RecentItemsContextType = {
   recentPatients: RecentPatient[];
   recentClinicians: RecentClinician[];
+  recentPrescriptions: RecentPrescription[];
   addRecentPatient: (patient: RecentPatient) => void;
   addRecentClinician: (clinician: RecentClinician) => void;
+  addRecentPrescription: (prescription: RecentPrescription) => void;
   updateRecentPatients: (patients: RecentPatient[]) => void;
   updateRecentClinicians: (clinicians: RecentClinician[]) => void;
+  updateRecentPrescriptions: (prescriptions: RecentPrescription[]) => void;
 };
 
 const RecentItemsContext = createContext<RecentItemsContextType | undefined>(
@@ -32,17 +39,21 @@ type RecentItemsProviderProps = {
   children: React.ReactNode;
   initialPatients?: RecentPatient[];
   initialClinicians?: RecentClinician[];
+  initialPrescriptions?: RecentPrescription[];
 };
 
 export function RecentItemsProvider({
   children,
   initialPatients = [],
   initialClinicians = [],
+  initialPrescriptions = [],
 }: RecentItemsProviderProps) {
   const [recentPatients, setRecentPatients] =
     useState<RecentPatient[]>(initialPatients);
   const [recentClinicians, setRecentClinicians] =
     useState<RecentClinician[]>(initialClinicians);
+  const [recentPrescriptions, setRecentPrescriptions] =
+    useState<RecentPrescription[]>(initialPrescriptions);
 
   const addRecentPatient = useCallback((patient: RecentPatient) => {
     setRecentPatients((prev) => {
@@ -62,6 +73,16 @@ export function RecentItemsProvider({
     });
   }, []);
 
+  const addRecentPrescription = useCallback(
+    (prescription: RecentPrescription) => {
+      setRecentPrescriptions((prev) => {
+        const filtered = prev.filter((p) => p.id !== prescription.id);
+        return [prescription, ...filtered].slice(0, 10);
+      });
+    },
+    [],
+  );
+
   const updateRecentPatients = useCallback((patients: RecentPatient[]) => {
     setRecentPatients(patients);
   }, []);
@@ -73,22 +94,35 @@ export function RecentItemsProvider({
     [],
   );
 
+  const updateRecentPrescriptions = useCallback(
+    (prescriptions: RecentPrescription[]) => {
+      setRecentPrescriptions(prescriptions);
+    },
+    [],
+  );
+
   const contextValue = useMemo(
     () => ({
       recentPatients,
       recentClinicians,
+      recentPrescriptions,
       addRecentPatient,
       addRecentClinician,
+      addRecentPrescription,
       updateRecentPatients,
       updateRecentClinicians,
+      updateRecentPrescriptions,
     }),
     [
       recentPatients,
       recentClinicians,
+      recentPrescriptions,
       addRecentPatient,
       addRecentClinician,
+      addRecentPrescription,
       updateRecentPatients,
       updateRecentClinicians,
+      updateRecentPrescriptions,
     ],
   );
 

@@ -1,8 +1,15 @@
 import type { LoaderFunctionArgs, MetaFunction } from 'react-router';
 import { useLoaderData } from 'react-router';
+import { useEffect } from 'react';
 import { apiRequest, apiRoutes } from '~/api.server';
+import { prescriptionsSession } from '~/sessions.server';
+import { useRecentItems } from '~/components/Clinic/RecentItemsContext';
 import PrescriptionProfile from '~/components/Clinic/PrescriptionProfile';
-import type { Prescription, Clinician } from '~/components/Clinic/types';
+import type {
+  Prescription,
+  Clinician,
+  RecentPrescription,
+} from '~/components/Clinic/types';
 
 export const meta: MetaFunction = () => {
   return [
@@ -15,13 +22,39 @@ type PrescriptionLoaderData = {
   prescription: Prescription;
   prescriber: Clinician | null;
   clinicId: string;
+  recentPrescriptions: RecentPrescription[];
 };
 
-export const loader = async ({ params }: LoaderFunctionArgs) => {
+function getPatientName(prescription: Prescription): string {
+  const attrs = prescription.latestRevision?.attributes;
+  if (attrs?.firstName && attrs?.lastName) {
+    return `${attrs.firstName} ${attrs.lastName}`;
+  }
+  if (attrs?.firstName) return attrs.firstName;
+  if (attrs?.lastName) return attrs.lastName;
+  return 'N/A';
+}
+
+const recentPrescriptionsMax = 10;
+
+export const loader = async ({ request, params }: LoaderFunctionArgs) => {
   const { clinicId, prescriptionId } = params;
 
   if (!clinicId || !prescriptionId) {
     throw new Response('Not found', { status: 404 });
+  }
+
+  const { getSession, commitSession } = prescriptionsSession;
+  const sessionData = await getSession(request.headers.get('Cookie'));
+
+  let recentPrescriptions: RecentPrescription[] = [];
+  try {
+    const raw = sessionData.get(`recentPrescriptions-${clinicId}`);
+    if (raw && typeof raw === 'string') {
+      recentPrescriptions = JSON.parse(raw);
+    }
+  } catch {
+    recentPrescriptions = [];
   }
 
   try {
@@ -52,11 +85,37 @@ export const loader = async ({ params }: LoaderFunctionArgs) => {
       }
     }
 
-    return Response.json({
-      prescription,
-      prescriber,
-      clinicId,
-    });
+    // Add current prescription to recent list
+    const recentPrescription: RecentPrescription = {
+      id: prescription.id,
+      patientName: getPatientName(prescription),
+      state: prescription.state,
+    };
+
+    recentPrescriptions = recentPrescriptions.filter(
+      (p) => p.id !== prescription.id,
+    );
+    recentPrescriptions.unshift(recentPrescription);
+    recentPrescriptions = recentPrescriptions.slice(0, recentPrescriptionsMax);
+
+    sessionData.set(
+      `recentPrescriptions-${clinicId}`,
+      JSON.stringify(recentPrescriptions),
+    );
+
+    return Response.json(
+      {
+        prescription,
+        prescriber,
+        clinicId,
+        recentPrescriptions,
+      },
+      {
+        headers: {
+          'Set-Cookie': await commitSession(sessionData),
+        },
+      },
+    );
   } catch (error) {
     console.error('Error loading prescription:', error);
     throw new Response('Failed to load prescription', { status: 500 });
@@ -64,8 +123,37 @@ export const loader = async ({ params }: LoaderFunctionArgs) => {
 };
 
 export default function PrescriptionRoute() {
-  const { prescription, prescriber, clinicId } =
+  const { prescription, prescriber, clinicId, recentPrescriptions } =
     useLoaderData<PrescriptionLoaderData>();
+  const { addRecentPrescription, updateRecentPrescriptions } = useRecentItems();
+
+  // Sync session data into context and add current prescription
+  useEffect(() => {
+    if (recentPrescriptions) {
+      updateRecentPrescriptions(recentPrescriptions);
+    }
+    if (prescription) {
+      const attrs = prescription.latestRevision?.attributes;
+      let patientName = 'N/A';
+      if (attrs?.firstName && attrs?.lastName) {
+        patientName = `${attrs.firstName} ${attrs.lastName}`;
+      } else if (attrs?.firstName) {
+        patientName = attrs.firstName;
+      } else if (attrs?.lastName) {
+        patientName = attrs.lastName;
+      }
+      addRecentPrescription({
+        id: prescription.id,
+        patientName,
+        state: prescription.state,
+      });
+    }
+  }, [
+    prescription,
+    recentPrescriptions,
+    addRecentPrescription,
+    updateRecentPrescriptions,
+  ]);
 
   return (
     <PrescriptionProfile

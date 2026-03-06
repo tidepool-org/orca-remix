@@ -55,3 +55,10 @@ export const cliniciansSession = createCookieSessionStorage({
     ...commonCookieOptions,
   },
 });
+
+export const prescriptionsSession = createCookieSessionStorage({
+  cookie: {
+    name: '__prescriptions_session',
+    ...commonCookieOptions,
+  },
+});

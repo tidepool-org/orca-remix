@@ -12,6 +12,7 @@ import type {
   Patient,
   RecentPatient,
   RecentClinician,
+  RecentPrescription,
   ClinicianInvite,
   Prescription,
 } from '~/components/Clinic/types';
@@ -27,6 +28,7 @@ import {
   clinicsSession,
   patientsSession,
   cliniciansSession,
+  prescriptionsSession,
 } from '~/sessions.server';
 import {
   type ShouldRevalidateFunctionArgs,
@@ -295,11 +297,15 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   const { getSession, commitSession } = clinicsSession;
   const { getSession: getRecentPatientsSession } = patientsSession;
   const { getSession: getRecentCliniciansSession } = cliniciansSession;
+  const { getSession: getRecentPrescriptionsSession } = prescriptionsSession;
   const recentlyViewed = await getSession(request.headers.get('Cookie'));
   const recentPatientsData = await getRecentPatientsSession(
     request.headers.get('Cookie'),
   );
   const recentCliniciansData = await getRecentCliniciansSession(
+    request.headers.get('Cookie'),
+  );
+  const recentPrescriptionsData = await getRecentPrescriptionsSession(
     request.headers.get('Cookie'),
   );
   const url = new URL(request.url);
@@ -357,6 +363,21 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     }
   } catch {
     recentClinicians = [];
+  }
+
+  let recentPrescriptions: RecentPrescription[] = [];
+  try {
+    const recentPrescriptionsString = recentPrescriptionsData.get(
+      `recentPrescriptions-${clinicId}`,
+    );
+    if (
+      recentPrescriptionsString &&
+      typeof recentPrescriptionsString === 'string'
+    ) {
+      recentPrescriptions = JSON.parse(recentPrescriptionsString);
+    }
+  } catch {
+    recentPrescriptions = [];
   }
 
   try {
@@ -500,6 +521,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
           patientCountSettings,
           recentPatients,
           recentClinicians,
+          recentPrescriptions,
           pagination: {
             currentPage: page,
             totalPages,
@@ -561,6 +583,7 @@ export default function Clinics() {
     patientCountSettings,
     recentPatients,
     recentClinicians,
+    recentPrescriptions,
     pagination,
     cliniciansPagination,
     invitesPagination,
@@ -772,6 +795,9 @@ export default function Clinics() {
       <RecentItemsProvider
         initialPatients={(recentPatients as RecentPatient[]) || []}
         initialClinicians={(recentClinicians as RecentClinician[]) || []}
+        initialPrescriptions={
+          (recentPrescriptions as RecentPrescription[]) || []
+        }
       >
         <div className="flex w-full">
           <Outlet />
@@ -785,6 +811,7 @@ export default function Clinics() {
     <RecentItemsProvider
       initialPatients={(recentPatients as RecentPatient[]) || []}
       initialClinicians={(recentClinicians as RecentClinician[]) || []}
+      initialPrescriptions={(recentPrescriptions as RecentPrescription[]) || []}
     >
       <div className="flex w-full">
         {clinic && (

@@ -32,6 +32,7 @@ import ClinicianInvitesTable from './ClinicianInvitesTable';
 import PrescriptionsTable from './PrescriptionsTable';
 import RecentPatients from './RecentPatients';
 import RecentClinicians from './RecentClinicians';
+import RecentPrescriptions from './RecentPrescriptions';
 import ConfirmationModal from '../ConfirmationModal';
 import ProfileHeader from '~/components/ui/ProfileHeader';
 import ProfileTabs from '~/components/ui/ProfileTabs';
@@ -412,7 +413,7 @@ export default function ClinicProfile({
               />
             }
           >
-            <div className="pt-6">
+            <div className="pt-6 flex flex-col gap-6">
               <CollapsibleGroup>
                 <PrescriptionsTable
                   prescriptions={prescriptions}
@@ -422,6 +423,8 @@ export default function ClinicProfile({
                   clinicId={id}
                   isFirstInGroup
                 />
+
+                <RecentPrescriptions />
               </CollapsibleGroup>
             </div>
           </Tab>
