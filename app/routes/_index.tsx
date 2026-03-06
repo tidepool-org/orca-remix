@@ -47,11 +47,11 @@ export default function Index() {
 
   return (
     <div className="flex flex-col md:flex-row gap-8 md:gap-x-6 lg:gap-8">
-      <div className="flex flex-1 flex-col gap-8 md:gap-x-6 lg:gap-8">
+      <div className="flex flex-1 min-w-0 flex-col gap-8 md:gap-x-6 lg:gap-8">
         <UserLookup />
         <RecentUsers rows={recentUsers} />
       </div>
-      <div className="flex flex-1 flex-col gap-8 md:gap-x-6 lg:gap-8">
+      <div className="flex flex-1 min-w-0 flex-col gap-8 md:gap-x-6 lg:gap-8">
         <ClinicLookup />
         <RecentClinics rows={recentClinics} />
       </div>
