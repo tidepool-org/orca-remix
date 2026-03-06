@@ -116,13 +116,8 @@ function toggleSidebar() {
   const next = !current;
   localStorage.setItem('sidebar-expanded', next.toString());
 
-  const body = document.querySelector('body') as HTMLElement;
-  if (next) {
-    body.classList.add('sidebar-expanded');
-  } else {
-    body.classList.remove('sidebar-expanded');
-  }
-
+  // Notify the SidebarExpandedContext via StorageEvent so React state updates
+  // and the body className is managed declaratively
   window.dispatchEvent(
     new StorageEvent('storage', { key: 'sidebar-expanded' }),
   );

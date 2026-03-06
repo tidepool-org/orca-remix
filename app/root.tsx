@@ -29,6 +29,10 @@ import getLocale from './utils/getLocale';
 import { ToastProvider } from './contexts/ToastContext';
 import ToastContainer from './components/ToastContainer';
 import { requireAuth } from './utils/auth.server';
+import {
+  SidebarExpandedProvider,
+  useSidebarExpanded,
+} from './contexts/SidebarExpandedContext';
 
 // Return the theme from the session storage using the loader
 export const loader = async ({ request }: LoaderFunctionArgs) => {
@@ -71,12 +75,15 @@ export type RootLoaderType = typeof clientLoader;
 // `specifiedTheme` is the stored theme in the session storage.
 // `themeAction` is the action name that's used to change the theme in the session storage.
 export default function AppWithProviders() {
-  const { theme, locale } = useLoaderData<typeof clientLoader>();
+  const { theme, locale, sidebarExpanded } =
+    useLoaderData<typeof clientLoader>();
 
   return (
     <ThemeProvider specifiedTheme={theme} themeAction="/action/set-theme">
       <LocaleProvider locale={locale}>
-        <App />
+        <SidebarExpandedProvider initialExpanded={sidebarExpanded}>
+          <App />
+        </SidebarExpandedProvider>
       </LocaleProvider>
     </ThemeProvider>
   );
@@ -91,6 +98,7 @@ function App() {
   const navigate = useNavigate();
   const [theme] = useTheme();
   const { locale, direction } = useLocale();
+  const { sidebarExpanded } = useSidebarExpanded();
 
   return (
     <html lang={locale} dir={direction} data-theme={theme ?? ''}>
@@ -102,7 +110,7 @@ function App() {
         <Links />
       </head>
       <body
-        className={`sidebar-expanded ${
+        className={`${sidebarExpanded ? 'sidebar-expanded' : ''} ${
           theme ?? ''
         } text-foreground bg-background`}
       >

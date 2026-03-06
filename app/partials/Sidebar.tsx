@@ -8,55 +8,18 @@ import {
 } from 'lucide-react';
 import { Theme } from 'remix-themes';
 import { Button } from '@heroui/react';
-import { useLoaderData, NavLink } from 'react-router';
+import { NavLink } from 'react-router';
 
 import Logo from '~/components/Logo/Logo';
 import SmallLogo from '~/components/Logo/Tidepool_T_Icon_Dark.svg';
 import { type SidebarOpenProps } from '~/layouts/Dashboard';
-import { type RootLoaderType } from '~/root';
+import { useSidebarExpanded } from '~/contexts/SidebarExpandedContext';
 
 function Sidebar({ sidebarOpen, setSidebarOpen }: SidebarOpenProps) {
   const trigger = useRef<HTMLButtonElement>(null);
   const sidebar = useRef<HTMLDivElement>(null);
 
-  const { sidebarExpanded: localSidebarExpanded } =
-    useLoaderData<RootLoaderType>();
-
-  const [sidebarExpanded, setSidebarExpanded] = useState<boolean | undefined>();
-
-  // synchronize on init
-  useEffect(() => {
-    if (localSidebarExpanded != undefined)
-      setSidebarExpanded(localSidebarExpanded);
-  }, [localSidebarExpanded]);
-
-  // synchronize on change
-  useEffect(() => {
-    if (sidebarExpanded != undefined) {
-      if (
-        sidebarExpanded?.toString() !== localStorage.getItem('sidebar-expanded')
-      )
-        localStorage.setItem('sidebar-expanded', sidebarExpanded.toString());
-
-      const bodyElement = document.querySelector('body') as HTMLElement;
-      if (sidebarExpanded) {
-        bodyElement.classList.add('sidebar-expanded');
-      } else {
-        bodyElement.classList.remove('sidebar-expanded');
-      }
-    }
-  }, [sidebarExpanded]);
-
-  // sync sidebar state from keyboard shortcut toggle
-  useEffect(() => {
-    const handleStorage = (e: StorageEvent) => {
-      if (e.key === 'sidebar-expanded') {
-        setSidebarExpanded(localStorage.getItem('sidebar-expanded') === 'true');
-      }
-    };
-    window.addEventListener('storage', handleStorage);
-    return () => window.removeEventListener('storage', handleStorage);
-  }, []);
+  const { sidebarExpanded, setSidebarExpanded } = useSidebarExpanded();
 
   // close on click outside
   useEffect(() => {
