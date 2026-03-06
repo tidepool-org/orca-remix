@@ -19,7 +19,11 @@ import useLocale from '~/hooks/useLocale';
 import CollapsibleTableWrapper from '../CollapsibleTableWrapper';
 import ConfirmationModal from '../ConfirmationModal';
 import CopyableIdentifier from '~/components/ui/CopyableIdentifier';
-import { collapsibleTableClasses } from '~/utils/tableStyles';
+import {
+  collapsibleTableClasses,
+  columnClass,
+  actionsColumnClass,
+} from '~/utils/tableStyles';
 import type { DataSet } from './types';
 import type { ResourceState } from '~/api.types';
 import { useToast } from '~/contexts/ToastContext';
@@ -273,21 +277,23 @@ export default function DataSetsTable({
           }
 
           return (
-            <Dropdown>
-              <DropdownTrigger>
-                <Button
-                  isIconOnly
-                  size="sm"
-                  variant="light"
-                  aria-label="Dataset actions"
-                >
-                  <MoreVertical className="w-4 h-4" aria-hidden="true" />
-                </Button>
-              </DropdownTrigger>
-              <DropdownMenu aria-label="Dataset actions">
-                {menuItems}
-              </DropdownMenu>
-            </Dropdown>
+            <div className="flex justify-end">
+              <Dropdown>
+                <DropdownTrigger>
+                  <Button
+                    isIconOnly
+                    size="sm"
+                    variant="light"
+                    aria-label="Dataset actions"
+                  >
+                    <MoreVertical className="w-4 h-4" aria-hidden="true" />
+                  </Button>
+                </DropdownTrigger>
+                <DropdownMenu aria-label="Dataset actions">
+                  {menuItems}
+                </DropdownMenu>
+              </Dropdown>
+            </div>
           );
         }
         default:
@@ -376,7 +382,16 @@ export default function DataSetsTable({
             >
               <TableHeader columns={columns}>
                 {(column) => (
-                  <TableColumn key={column.key}>{column.label}</TableColumn>
+                  <TableColumn
+                    key={column.key}
+                    className={
+                      column.key === 'actions'
+                        ? actionsColumnClass
+                        : columnClass
+                    }
+                  >
+                    {column.label}
+                  </TableColumn>
                 )}
               </TableHeader>
               <TableBody

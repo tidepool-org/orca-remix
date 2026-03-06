@@ -11,7 +11,11 @@ import {
 import { Mail } from 'lucide-react';
 import useLocale from '~/hooks/useLocale';
 import CollapsibleTableWrapper from '../CollapsibleTableWrapper';
-import { collapsibleTableClasses } from '~/utils/tableStyles';
+import {
+  collapsibleTableClasses,
+  columnClass,
+  actionsColumnClass,
+} from '~/utils/tableStyles';
 import type { PatientInvite } from './types';
 import ConfirmationModal from '../ConfirmationModal';
 import TableEmptyState from '~/components/ui/TableEmptyState';
@@ -44,12 +48,12 @@ type Column = {
 };
 
 const columns: Column[] = [
-  { key: 'patientName', label: 'PATIENT NAME', sortable: false },
-  { key: 'birthday', label: 'BIRTHDAY', sortable: false },
-  { key: 'userId', label: 'USER ID', sortable: false },
-  { key: 'created', label: 'INVITED', sortable: false },
-  { key: 'expiresAt', label: 'EXPIRES', sortable: false },
-  { key: 'actions', label: 'ACTIONS', sortable: false },
+  { key: 'patientName', label: 'Patient Name', sortable: false },
+  { key: 'birthday', label: 'Birthday', sortable: false },
+  { key: 'userId', label: 'User ID', sortable: false },
+  { key: 'created', label: 'Invited', sortable: false },
+  { key: 'expiresAt', label: 'Expires', sortable: false },
+  { key: 'actions', label: 'Actions', sortable: false },
 ];
 
 export default function PatientInvitesTable({
@@ -160,12 +164,14 @@ export default function PatientInvitesTable({
           );
         case 'actions':
           return (
-            <DeleteActionButton
-              tooltip="Revoke invitation"
-              ariaLabel="Revoke invitation"
-              onPress={() => handleRevokeClick(invite)}
-              isDisabled={!onRevokeInvite}
-            />
+            <div className="flex justify-end">
+              <DeleteActionButton
+                tooltip="Revoke invitation"
+                ariaLabel="Revoke invitation"
+                onPress={() => handleRevokeClick(invite)}
+                isDisabled={!onRevokeInvite}
+              />
+            </div>
           );
         default:
           return <span className="text-default-400">—</span>;
@@ -217,7 +223,9 @@ export default function PatientInvitesTable({
             {(column) => (
               <TableColumn
                 key={column.key}
-                className="text-content1-foreground font-medium"
+                className={
+                  column.key === 'actions' ? actionsColumnClass : columnClass
+                }
               >
                 {column.label}
               </TableColumn>

@@ -10,7 +10,11 @@ import {
 import { UserPlus } from 'lucide-react';
 import useLocale from '~/hooks/useLocale';
 import CollapsibleTableWrapper from '../CollapsibleTableWrapper';
-import { collapsibleTableClasses } from '~/utils/tableStyles';
+import {
+  collapsibleTableClasses,
+  columnClass,
+  actionsColumnClass,
+} from '~/utils/tableStyles';
 import ConfirmationModal from '../ConfirmationModal';
 import type { ClinicianInvite } from './types';
 import TableEmptyState from '~/components/ui/TableEmptyState';
@@ -35,11 +39,11 @@ type Column = {
 };
 
 const columns: Column[] = [
-  { key: 'email', label: 'EMAIL' },
-  { key: 'roles', label: 'ROLE' },
-  { key: 'createdTime', label: 'INVITED' },
-  { key: 'status', label: 'STATUS' },
-  { key: 'actions', label: 'ACTIONS' },
+  { key: 'email', label: 'Email' },
+  { key: 'roles', label: 'Role' },
+  { key: 'createdTime', label: 'Invited' },
+  { key: 'status', label: 'Status' },
+  { key: 'actions', label: 'Actions' },
 ];
 
 export default function ClinicianInvitesTable({
@@ -108,12 +112,14 @@ export default function ClinicianInvitesTable({
           return <StatusChip status={invite.status} type="invite" />;
         case 'actions':
           return (
-            <DeleteActionButton
-              tooltip="Revoke invitation"
-              ariaLabel="Revoke invitation"
-              onPress={() => handleRevokeClick(invite)}
-              isDisabled={!onRevokeInvite}
-            />
+            <div className="flex justify-end">
+              <DeleteActionButton
+                tooltip="Revoke invitation"
+                ariaLabel="Revoke invitation"
+                onPress={() => handleRevokeClick(invite)}
+                isDisabled={!onRevokeInvite}
+              />
+            </div>
           );
         default:
           return <span className="text-default-400">-</span>;
@@ -149,7 +155,9 @@ export default function ClinicianInvitesTable({
             {(column) => (
               <TableColumn
                 key={column.key}
-                className="text-content1-foreground font-medium"
+                className={
+                  column.key === 'actions' ? actionsColumnClass : columnClass
+                }
               >
                 {column.label}
               </TableColumn>

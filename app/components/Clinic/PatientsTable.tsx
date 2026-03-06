@@ -16,7 +16,7 @@ import { Users } from 'lucide-react';
 import useLocale from '~/hooks/useLocale';
 import useClinicResolvers from '~/hooks/useClinicResolvers';
 import CollapsibleTableWrapper from '../CollapsibleTableWrapper';
-import { collapsibleTableClasses } from '~/utils/tableStyles';
+import { collapsibleTableClasses, columnClass } from '~/utils/tableStyles';
 import type { Patient } from './types';
 import DebouncedSearchInput from '../DebouncedSearchInput';
 import TableEmptyState from '~/components/ui/TableEmptyState';
@@ -340,7 +340,7 @@ export default function PatientsTable({
             <TableColumn
               key={column.key}
               allowsSorting={column.sortable}
-              className="text-left"
+              className={columnClass}
             >
               {column.label}
             </TableColumn>

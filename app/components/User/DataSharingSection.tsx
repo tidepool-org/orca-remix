@@ -11,7 +11,7 @@ import { useNavigate } from 'react-router';
 import { Users, Send, Inbox } from 'lucide-react';
 import useLocale from '~/hooks/useLocale';
 import CollapsibleTableWrapper from '../CollapsibleTableWrapper';
-import { collapsibleTableClasses } from '~/utils/tableStyles';
+import { collapsibleTableClasses, columnClass } from '~/utils/tableStyles';
 import type { AccessPermissionsMap, ShareInvite, Permissions } from './types';
 import type { ResourceState } from '~/api.types';
 import TableEmptyState from '~/components/ui/TableEmptyState';
@@ -101,7 +101,9 @@ export function TrustingAccountsTable({
           >
             <TableHeader columns={columns}>
               {(column) => (
-                <TableColumn key={column.key}>{column.label}</TableColumn>
+                <TableColumn key={column.key} className={columnClass}>
+                  {column.label}
+                </TableColumn>
               )}
             </TableHeader>
             <TableBody
@@ -207,7 +209,9 @@ export function TrustedAccountsTable({
           >
             <TableHeader columns={columns}>
               {(column) => (
-                <TableColumn key={column.key}>{column.label}</TableColumn>
+                <TableColumn key={column.key} className={columnClass}>
+                  {column.label}
+                </TableColumn>
               )}
             </TableHeader>
             <TableBody
@@ -305,7 +309,9 @@ export function SentInvitesTable({
           >
             <TableHeader columns={columns}>
               {(column) => (
-                <TableColumn key={column.key}>{column.label}</TableColumn>
+                <TableColumn key={column.key} className={columnClass}>
+                  {column.label}
+                </TableColumn>
               )}
             </TableHeader>
             <TableBody
@@ -411,7 +417,9 @@ export function ReceivedInvitesTable({
           >
             <TableHeader columns={columns}>
               {(column) => (
-                <TableColumn key={column.key}>{column.label}</TableColumn>
+                <TableColumn key={column.key} className={columnClass}>
+                  {column.label}
+                </TableColumn>
               )}
             </TableHeader>
             <TableBody

@@ -23,3 +23,9 @@ export const collapsibleTableClasses = {
   base: 'flex flex-1 flex-col text-content1-foreground gap-4',
   tr: 'data-[hover=true]:cursor-pointer',
 };
+
+/** Standard className for TableColumn headers */
+export const columnClass = 'text-left';
+
+/** className for right-aligned Actions columns */
+export const actionsColumnClass = 'text-right';

@@ -10,7 +10,7 @@ import {
 import { History } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import SectionPanel from '~/components/ui/SectionPanel';
-import { recentTableClasses } from '~/utils/tableStyles';
+import { recentTableClasses, columnClass } from '~/utils/tableStyles';
 
 type Column = {
   key: string;
@@ -132,7 +132,9 @@ export default function RecentItemsTable<T extends { id?: string }>({
       >
         <TableHeader columns={columns}>
           {(column) => (
-            <TableColumn key={column.key}>{column.label}</TableColumn>
+            <TableColumn key={column.key} className={columnClass}>
+              {column.label}
+            </TableColumn>
           )}
         </TableHeader>
         <TableBody emptyContent={EmptyContent} items={items}>

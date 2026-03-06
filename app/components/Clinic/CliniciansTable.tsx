@@ -12,7 +12,11 @@ import {
 import { UserCheck } from 'lucide-react';
 import useLocale from '~/hooks/useLocale';
 import CollapsibleTableWrapper from '../CollapsibleTableWrapper';
-import { collapsibleTableClasses } from '~/utils/tableStyles';
+import {
+  collapsibleTableClasses,
+  columnClass,
+  actionsColumnClass,
+} from '~/utils/tableStyles';
 import type { Clinician } from './types';
 import DebouncedSearchInput from '../DebouncedSearchInput';
 import ConfirmationModal from '../ConfirmationModal';
@@ -168,12 +172,14 @@ export default function CliniciansTable({
           );
         case 'actions':
           return (
-            <DeleteActionButton
-              tooltip="Remove clinician"
-              ariaLabel="Remove clinician"
-              onPress={() => handleRemoveClick(clinician)}
-              isDisabled={!onRemoveClinician}
-            />
+            <div className="flex justify-end">
+              <DeleteActionButton
+                tooltip="Remove clinician"
+                ariaLabel="Remove clinician"
+                onPress={() => handleRemoveClick(clinician)}
+                isDisabled={!onRemoveClinician}
+              />
+            </div>
           );
         default:
           return cellValue;
@@ -230,7 +236,12 @@ export default function CliniciansTable({
         >
           <TableHeader columns={columns}>
             {(column) => (
-              <TableColumn key={column.key} className="text-left">
+              <TableColumn
+                key={column.key}
+                className={
+                  column.key === 'actions' ? actionsColumnClass : columnClass
+                }
+              >
                 {column.label}
               </TableColumn>
             )}

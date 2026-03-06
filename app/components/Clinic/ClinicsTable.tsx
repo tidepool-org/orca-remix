@@ -12,7 +12,7 @@ import {
 import { Building2 } from 'lucide-react';
 import useLocale from '~/hooks/useLocale';
 import CollapsibleTableWrapper from '../CollapsibleTableWrapper';
-import { collapsibleTableClasses } from '~/utils/tableStyles';
+import { collapsibleTableClasses, columnClass } from '~/utils/tableStyles';
 import type {
   Clinic,
   ClinicianClinicMembership,
@@ -246,7 +246,9 @@ export default function ClinicsTable({
           >
             <TableHeader columns={columns}>
               {(column) => (
-                <TableColumn key={column.key}>{column.label}</TableColumn>
+                <TableColumn key={column.key} className={columnClass}>
+                  {column.label}
+                </TableColumn>
               )}
             </TableHeader>
             <TableBody

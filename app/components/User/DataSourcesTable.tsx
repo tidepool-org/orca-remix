@@ -17,7 +17,11 @@ import { useFetcher, useParams } from 'react-router';
 import useLocale from '~/hooks/useLocale';
 import CollapsibleTableWrapper from '../CollapsibleTableWrapper';
 import ConfirmationModal from '../ConfirmationModal';
-import { collapsibleTableClasses } from '~/utils/tableStyles';
+import {
+  collapsibleTableClasses,
+  columnClass,
+  actionsColumnClass,
+} from '~/utils/tableStyles';
 import type { DataSource } from './types';
 import type { ResourceState } from '~/api.types';
 import { useToast } from '~/contexts/ToastContext';
@@ -239,32 +243,34 @@ export default function DataSourcesTable({
         case 'actions':
           if (item.state === 'disconnected') return null;
           return (
-            <Dropdown>
-              <DropdownTrigger>
-                <Button
-                  isIconOnly
-                  size="sm"
-                  variant="light"
-                  aria-label="Data source actions"
-                >
-                  <MoreVertical className="w-4 h-4" aria-hidden="true" />
-                </Button>
-              </DropdownTrigger>
-              <DropdownMenu aria-label="Data source actions">
-                <DropdownItem
-                  key="disconnect"
-                  className="text-danger"
-                  color="danger"
-                  startContent={
-                    <Unplug className="w-4 h-4" aria-hidden="true" />
-                  }
-                  description="Disconnect this data source"
-                  onPress={() => handleDisconnect(item)}
-                >
-                  Disconnect
-                </DropdownItem>
-              </DropdownMenu>
-            </Dropdown>
+            <div className="flex justify-end">
+              <Dropdown>
+                <DropdownTrigger>
+                  <Button
+                    isIconOnly
+                    size="sm"
+                    variant="light"
+                    aria-label="Data source actions"
+                  >
+                    <MoreVertical className="w-4 h-4" aria-hidden="true" />
+                  </Button>
+                </DropdownTrigger>
+                <DropdownMenu aria-label="Data source actions">
+                  <DropdownItem
+                    key="disconnect"
+                    className="text-danger"
+                    color="danger"
+                    startContent={
+                      <Unplug className="w-4 h-4" aria-hidden="true" />
+                    }
+                    description="Disconnect this data source"
+                    onPress={() => handleDisconnect(item)}
+                  >
+                    Disconnect
+                  </DropdownItem>
+                </DropdownMenu>
+              </Dropdown>
+            </div>
           );
         default:
           return (
@@ -327,7 +333,16 @@ export default function DataSourcesTable({
             >
               <TableHeader columns={columns}>
                 {(column) => (
-                  <TableColumn key={column.key}>{column.label}</TableColumn>
+                  <TableColumn
+                    key={column.key}
+                    className={
+                      column.key === 'actions'
+                        ? actionsColumnClass
+                        : columnClass
+                    }
+                  >
+                    {column.label}
+                  </TableColumn>
                 )}
               </TableHeader>
               <TableBody

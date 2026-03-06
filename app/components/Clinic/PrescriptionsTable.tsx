@@ -11,7 +11,7 @@ import { FileText } from 'lucide-react';
 import { useNavigate, useParams, useSearchParams, useHref } from 'react-router';
 import useLocale from '~/hooks/useLocale';
 import CollapsibleTableWrapper from '../CollapsibleTableWrapper';
-import { collapsibleTableClasses } from '~/utils/tableStyles';
+import { collapsibleTableClasses, columnClass } from '~/utils/tableStyles';
 import type { Prescription } from './types';
 import type { ResourceState } from '~/api.types';
 import TableEmptyState from '~/components/ui/TableEmptyState';
@@ -219,7 +219,9 @@ export default function PrescriptionsTable({
           >
             <TableHeader columns={columns}>
               {(column) => (
-                <TableColumn key={column.key}>{column.label}</TableColumn>
+                <TableColumn key={column.key} className={columnClass}>
+                  {column.label}
+                </TableColumn>
               )}
             </TableHeader>
             <TableBody
