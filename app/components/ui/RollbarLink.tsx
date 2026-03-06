@@ -13,7 +13,7 @@ export default function RollbarLink({ userId }: RollbarLinkProps) {
       href={`${ROLLBAR_BASE_URL}${userId}`}
       target="_blank"
       rel="noopener noreferrer"
-      className="flex items-center gap-1 px-2 py-1 rounded-md text-default-500 hover:text-foreground hover:bg-default/40 transition-all"
+      className="flex items-center gap-1 px-2 py-1 -ml-2 rounded-md text-default-500 hover:text-foreground hover:bg-default/40 transition-all"
       aria-label="View Rollbar errors for this user"
     >
       <span className="text-default-400">Rollbar</span>

@@ -79,7 +79,7 @@ export default function PrescriptionProfile({
         title={`Prescription for ${patientName}`}
         titleRowExtra={stateChip}
         identifiers={prescriptionIdentifiers}
-        actionLink={<ViewUserAccountLink userId={createdUserId} />}
+        actionLinks={[<ViewUserAccountLink userId={createdUserId} />]}
         detailFields={prescriptionDetailFields}
         {...profileExpandedProps}
       />

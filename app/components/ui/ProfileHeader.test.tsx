@@ -76,13 +76,20 @@ describe('ProfileHeader', () => {
     });
   });
 
-  describe('action link', () => {
-    it('renders the action link when provided', () => {
-      const ActionLink = <a href="/somewhere">View Details</a>;
-
-      render(<ProfileHeader title="Test" actionLink={ActionLink} />);
+  describe('action links', () => {
+    it('renders action links when provided', () => {
+      render(
+        <ProfileHeader
+          title="Test"
+          actionLinks={[
+            <a href="/somewhere">View Details</a>,
+            <a href="/other">Rollbar</a>,
+          ]}
+        />,
+      );
 
       expect(screen.getByText('View Details')).toBeInTheDocument();
+      expect(screen.getByText('Rollbar')).toBeInTheDocument();
     });
   });
 

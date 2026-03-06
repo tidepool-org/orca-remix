@@ -191,12 +191,10 @@ export default function PatientProfile({
       <ProfileHeader
         title={fullName}
         identifiers={patientIdentifiers}
-        actionLink={
-          <>
-            <ViewUserAccountLink userId={id} />
-            <RollbarLink userId={id} />
-          </>
-        }
+        actionLinks={[
+          <ViewUserAccountLink userId={id} />,
+          <RollbarLink userId={id} />,
+        ]}
         detailFields={patientDetailFields}
         {...profileExpandedProps}
       />

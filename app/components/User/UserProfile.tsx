@@ -165,7 +165,7 @@ export default function UserProfile({
     <ProfileHeader
       title={fullName || username || 'Unknown User'}
       identifiers={userIdentifiers}
-      actionLink={<RollbarLink userId={userId} />}
+      actionLinks={[<RollbarLink userId={userId} />]}
       detailFields={userDetailFields}
       {...profileExpandedProps}
     />

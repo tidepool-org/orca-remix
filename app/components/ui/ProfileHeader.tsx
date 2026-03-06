@@ -24,8 +24,8 @@ export type ProfileHeaderProps = {
   title: string;
   /** Array of copyable identifiers to display in row 2 (email, ID, MRN, etc.) */
   identifiers?: IdentifierConfig[];
-  /** Optional link to display after identifiers */
-  actionLink?: ReactNode;
+  /** Optional links to display after identifiers */
+  actionLinks?: ReactNode[];
   /** Array of detail fields to display in the expandable section */
   detailFields?: DetailFieldConfig[];
   /** Whether to start with details expanded */
@@ -39,7 +39,7 @@ export type ProfileHeaderProps = {
 export default function ProfileHeader({
   title,
   identifiers = [],
-  actionLink,
+  actionLinks = [],
   detailFields = [],
   defaultExpanded = false,
   onExpandedChange,
@@ -74,7 +74,7 @@ export default function ProfileHeader({
         </div>
 
         {/* Row 2: Copyable identifiers and optional action link */}
-        {(identifiers.length > 0 || actionLink) && (
+        {(identifiers.length > 0 || actionLinks.length > 0) && (
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm mt-1">
             {identifiers.map((identifier, index) => (
               <CopyableIdentifier
@@ -84,7 +84,9 @@ export default function ProfileHeader({
                 monospace={identifier.monospace}
               />
             ))}
-            {actionLink}
+            {actionLinks.map((link, index) => (
+              <span key={index}>{link}</span>
+            ))}
           </div>
         )}
       </div>
