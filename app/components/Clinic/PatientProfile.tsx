@@ -17,6 +17,7 @@ import DataSourcesTable from '../User/DataSourcesTable';
 import DataExportSection from '../User/DataExportSection';
 import PumpSettingsSection from '../User/PumpSettingsSection';
 import ViewUserAccountLink from '~/components/ui/ViewUserAccountLink';
+import RollbarLink from '~/components/ui/RollbarLink';
 import { CollapsibleGroup } from '~/components/CollapsibleGroup';
 import { formatShortDate } from '~/utils/dateFormatters';
 
@@ -190,7 +191,12 @@ export default function PatientProfile({
       <ProfileHeader
         title={fullName}
         identifiers={patientIdentifiers}
-        actionLink={<ViewUserAccountLink userId={id} />}
+        actionLink={
+          <>
+            <ViewUserAccountLink userId={id} />
+            <RollbarLink userId={id} />
+          </>
+        }
         detailFields={patientDetailFields}
         {...profileExpandedProps}
       />

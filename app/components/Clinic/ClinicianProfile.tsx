@@ -13,6 +13,7 @@ import SettingsToggleRow from '~/components/ui/SettingsToggleRow';
 import SaveCancelButtons from '~/components/ui/SaveCancelButtons';
 import SectionPanel from '~/components/ui/SectionPanel';
 import ViewUserAccountLink from '~/components/ui/ViewUserAccountLink';
+import RollbarLink from '~/components/ui/RollbarLink';
 import { CollapsibleGroup } from '~/components/CollapsibleGroup';
 import { useToast } from '~/contexts/ToastContext';
 import type { Clinician, ClinicianClinicMembership } from './types';
@@ -173,7 +174,12 @@ export default function ClinicianProfile({
       <ProfileHeader
         title={clinician.name}
         identifiers={clinicianIdentifiers}
-        actionLink={<ViewUserAccountLink userId={clinician.id} />}
+        actionLink={
+          <>
+            <ViewUserAccountLink userId={clinician.id} />
+            <RollbarLink userId={clinician.id} />
+          </>
+        }
         detailFields={clinicianDetailFields}
         {...profileExpandedProps}
       />

@@ -23,6 +23,7 @@ import ProfileHeader from '~/components/ui/ProfileHeader';
 import ProfileTabs from '~/components/ui/ProfileTabs';
 import TabTitle from '~/components/ui/TabTitle';
 import UserActions from './UserActions';
+import RollbarLink from '~/components/ui/RollbarLink';
 import { CollapsibleGroup } from '~/components/CollapsibleGroup';
 import type { ClinicianClinicMembership, Prescription } from '../Clinic/types';
 import type { ResourceState } from '~/api.types';
@@ -164,6 +165,7 @@ export default function UserProfile({
     <ProfileHeader
       title={fullName || username || 'Unknown User'}
       identifiers={userIdentifiers}
+      actionLink={<RollbarLink userId={userId} />}
       detailFields={userDetailFields}
       {...profileExpandedProps}
     />
