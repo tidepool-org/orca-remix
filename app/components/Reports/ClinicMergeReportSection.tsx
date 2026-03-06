@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { Button, Input, Spinner } from '@heroui/react';
+import { Button, Spinner, Autocomplete, AutocompleteItem } from '@heroui/react';
 import { Merge, Download, AlertTriangle, Building2 } from 'lucide-react';
 import SectionPanel from '~/components/ui/SectionPanel';
+import type { RecentClinic } from '~/components/Clinic/types';
 
 export type ClinicMergeReportSectionProps = {
   onGenerateReport: (
@@ -9,11 +10,13 @@ export type ClinicMergeReportSectionProps = {
     targetClinicId: string,
   ) => Promise<void>;
   isLoading?: boolean;
+  recentClinics?: RecentClinic[];
 };
 
 export default function ClinicMergeReportSection({
   onGenerateReport,
   isLoading = false,
+  recentClinics = [],
 }: ClinicMergeReportSectionProps) {
   const [sourceClinicId, setSourceClinicId] = useState<string>('');
   const [targetClinicId, setTargetClinicId] = useState<string>('');
@@ -26,6 +29,11 @@ export default function ClinicMergeReportSection({
   };
 
   const isValid = sourceClinicId.trim() && targetClinicId.trim();
+
+  const clinicItems = recentClinics.map((clinic) => ({
+    key: clinic.id,
+    label: `${clinic.name} (${clinic.id})`,
+  }));
 
   return (
     <SectionPanel
@@ -64,24 +72,52 @@ export default function ClinicMergeReportSection({
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Input
+            <Autocomplete
               label="Source Clinic ID"
-              placeholder="Enter source clinic ID"
+              placeholder="Search or enter clinic ID"
               description="The clinic that will be merged FROM (will be empty after merge)"
-              value={sourceClinicId}
-              onValueChange={setSourceClinicId}
               size="sm"
               isRequired
-            />
-            <Input
+              allowsCustomValue
+              selectedKey={
+                clinicItems.some((c) => c.key === sourceClinicId)
+                  ? sourceClinicId
+                  : null
+              }
+              inputValue={sourceClinicId}
+              onInputChange={setSourceClinicId}
+              onSelectionChange={(key) => {
+                if (key !== null) setSourceClinicId(key as string);
+              }}
+              aria-label="Source clinic ID"
+            >
+              {clinicItems.map((item) => (
+                <AutocompleteItem key={item.key}>{item.label}</AutocompleteItem>
+              ))}
+            </Autocomplete>
+            <Autocomplete
               label="Target Clinic ID"
-              placeholder="Enter target clinic ID"
+              placeholder="Search or enter clinic ID"
               description="The clinic that will receive all data"
-              value={targetClinicId}
-              onValueChange={setTargetClinicId}
               size="sm"
               isRequired
-            />
+              allowsCustomValue
+              selectedKey={
+                clinicItems.some((c) => c.key === targetClinicId)
+                  ? targetClinicId
+                  : null
+              }
+              inputValue={targetClinicId}
+              onInputChange={setTargetClinicId}
+              onSelectionChange={(key) => {
+                if (key !== null) setTargetClinicId(key as string);
+              }}
+              aria-label="Target clinic ID"
+            >
+              {clinicItems.map((item) => (
+                <AutocompleteItem key={item.key}>{item.label}</AutocompleteItem>
+              ))}
+            </Autocomplete>
           </div>
         </div>
 

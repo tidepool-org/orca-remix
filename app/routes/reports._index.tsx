@@ -1,8 +1,12 @@
 import { useState } from 'react';
-import type { MetaFunction } from 'react-router';
+import type { MetaFunction, LoaderFunctionArgs } from 'react-router';
+import { useLoaderData } from 'react-router';
+import isArray from 'lodash/isArray';
 
 import ClinicMergeReportSection from '~/components/Reports/ClinicMergeReportSection';
 import { useToast } from '~/contexts/ToastContext';
+import { clinicsSession } from '~/sessions.server';
+import type { RecentClinic } from '~/components/Clinic/types';
 
 export const meta: MetaFunction = () => {
   return [
@@ -11,7 +15,17 @@ export const meta: MetaFunction = () => {
   ];
 };
 
+export async function loader({ request }: LoaderFunctionArgs) {
+  const { getSession } = clinicsSession;
+  const session = await getSession(request.headers.get('Cookie'));
+  const recentClinics: RecentClinic[] = isArray(session.get('clinics'))
+    ? session.get('clinics')
+    : [];
+  return { recentClinics };
+}
+
 export default function ReportsIndex() {
+  const { recentClinics } = useLoaderData<typeof loader>();
   const { showToast } = useToast();
   const [isGeneratingReport, setIsGeneratingReport] = useState(false);
 
@@ -64,6 +78,7 @@ export default function ReportsIndex() {
       <ClinicMergeReportSection
         onGenerateReport={handleGenerateMergeReport}
         isLoading={isGeneratingReport}
+        recentClinics={recentClinics}
       />
     </div>
   );
