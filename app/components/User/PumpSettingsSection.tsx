@@ -34,21 +34,28 @@ export type PumpSettingsSectionProps = {
   pumpSettings: PumpSettings[];
   pumpSettingsState?: ResourceState<PumpSettings[]>;
   isLoading?: boolean;
+  preferredBgUnits?: 'mg/dL' | 'mmol/L';
 };
 
 export default function PumpSettingsSection({
   pumpSettings = [],
   pumpSettingsState,
   isLoading = false,
+  preferredBgUnits,
 }: PumpSettingsSectionProps) {
   const { locale } = useLocale();
   const [selectedSettingIndex, setSelectedSettingIndex] = useState<number>(0);
-  const [useMgdl, setUseMgdl] = useState(false);
+
+  // Determine initial BG unit: prefer clinic's preferredBgUnits, then device setting, then mg/dL
+  const initialUseMgdl =
+    preferredBgUnits !== undefined
+      ? preferredBgUnits === 'mg/dL'
+      : pumpSettings[0]?.units?.bg === 'mg/dL';
+  const [useMgdl, setUseMgdl] = useState(initialUseMgdl);
 
   // Get selected pump settings
   const selectedSettings = useMemo(() => {
     if (pumpSettings.length === 0) return null;
-    setUseMgdl(pumpSettings[0]?.units?.bg === 'mg/dL');
     return pumpSettings[selectedSettingIndex] || pumpSettings[0];
   }, [pumpSettings, selectedSettingIndex]);
 

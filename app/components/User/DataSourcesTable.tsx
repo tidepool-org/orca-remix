@@ -22,7 +22,7 @@ import {
   columnClass,
   actionsColumnClass,
 } from '~/utils/tableStyles';
-import type { DataSource } from './types';
+import type { DataSource, ConnectionRequest } from './types';
 import type { ResourceState } from '~/api.types';
 import { useToast } from '~/contexts/ToastContext';
 import TableEmptyState from '~/components/ui/TableEmptyState';
@@ -34,6 +34,7 @@ import { formatShortDate, formatDateWithTime } from '~/utils/dateFormatters';
 
 export type DataSourcesTableProps = {
   dataSources: DataSource[];
+  connectionRequests?: ConnectionRequest[];
   dataSourcesState?: ResourceState<DataSource[]>;
   totalDataSources: number;
   isLoading?: boolean;
@@ -53,6 +54,7 @@ type DisconnectModalState = {
 
 export default function DataSourcesTable({
   dataSources = [],
+  connectionRequests = [],
   dataSourcesState,
   totalDataSources = 0,
   isLoading = false,
@@ -70,10 +72,32 @@ export default function DataSourcesTable({
 
   const isDisconnecting = fetcher.state !== 'idle';
 
+  // Merge connection requests into the data sources list as synthetic entries
+  // Only include connection requests for providers that don't already have a data source
+  const mergedDataSources = useMemo(() => {
+    const existingProviders = new Set(
+      dataSources.map((ds) => ds.providerName?.toLowerCase()).filter(Boolean),
+    );
+
+    const syntheticSources: DataSource[] = connectionRequests
+      .filter((cr) => !existingProviders.has(cr.providerName.toLowerCase()))
+      .map((cr) => ({
+        dataSourceId: `invite-${cr.providerName}-${cr.createdTime}`,
+        providerName: cr.providerName,
+        state: 'invite sent',
+        modifiedTime: cr.createdTime,
+      }));
+
+    return [...dataSources, ...syntheticSources];
+  }, [dataSources, connectionRequests]);
+
+  const totalItems =
+    totalDataSources + mergedDataSources.length - dataSources.length;
+
   const filteredDataSources = useMemo(() => {
-    if (!filterValue.trim()) return dataSources;
+    if (!filterValue.trim()) return mergedDataSources;
     const searchTerm = filterValue.toLowerCase().trim();
-    return dataSources.filter((dataSource) => {
+    return mergedDataSources.filter((dataSource) => {
       const providerName = dataSource.providerName?.toLowerCase() || '';
       const state = dataSource.state?.toLowerCase() || '';
       const dataSourceId = dataSource.dataSourceId?.toLowerCase() || '';
@@ -83,7 +107,7 @@ export default function DataSourcesTable({
         dataSourceId.includes(searchTerm)
       );
     });
-  }, [dataSources, filterValue]);
+  }, [mergedDataSources, filterValue]);
 
   const topContent = useMemo(
     () => (
@@ -184,11 +208,12 @@ export default function DataSourcesTable({
               <p className="text-bold text-sm capitalize">
                 {item.providerName || 'N/A'}
               </p>
-              {item.dataSourceId && (
-                <p className="text-xs text-default-400 font-mono">
-                  {item.dataSourceId}
-                </p>
-              )}
+              {item.dataSourceId &&
+                !item.dataSourceId.startsWith('invite-') && (
+                  <p className="text-xs text-default-400 font-mono">
+                    {item.dataSourceId}
+                  </p>
+                )}
             </div>
           );
         case 'state':
@@ -241,7 +266,8 @@ export default function DataSourcesTable({
             </span>
           );
         case 'actions':
-          if (item.state === 'disconnected') return null;
+          if (item.state === 'disconnected' || item.state === 'invite sent')
+            return null;
           return (
             <div className="flex justify-end">
               <Dropdown>
@@ -314,7 +340,7 @@ export default function DataSourcesTable({
       <CollapsibleTableWrapper
         icon={<Database className="h-5 w-5" />}
         title="Data Sources"
-        totalItems={totalDataSources}
+        totalItems={totalItems}
         isFirstInGroup={isFirstInGroup}
       >
         {hasError ? (

@@ -6,16 +6,20 @@ import SectionPanel from '~/components/ui/SectionPanel';
 
 export type DataExportSectionProps = {
   userId: string;
+  preferredBgUnits?: 'mg/dL' | 'mmol/L';
 };
 
 type DateRangeOption = 'all' | '90days' | '30days' | '14days';
 type ExportFormat = 'xlsx' | 'json';
 type BgUnits = 'mg/dL' | 'mmol/L';
 
-export default function DataExportSection({ userId }: DataExportSectionProps) {
-  const [dateRange, setDateRange] = useState<DateRangeOption>('all');
+export default function DataExportSection({
+  userId,
+  preferredBgUnits,
+}: DataExportSectionProps) {
+  const [dateRange, setDateRange] = useState<DateRangeOption>('90days');
   const [exportFormat, setExportFormat] = useState<ExportFormat>('xlsx');
-  const [bgUnits, setBgUnits] = useState<BgUnits>('mg/dL');
+  const [bgUnits, setBgUnits] = useState<BgUnits>(preferredBgUnits || 'mg/dL');
   const [isExporting, setIsExporting] = useState(false);
 
   const getDateRange = (): { startDate?: string; endDate?: string } => {
@@ -68,7 +72,11 @@ export default function DataExportSection({ userId }: DataExportSectionProps) {
   };
 
   const dateRangeOptions = [
-    { key: 'all', label: 'All Data' },
+    {
+      key: 'all',
+      label: 'All Data',
+      description: 'May fail for large datasets',
+    },
     { key: '90days', label: 'Last 90 Days' },
     { key: '30days', label: 'Last 30 Days' },
     { key: '14days', label: 'Last 14 Days' },
@@ -97,9 +105,12 @@ export default function DataExportSection({ userId }: DataExportSectionProps) {
               }}
               size="sm"
               aria-label="Select date range"
+              description="Date range is calculated from the current date"
             >
               {dateRangeOptions.map((option) => (
-                <SelectItem key={option.key}>{option.label}</SelectItem>
+                <SelectItem key={option.key} description={option.description}>
+                  {option.label}
+                </SelectItem>
               ))}
             </Select>
           </div>

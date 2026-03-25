@@ -10,6 +10,7 @@ export const ClinicSchema = z.object({
   shareCode: z.string(),
   tier: z.string(),
   timezone: z.string().optional(),
+  preferredBgUnits: z.enum(['mg/dL', 'mmol/L']).optional(),
   createdTime: z.string(),
   canMigrate: z.boolean(),
   patientTags: z
@@ -70,26 +71,34 @@ export const PatientSchema = z.object({
     )
     .nullable()
     .optional(),
-  connectionRequests: z.object({
-    twiist: z.array(
-      z.object({
-        createdTime: z.string(),
-        providerName: z.enum(['dexcom', 'twiist', 'abbott']),
-      }),
-    ),
-    dexcom: z.array(
-      z.object({
-        createdTime: z.string(),
-        providerName: z.enum(['dexcom', 'twiist', 'abbott']),
-      }),
-    ),
-    abbott: z.array(
-      z.object({
-        createdTime: z.string(),
-        providerName: z.enum(['dexcom', 'twiist', 'abbott']),
-      }),
-    ),
-  }),
+  connectionRequests: z
+    .object({
+      twiist: z
+        .array(
+          z.object({
+            createdTime: z.string(),
+            providerName: z.enum(['dexcom', 'twiist', 'abbott']),
+          }),
+        )
+        .optional(),
+      dexcom: z
+        .array(
+          z.object({
+            createdTime: z.string(),
+            providerName: z.enum(['dexcom', 'twiist', 'abbott']),
+          }),
+        )
+        .optional(),
+      abbott: z
+        .array(
+          z.object({
+            createdTime: z.string(),
+            providerName: z.enum(['dexcom', 'twiist', 'abbott']),
+          }),
+        )
+        .optional(),
+    })
+    .optional(),
   sites: z
     .array(
       z.object({

@@ -59,6 +59,12 @@ export type DataSource = {
   revision?: number;
 };
 
+// Flattened connection request for display in DataSourcesTable
+export type ConnectionRequest = {
+  providerName: 'dexcom' | 'twiist' | 'abbott';
+  createdTime: string;
+};
+
 export type DataSetsResponse =
   | DataSet[]
   | { data: DataSet[]; meta?: { count: number } };

@@ -10,6 +10,7 @@ function parseDate(dateStr: string): Date | null {
 
 /**
  * Formats a date string in short format (e.g., "Jan 15, 2024")
+ * Renders in UTC to avoid timezone-related date shifts for date-only displays.
  */
 export function formatShortDate(
   dateStr: string | undefined,
@@ -25,6 +26,7 @@ export function formatShortDate(
         year: 'numeric',
         month: 'short',
         day: 'numeric',
+        timeZone: 'UTC',
       },
       { locale },
     );
@@ -75,6 +77,7 @@ export function formatDateTime(
 
 /**
  * Formats a date-only string (e.g., "January 15, 2024")
+ * Renders in UTC to avoid timezone-related date shifts for date-only displays.
  */
 export function formatLongDate(
   dateStr: string | undefined,
@@ -90,6 +93,7 @@ export function formatLongDate(
         year: 'numeric',
         month: 'long',
         day: 'numeric',
+        timeZone: 'UTC',
       },
       { locale },
     );

@@ -6,6 +6,7 @@ export type Clinic = {
   canMigrate: boolean;
   tier: string;
   timezone?: string;
+  preferredBgUnits?: 'mg/dL' | 'mmol/L';
   patientTags?: {
     id: string;
     name: string;
@@ -75,16 +76,16 @@ export type Patient = {
         time?: string;
       }[]
     | null;
-  connectionRequests: {
-    twiist: {
+  connectionRequests?: {
+    twiist?: {
       createdTime: string;
       providerName: 'dexcom' | 'twiist' | 'abbott';
     }[];
-    dexcom: {
+    dexcom?: {
       createdTime: string;
       providerName: 'dexcom' | 'twiist' | 'abbott';
     }[];
-    abbott: {
+    abbott?: {
       createdTime: string;
       providerName: 'dexcom' | 'twiist' | 'abbott';
     }[];

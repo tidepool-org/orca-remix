@@ -33,6 +33,7 @@ import type {
   Profile,
   DataSet,
   DataSource,
+  ConnectionRequest,
   AccessPermissionsMap,
   ShareInvite,
   PumpSettings,
@@ -50,6 +51,7 @@ export type UserProfileProps = {
   totalDataSets?: number;
   dataSources?: DataSource[];
   totalDataSources?: number;
+  connectionRequests?: ConnectionRequest[];
   trustingAccounts?: AccessPermissionsMap;
   trustedAccounts?: AccessPermissionsMap;
   sentInvites?: ShareInvite[];
@@ -83,6 +85,7 @@ export default function UserProfile({
   totalDataSets = 0,
   dataSources = [],
   totalDataSources = 0,
+  connectionRequests = [],
   trustingAccounts = {},
   trustedAccounts = {},
   sentInvites = [],
@@ -251,6 +254,7 @@ export default function UserProfile({
                 />
                 <DataSourcesTable
                   dataSources={dataSources}
+                  connectionRequests={connectionRequests}
                   dataSourcesState={dataSourcesState}
                   totalDataSources={totalDataSources}
                 />

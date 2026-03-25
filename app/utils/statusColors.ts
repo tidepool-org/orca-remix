@@ -39,8 +39,9 @@ export const inviteStatusColors: Record<string, ChipColor> = {
  */
 export const dataSourceStateColors: Record<string, ChipColor> = {
   connected: 'success',
-  disconnected: 'danger',
+  disconnected: 'warning',
   error: 'danger',
+  'invite sent': 'warning',
 };
 
 /**

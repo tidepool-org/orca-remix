@@ -12,8 +12,9 @@ import {
   DropdownTrigger,
   DropdownMenu,
   DropdownItem,
+  Tooltip,
 } from '@heroui/react';
-import { Upload, MoreVertical, Trash2, Database } from 'lucide-react';
+import { Upload, MoreVertical, Trash2, Database, Info } from 'lucide-react';
 import { useFetcher } from 'react-router';
 import useLocale from '~/hooks/useLocale';
 import CollapsibleTableWrapper from '../CollapsibleTableWrapper';
@@ -121,7 +122,7 @@ export default function DataSetsTable({
     },
     {
       key: 'dataSetType',
-      label: 'Type',
+      label: 'Upload Type',
     },
     {
       key: 'time',
@@ -209,16 +210,23 @@ export default function DataSetsTable({
               {item.deviceManufacturers?.join(', ') || 'N/A'}
             </span>
           );
-        case 'dataSetType':
+        case 'dataSetType': {
+          const isContinuous = item.dataSetType === 'continuous';
+          const tooltip = isContinuous
+            ? 'Data from a continuously connected source (e.g., Tidepool Mobile, CGM)'
+            : 'Data from a one-time upload (e.g., Tidepool Uploader)';
           return (
-            <Chip
-              color={item.dataSetType === 'continuous' ? 'success' : 'primary'}
-              variant="flat"
-              size="sm"
-            >
-              {item.dataSetType}
-            </Chip>
+            <Tooltip content={tooltip} delay={400}>
+              <Chip
+                color={isContinuous ? 'success' : 'primary'}
+                variant="flat"
+                size="sm"
+              >
+                {item.dataSetType}
+              </Chip>
+            </Tooltip>
           );
+        }
         case 'time':
           return (
             <div className="flex flex-col">

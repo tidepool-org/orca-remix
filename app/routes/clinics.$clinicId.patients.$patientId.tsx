@@ -19,6 +19,7 @@ import type {
   AccessPermissionsMap,
   ShareInvite,
   PumpSettings,
+  ConnectionRequest,
 } from '~/components/User/types';
 import type { ResourceState } from '~/api.types';
 import { useRecentItems } from '~/components/Clinic/RecentItemsContext';
@@ -41,6 +42,7 @@ type PatientLoaderData = {
   totalDataSets: number;
   dataSources: DataSource[];
   totalDataSources: number;
+  connectionRequests: ConnectionRequest[];
   trustingAccounts: AccessPermissionsMap;
   trustedAccounts: AccessPermissionsMap;
   sentInvites: ShareInvite[];
@@ -93,6 +95,20 @@ export function shouldRevalidate({
 }
 
 const recentPatientsMax = 10;
+
+/** Flatten the nested connectionRequests object into a flat array */
+function flattenConnectionRequests(
+  connectionRequests?: Patient['connectionRequests'],
+): ConnectionRequest[] {
+  if (!connectionRequests) return [];
+  const result: ConnectionRequest[] = [];
+  for (const requests of Object.values(connectionRequests)) {
+    if (Array.isArray(requests)) {
+      result.push(...requests);
+    }
+  }
+  return result;
+}
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
   const { getSession, commitSession } = patientsSession;
@@ -302,6 +318,9 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   const dataSources =
     dataSourcesState.status === 'success' ? dataSourcesState.data : [];
   const totalDataSources = dataSources.length;
+  const connectionRequests = flattenConnectionRequests(
+    patient?.connectionRequests,
+  );
   const trustingAccounts =
     trustingAccountsState.status === 'success'
       ? trustingAccountsState.data
@@ -337,6 +356,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
         totalDataSets,
         dataSources,
         totalDataSources,
+        connectionRequests,
         trustingAccounts,
         trustedAccounts,
         sentInvites,
@@ -377,6 +397,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     totalDataSets: 0,
     dataSources: [],
     totalDataSources: 0,
+    connectionRequests: [],
     trustingAccounts: {},
     trustedAccounts: {},
     sentInvites: [],
@@ -403,6 +424,7 @@ export default function PatientDetails() {
     totalDataSets,
     dataSources,
     totalDataSources,
+    connectionRequests,
     pumpSettings,
     prescriptionsState,
     dataSetsState,
@@ -441,6 +463,7 @@ export default function PatientDetails() {
       dataSources={dataSources}
       dataSourcesState={dataSourcesState}
       totalDataSources={totalDataSources}
+      connectionRequests={connectionRequests}
       pumpSettings={pumpSettings}
       pumpSettingsState={pumpSettingsState}
       selectedTab={currentTab || undefined}

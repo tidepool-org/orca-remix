@@ -166,7 +166,16 @@ export default function PatientsTable({
         case 'fullName':
           return (
             <div className="flex flex-col">
-              <p className="text-bold text-sm capitalize">{patient.fullName}</p>
+              <div className="flex items-center gap-1.5">
+                <p className="text-bold text-sm capitalize">
+                  {patient.fullName}
+                </p>
+                {patient.permissions?.custodian && (
+                  <Chip size="sm" variant="flat" color="warning">
+                    Custodial
+                  </Chip>
+                )}
+              </div>
               <CopyableIdentifier label="ID:" value={patient.id} size="sm" />
             </div>
           );

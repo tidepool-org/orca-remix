@@ -18,9 +18,11 @@ import type {
   AccessPermissionsMap,
   ShareInvite,
   PumpSettings,
+  ConnectionRequest,
 } from '~/components/User/types';
 import type {
   ClinicianClinicMembership,
+  Patient,
   Prescription,
 } from '~/components/Clinic/types';
 import type { ResourceState } from '~/api.types';
@@ -288,6 +290,41 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     }
   }
 
+  // Fetch connection requests from each clinic the patient belongs to
+  // Connection requests are embedded in the Patient object at each clinic
+  let connectionRequests: ConnectionRequest[] = [];
+  const clinicsList =
+    clinicsState.status === 'success' ? clinicsState.data : [];
+  if (user?.userid && !profile?.clinic && clinicsList.length > 0) {
+    const patientResults = await Promise.all(
+      clinicsList.map((membership) =>
+        apiRequestSafe<Patient>(
+          apiRoutes.clinic.getPatient(membership.clinic.id, user.userid),
+        ),
+      ),
+    );
+
+    for (const result of patientResults) {
+      if (result.status === 'success' && result.data?.connectionRequests) {
+        const cr = result.data.connectionRequests;
+        for (const requests of Object.values(cr)) {
+          if (Array.isArray(requests)) {
+            connectionRequests.push(...requests);
+          }
+        }
+      }
+    }
+
+    // Deduplicate by providerName + createdTime
+    const seen = new Set<string>();
+    connectionRequests = connectionRequests.filter((cr) => {
+      const key = `${cr.providerName}-${cr.createdTime}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }
+
   // Extract data for backward compatibility
   const clinics = clinicsState.status === 'success' ? clinicsState.data : [];
   const totalClinics = clinics.length;
@@ -332,6 +369,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
         totalDataSets,
         dataSources,
         totalDataSources,
+        connectionRequests,
         trustingAccounts,
         trustedAccounts,
         sentInvites,
@@ -367,6 +405,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     totalDataSets: 0,
     dataSources: [],
     totalDataSources: 0,
+    connectionRequests: [],
     trustingAccounts: {},
     trustedAccounts: {},
     sentInvites: [],
@@ -595,6 +634,7 @@ export default function Users() {
     totalDataSets,
     dataSources,
     totalDataSources,
+    connectionRequests,
     trustingAccounts,
     trustedAccounts,
     sentInvites,
@@ -632,6 +672,7 @@ export default function Users() {
       totalDataSets={totalDataSets}
       dataSources={dataSources}
       totalDataSources={totalDataSources}
+      connectionRequests={connectionRequests}
       trustingAccounts={trustingAccounts}
       trustedAccounts={trustedAccounts}
       sentInvites={sentInvites}

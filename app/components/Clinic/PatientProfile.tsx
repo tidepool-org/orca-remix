@@ -3,7 +3,12 @@ import { Tab } from '@heroui/react';
 import { Database, Smartphone /* FileText */ } from 'lucide-react';
 
 import type { Patient, Prescription } from './types';
-import type { DataSet, DataSource, PumpSettings } from '../User/types';
+import type {
+  DataSet,
+  DataSource,
+  PumpSettings,
+  ConnectionRequest,
+} from '../User/types';
 import type { ResourceState } from '~/api.types';
 import useLocale from '~/hooks/useLocale';
 import useProfileExpanded from '~/hooks/useProfileExpanded';
@@ -35,12 +40,14 @@ export type PatientProfileProps = {
       id: string;
       name: string;
     }[];
+    preferredBgUnits?: 'mg/dL' | 'mmol/L';
   };
   // Data tab props
   dataSets?: DataSet[];
   totalDataSets?: number;
   dataSources?: DataSource[];
   totalDataSources?: number;
+  connectionRequests?: ConnectionRequest[];
   // Device tab props
   pumpSettings?: PumpSettings[];
   isPumpSettingsLoading?: boolean;
@@ -68,6 +75,7 @@ export default function PatientProfile({
   totalDataSets = 0,
   dataSources = [],
   totalDataSources = 0,
+  connectionRequests = [],
   pumpSettings = [],
   isPumpSettingsLoading = false,
   // ResourceState props
@@ -100,6 +108,7 @@ export default function PatientProfile({
         clinic?: {
           patientTags?: { id: string; name: string }[];
           sites?: { id: string; name: string }[];
+          preferredBgUnits?: 'mg/dL' | 'mmol/L';
         };
       }
     | undefined;
@@ -126,6 +135,11 @@ export default function PatientProfile({
             label: 'Permissions',
             value: (
               <div className="flex gap-1 flex-wrap mt-0.5">
+                {permissions.custodian && (
+                  <span className="px-1.5 py-0.5 bg-danger/10 text-danger rounded text-xs">
+                    Custodial
+                  </span>
+                )}
                 {permissions.view && (
                   <span className="px-1.5 py-0.5 bg-success/10 text-success rounded text-xs">
                     View
@@ -222,10 +236,14 @@ export default function PatientProfile({
                 />
                 <DataSourcesTable
                   dataSources={dataSources}
+                  connectionRequests={connectionRequests}
                   totalDataSources={totalDataSources}
                   dataSourcesState={dataSourcesState}
                 />
-                <DataExportSection userId={id} />
+                <DataExportSection
+                  userId={id}
+                  preferredBgUnits={clinicData?.preferredBgUnits}
+                />
               </CollapsibleGroup>
             </div>
           </Tab>
@@ -246,6 +264,7 @@ export default function PatientProfile({
                 pumpSettings={pumpSettings}
                 pumpSettingsState={pumpSettingsState}
                 isLoading={isPumpSettingsLoading}
+                preferredBgUnits={clinicData?.preferredBgUnits}
               />
             </div>
           </Tab>

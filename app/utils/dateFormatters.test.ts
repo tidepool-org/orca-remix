@@ -144,9 +144,9 @@ describe('dateFormatters', () => {
       expect(result).toBe('Jan 15, 2024');
     });
 
-    it('handles date near midnight UTC', () => {
-      // Using noon UTC to avoid timezone edge cases
-      const result = formatShortDate('2024-07-04T12:00:00Z', locale);
+    it('handles date near midnight UTC without timezone shift', () => {
+      // Late UTC time should still show the UTC date, not shift to the next day
+      const result = formatShortDate('2024-07-04T23:30:00Z', locale);
       expect(result).toBe('Jul 4, 2024');
     });
 
