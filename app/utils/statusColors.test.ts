@@ -72,7 +72,7 @@ describe('statusColors', () => {
   describe('getDataSourceStateColor', () => {
     it.each([
       ['connected', 'success'],
-      ['disconnected', 'danger'],
+      ['disconnected', 'warning'],
       ['error', 'danger'],
     ])('returns %s color for %s state', (state, expected) => {
       expect(getDataSourceStateColor(state)).toBe(expected);
@@ -124,7 +124,7 @@ describe('statusColors', () => {
       ['pending', 'invite', 'warning'],
       ['accepted', 'invite', 'success'],
       ['connected', 'dataSource', 'success'],
-      ['disconnected', 'dataSource', 'danger'],
+      ['disconnected', 'dataSource', 'warning'],
       ['clinic_admin', 'role', 'primary'],
       ['prescriber', 'role', 'success'],
     ] as const)(
@@ -210,7 +210,12 @@ describe('statusColors', () => {
     });
 
     it('dataSourceStateColors contains all expected states', () => {
-      const expectedStates = ['connected', 'disconnected', 'error'];
+      const expectedStates = [
+        'connected',
+        'disconnected',
+        'error',
+        'invite sent',
+      ];
       expectedStates.forEach((state) => {
         expect(Object.keys(dataSourceStateColors)).toContain(state);
       });

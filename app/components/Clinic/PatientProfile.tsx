@@ -1,5 +1,5 @@
 import { useRouteLoaderData } from 'react-router';
-import { Tab } from '@heroui/react';
+import { Chip, Tab } from '@heroui/react';
 import { Database, Smartphone /* FileText */ } from 'lucide-react';
 
 import type { Patient, Prescription } from './types';
@@ -204,6 +204,13 @@ export default function PatientProfile({
     <div className="flex flex-col gap-6 w-full">
       <ProfileHeader
         title={fullName}
+        titleRowExtra={
+          permissions?.custodian ? (
+            <Chip size="sm" variant="flat" color="warning">
+              Custodial
+            </Chip>
+          ) : undefined
+        }
         identifiers={patientIdentifiers}
         actionLinks={[
           <ViewUserAccountLink userId={id} />,
