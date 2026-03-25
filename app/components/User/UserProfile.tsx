@@ -1,4 +1,4 @@
-import { Tab } from '@heroui/react';
+import { Chip, Tab } from '@heroui/react';
 import {
   Building2,
   Share2,
@@ -149,7 +149,7 @@ export default function UserProfile({
     {
       label: 'Account Status',
       value: isUnclaimedAccount
-        ? 'Unclaimed (Custodial)'
+        ? 'Unclaimed'
         : emailVerified
           ? 'Verified'
           : 'Unverified',
@@ -167,6 +167,13 @@ export default function UserProfile({
   const UserDetailsSection = (
     <ProfileHeader
       title={fullName || username || 'Unknown User'}
+      titleRowExtra={
+        isUnclaimedAccount ? (
+          <Chip size="sm" variant="flat" color="warning">
+            Custodial
+          </Chip>
+        ) : undefined
+      }
       identifiers={userIdentifiers}
       actionLinks={[<RollbarLink userId={userId} />]}
       detailFields={userDetailFields}
