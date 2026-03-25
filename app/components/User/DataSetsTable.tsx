@@ -211,7 +211,8 @@ export default function DataSetsTable({
             </span>
           );
         case 'dataSetType': {
-          const isContinuous = item.dataSetType === 'continuous';
+          const type = item.dataSetType || 'normal';
+          const isContinuous = type === 'continuous';
           const tooltip = isContinuous
             ? 'Data from a continuously connected source (e.g., Tidepool Mobile, CGM)'
             : 'Data from a one-time upload (e.g., Tidepool Uploader)';
@@ -222,7 +223,7 @@ export default function DataSetsTable({
                 variant="flat"
                 size="sm"
               >
-                {item.dataSetType}
+                {type}
               </Chip>
             </Tooltip>
           );
