@@ -17,7 +17,7 @@ export default function DataExportSection({
   userId,
   preferredBgUnits,
 }: DataExportSectionProps) {
-  const [dateRange, setDateRange] = useState<DateRangeOption>('90days');
+  const [dateRange, setDateRange] = useState<DateRangeOption>('14days');
   const [exportFormat, setExportFormat] = useState<ExportFormat>('xlsx');
   const [bgUnits, setBgUnits] = useState<BgUnits>(preferredBgUnits || 'mg/dL');
   const [isExporting, setIsExporting] = useState(false);
