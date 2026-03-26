@@ -322,6 +322,43 @@ export default function ClinicProfile({
           selectedKey={selectedTab}
           onSelectionChange={onTabChange}
         >
+          {/* Patients Tab */}
+          <Tab
+            key="patients"
+            title={
+              <TabTitle icon={Users} label="Patients" count={totalPatients} />
+            }
+          >
+            <div className="pt-6 flex flex-col gap-6">
+              <CollapsibleGroup>
+                <PatientsTable
+                  patients={patients}
+                  isLoading={patientsLoading}
+                  totalPages={totalPages}
+                  totalPatients={totalPatients}
+                  currentPage={currentPage}
+                  pageSize={pageSize}
+                  onPageChange={onPageChange}
+                  onSort={onSort}
+                  onSearch={onSearch}
+                  currentSort={currentSort}
+                  currentSearch={currentSearch}
+                  clinic={clinic}
+                  isFirstInGroup
+                />
+
+                <PatientInvitesTable
+                  invites={patientInvites}
+                  isLoading={invitesLoading}
+                  totalInvites={totalInvites}
+                  onRevokeInvite={onRevokePatientInvite}
+                />
+
+                <RecentPatients />
+              </CollapsibleGroup>
+            </div>
+          </Tab>
+
           {/* Clinicians Tab */}
           <Tab
             key="clinicians"
@@ -357,43 +394,6 @@ export default function ClinicProfile({
                 />
 
                 <RecentClinicians />
-              </CollapsibleGroup>
-            </div>
-          </Tab>
-
-          {/* Patients Tab */}
-          <Tab
-            key="patients"
-            title={
-              <TabTitle icon={Users} label="Patients" count={totalPatients} />
-            }
-          >
-            <div className="pt-6 flex flex-col gap-6">
-              <CollapsibleGroup>
-                <PatientsTable
-                  patients={patients}
-                  isLoading={patientsLoading}
-                  totalPages={totalPages}
-                  totalPatients={totalPatients}
-                  currentPage={currentPage}
-                  pageSize={pageSize}
-                  onPageChange={onPageChange}
-                  onSort={onSort}
-                  onSearch={onSearch}
-                  currentSort={currentSort}
-                  currentSearch={currentSearch}
-                  clinic={clinic}
-                  isFirstInGroup
-                />
-
-                <PatientInvitesTable
-                  invites={patientInvites}
-                  isLoading={invitesLoading}
-                  totalInvites={totalInvites}
-                  onRevokeInvite={onRevokePatientInvite}
-                />
-
-                <RecentPatients />
               </CollapsibleGroup>
             </div>
           </Tab>

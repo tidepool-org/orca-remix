@@ -611,7 +611,7 @@ export default function Clinics() {
   const { currentTab, handleTabChange } = usePersistedTab(
     'clinic',
     clinic.id,
-    'clinicians',
+    'patients',
     {
       paramKeys: [
         'search',
