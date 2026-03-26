@@ -7,12 +7,8 @@ import {
   TableRow,
   TableCell,
   Button,
-  Dropdown,
-  DropdownTrigger,
-  DropdownMenu,
-  DropdownItem,
 } from '@heroui/react';
-import { Database, MoreVertical, Unplug } from 'lucide-react';
+import { Database, Unplug, Send } from 'lucide-react';
 import { useFetcher, useParams } from 'react-router';
 import useLocale from '~/hooks/useLocale';
 import CollapsibleTableWrapper from '../CollapsibleTableWrapper';
@@ -27,10 +23,13 @@ import type { ResourceState } from '~/api.types';
 import { useToast } from '~/contexts/ToastContext';
 import TableEmptyState from '~/components/ui/TableEmptyState';
 import TableLoadingState from '~/components/ui/TableLoadingState';
-import TableFilterInput from '~/components/ui/TableFilterInput';
+
 import StatusChip from '~/components/ui/StatusChip';
 import ResourceError from '~/components/ui/ResourceError';
 import { formatShortDate, formatDateWithTime } from '~/utils/dateFormatters';
+
+/** All known C2C providers that support connection invites */
+const C2C_PROVIDERS = ['dexcom', 'twiist', 'abbott'] as const;
 
 export type DataSourcesTableProps = {
   dataSources: DataSource[];
@@ -40,6 +39,10 @@ export type DataSourcesTableProps = {
   isLoading?: boolean;
   /** Mark this as the first table in a CollapsibleGroup to auto-expand it */
   isFirstInGroup?: boolean;
+  /** Whether the patient has an email address (required for sending invites) */
+  patientHasEmail?: boolean;
+  /** Clinic ID for sending connection invites (only available in clinic context) */
+  clinicId?: string;
 };
 
 type Column = {
@@ -52,6 +55,12 @@ type DisconnectModalState = {
   dataSource: DataSource | null;
 };
 
+type InviteModalState = {
+  isOpen: boolean;
+  providerName: string | null;
+  isResend: boolean;
+};
+
 export default function DataSourcesTable({
   dataSources = [],
   connectionRequests = [],
@@ -59,18 +68,29 @@ export default function DataSourcesTable({
   totalDataSources = 0,
   isLoading = false,
   isFirstInGroup = false,
+  patientHasEmail = false,
+  clinicId,
 }: DataSourcesTableProps) {
   const { locale } = useLocale();
   const { userId, patientId } = useParams();
-  const fetcher = useFetcher({ key: 'disconnect-data-source' });
+  const disconnectFetcher = useFetcher({ key: 'disconnect-data-source' });
+  const inviteFetcher = useFetcher({ key: 'send-connect-request' });
   const { showToast } = useToast();
-  const [filterValue, setFilterValue] = useState('');
   const [disconnectModal, setDisconnectModal] = useState<DisconnectModalState>({
     isOpen: false,
     dataSource: null,
   });
+  const [inviteModal, setInviteModal] = useState<InviteModalState>({
+    isOpen: false,
+    providerName: null,
+    isResend: false,
+  });
 
-  const isDisconnecting = fetcher.state !== 'idle';
+  const isDisconnecting = disconnectFetcher.state !== 'idle';
+  const isSendingInvite = inviteFetcher.state !== 'idle';
+
+  // Whether invite actions are available (requires clinic context + patient email)
+  const canSendInvites = !!clinicId && patientHasEmail;
 
   // Merge connection requests into the data sources list as synthetic entries
   // Only include connection requests for providers that don't already have a data source
@@ -94,38 +114,21 @@ export default function DataSourcesTable({
   const totalItems =
     totalDataSources + mergedDataSources.length - dataSources.length;
 
-  const filteredDataSources = useMemo(() => {
-    if (!filterValue.trim()) return mergedDataSources;
-    const searchTerm = filterValue.toLowerCase().trim();
-    return mergedDataSources.filter((dataSource) => {
-      const providerName = dataSource.providerName?.toLowerCase() || '';
-      const state = dataSource.state?.toLowerCase() || '';
-      const dataSourceId = dataSource.dataSourceId?.toLowerCase() || '';
-      return (
-        providerName.includes(searchTerm) ||
-        state.includes(searchTerm) ||
-        dataSourceId.includes(searchTerm)
-      );
-    });
-  }, [mergedDataSources, filterValue]);
+  // Providers that have no existing connection or invite — available for new invites
+  const availableProviders = useMemo(() => {
+    if (!canSendInvites) return [];
+    const existingProviders = new Set(
+      mergedDataSources
+        .map((ds) => ds.providerName?.toLowerCase())
+        .filter(Boolean),
+    );
+    return C2C_PROVIDERS.filter((p) => !existingProviders.has(p));
+  }, [mergedDataSources, canSendInvites]);
 
-  const topContent = useMemo(
-    () => (
-      <TableFilterInput
-        value={filterValue}
-        onChange={setFilterValue}
-        placeholder="Filter by provider or state..."
-        aria-label="Filter data sources by provider or state"
-        className="mb-4"
-      />
-    ),
-    [filterValue],
-  );
-
-  // Handle fetcher response
+  // Handle disconnect fetcher response
   React.useEffect(() => {
-    if (fetcher.data && fetcher.state === 'idle') {
-      const data = fetcher.data as {
+    if (disconnectFetcher.data && disconnectFetcher.state === 'idle') {
+      const data = disconnectFetcher.data as {
         success: boolean;
         error?: string;
         message?: string;
@@ -142,7 +145,29 @@ export default function DataSourcesTable({
         showToast(data.error, 'error');
       }
     }
-  }, [fetcher.data, fetcher.state, showToast]);
+  }, [disconnectFetcher.data, disconnectFetcher.state, showToast]);
+
+  // Handle invite fetcher response
+  React.useEffect(() => {
+    if (inviteFetcher.data && inviteFetcher.state === 'idle') {
+      const data = inviteFetcher.data as {
+        success: boolean;
+        error?: string;
+        message?: string;
+        action?: string;
+      };
+
+      if (data.success) {
+        showToast(
+          data.message || 'Connection invite sent successfully',
+          'success',
+        );
+        setInviteModal({ isOpen: false, providerName: null, isResend: false });
+      } else if (data.error) {
+        showToast(data.error, 'error');
+      }
+    }
+  }, [inviteFetcher.data, inviteFetcher.state, showToast]);
 
   const columns: Column[] = [
     {
@@ -187,16 +212,102 @@ export default function DataSourcesTable({
     formData.append('intent', 'disconnect-data-source');
     formData.append('providerName', disconnectModal.dataSource.providerName);
 
-    fetcher.submit(formData, {
+    disconnectFetcher.submit(formData, {
       method: 'post',
       action: `/users/${targetUserId}`,
     });
   };
 
-  const handleCloseModal = () => {
+  const handleCloseDisconnectModal = () => {
     if (!isDisconnecting) {
       setDisconnectModal({ isOpen: false, dataSource: null });
     }
+  };
+
+  const handleSendInvite = (providerName: string, isResend: boolean) => {
+    setInviteModal({ isOpen: true, providerName, isResend });
+  };
+
+  const handleConfirmSendInvite = () => {
+    if (!inviteModal.providerName || !clinicId) return;
+
+    const targetPatientId = patientId || userId;
+    const formData = new FormData();
+    formData.append('intent', 'send-connect-request');
+    formData.append('providerName', inviteModal.providerName);
+
+    inviteFetcher.submit(formData, {
+      method: 'post',
+      action: `/clinics/${clinicId}/patients/${targetPatientId}`,
+    });
+  };
+
+  const handleCloseInviteModal = () => {
+    if (!isSendingInvite) {
+      setInviteModal({ isOpen: false, providerName: null, isResend: false });
+    }
+  };
+
+  const renderActionButton = (item: DataSource) => {
+    const state = item.state?.toLowerCase();
+
+    // Connected sources: show Disconnect button
+    if (state === 'connected') {
+      return (
+        <div className="flex justify-end">
+          <Button
+            size="sm"
+            variant="flat"
+            color="danger"
+            startContent={<Unplug className="w-3.5 h-3.5" aria-hidden="true" />}
+            onPress={() => handleDisconnect(item)}
+            aria-label={`Disconnect ${item.providerName || 'data source'}`}
+          >
+            Disconnect
+          </Button>
+        </div>
+      );
+    }
+
+    // Disconnected or error sources: show Send Invite button (if allowed)
+    if (state === 'disconnected' || state === 'error') {
+      if (!canSendInvites) return null;
+      return (
+        <div className="flex justify-end">
+          <Button
+            size="sm"
+            variant="flat"
+            color="primary"
+            startContent={<Send className="w-3.5 h-3.5" aria-hidden="true" />}
+            onPress={() => handleSendInvite(item.providerName || '', false)}
+            aria-label={`Send invite for ${item.providerName || 'data source'}`}
+          >
+            Send Invite
+          </Button>
+        </div>
+      );
+    }
+
+    // Invite sent: show Resend Invite button (if allowed)
+    if (state === 'invite sent') {
+      if (!canSendInvites) return null;
+      return (
+        <div className="flex justify-end">
+          <Button
+            size="sm"
+            variant="flat"
+            color="primary"
+            startContent={<Send className="w-3.5 h-3.5" aria-hidden="true" />}
+            onPress={() => handleSendInvite(item.providerName || '', true)}
+            aria-label={`Resend invite for ${item.providerName || 'data source'}`}
+          >
+            Resend Invite
+          </Button>
+        </div>
+      );
+    }
+
+    return null;
   };
 
   const renderCell = React.useCallback(
@@ -266,38 +377,7 @@ export default function DataSourcesTable({
             </span>
           );
         case 'actions':
-          if (item.state === 'disconnected' || item.state === 'invite sent')
-            return null;
-          return (
-            <div className="flex justify-end">
-              <Dropdown>
-                <DropdownTrigger>
-                  <Button
-                    isIconOnly
-                    size="sm"
-                    variant="light"
-                    aria-label="Data source actions"
-                  >
-                    <MoreVertical className="w-4 h-4" aria-hidden="true" />
-                  </Button>
-                </DropdownTrigger>
-                <DropdownMenu aria-label="Data source actions">
-                  <DropdownItem
-                    key="disconnect"
-                    className="text-danger"
-                    color="danger"
-                    startContent={
-                      <Unplug className="w-4 h-4" aria-hidden="true" />
-                    }
-                    description="Disconnect this data source"
-                    onPress={() => handleDisconnect(item)}
-                  >
-                    Disconnect
-                  </DropdownItem>
-                </DropdownMenu>
-              </Dropdown>
-            </div>
-          );
+          return renderActionButton(item);
         default:
           return (
             <span className="text-sm">
@@ -306,7 +386,8 @@ export default function DataSourcesTable({
           );
       }
     },
-    [locale],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [locale, canSendInvites],
   );
 
   const EmptyContent = (
@@ -315,7 +396,7 @@ export default function DataSourcesTable({
 
   const LoadingContent = <TableLoadingState label="Loading data sources..." />;
 
-  const getModalContent = () => {
+  const getDisconnectModalContent = () => {
     if (!disconnectModal.dataSource) {
       return { title: '', description: '', confirmText: '' };
     }
@@ -330,7 +411,23 @@ export default function DataSourcesTable({
     };
   };
 
-  const modalContent = getModalContent();
+  const getInviteModalContent = () => {
+    if (!inviteModal.providerName) {
+      return { title: '', description: '', confirmText: '' };
+    }
+
+    const providerName = inviteModal.providerName;
+    const action = inviteModal.isResend ? 'Resend' : 'Send';
+
+    return {
+      title: `${action} Connection Invite`,
+      description: `This will send a connection invite to the patient's email address for ${providerName}. The patient will receive an email with instructions to connect their ${providerName} account.`,
+      confirmText: `${action} Invite`,
+    };
+  };
+
+  const disconnectModalContent = getDisconnectModalContent();
+  const inviteModalContent = getInviteModalContent();
 
   // Check if there's an error state to display
   const hasError = dataSourcesState?.status === 'error';
@@ -350,7 +447,27 @@ export default function DataSourcesTable({
           />
         ) : (
           <>
-            {topContent}
+            {availableProviders.length > 0 && (
+              <div className="flex items-center gap-2 mb-4 flex-wrap">
+                <span className="text-sm text-default-500">Send invite:</span>
+                {availableProviders.map((provider) => (
+                  <Button
+                    key={provider}
+                    size="sm"
+                    variant="flat"
+                    color="primary"
+                    startContent={
+                      <Send className="w-3.5 h-3.5" aria-hidden="true" />
+                    }
+                    onPress={() => handleSendInvite(provider, false)}
+                    aria-label={`Send connection invite for ${provider}`}
+                    className="capitalize"
+                  >
+                    {provider}
+                  </Button>
+                ))}
+              </div>
+            )}
             <Table
               aria-label="Data sources table"
               shadow="none"
@@ -376,7 +493,7 @@ export default function DataSourcesTable({
                 loadingContent={LoadingContent}
                 loadingState={isLoading ? 'loading' : 'idle'}
               >
-                {filteredDataSources.map((item) => (
+                {mergedDataSources.map((item) => (
                   <TableRow key={item.dataSourceId || item.providerName}>
                     {(columnKey) => (
                       <TableCell>
@@ -393,13 +510,24 @@ export default function DataSourcesTable({
 
       <ConfirmationModal
         isOpen={disconnectModal.isOpen}
-        onClose={handleCloseModal}
+        onClose={handleCloseDisconnectModal}
         onConfirm={handleConfirmDisconnect}
-        title={modalContent.title}
-        description={modalContent.description}
-        confirmText={modalContent.confirmText}
+        title={disconnectModalContent.title}
+        description={disconnectModalContent.description}
+        confirmText={disconnectModalContent.confirmText}
         confirmVariant="danger"
         isLoading={isDisconnecting}
+      />
+
+      <ConfirmationModal
+        isOpen={inviteModal.isOpen}
+        onClose={handleCloseInviteModal}
+        onConfirm={handleConfirmSendInvite}
+        title={inviteModalContent.title}
+        description={inviteModalContent.description}
+        confirmText={inviteModalContent.confirmText}
+        confirmVariant="primary"
+        isLoading={isSendingInvite}
       />
     </>
   );

@@ -326,6 +326,16 @@ export const apiRoutes = {
       method: 'delete',
       path: `/v1/clinics/${clinicId}/invites/patients/${inviteId}`,
     }),
+    // Send a connect request for a data provider to a patient
+    // ref https://tidepool.redocly.app/reference/clinic.v1/clinics/sendpatientdataproviderconnectrequest
+    sendConnectRequest: (
+      clinicId: string,
+      patientId: string,
+      providerName: string,
+    ) => ({
+      method: 'post',
+      path: `/v1/clinics/${clinicId}/patients/${patientId}/connect/${providerName}`,
+    }),
   },
   prescription: {
     // ref https://tidepool.redocly.app/reference/prescription.v1

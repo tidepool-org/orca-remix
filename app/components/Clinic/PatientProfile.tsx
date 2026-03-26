@@ -1,4 +1,4 @@
-import { useRouteLoaderData } from 'react-router';
+import { useParams, useRouteLoaderData } from 'react-router';
 import { Chip, Tab } from '@heroui/react';
 import { Database, Smartphone /* FileText */ } from 'lucide-react';
 
@@ -100,6 +100,7 @@ export default function PatientProfile({
     permissions,
   } = patient;
   const { locale } = useLocale();
+  const { clinicId } = useParams();
   const profileExpandedProps = useProfileExpanded('patient');
 
   // Try to get clinic data from parent route if not provided as prop
@@ -246,6 +247,8 @@ export default function PatientProfile({
                   connectionRequests={connectionRequests}
                   totalDataSources={totalDataSources}
                   dataSourcesState={dataSourcesState}
+                  patientHasEmail={!!email}
+                  clinicId={clinicId}
                 />
                 <DataExportSection
                   userId={id}

@@ -1,5 +1,6 @@
 import {
   type LoaderFunctionArgs,
+  type ActionFunctionArgs,
   type MetaFunction,
   type ShouldRevalidateFunctionArgs,
 } from 'react-router';
@@ -32,6 +33,7 @@ import pick from 'lodash/pick';
 import uniqBy from 'lodash/uniqBy';
 import { PatientSchema } from '~/schemas';
 import { usePersistedTab } from '~/hooks/usePersistedTab';
+import { APIError } from '~/utils/errors';
 
 type PatientLoaderData = {
   patient: Patient | null;
@@ -108,6 +110,52 @@ function flattenConnectionRequests(
     }
   }
   return result;
+}
+
+export async function action({ request, params }: ActionFunctionArgs) {
+  const formData = await request.formData();
+  const intent = formData.get('intent') as string;
+  const clinicId = params.clinicId as string;
+  const patientId = params.patientId as string;
+
+  try {
+    switch (intent) {
+      case 'send-connect-request': {
+        const providerName = formData.get('providerName') as string;
+        if (!providerName) {
+          return Response.json(
+            { success: false, error: 'Provider name is required' },
+            { status: 400 },
+          );
+        }
+        await apiRequest(
+          apiRoutes.clinic.sendConnectRequest(
+            clinicId,
+            patientId,
+            providerName,
+          ),
+        );
+        return Response.json({
+          success: true,
+          action: 'send-connect-request',
+          message: `Connection invite sent for ${providerName}`,
+        });
+      }
+
+      default:
+        return Response.json(
+          { success: false, error: `Unknown action: ${intent}` },
+          { status: 400 },
+        );
+    }
+  } catch (error) {
+    const message =
+      error instanceof APIError
+        ? error.message
+        : 'An unexpected error occurred';
+
+    return Response.json({ success: false, error: message }, { status: 500 });
+  }
 }
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
