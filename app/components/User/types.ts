@@ -50,6 +50,7 @@ export type DataSource = {
   providerName: string;
   providerType?: string;
   state?: string;
+  createdTime?: string;
   modifiedTime?: string;
   expirationTime?: string;
   lastImportTime?: string;

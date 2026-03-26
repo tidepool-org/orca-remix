@@ -76,6 +76,30 @@ export function formatDateTime(
 }
 
 /**
+ * Formats a date string to show only the time (e.g., "3:45 PM")
+ */
+export function formatTimeOnly(
+  dateStr: string | undefined,
+  locale: string,
+): string | null {
+  if (!dateStr) return null;
+  const date = parseDate(dateStr);
+  if (!date) return null;
+  try {
+    return intlFormat(
+      date,
+      {
+        hour: 'numeric',
+        minute: 'numeric',
+      },
+      { locale },
+    );
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Formats a date-only string (e.g., "January 15, 2024")
  * Renders in UTC to avoid timezone-related date shifts for date-only displays.
  */

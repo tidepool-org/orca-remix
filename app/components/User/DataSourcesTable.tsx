@@ -26,7 +26,7 @@ import TableLoadingState from '~/components/ui/TableLoadingState';
 
 import StatusChip from '~/components/ui/StatusChip';
 import ResourceError from '~/components/ui/ResourceError';
-import { formatShortDate, formatDateWithTime } from '~/utils/dateFormatters';
+import { formatShortDate, formatTimeOnly } from '~/utils/dateFormatters';
 
 /** All known C2C providers that support connection invites */
 const C2C_PROVIDERS = ['dexcom', 'twiist', 'abbott'] as const;
@@ -179,20 +179,24 @@ export default function DataSourcesTable({
       label: 'State',
     },
     {
-      key: 'revision',
-      label: 'Revision',
+      key: 'createdTime',
+      label: 'Created Connection',
     },
     {
-      key: 'dataTimeRange',
-      label: 'Data Range',
+      key: 'modifiedTime',
+      label: 'Modified Connection',
     },
     {
       key: 'lastImportTime',
       label: 'Last Import',
     },
     {
-      key: 'expirationTime',
-      label: 'Expires',
+      key: 'latestDataTime',
+      label: 'Latest Data',
+    },
+    {
+      key: 'earliestDataTime',
+      label: 'Earliest Data',
     },
     {
       key: 'actions',
@@ -331,51 +335,24 @@ export default function DataSourcesTable({
           return (
             <StatusChip status={item.state || 'Unknown'} type="dataSource" />
           );
-        case 'revision':
+        case 'createdTime':
+        case 'modifiedTime':
+        case 'lastImportTime':
+        case 'latestDataTime':
+        case 'earliestDataTime': {
+          const value = item[columnKey as keyof DataSource] as
+            | string
+            | undefined;
+          if (!value) return <span className="text-sm">N/A</span>;
           return (
-            <span className="text-sm font-mono">
-              {item.revision !== undefined ? item.revision : 'N/A'}
-            </span>
-          );
-        case 'dataTimeRange':
-          return (
-            <div className="flex flex-col gap-0.5 text-sm">
-              {item.earliestDataTime || item.latestDataTime ? (
-                <>
-                  {item.earliestDataTime && (
-                    <span className="text-default-500">
-                      <span className="text-default-400 text-xs">From:</span>{' '}
-                      {formatShortDate(item.earliestDataTime, locale)}
-                    </span>
-                  )}
-                  {item.latestDataTime && (
-                    <span className="text-default-500">
-                      <span className="text-default-400 text-xs">To:</span>{' '}
-                      {formatShortDate(item.latestDataTime, locale)}
-                    </span>
-                  )}
-                </>
-              ) : (
-                <span className="text-default-400">No data</span>
-              )}
+            <div className="flex flex-col text-sm">
+              <span>{formatShortDate(value, locale)}</span>
+              <span className="text-default-400">
+                {formatTimeOnly(value, locale)}
+              </span>
             </div>
           );
-        case 'lastImportTime':
-          return (
-            <span className="text-sm">
-              {item.lastImportTime
-                ? formatDateWithTime(item.lastImportTime, locale)
-                : 'N/A'}
-            </span>
-          );
-        case 'expirationTime':
-          return (
-            <span className="text-sm">
-              {item.expirationTime
-                ? formatShortDate(item.expirationTime, locale)
-                : 'N/A'}
-            </span>
-          );
+        }
         case 'actions':
           return renderActionButton(item);
         default:
