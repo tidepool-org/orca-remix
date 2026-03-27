@@ -239,6 +239,7 @@ export default function DataSourcesTable({
     const formData = new FormData();
     formData.append('intent', 'send-connect-request');
     formData.append('providerName', inviteModal.providerName);
+    formData.append('isResend', inviteModal.isResend ? 'true' : 'false');
 
     inviteFetcher.submit(formData, {
       method: 'post',

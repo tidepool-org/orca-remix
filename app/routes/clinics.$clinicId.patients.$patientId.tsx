@@ -29,6 +29,7 @@ import { patientsSession } from '~/sessions.server';
 import { useLoaderData } from 'react-router';
 import { useEffect } from 'react';
 import isArray from 'lodash/isArray';
+import omit from 'lodash/omit';
 import pick from 'lodash/pick';
 import uniqBy from 'lodash/uniqBy';
 import { PatientSchema } from '~/schemas';
@@ -127,12 +128,62 @@ export async function action({ request, params }: ActionFunctionArgs) {
     switch (intent) {
       case 'send-connect-request': {
         const providerName = formData.get('providerName') as string;
+        const isResend = formData.get('isResend') === 'true';
+
         if (!providerName) {
           return Response.json(
             { success: false, error: 'Provider name is required' },
             { status: 400 },
           );
         }
+
+        // Step 1: For new invites, ensure a pending data source entry exists
+        // The backend requires a dataSources entry with the provider before
+        // a connection request can be created.
+        if (!isResend) {
+          const patient = await apiRequest({
+            ...apiRoutes.clinic.getPatient(clinicId, patientId),
+            schema: PatientSchema,
+          });
+          const hasProviderDataSource = patient.dataSources?.some(
+            (ds) => ds.providerName === providerName,
+          );
+
+          if (!hasProviderDataSource) {
+            const updatedDataSources = [
+              ...(patient.dataSources || []),
+              { providerName, state: 'pending' },
+            ];
+
+            // Omit read-only fields that the backend rejects on update
+            const patientUpdate = omit(patient, [
+              'id',
+              'clinicId',
+              'userId',
+              'createdTime',
+              'updatedTime',
+              'permissions',
+              'summary',
+              'reviews',
+              'connectionRequests',
+              'isMigrated',
+              'legacyClinicianIds',
+              'invitedBy',
+              'lastUploadReminderTime',
+              'ehrSubscriptions',
+            ]);
+
+            await apiRequest({
+              ...apiRoutes.clinic.updatePatient(clinicId, patientId),
+              body: {
+                ...patientUpdate,
+                dataSources: updatedDataSources,
+              } as Record<string, unknown>,
+            });
+          }
+        }
+
+        // Step 2: Send the connection request
         await apiRequest(
           apiRoutes.clinic.sendConnectRequest(
             clinicId,

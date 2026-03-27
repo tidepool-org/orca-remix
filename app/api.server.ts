@@ -195,6 +195,10 @@ export const apiRoutes = {
       method: 'get',
       path: `/v1/clinics/${clinicId}/patients/${patientId}`,
     }),
+    updatePatient: (clinicId: string, patientId: string) => ({
+      method: 'put',
+      path: `/v1/clinics/${clinicId}/patients/${patientId}`,
+    }),
     getPatientInvites: (clinicId: string) => ({
       method: 'get',
       path: `/v1/clinics/${clinicId}/invites/patients`,
