@@ -11,6 +11,7 @@ import Header from '../partials/Header';
 import KeyboardShortcutsModal from '~/components/ui/KeyboardShortcutsModal';
 import useKeyboardShortcuts from '~/hooks/useKeyboardShortcuts';
 import { getPersistedParamsString } from '~/utils/viewStatePersistence';
+import { useSidebarExpanded } from '~/contexts/SidebarExpandedContext';
 
 export type SidebarOpenProps = {
   sidebarOpen: boolean;
@@ -36,8 +37,13 @@ function Dashboard() {
   const navigation = useNavigation();
   const navigate = useNavigate();
 
+  const { sidebarExpanded, setSidebarExpanded } = useSidebarExpanded();
   const openHelpModal = useCallback(() => setIsShortcutsModalOpen(true), []);
-  useKeyboardShortcuts({ navigate, openHelpModal });
+  const toggleSidebar = useCallback(
+    () => setSidebarExpanded(!sidebarExpanded),
+    [sidebarExpanded, setSidebarExpanded],
+  );
+  useKeyboardShortcuts({ navigate, openHelpModal, toggleSidebar });
 
   const isLoading = navigation.state === 'loading';
 

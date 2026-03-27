@@ -1,19 +1,17 @@
 import { useCallback } from 'react';
-
-const getStorageKey = (profileType: string) =>
-  `profileHeader-${profileType}-expanded`;
+import { useProfileExpandedContext } from '~/contexts/ProfileExpandedContext';
 
 export default function useProfileExpanded(profileType: string) {
-  const defaultExpanded =
-    typeof window !== 'undefined'
-      ? localStorage.getItem(getStorageKey(profileType)) === 'true'
-      : false;
+  const { profileExpandedMap, setProfileExpanded } =
+    useProfileExpandedContext();
+
+  const defaultExpanded = profileExpandedMap[profileType] ?? false;
 
   const onExpandedChange = useCallback(
     (expanded: boolean) => {
-      localStorage.setItem(getStorageKey(profileType), String(expanded));
+      setProfileExpanded(profileType, expanded);
     },
-    [profileType],
+    [profileType, setProfileExpanded],
   );
 
   return { defaultExpanded, onExpandedChange };

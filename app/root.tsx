@@ -18,7 +18,11 @@ import {
   PreventFlashOnWrongTheme,
 } from 'remix-themes';
 
-import { themeSessionResolver } from './sessions.server';
+import {
+  themeSessionResolver,
+  sidebarSession,
+  profileExpandedSession,
+} from './sessions.server';
 import { authorizeServer } from './auth.server';
 import { default as useLocale, LocaleProvider } from './hooks/useLocale';
 
@@ -33,6 +37,7 @@ import {
   SidebarExpandedProvider,
   useSidebarExpanded,
 } from './contexts/SidebarExpandedContext';
+import { ProfileExpandedProvider } from './contexts/ProfileExpandedContext';
 
 // Return the theme from the session storage using the loader
 export const loader = async ({ request }: LoaderFunctionArgs) => {
@@ -43,9 +48,22 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   await authorizeServer();
   const locale = getLocale(request);
 
+  const sidebarCookie = await sidebarSession.getSession(
+    request.headers.get('Cookie'),
+  );
+  const sidebarExpanded: boolean = sidebarCookie.get('expanded') !== false;
+
+  const profileExpandedCookie = await profileExpandedSession.getSession(
+    request.headers.get('Cookie'),
+  );
+  const profileExpandedMap: Record<string, boolean> =
+    profileExpandedCookie.get('expanded') || {};
+
   return {
     locale,
     theme: getTheme() || 'light', // Default to light theme if no cookie is set
+    sidebarExpanded,
+    profileExpandedMap,
   };
 };
 
@@ -58,13 +76,9 @@ export async function clientLoader({
   const agentData = await fetch(`${origin}/action/get-agent`);
   const agent: Agent = await agentData.json();
 
-  const sidebarExpanded: boolean =
-    localStorage.getItem('sidebar-expanded') !== 'false';
-
   return {
     ...serverData,
     agent,
-    sidebarExpanded,
   };
 }
 clientLoader.hydrate = true;
@@ -75,14 +89,16 @@ export type RootLoaderType = typeof clientLoader;
 // `specifiedTheme` is the stored theme in the session storage.
 // `themeAction` is the action name that's used to change the theme in the session storage.
 export default function AppWithProviders() {
-  const { theme, locale, sidebarExpanded } =
+  const { theme, locale, sidebarExpanded, profileExpandedMap } =
     useLoaderData<typeof clientLoader>();
 
   return (
     <ThemeProvider specifiedTheme={theme} themeAction="/action/set-theme">
       <LocaleProvider locale={locale}>
         <SidebarExpandedProvider initialExpanded={sidebarExpanded}>
-          <App />
+          <ProfileExpandedProvider initialExpandedMap={profileExpandedMap}>
+            <App />
+          </ProfileExpandedProvider>
         </SidebarExpandedProvider>
       </LocaleProvider>
     </ThemeProvider>

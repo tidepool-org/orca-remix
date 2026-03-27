@@ -4,6 +4,7 @@ import type { NavigateFunction } from 'react-router';
 type UseKeyboardShortcutsOptions = {
   navigate: NavigateFunction;
   openHelpModal: () => void;
+  toggleSidebar: () => void;
 };
 
 function isEditableElement(target: EventTarget | null): boolean {
@@ -24,6 +25,7 @@ function isModalOpen(): boolean {
 export default function useKeyboardShortcuts({
   navigate,
   openHelpModal,
+  toggleSidebar,
 }: UseKeyboardShortcutsOptions) {
   const chordRef = useRef<string | null>(null);
   const chordTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -72,6 +74,7 @@ export default function useKeyboardShortcuts({
           chordTimeoutRef.current = setTimeout(clearChord, 1000);
           break;
         case 's':
+          e.preventDefault();
           toggleSidebar();
           break;
         case '/':
@@ -94,7 +97,7 @@ export default function useKeyboardShortcuts({
       document.removeEventListener('keydown', handler);
       clearChord();
     };
-  }, [navigate, openHelpModal, clearChord]);
+  }, [navigate, openHelpModal, toggleSidebar, clearChord]);
 }
 
 const VIM_TO_ARROW: Record<string, string> = {
@@ -108,17 +111,5 @@ function dispatchArrowKey(e: KeyboardEvent) {
   const target = e.target as HTMLElement;
   target.dispatchEvent(
     new KeyboardEvent('keydown', { key: VIM_TO_ARROW[e.key], bubbles: true }),
-  );
-}
-
-function toggleSidebar() {
-  const current = localStorage.getItem('sidebar-expanded') === 'true';
-  const next = !current;
-  localStorage.setItem('sidebar-expanded', next.toString());
-
-  // Notify the SidebarExpandedContext via StorageEvent so React state updates
-  // and the body className is managed declaratively
-  window.dispatchEvent(
-    new StorageEvent('storage', { key: 'sidebar-expanded' }),
   );
 }

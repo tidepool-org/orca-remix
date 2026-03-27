@@ -62,3 +62,19 @@ export const prescriptionsSession = createCookieSessionStorage({
     ...commonCookieOptions,
   },
 });
+
+// Store sidebar expanded/collapsed preference
+export const sidebarSession = createCookieSessionStorage({
+  cookie: {
+    name: '__sidebar',
+    ...commonCookieOptions,
+  },
+});
+
+// Store profile header expanded/collapsed preferences (map of profileType -> boolean)
+export const profileExpandedSession = createCookieSessionStorage({
+  cookie: {
+    name: '__profile-expanded',
+    ...commonCookieOptions,
+  },
+});

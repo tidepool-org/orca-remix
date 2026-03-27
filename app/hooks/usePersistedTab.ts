@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router';
 
 import {
+  type PersistedViewState,
   getPersistedViewState,
   persistViewState,
 } from '~/utils/viewStatePersistence';
@@ -39,10 +40,18 @@ export function usePersistedTab(
   const { paramKeys = [], enabled = true } = options ?? {};
   const initialized = useRef(false);
 
+  // Defer localStorage read to after hydration to avoid SSR mismatch
+  const [persistedState, setPersistedState] =
+    useState<PersistedViewState | null>(null);
+
+  useEffect(() => {
+    if (entityId != null) {
+      setPersistedState(getPersistedViewState(entityType, entityId));
+    }
+  }, [entityType, entityId]);
+
   // Resolve current tab: URL > localStorage > default
   const urlTab = searchParams.get('tab');
-  const persistedState =
-    entityId != null ? getPersistedViewState(entityType, entityId) : null;
   const currentTab = urlTab || persistedState?.tab || defaultTab;
 
   // On mount: restore tab and persisted params to URL if tab is missing
@@ -50,14 +59,19 @@ export function usePersistedTab(
     if (!enabled || initialized.current || entityId == null) return;
     initialized.current = true;
 
+    // Read localStorage directly (state may not be updated yet on first render)
+    const stored = getPersistedViewState(entityType, entityId);
+
     if (!searchParams.has('tab')) {
+      const resolvedTab = urlTab || stored?.tab || defaultTab;
+
       setSearchParams(
         (prev) => {
-          prev.set('tab', currentTab);
+          prev.set('tab', resolvedTab);
 
           // Restore persisted params that aren't already in the URL
-          if (persistedState?.params) {
-            for (const [key, value] of Object.entries(persistedState.params)) {
+          if (stored?.params) {
+            for (const [key, value] of Object.entries(stored.params)) {
               if (!prev.has(key)) {
                 prev.set(key, value);
               }

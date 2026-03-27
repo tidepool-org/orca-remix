@@ -1,4 +1,5 @@
-import { createContext, useContext, useState, useEffect, useMemo } from 'react';
+import { createContext, useContext, useState, useMemo } from 'react';
+import { useFetcher } from 'react-router';
 
 type SidebarExpandedContextType = {
   sidebarExpanded: boolean;
@@ -17,24 +18,15 @@ export function SidebarExpandedProvider({
   children: React.ReactNode;
 }) {
   const [sidebarExpanded, setSidebarExpandedState] = useState(initialExpanded);
+  const fetcher = useFetcher();
 
   const setSidebarExpanded = (expanded: boolean) => {
     setSidebarExpandedState(expanded);
-    localStorage.setItem('sidebar-expanded', expanded.toString());
+    fetcher.submit(
+      { expanded: expanded.toString() },
+      { method: 'post', action: '/action/set-sidebar' },
+    );
   };
-
-  // Sync sidebar state from keyboard shortcut toggle (uses StorageEvent)
-  useEffect(() => {
-    const handleStorage = (e: StorageEvent) => {
-      if (e.key === 'sidebar-expanded') {
-        setSidebarExpandedState(
-          localStorage.getItem('sidebar-expanded') === 'true',
-        );
-      }
-    };
-    window.addEventListener('storage', handleStorage);
-    return () => window.removeEventListener('storage', handleStorage);
-  }, []);
 
   const value = useMemo(
     () => ({ sidebarExpanded, setSidebarExpanded }),
