@@ -98,15 +98,20 @@ export function shouldRevalidate({
 
 const recentPatientsMax = 10;
 
-/** Flatten the nested connectionRequests object into a flat array */
+/** Flatten the nested connectionRequests object into a flat array,
+ *  keeping only the most recent request per provider. */
 function flattenConnectionRequests(
   connectionRequests?: Patient['connectionRequests'],
 ): ConnectionRequest[] {
   if (!connectionRequests) return [];
   const result: ConnectionRequest[] = [];
   for (const requests of Object.values(connectionRequests)) {
-    if (Array.isArray(requests)) {
-      result.push(...requests);
+    if (Array.isArray(requests) && requests.length > 0) {
+      const sorted = [...requests].sort(
+        (a, b) =>
+          new Date(b.createdTime).getTime() - new Date(a.createdTime).getTime(),
+      );
+      result.push(sorted[0]);
     }
   }
   return result;
