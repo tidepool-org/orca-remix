@@ -256,8 +256,8 @@ export default function ClinicsTable({
               loadingContent={LoadingContent}
               loadingState={isLoading ? 'loading' : 'idle'}
             >
-              {filteredClinics.map((item) => (
-                <TableRow key={item.clinic?.id || Math.random()}>
+              {filteredClinics.map((item, index) => (
+                <TableRow key={item.clinic?.id ?? `clinic-row-${index}`}>
                   {(columnKey) => (
                     <TableCell>
                       {renderCell(
