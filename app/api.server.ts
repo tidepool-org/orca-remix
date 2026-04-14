@@ -7,7 +7,7 @@ export const apiRoutes = {
   user: {
     get: (search: string) => ({
       method: 'get',
-      path: `/auth/user/${search}`,
+      path: `/auth/user/${encodeURIComponent(search)}`,
     }),
     getMetadata: (userId: string, collection: string) => ({
       method: 'get',
@@ -29,12 +29,12 @@ export const apiRoutes = {
     }),
     resendConfirmation: (email: string) => ({
       method: 'post',
-      path: `/confirm/resend/signup/${email}`,
+      path: `/confirm/resend/signup/${encodeURIComponent(email)}`,
     }),
     // Password reset
     sendPasswordReset: (email: string) => ({
       method: 'post',
-      path: `/confirm/send/forgot/${email}`,
+      path: `/confirm/send/forgot/${encodeURIComponent(email)}`,
     }),
     // Destructive actions
     delete: (userId: string) => ({
@@ -159,11 +159,11 @@ export const apiRoutes = {
     // ref https://tidepool.redocly.app/reference/clinic.v1
     get: (search: string) => ({
       method: 'get',
-      path: `/v1/clinics/${search}`,
+      path: `/v1/clinics/${encodeURIComponent(search)}`,
     }),
     getByShareCode: (search: string) => ({
       method: 'get',
-      path: `/v1/clinics/share_code/${search}`,
+      path: `/v1/clinics/share_code/${encodeURIComponent(search)}`,
     }),
     getPatients: (
       clinicId: string,
