@@ -79,10 +79,22 @@ export function getErrorMessage(error: unknown): string {
 }
 
 /**
- * Create a Response with error data for loaders/actions
+ * Create a Response with error data for loaders/actions.
+ * Only passes through messages from known, user-safe error types.
+ * Unknown errors get a generic message to avoid leaking internals.
  */
-export function errorResponse(error: unknown, status: number = 400): Response {
-  const message = getErrorMessage(error);
+export function errorResponse(error: unknown, status?: number): Response {
+  const isUserFacing =
+    error instanceof APIError ||
+    error instanceof ValidationError ||
+    error instanceof z.ZodError;
+
+  const message = isUserFacing
+    ? getErrorMessage(error)
+    : 'An unexpected error occurred';
+
+  const responseStatus =
+    status ?? (error instanceof APIError ? (error.status ?? 500) : 500);
 
   return Response.json(
     {
@@ -91,6 +103,6 @@ export function errorResponse(error: unknown, status: number = 400): Response {
         fieldErrors: formatZodFieldErrors(error),
       }),
     },
-    { status },
+    { status: responseStatus },
   );
 }

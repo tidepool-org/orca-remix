@@ -219,15 +219,15 @@ describe('errors', () => {
   });
 
   describe('errorResponse', () => {
-    it('creates Response with error message and default 400 status', async () => {
-      const error = new Error('Bad request');
+    it('creates generic Response for unknown Error types', async () => {
+      const error = new Error('Internal details that should not leak');
       const response = errorResponse(error);
 
       expect(response).toBeInstanceOf(Response);
-      expect(response.status).toBe(400);
+      expect(response.status).toBe(500);
 
       const body = await response.json();
-      expect(body.error).toBe('Bad request');
+      expect(body.error).toBe('An unexpected error occurred');
     });
 
     it('creates Response with custom status', async () => {
@@ -238,6 +238,16 @@ describe('errors', () => {
 
       const body = await response.json();
       expect(body.error).toBe('Not found');
+    });
+
+    it('uses APIError status when no explicit status provided', async () => {
+      const error = new APIError('Forbidden', 403);
+      const response = errorResponse(error);
+
+      expect(response.status).toBe(403);
+
+      const body = await response.json();
+      expect(body.error).toBe('Forbidden');
     });
 
     it('includes fieldErrors for ZodError', async () => {
@@ -260,11 +270,13 @@ describe('errors', () => {
       }
     });
 
-    it('handles string errors', async () => {
+    it('creates generic Response for string errors', async () => {
       const response = errorResponse('Simple error message');
 
+      expect(response.status).toBe(500);
+
       const body = await response.json();
-      expect(body.error).toBe('Simple error message');
+      expect(body.error).toBe('An unexpected error occurred');
     });
 
     it('handles unknown error types', async () => {
