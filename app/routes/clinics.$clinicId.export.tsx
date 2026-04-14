@@ -243,10 +243,19 @@ function prescriptionsToCSV(prescriptions: Prescription[]): string {
 
 function toCSV(headers: string[], rows: string[][]): string {
   const escapeField = (field: string) => {
-    if (field.includes(',') || field.includes('"') || field.includes('\n')) {
-      return `"${field.replace(/"/g, '""')}"`;
+    // Guard against CSV injection: prefix formula-trigger characters with
+    // a single quote so spreadsheet apps treat the value as literal text.
+    const formulaTriggers = /^[=+\-@\t\r]/;
+    const sanitized = formulaTriggers.test(field) ? `'${field}` : field;
+
+    if (
+      sanitized.includes(',') ||
+      sanitized.includes('"') ||
+      sanitized.includes('\n')
+    ) {
+      return `"${sanitized.replace(/"/g, '""')}"`;
     }
-    return field;
+    return sanitized;
   };
 
   const lines = [
