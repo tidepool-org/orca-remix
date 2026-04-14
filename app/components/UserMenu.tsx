@@ -11,6 +11,7 @@ import { useMemo } from 'react';
 
 import { type RootLoaderType } from '~/root';
 import { useLoaderData } from 'react-router';
+import { version } from '../../package.json';
 
 type UserMenuProps = {
   onOpenShortcuts: () => void;
@@ -72,6 +73,15 @@ export default function UserMenu({ onOpenShortcuts }: UserMenuProps) {
             endContent={<Kbd className="font-mono text-xs">?</Kbd>}
           >
             Shortcuts
+          </DropdownItem>
+        </DropdownSection>
+        <DropdownSection>
+          <DropdownItem
+            key="version"
+            className="text-default-400 text-xs text-center justify-center data-[hover=true]:bg-transparent data-[hover=true]:text-default-400 cursor-default"
+            isReadOnly
+          >
+            v{version}
           </DropdownItem>
         </DropdownSection>
       </DropdownMenu>
