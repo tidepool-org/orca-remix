@@ -106,6 +106,13 @@ export default {
     './app/**/*.{js,jsx,ts,tsx}',
     './node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}',
   ],
+  safelist: [
+    // Used by DetailGrid which builds responsive grid classes dynamically.
+    // Tailwind's JIT scanner can't detect interpolated class names like
+    // `grid-cols-${n}` or `${bp}:grid-cols-${n}`, so we safelist them here.
+    { pattern: /^grid-cols-[1-6]$/ },
+    { pattern: /^grid-cols-[1-6]$/, variants: ['sm', 'md', 'lg'] },
+  ],
   theme: {
     extend: {
       fontFamily: {

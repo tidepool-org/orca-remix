@@ -71,7 +71,8 @@ export default function DetailGrid({
     return null;
   }
 
-  // Build responsive grid column classes
+  // Build responsive grid column classes.
+  // These dynamic classes are safelisted in tailwind.config.ts.
   const getColumnClass = (count: number | undefined, prefix: string = '') => {
     if (!count) return '';
     const colClass = `grid-cols-${count}`;
