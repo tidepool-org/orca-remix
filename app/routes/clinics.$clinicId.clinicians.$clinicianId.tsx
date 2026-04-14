@@ -16,6 +16,7 @@ import type {
 import { useEffect } from 'react';
 import { APIError } from '~/utils/errors';
 import { z } from 'zod';
+import { ClinicianSchema } from '~/schemas';
 import { usePersistedTab } from '~/hooks/usePersistedTab';
 
 type ClinicianLoaderData = {
@@ -185,7 +186,7 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
       let parsedClinician: Clinician;
       try {
         parsedRoles = JSON.parse(rolesJson);
-        parsedClinician = JSON.parse(clinicianJson);
+        parsedClinician = ClinicianSchema.parse(JSON.parse(clinicianJson));
       } catch {
         return Response.json({ error: 'Invalid JSON format' }, { status: 400 });
       }
@@ -207,10 +208,14 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
       }
 
       // Update the clinician with the new roles
-      // Uses the already-loaded clinician data from the client to avoid an extra API call
+      // Only pick the fields the API expects — don't spread raw client data
       await apiRequest({
         ...apiRoutes.clinic.updateClinician(clinicId, clinicianId),
-        body: { ...parsedClinician, roles },
+        body: {
+          name: parsedClinician.name,
+          email: parsedClinician.email,
+          roles,
+        },
       });
 
       return Response.json({ success: true });
