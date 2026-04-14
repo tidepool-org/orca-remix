@@ -6,3 +6,5 @@ node_modules
 .env
 .claude
 .vite/deps
+.opencode/plans
+
