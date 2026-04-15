@@ -492,26 +492,37 @@ export const apiRequestFile = async ({
   method,
   body,
 }: apiRequestArgs): Promise<Response> => {
-  const result = await fetch(`${process.env.API_HOST}${path}`, {
-    method,
-    headers: {
-      'x-tidepool-session-token': serverAuth.serverSessionToken,
-      ...(body && { 'Content-Type': 'application/json' }),
-    },
-    ...(body && { body: JSON.stringify(body) }),
-  });
+  try {
+    const result = await fetch(`${process.env.API_HOST}${path}`, {
+      method,
+      headers: {
+        'x-tidepool-session-token': serverAuth.serverSessionToken,
+        ...(body && { 'Content-Type': 'application/json' }),
+      },
+      ...(body && { body: JSON.stringify(body) }),
+      signal: AbortSignal.timeout(30_000),
+    });
 
-  if (!result.ok) {
-    const errorText = await result.text();
-    const statusText = result.statusText || 'Request failed';
-    const message = errorText
-      ? `${statusText} (${result.status}): ${errorText}`
-      : `${statusText} (${result.status})`;
+    if (!result.ok) {
+      const errorText = await result.text();
+      const statusText = result.statusText || 'Request failed';
+      const message = errorText
+        ? `${statusText} (${result.status}): ${errorText}`
+        : `${statusText} (${result.status})`;
 
-    throw new APIError(message, result.status);
+      throw new APIError(message, result.status);
+    }
+
+    return result;
+  } catch (e) {
+    if (e instanceof APIError) throw e;
+    if (e instanceof DOMException && e.name === 'TimeoutError') {
+      throw new APIError(`File request to ${path} timed out after 30s`, 504);
+    }
+    throw new APIError(
+      `File request to ${path} failed: ${e instanceof Error ? e.message : 'Unknown error'}`,
+    );
   }
-
-  return result;
 };
 
 /**

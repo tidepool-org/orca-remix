@@ -546,7 +546,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
         },
         {
           headers: {
-            'Cache-Control': 'private, max-age=60',
+            'Cache-Control': 'private, no-cache',
             'Set-Cookie': await commitSession(recentlyViewed),
           },
         },
