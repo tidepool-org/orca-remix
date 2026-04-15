@@ -317,13 +317,20 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   const clinicsList =
     clinicsState.status === 'success' ? clinicsState.data : [];
   if (user?.userid && !profile?.clinic && clinicsList.length > 0) {
-    const patientResults = await Promise.all(
-      clinicsList.map((membership) =>
-        apiRequestSafe<Patient>(
-          apiRoutes.clinic.getPatient(membership.clinic.id, user.userid),
+    // Batch requests to avoid overwhelming the API (demo account can belong to hundreds of clinics)
+    const BATCH_SIZE = 5;
+    const patientResults: ResourceState<Patient>[] = [];
+    for (let i = 0; i < clinicsList.length; i += BATCH_SIZE) {
+      const batch = clinicsList.slice(i, i + BATCH_SIZE);
+      const batchResults = await Promise.all(
+        batch.map((membership) =>
+          apiRequestSafe<Patient>(
+            apiRoutes.clinic.getPatient(membership.clinic.id, user.userid),
+          ),
         ),
-      ),
-    );
+      );
+      patientResults.push(...batchResults);
+    }
 
     for (const result of patientResults) {
       if (result.status === 'success' && result.data?.connectionRequests) {
