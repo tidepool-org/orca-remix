@@ -49,7 +49,7 @@ export default function ClipboardButton({
   return (
     <Button
       onPress={() => copyContent(clipboardText)}
-      className="text-foreground/80 h-unit-7 min-w-unit-7 w-unit-7"
+      className="text-foreground/80"
       isLoading={isLoading}
       title={title}
       aria-label={title}

@@ -88,8 +88,9 @@ export default function StatusChip({
 }: StatusChipProps) {
   // Get color from custom map or default based on type
   const getColor = (): ChipColor => {
-    if (colorMap && status?.toLowerCase() in colorMap) {
-      return colorMap[status.toLowerCase()];
+    const normalizedStatus = status.toLowerCase();
+    if (colorMap && normalizedStatus in colorMap) {
+      return colorMap[normalizedStatus];
     }
 
     switch (type) {

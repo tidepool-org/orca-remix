@@ -18,7 +18,7 @@ export default function DetailsToggleButton({
       onClick={onToggle}
       className="flex items-center gap-1 text-sm text-primary hover:text-primary-600 transition-colors"
       aria-expanded={isExpanded}
-      aria-label={isExpanded ? 'Hide details' : 'Show details'}
+      aria-label={isExpanded ? expandedText : collapsedText}
     >
       <span>{isExpanded ? expandedText : collapsedText}</span>
       {isExpanded ? (

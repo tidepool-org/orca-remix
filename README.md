@@ -1,32 +1,24 @@
-# templates/unstable-vite-express
+# Orca 2.0
 
-⚠️ Remix support for Vite is unstable and not recommended for production.
+Internal admin tool for [Tidepool](https://www.tidepool.org/), built with React Router v7 (SSR), HeroUI, and Tailwind CSS.
 
-📖 See the [Remix Vite docs][remix-vite-docs] for details on supported features.
+## Development
 
-## Setup
-
-```shellscript
-npx create-remix@latest --template remix-run/remix/templates/unstable-vite-express
-```
-
-## Run
-
-Spin up the Express server as a dev server:
-
-```shellscript
+```sh
+npm install
 npm run dev
 ```
 
-Or build your app for production and run it:
+## Production
 
-```shellscript
+```sh
 npm run build
-npm run start
+node server.mjs
 ```
 
-## Customize
+Or with Docker:
 
-In this template, we'll use Express but remember that these APIs can be used with _any_ Node-compatible server setup that supports standard middleware.
-
-[remix-vite-docs]: https://remix.run/docs/en/main/future/vite
+```sh
+docker build -t orca-remix .
+docker run -p 3000:3000 orca-remix
+```

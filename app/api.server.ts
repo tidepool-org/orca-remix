@@ -474,7 +474,13 @@ export const apiRequest = async <T = unknown>({
     if (e instanceof DOMException && e.name === 'TimeoutError') {
       throw new APIError(`Request to ${path} timed out after 30s`, 504);
     }
-    throw e;
+    // Wrap unknown errors in APIError for consistent error typing
+    if (e instanceof APIError) {
+      throw e;
+    }
+    throw new APIError(
+      e instanceof Error ? e.message : `Unknown error requesting ${path}`,
+    );
   }
 };
 

@@ -439,8 +439,8 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
       | { name?: string; email?: string }[]
       | undefined;
 
-    // Mock patient data structure for now since the actual API structure may vary
-    // In a real implementation, you'd parse the actual API response
+    // Parse response data
+    // The API structure may vary based on clinic configuration
     const patients: Patient[] = patientsResponse?.data || [];
     const totalPatients = patientsResponse?.meta?.count || 0;
     const totalPages = Math.ceil(totalPatients / limit);
@@ -784,10 +784,8 @@ export default function Clinics() {
     [submit],
   );
 
-  // Check if we're currently submitting a tier update
-  const isSubmitting =
-    navigation.state === 'submitting' &&
-    navigation.formData?.get('actionType') === 'updateTier';
+  // Check if we're currently submitting any action
+  const isSubmitting = navigation.state === 'submitting';
 
   // If we're on a nested route, render the outlet
   if (isNestedRoute) {
