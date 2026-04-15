@@ -7,7 +7,6 @@ import {
   useNavigate,
   useLoaderData,
   useRouteLoaderData,
-  type ClientLoaderFunctionArgs,
 } from 'react-router';
 
 import './tailwind.css';
@@ -26,9 +25,9 @@ import {
 } from './sessions.server';
 import { authorizeServer } from './auth.server';
 import { default as useLocale, LocaleProvider } from './hooks/useLocale';
+import { jwtDecode } from 'jwt-decode';
 
 import Dashboard from './layouts/Dashboard';
-import { Agent } from './routes/action.get-agent';
 import ErrorStack from './components/ErrorStack';
 import getLocale from './utils/getLocale';
 import { ToastProvider } from './contexts/ToastContext';
@@ -39,6 +38,16 @@ import {
   useSidebarExpanded,
 } from './contexts/SidebarExpandedContext';
 import { ProfileExpandedProvider } from './contexts/ProfileExpandedContext';
+
+type Agent = {
+  name?: string | undefined;
+  picture?: string | undefined;
+  email?: string | undefined;
+};
+
+const isAuthBypassed =
+  process.env.NODE_ENV === 'development' &&
+  process.env.DEV_AUTH_BYPASS === 'true';
 
 // Return the theme from the session storage using the loader
 export const loader = async ({ request }: LoaderFunctionArgs) => {
@@ -60,38 +69,45 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const profileExpandedMap: Record<string, boolean> =
     profileExpandedCookie.get('expanded') || {};
 
+  // Extract agent data from Pomerium JWT (available server-side)
+  let agent: Agent = {};
+  const pomeriumJWT = request.headers.get('x-pomerium-jwt-assertion');
+
+  if (typeof pomeriumJWT === 'string') {
+    try {
+      const decoded = jwtDecode<Agent>(pomeriumJWT);
+      agent = {
+        name: decoded.name,
+        picture: decoded.picture,
+        email: decoded.email,
+      };
+    } catch {
+      console.warn('Failed to decode Pomerium JWT');
+    }
+  } else if (isAuthBypassed) {
+    agent = {
+      email: process.env.DEV_AUTH_EMAIL || 'dev@localhost',
+      name: process.env.DEV_AUTH_NAME || 'Development User',
+    };
+  }
+
   return {
     locale,
     theme: getTheme() || 'light', // Default to light theme if no cookie is set
     sidebarExpanded,
     profileExpandedMap,
+    agent,
   };
 };
 
-export async function clientLoader({
-  request,
-  serverLoader,
-}: ClientLoaderFunctionArgs) {
-  const { origin } = new URL(request.url);
-  const [serverData] = await Promise.all([serverLoader<typeof loader>()]);
-  const agentData = await fetch(`${origin}/action/get-agent`);
-  const agent: Agent = await agentData.json();
-
-  return {
-    ...serverData,
-    agent,
-  };
-}
-clientLoader.hydrate = true;
-
-export type RootLoaderType = typeof clientLoader;
+export type RootLoaderType = typeof loader;
 
 // Wrap your app with ThemeProvider.
 // `specifiedTheme` is the stored theme in the session storage.
 // `themeAction` is the action name that's used to change the theme in the session storage.
 export default function AppWithProviders() {
   const { theme, locale, sidebarExpanded, profileExpandedMap } =
-    useLoaderData<typeof clientLoader>();
+    useLoaderData<typeof loader>();
 
   return (
     <ThemeProvider specifiedTheme={theme} themeAction="/action/set-theme">
@@ -111,7 +127,7 @@ export default function AppWithProviders() {
 // the browser theme before hydration and will prevent a flash in browser.
 // The client code runs conditionally, it won't be rendered if we have a theme in session storage.
 function App() {
-  const data = useLoaderData<typeof clientLoader>();
+  const data = useLoaderData<typeof loader>();
   const navigate = useNavigate();
   const [theme] = useTheme();
   const { locale, direction } = useLocale();
