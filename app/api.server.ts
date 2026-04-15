@@ -440,7 +440,14 @@ export const apiRequest = async <T = unknown>({
 
     // Validate with schema if provided
     if (schema) {
-      return schema.parse(data);
+      const result = schema.safeParse(data);
+      if (!result.success) {
+        const issues = result.error.issues
+          .map((i) => `${i.path.join('.')}: ${i.message}`)
+          .join('; ');
+        throw new APIError(`Schema validation failed for ${path}: ${issues}`);
+      }
+      return result.data;
     }
 
     return data as T;
