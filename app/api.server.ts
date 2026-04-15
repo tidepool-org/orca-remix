@@ -411,6 +411,7 @@ export const apiRequest = async <T = unknown>({
         ...(body && { 'Content-Type': 'application/json' }),
       },
       ...(body && { body: JSON.stringify(body) }),
+      signal: AbortSignal.timeout(30_000),
     });
 
     if (!result.ok) {
@@ -461,6 +462,10 @@ export const apiRequest = async <T = unknown>({
       invalidateServerToken();
       await authorizeServer();
       return await execute();
+    }
+    // Surface timeout as a descriptive APIError
+    if (e instanceof DOMException && e.name === 'TimeoutError') {
+      throw new APIError(`Request to ${path} timed out after 30s`, 504);
     }
     throw e;
   }
