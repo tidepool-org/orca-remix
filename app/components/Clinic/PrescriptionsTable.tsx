@@ -21,6 +21,7 @@ import StatusChip from '~/components/ui/StatusChip';
 import ResourceError from '~/components/ui/ResourceError';
 import CopyableIdentifier from '~/components/ui/CopyableIdentifier';
 import { formatDateTime } from '~/utils/dateFormatters';
+import { getPatientName } from '~/utils/prescriptions';
 
 /**
  * Context determines how navigation works when selecting a prescription:
@@ -109,16 +110,6 @@ export default function PrescriptionsTable({
       label: 'Expires',
     },
   ];
-
-  const getPatientName = (prescription: Prescription): string => {
-    const attrs = prescription.latestRevision?.attributes;
-    if (attrs?.firstName && attrs?.lastName) {
-      return `${attrs.firstName} ${attrs.lastName}`;
-    }
-    if (attrs?.firstName) return attrs.firstName;
-    if (attrs?.lastName) return attrs.lastName;
-    return 'N/A';
-  };
 
   const renderCell = React.useCallback(
     (item: Prescription, columnKey: string) => {

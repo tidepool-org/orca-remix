@@ -1,8 +1,7 @@
 import { Button, ButtonProps } from '@heroui/react';
-import { DebouncedFunc } from 'lodash';
 import debounce from 'lodash/debounce';
 import { Copy, CopyCheck } from 'lucide-react';
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 
 type ClipboardButtonProps = ButtonProps & {
   clipboardText?: string;
@@ -20,26 +19,28 @@ export default function ClipboardButton({
   ...buttonProps
 }: ClipboardButtonProps) {
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
+  const debouncedRef = useRef<ReturnType<typeof debounce> | null>(null);
 
-  const [debouncedButtonTextUpdate, setDebouncedButtonTextUpdate] =
-    React.useState<DebouncedFunc<() => void>>();
+  // Clean up pending debounce on unmount
+  useEffect(() => {
+    return () => {
+      debouncedRef.current?.cancel();
+    };
+  }, []);
 
   const copyContent = async (text: string) => {
     try {
       await navigator.clipboard.writeText(text);
       setIsLoading(true);
 
-      if (debouncedButtonTextUpdate) {
-        debouncedButtonTextUpdate.cancel();
-      }
+      debouncedRef.current?.cancel();
 
       const buttonTextUpdate = debounce(() => {
         setIsLoading(false);
       }, 1000);
 
       buttonTextUpdate();
-
-      setDebouncedButtonTextUpdate(buttonTextUpdate);
+      debouncedRef.current = buttonTextUpdate;
     } catch (err) {
       console.error('Failed to copy: ', err);
     }

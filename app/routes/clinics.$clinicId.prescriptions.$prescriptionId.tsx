@@ -5,6 +5,7 @@ import { apiRequest, apiRoutes } from '~/api.server';
 import { prescriptionsSession } from '~/sessions.server';
 import { useRecentItems } from '~/components/Clinic/RecentItemsContext';
 import PrescriptionProfile from '~/components/Clinic/PrescriptionProfile';
+import { getPatientName } from '~/utils/prescriptions';
 import type {
   Prescription,
   Clinician,
@@ -24,16 +25,6 @@ type PrescriptionLoaderData = {
   clinicId: string;
   recentPrescriptions: RecentPrescription[];
 };
-
-function getPatientName(prescription: Prescription): string {
-  const attrs = prescription.latestRevision?.attributes;
-  if (attrs?.firstName && attrs?.lastName) {
-    return `${attrs.firstName} ${attrs.lastName}`;
-  }
-  if (attrs?.firstName) return attrs.firstName;
-  if (attrs?.lastName) return attrs.lastName;
-  return 'N/A';
-}
 
 const recentPrescriptionsMax = 10;
 
@@ -134,18 +125,9 @@ export default function PrescriptionRoute() {
       updateRecentPrescriptions(recentPrescriptions);
     }
     if (prescription) {
-      const attrs = prescription.latestRevision?.attributes;
-      let patientName = 'N/A';
-      if (attrs?.firstName && attrs?.lastName) {
-        patientName = `${attrs.firstName} ${attrs.lastName}`;
-      } else if (attrs?.firstName) {
-        patientName = attrs.firstName;
-      } else if (attrs?.lastName) {
-        patientName = attrs.lastName;
-      }
       addRecentPrescription({
         id: prescription.id,
-        patientName,
+        patientName: getPatientName(prescription),
         state: prescription.state,
       });
     }

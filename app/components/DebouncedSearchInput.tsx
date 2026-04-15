@@ -17,6 +17,12 @@ export default function DebouncedSearchInput({
 }: DebouncedSearchInputProps) {
   const [localValue, setLocalValue] = useState(value);
   const timeoutRef = useRef<NodeJS.Timeout>();
+  const onSearchRef = useRef(onSearch);
+
+  // Keep ref in sync with latest callback
+  useEffect(() => {
+    onSearchRef.current = onSearch;
+  }, [onSearch]);
 
   const debouncedSearch = useCallback(
     (searchValue: string) => {
@@ -24,10 +30,10 @@ export default function DebouncedSearchInput({
         clearTimeout(timeoutRef.current);
       }
       timeoutRef.current = setTimeout(() => {
-        onSearch(searchValue);
+        onSearchRef.current(searchValue);
       }, debounceMs);
     },
-    [onSearch, debounceMs],
+    [debounceMs],
   );
 
   const handleChange = useCallback(

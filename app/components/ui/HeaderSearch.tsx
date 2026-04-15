@@ -65,14 +65,14 @@ export default function HeaderSearch() {
   const [inputValue, setInputValue] = useState('');
   const [isFocused, setIsFocused] = useState(false);
   const [entities, setEntities] = useState<RecentEntity[]>([]);
-  const [hasFetched, setHasFetched] = useState(false);
+  const hasFetchedRef = useRef(false);
   const navigate = useNavigate();
   const location = useLocation();
   const autocompleteRef = useRef<HTMLInputElement>(null);
   const hasArrowNavigated = useRef(false);
 
   const fetchEntities = useCallback(async () => {
-    if (hasFetched) return;
+    if (hasFetchedRef.current) return;
     try {
       const res = await fetch('/action/recent-entities');
       if (res.ok) {
@@ -82,12 +82,12 @@ export default function HeaderSearch() {
     } catch {
       // Silently fail - search still works without suggestions
     }
-    setHasFetched(true);
-  }, [hasFetched]);
+    hasFetchedRef.current = true;
+  }, []);
 
   // Invalidate cache on navigation so newly viewed entities appear
   useEffect(() => {
-    setHasFetched(false);
+    hasFetchedRef.current = false;
   }, [location.pathname]);
 
   const handleFocus = () => {
