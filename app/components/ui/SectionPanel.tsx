@@ -144,8 +144,12 @@ export default function SectionPanel({
         <div className="flex w-full p-4 bg-content1">{headerContent}</div>
       )}
 
-      {isExpanded && children && (
-        <div id={panelId} className="p-4 transition-all duration-300">
+      {children && (
+        <div
+          id={panelId}
+          className="p-4 transition-all duration-300"
+          hidden={!isExpanded}
+        >
           {children}
         </div>
       )}

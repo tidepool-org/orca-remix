@@ -40,7 +40,7 @@ describe('TableFilterInput', () => {
   });
 
   describe('accessibility', () => {
-    it('uses placeholder as aria-label by default', () => {
+    it('uses itemLabel as aria-label by default', () => {
       render(
         <TableFilterInput
           value=""
@@ -50,7 +50,7 @@ describe('TableFilterInput', () => {
       );
 
       expect(
-        screen.getByRole('textbox', { name: 'Filter by name...' }),
+        screen.getByRole('textbox', { name: 'Filter items' }),
       ).toBeInTheDocument();
     });
 

@@ -165,7 +165,9 @@ describe('SectionPanel', () => {
         </SectionPanel>,
       );
 
-      expect(screen.queryByText('Hidden content')).not.toBeInTheDocument();
+      expect(
+        screen.getByText('Hidden content').closest('[hidden]'),
+      ).toBeInTheDocument();
     });
 
     it('toggles content visibility when header is clicked', async () => {
@@ -182,15 +184,19 @@ describe('SectionPanel', () => {
       );
 
       // Content should be hidden initially
-      expect(screen.queryByText('Toggle content')).not.toBeInTheDocument();
+      expect(
+        screen.getByText('Toggle content').closest('[hidden]'),
+      ).toBeInTheDocument();
 
       // Click to expand
       await user.click(screen.getByRole('button'));
-      expect(screen.getByText('Toggle content')).toBeInTheDocument();
+      expect(screen.getByText('Toggle content')).toBeVisible();
 
       // Click to collapse
       await user.click(screen.getByRole('button'));
-      expect(screen.queryByText('Toggle content')).not.toBeInTheDocument();
+      expect(
+        screen.getByText('Toggle content').closest('[hidden]'),
+      ).toBeInTheDocument();
     });
 
     it('calls onToggle callback when header is clicked', async () => {
@@ -224,7 +230,9 @@ describe('SectionPanel', () => {
         </SectionPanel>,
       );
 
-      expect(screen.queryByText('Controlled content')).not.toBeInTheDocument();
+      expect(
+        screen.getByText('Controlled content').closest('[hidden]'),
+      ).toBeInTheDocument();
 
       rerender(
         <SectionPanel
@@ -237,7 +245,7 @@ describe('SectionPanel', () => {
         </SectionPanel>,
       );
 
-      expect(screen.getByText('Controlled content')).toBeInTheDocument();
+      expect(screen.getByText('Controlled content')).toBeVisible();
     });
   });
 

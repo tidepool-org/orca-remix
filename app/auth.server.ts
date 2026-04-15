@@ -58,7 +58,7 @@ export function invalidateServerToken(): void {
 async function refreshServerToken(): Promise<void> {
   try {
     const serverTokenData = await fetch(
-      `${process.env.API_HOST}/auth/serverlogin`,
+      `${serverAuth.apiHost}/auth/serverlogin`,
       {
         method: 'post',
         headers: {

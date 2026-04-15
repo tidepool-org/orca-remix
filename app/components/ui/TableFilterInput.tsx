@@ -100,7 +100,7 @@ export default function TableFilterInput({
       <Input
         isClearable
         placeholder={placeholder}
-        aria-label={ariaLabel ?? placeholder}
+        aria-label={ariaLabel ?? `Filter ${itemLabel}`}
         startContent={
           <Search className="w-4 h-4 text-default-400" aria-hidden="true" />
         }

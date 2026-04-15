@@ -65,6 +65,7 @@ export default function TablePagination({
         </span>
       )}
       <Pagination
+        aria-label="Pagination"
         page={currentPage}
         total={totalPages}
         onChange={onPageChange}

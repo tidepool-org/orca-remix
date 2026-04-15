@@ -411,7 +411,7 @@ export const apiRequest = async <T = unknown>({
   schema,
 }: apiRequestWithSchemaArgs<T>): Promise<T> => {
   const execute = async (): Promise<T> => {
-    const result = await fetch(`${process.env.API_HOST}${path}`, {
+    const result = await fetch(`${serverAuth.apiHost}${path}`, {
       method,
       headers: {
         'x-tidepool-session-token': serverAuth.serverSessionToken,
@@ -499,7 +499,7 @@ export const apiRequestFile = async ({
   body,
 }: apiRequestArgs): Promise<Response> => {
   try {
-    const result = await fetch(`${process.env.API_HOST}${path}`, {
+    const result = await fetch(`${serverAuth.apiHost}${path}`, {
       method,
       headers: {
         'x-tidepool-session-token': serverAuth.serverSessionToken,
