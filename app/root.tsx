@@ -6,6 +6,7 @@ import {
   ScrollRestoration,
   useNavigate,
   useLoaderData,
+  useRouteLoaderData,
   type ClientLoaderFunctionArgs,
 } from 'react-router';
 
@@ -144,7 +145,7 @@ function App() {
 }
 
 export function ErrorBoundary() {
-  const data = useLoaderData<typeof loader>();
+  const data = useRouteLoaderData<typeof loader>('root');
   const theme = data?.theme || 'dark';
 
   return (
