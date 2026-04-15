@@ -138,13 +138,13 @@ export default function DataSetsTable({
     },
   ];
 
-  const handleDeleteDataSet = (dataSet: DataSet) => {
+  const handleDeleteDataSet = React.useCallback((dataSet: DataSet) => {
     setDeleteModal({ isOpen: true, dataSet, type: 'dataset' });
-  };
+  }, []);
 
-  const handleDeleteDataFromDataSet = (dataSet: DataSet) => {
+  const handleDeleteDataFromDataSet = React.useCallback((dataSet: DataSet) => {
     setDeleteModal({ isOpen: true, dataSet, type: 'data' });
-  };
+  }, []);
 
   const handleConfirmDelete = () => {
     if (!deleteModal.dataSet || !deleteModal.type) return;
@@ -313,7 +313,7 @@ export default function DataSetsTable({
           );
       }
     },
-    [locale],
+    [locale, handleDeleteDataSet, handleDeleteDataFromDataSet],
   );
 
   const EmptyContent = (
