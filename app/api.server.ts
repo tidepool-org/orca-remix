@@ -179,8 +179,9 @@ export const apiRoutes = {
       },
     ) => {
       const params = new URLSearchParams();
-      if (options?.limit) params.set('limit', options.limit.toString());
-      if (options?.offset) params.set('offset', options.offset.toString());
+      if (options?.limit != null) params.set('limit', options.limit.toString());
+      if (options?.offset != null)
+        params.set('offset', options.offset.toString());
       if (options?.search) params.set('search', options.search);
 
       if (options?.sort) {
@@ -222,8 +223,10 @@ export const apiRoutes = {
       path: `/v1/clinics/${clinicId}/clinicians${
         options
           ? `?${new URLSearchParams({
-              ...(options.limit && { limit: options.limit.toString() }),
-              ...(options.offset && { offset: options.offset.toString() }),
+              ...(options.limit != null && { limit: options.limit.toString() }),
+              ...(options.offset != null && {
+                offset: options.offset.toString(),
+              }),
             })}`
           : ''
       }`,
@@ -240,8 +243,10 @@ export const apiRoutes = {
       path: `/v1/clinicians/${clinicianId}/clinics${
         options
           ? `?${new URLSearchParams({
-              ...(options.limit && { limit: options.limit.toString() }),
-              ...(options.offset && { offset: options.offset.toString() }),
+              ...(options.limit != null && { limit: options.limit.toString() }),
+              ...(options.offset != null && {
+                offset: options.offset.toString(),
+              }),
             })}`
           : ''
       }`,
@@ -254,8 +259,10 @@ export const apiRoutes = {
       path: `/v1/patients/${patientId}/clinics${
         options
           ? `?${new URLSearchParams({
-              ...(options.limit && { limit: options.limit.toString() }),
-              ...(options.offset && { offset: options.offset.toString() }),
+              ...(options.limit != null && { limit: options.limit.toString() }),
+              ...(options.offset != null && {
+                offset: options.offset.toString(),
+              }),
             })}`
           : ''
       }`,
