@@ -425,7 +425,18 @@ export const apiRequest = async <T = unknown>({
 
     // Try to parse JSON response, but don't fail if it's empty
     const text = await result.text();
-    const data = text ? JSON.parse(text) : {};
+    let data: unknown = {};
+    if (text) {
+      try {
+        data = JSON.parse(text);
+      } catch {
+        const preview = text.length > 200 ? `${text.slice(0, 200)}…` : text;
+        throw new APIError(
+          `Invalid JSON response from ${path}: ${preview}`,
+          result.status,
+        );
+      }
+    }
 
     // Validate with schema if provided
     if (schema) {
