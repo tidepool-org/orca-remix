@@ -17,7 +17,7 @@ type Column = {
   label: string;
 };
 
-type RecentItemsTableProps<T extends { id?: string }> = {
+type RecentItemsTableProps<T extends { id: string }> = {
   /**
    * Items to display in the table
    */
@@ -86,7 +86,7 @@ type RecentItemsTableProps<T extends { id?: string }> = {
  *   rowKey="userid"
  * />
  */
-export default function RecentItemsTable<T extends { id?: string }>({
+export default function RecentItemsTable<T extends { id: string }>({
   items,
   columns,
   onSelect,

@@ -115,7 +115,7 @@ describe('RecentItemsTable', () => {
   describe('Custom row key', () => {
     it('uses custom rowKey when provided', async () => {
       type CustomItem = {
-        id?: string;
+        id: string;
         customId: string;
         name: string;
         email: string;
@@ -123,6 +123,7 @@ describe('RecentItemsTable', () => {
 
       const customItems: CustomItem[] = [
         {
+          id: 'fallback-1',
           customId: 'custom-1',
           name: 'Custom User',
           email: 'custom@example.com',
