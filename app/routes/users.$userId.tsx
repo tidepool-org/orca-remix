@@ -180,10 +180,47 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 
     // Fetch additional data for non-clinician users
     if (!profile?.clinic) {
-      // Fetch data sets
-      const dataSetsRawState = await apiRequestSafe<DataSetsResponse>(
-        apiRoutes.data.getDataSets(user.userid),
-      );
+      // All these fetches are independent — run them in parallel
+      const [
+        dataSetsRawState,
+        dataSourcesRawState,
+        pumpSettingsRawState,
+        prescriptionsRawState,
+        trustingRawState,
+        trustedRawState,
+        sentInvitesRawState,
+        receivedInvitesRawState,
+      ] = await Promise.all([
+        apiRequestSafe<DataSetsResponse>(
+          apiRoutes.data.getDataSets(user.userid),
+        ),
+        apiRequestSafe<DataSourcesResponse>(
+          apiRoutes.data.getDataSources(user.userid),
+        ),
+        apiRequestSafe<PumpSettings[]>(
+          apiRoutes.data.getData(user.userid, {
+            type: 'pumpSettings',
+            latest: true,
+          }),
+        ),
+        apiRequestSafe<Prescription[]>(
+          apiRoutes.prescription.getPatientPrescriptions(user.userid),
+        ),
+        apiRequestSafe<AccessPermissionsMap>(
+          apiRoutes.sharing.getGroupsForUser(user.userid),
+        ),
+        apiRequestSafe<AccessPermissionsMap>(
+          apiRoutes.sharing.getUsersInGroup(user.userid),
+        ),
+        apiRequestSafe<ShareInvite[]>(
+          apiRoutes.invites.getSentInvites(user.userid),
+        ),
+        apiRequestSafe<ShareInvite[]>(
+          apiRoutes.invites.getReceivedInvites(user.userid),
+        ),
+      ]);
+
+      // Normalize data sets
       if (dataSetsRawState.status === 'success') {
         const response = dataSetsRawState.data;
         dataSetsState = {
@@ -194,10 +231,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
         dataSetsState = dataSetsRawState as ResourceState<DataSet[]>;
       }
 
-      // Fetch data sources
-      const dataSourcesRawState = await apiRequestSafe<DataSourcesResponse>(
-        apiRoutes.data.getDataSources(user.userid),
-      );
+      // Normalize data sources
       if (dataSourcesRawState.status === 'success') {
         const response = dataSourcesRawState.data;
         dataSourcesState = {
@@ -208,13 +242,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
         dataSourcesState = dataSourcesRawState as ResourceState<DataSource[]>;
       }
 
-      // Fetch pump settings (latest 10)
-      const pumpSettingsRawState = await apiRequestSafe<PumpSettings[]>(
-        apiRoutes.data.getData(user.userid, {
-          type: 'pumpSettings',
-          latest: true,
-        }),
-      );
+      // Normalize pump settings
       if (pumpSettingsRawState.status === 'success') {
         pumpSettingsState = {
           status: 'success',
@@ -226,12 +254,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
         pumpSettingsState = pumpSettingsRawState;
       }
 
-      // Fetch prescriptions for this patient
-      const prescriptionsRawState = await apiRequestSafe<Prescription[]>(
-        apiRoutes.prescription.getPatientPrescriptions(user.userid),
-      );
-
-      // Treat 404 as empty array (expected when no prescriptions exist)
+      // Normalize prescriptions (404 = empty array)
       if (
         prescriptionsRawState.status === 'error' &&
         prescriptionsRawState.error.code === 404
@@ -248,20 +271,11 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
         prescriptionsState = prescriptionsRawState;
       }
 
-      // Fetch data sharing information
-      trustingAccountsState = await apiRequestSafe<AccessPermissionsMap>(
-        apiRoutes.sharing.getGroupsForUser(user.userid),
-      );
+      // Sharing accounts
+      trustingAccountsState = trustingRawState;
+      trustedAccountsState = trustedRawState;
 
-      trustedAccountsState = await apiRequestSafe<AccessPermissionsMap>(
-        apiRoutes.sharing.getUsersInGroup(user.userid),
-      );
-
-      // Fetch pending invites - 404 is expected when none exist
-      const sentInvitesRawState = await apiRequestSafe<ShareInvite[]>(
-        apiRoutes.invites.getSentInvites(user.userid),
-      );
-      // Treat 404 as empty array (expected when no invites)
+      // Normalize sent invites (404 = empty array)
       if (
         sentInvitesRawState.status === 'error' &&
         sentInvitesRawState.error.code === 404
@@ -278,10 +292,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
         sentInvitesState = sentInvitesRawState;
       }
 
-      const receivedInvitesRawState = await apiRequestSafe<ShareInvite[]>(
-        apiRoutes.invites.getReceivedInvites(user.userid),
-      );
-      // Treat 404 as empty array (expected when no invites)
+      // Normalize received invites (404 = empty array)
       if (
         receivedInvitesRawState.status === 'error' &&
         receivedInvitesRawState.error.code === 404
