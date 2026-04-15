@@ -60,7 +60,11 @@ export default function UserMenu({ onOpenShortcuts }: UserMenuProps) {
       <DropdownTrigger>{memoizedAvatar}</DropdownTrigger>
       <DropdownMenu aria-label="Profile Actions" variant="flat">
         <DropdownSection showDivider>
-          <DropdownItem key="profile" className="h-14 gap-2" isReadOnly>
+          <DropdownItem
+            key="profile"
+            className="h-14 gap-2 data-[hover=true]:bg-transparent data-[hover=true]:text-foreground cursor-default"
+            isReadOnly
+          >
             <p>Signed in as</p>
             <p className="font-semibold">{agent?.name}</p>
             <em>{agent?.email}</em>
