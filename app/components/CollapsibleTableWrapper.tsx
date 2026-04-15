@@ -1,4 +1,4 @@
-import React, { ReactNode } from 'react';
+import React, { ReactNode, useId } from 'react';
 import { ChevronDown, Download } from 'lucide-react';
 import { Tooltip } from '@heroui/react';
 import { useCollapsibleGroup } from './CollapsibleGroup';
@@ -61,15 +61,15 @@ export default function CollapsibleTableWrapper({
       ? `${title} (showing ${showRange.firstItem}-${showRange.lastItem} of ${totalItems})`
       : `${title} (${totalItems})`;
 
+  const panelId = useId();
+
   return (
     <div className="w-full rounded-lg border-2 border-content2 overflow-hidden">
       <button
         className="flex justify-between items-center w-full p-4 bg-content1 hover:bg-default/40 transition-colors cursor-pointer"
         onClick={handleToggle}
         aria-expanded={isExpanded}
-        aria-controls={`${title
-          .toLowerCase()
-          .replace(/\s+/g, '-')}-table-content`}
+        aria-controls={panelId}
       >
         <div className="flex gap-2 items-center">
           {icon}
@@ -99,10 +99,7 @@ export default function CollapsibleTableWrapper({
       </button>
 
       {isExpanded && (
-        <div
-          id={`${title.toLowerCase().replace(/\s+/g, '-')}-table-content`}
-          className="mt-4 p-4 transition-all duration-300"
-        >
+        <div id={panelId} className="mt-4 p-4 transition-all duration-300">
           {children}
         </div>
       )}

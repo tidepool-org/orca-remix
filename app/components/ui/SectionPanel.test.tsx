@@ -288,7 +288,8 @@ describe('SectionPanel', () => {
 
       const button = screen.getByRole('button');
       const controlsId = button.getAttribute('aria-controls');
-      expect(controlsId).toBe('test-section-panel-content');
+      expect(controlsId).toBeTruthy();
+      expect(document.getElementById(controlsId!)).toBeInTheDocument();
     });
 
     it('content panel has matching id for aria-controls', () => {

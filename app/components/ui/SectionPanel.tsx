@@ -1,4 +1,4 @@
-import { ReactNode, useState } from 'react';
+import { ReactNode, useId, useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 
 export type SectionPanelProps = {
@@ -88,7 +88,7 @@ export default function SectionPanel({
     }
   };
 
-  const panelId = `${title.toLowerCase().replace(/\s+/g, '-')}-panel-content`;
+  const panelId = useId();
 
   const headerContent = (
     <div className="flex justify-between items-center w-full">
