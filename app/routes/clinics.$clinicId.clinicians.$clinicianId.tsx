@@ -142,6 +142,7 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
       },
     );
   } catch (error) {
+    if (error instanceof Response) throw error;
     console.error('Error loading clinician:', error);
     throw new Response('Failed to load clinician', { status: 500 });
   }

@@ -117,6 +117,7 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
       },
     );
   } catch (error) {
+    if (error instanceof Response) throw error;
     console.error('Error loading prescription:', error);
     throw new Response('Failed to load prescription', { status: 500 });
   }
