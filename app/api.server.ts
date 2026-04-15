@@ -1,4 +1,8 @@
-import { serverAuth } from './auth.server';
+import {
+  authorizeServer,
+  invalidateServerToken,
+  serverAuth,
+} from './auth.server';
 import { z } from 'zod';
 import { APIError } from './utils/errors';
 import type { ResourceState } from './api.types';
@@ -399,7 +403,7 @@ export const apiRequest = async <T = unknown>({
   body,
   schema,
 }: apiRequestWithSchemaArgs<T>): Promise<T> => {
-  try {
+  const execute = async (): Promise<T> => {
     const result = await fetch(`${process.env.API_HOST}${path}`, {
       method,
       headers: {
@@ -429,10 +433,16 @@ export const apiRequest = async <T = unknown>({
     }
 
     return data as T;
+  };
+
+  try {
+    return await execute();
   } catch (e) {
-    // Re-throw APIError as-is, don't wrap it
-    if (e instanceof APIError) {
-      throw e;
+    // On 401, re-authenticate once and retry the request
+    if (e instanceof APIError && e.status === 401) {
+      invalidateServerToken();
+      await authorizeServer();
+      return await execute();
     }
     throw e;
   }

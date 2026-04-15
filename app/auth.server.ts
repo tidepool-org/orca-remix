@@ -49,6 +49,11 @@ export const authorizeServer = async (): Promise<void> => {
   }
 };
 
+/** Invalidate the cached token so the next `authorizeServer()` call re-authenticates. */
+export function invalidateServerToken(): void {
+  tokenExpiresAt = 0;
+}
+
 /** Perform the actual server login and cache the token. */
 async function refreshServerToken(): Promise<void> {
   try {
