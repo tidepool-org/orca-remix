@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+import { type ReactNode } from 'react';
 import { AlertTriangle } from 'lucide-react';
 
 export type DangerZoneSectionProps = {
@@ -12,6 +12,8 @@ export type DangerZoneSectionProps = {
   className?: string;
   /** Header size variant */
   size?: 'sm' | 'lg';
+  /** Heading level to use (defaults to 'h3') */
+  headingLevel?: 'h2' | 'h3' | 'h4';
 };
 
 /**
@@ -43,6 +45,7 @@ export default function DangerZoneSection({
   children,
   className = '',
   size = 'lg',
+  headingLevel: Heading = 'h3',
 }: DangerZoneSectionProps) {
   const headerClasses = {
     sm: 'text-sm font-semibold',
@@ -53,7 +56,7 @@ export default function DangerZoneSection({
     <div className={className}>
       <div className="flex items-center gap-2 text-danger mb-4">
         {showIcon && <AlertTriangle size={18} aria-hidden="true" />}
-        <h3 className={headerClasses[size]}>{title}</h3>
+        <Heading className={headerClasses[size]}>{title}</Heading>
       </div>
       {children}
     </div>

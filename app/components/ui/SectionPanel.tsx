@@ -89,18 +89,28 @@ export default function SectionPanel({
   };
 
   const panelId = useId();
+  const headingId = useId();
+
+  const titleContent = (
+    <>
+      {icon}
+      <div className="flex flex-col">
+        <span
+          id={headingId}
+          role="heading"
+          aria-level={2}
+          className={`text-lg font-semibold ${titleClassName || ''}`}
+        >
+          {title}
+        </span>
+        {subtitle && <p className="text-sm text-default-500">{subtitle}</p>}
+      </div>
+    </>
+  );
 
   const headerContent = (
     <div className="flex justify-between items-center w-full">
-      <div className="flex gap-2 items-center">
-        {icon}
-        <div className="flex flex-col">
-          <h2 className={`text-lg font-semibold ${titleClassName || ''}`}>
-            {title}
-          </h2>
-          {subtitle && <p className="text-sm text-default-500">{subtitle}</p>}
-        </div>
-      </div>
+      <div className="flex gap-2 items-center">{titleContent}</div>
       <div className="flex items-center gap-3">
         {headerControls}
         {collapsible && (
@@ -116,7 +126,7 @@ export default function SectionPanel({
   );
 
   return (
-    <div
+    <section
       className="w-full rounded-lg border-2 border-content2 overflow-hidden"
       aria-label={ariaLabel}
     >
@@ -126,6 +136,7 @@ export default function SectionPanel({
           onClick={handleToggle}
           aria-expanded={isExpanded}
           aria-controls={panelId}
+          aria-labelledby={headingId}
         >
           {headerContent}
         </button>
@@ -138,6 +149,6 @@ export default function SectionPanel({
           {children}
         </div>
       )}
-    </div>
+    </section>
   );
 }

@@ -76,16 +76,16 @@ export default function ProfileHeader({
         {/* Row 2: Copyable identifiers and optional action link */}
         {(identifiers.length > 0 || actionLinks.length > 0) && (
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm mt-1">
-            {identifiers.map((identifier, index) => (
+            {identifiers.map((identifier) => (
               <CopyableIdentifier
-                key={index}
+                key={identifier.value}
                 label={identifier.label}
                 value={identifier.value}
                 monospace={identifier.monospace}
               />
             ))}
             {actionLinks.map((link, index) => (
-              <span key={index}>{link}</span>
+              <span key={`action-${index}`}>{link}</span>
             ))}
           </div>
         )}

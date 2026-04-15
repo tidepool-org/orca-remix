@@ -36,7 +36,7 @@ export default function SaveCancelButtons({
         isDisabled={isDisabled}
         aria-label={saveAriaLabel}
       >
-        <Check size={16} />
+        <Check size={16} aria-hidden="true" />
       </Button>
       <Button
         isIconOnly
@@ -47,7 +47,7 @@ export default function SaveCancelButtons({
         isDisabled={isDisabled}
         aria-label={cancelAriaLabel}
       >
-        <X size={16} />
+        <X size={16} aria-hidden="true" />
       </Button>
     </div>
   );

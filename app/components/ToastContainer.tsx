@@ -8,14 +8,14 @@ export default function ToastContainer() {
   const getIcon = (type: string) => {
     switch (type) {
       case 'success':
-        return <CheckCircle2 className="w-5 h-5" />;
+        return <CheckCircle2 className="w-5 h-5" aria-hidden="true" />;
       case 'error':
-        return <XCircle className="w-5 h-5" />;
+        return <XCircle className="w-5 h-5" aria-hidden="true" />;
       case 'warning':
-        return <AlertTriangle className="w-5 h-5" />;
+        return <AlertTriangle className="w-5 h-5" aria-hidden="true" />;
       case 'info':
       default:
-        return <Info className="w-5 h-5" />;
+        return <Info className="w-5 h-5" aria-hidden="true" />;
     }
   };
 
@@ -36,10 +36,15 @@ export default function ToastContainer() {
   if (toasts.length === 0) return null;
 
   return (
-    <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 flex flex-col gap-2 max-w-md">
+    <div
+      className="fixed top-4 left-1/2 -translate-x-1/2 z-50 flex flex-col gap-2 max-w-md"
+      role="status"
+      aria-live="polite"
+    >
       {toasts.map((toast) => (
         <div
           key={toast.id}
+          role={toast.type === 'error' ? 'alert' : undefined}
           className={`flex items-center gap-3 p-4 rounded-lg border-2 shadow-lg animate-in slide-in-from-top-2 ${getColorClasses(
             toast.type,
           )}`}
@@ -53,7 +58,7 @@ export default function ToastContainer() {
             onPress={() => hideToast(toast.id)}
             aria-label="Close notification"
           >
-            <X className="w-4 h-4" />
+            <X className="w-4 h-4" aria-hidden="true" />
           </Button>
         </div>
       ))}

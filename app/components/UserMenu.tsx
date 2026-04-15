@@ -40,7 +40,6 @@ export default function UserMenu({ onOpenShortcuts }: UserMenuProps) {
       <Avatar
         isBordered
         showFallback
-        as="button"
         className="transition-transform"
         color="primary"
         size="sm"

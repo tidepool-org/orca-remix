@@ -62,12 +62,16 @@ export default function ConfirmationModal({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size="md">
+    <Modal isOpen={isOpen} onClose={onClose} size="md" aria-label={title}>
       <ModalContent>
         <ModalHeader className="flex items-center gap-2">
           {icon ||
             (confirmVariant === 'danger' && (
-              <AlertTriangle className="text-danger" size={20} />
+              <AlertTriangle
+                className="text-danger"
+                size={20}
+                aria-hidden="true"
+              />
             ))}
           <span>{title}</span>
         </ModalHeader>

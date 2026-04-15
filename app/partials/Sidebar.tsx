@@ -97,7 +97,7 @@ function Sidebar({ sidebarOpen, setSidebarOpen }: SidebarOpenProps) {
             size="sm"
           >
             <span className="sr-only">Close sidebar</span>
-            <ArrowLeftFromLine />
+            <ArrowLeftFromLine aria-hidden="true" />
           </Button>
 
           <NavLink to="/">
@@ -144,7 +144,10 @@ function Sidebar({ sidebarOpen, setSidebarOpen }: SidebarOpenProps) {
               size="sm"
             >
               <span className="sr-only">Expand / collapse sidebar</span>
-              <ArrowRightFromLine className="sidebar-expanded:rotate-180" />
+              <ArrowRightFromLine
+                className="sidebar-expanded:rotate-180"
+                aria-hidden="true"
+              />
             </Button>
           </div>
         </div>

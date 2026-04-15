@@ -62,6 +62,7 @@ export default function CollapsibleTableWrapper({
       : `${title} (${totalItems})`;
 
   const panelId = useId();
+  const headingId = useId();
 
   return (
     <div className="w-full rounded-lg border-2 border-content2 overflow-hidden">
@@ -70,10 +71,18 @@ export default function CollapsibleTableWrapper({
         onClick={handleToggle}
         aria-expanded={isExpanded}
         aria-controls={panelId}
+        aria-labelledby={headingId}
       >
         <div className="flex gap-2 items-center">
           {icon}
-          <h2 className="text-lg font-semibold">{headerText}</h2>
+          <span
+            id={headingId}
+            role="heading"
+            aria-level={2}
+            className="text-lg font-semibold"
+          >
+            {headerText}
+          </span>
         </div>
         <div className="flex items-center gap-2">
           {exportHref && (
