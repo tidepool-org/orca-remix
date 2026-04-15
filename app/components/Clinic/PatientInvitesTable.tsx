@@ -124,15 +124,16 @@ export default function PatientInvitesTable({
           return (
             <div className="flex flex-col">
               <p className="text-bold text-sm">
-                {invite.creator.profile.patient.fullName ||
-                  invite.creator.profile.fullName}
+                {invite.creator?.profile?.patient?.fullName ||
+                  invite.creator?.profile?.fullName ||
+                  'Unknown'}
               </p>
             </div>
           );
         case 'birthday':
           return (
             <p className="text-sm text-default-600">
-              {invite.creator.profile.patient.birthday
+              {invite.creator?.profile?.patient?.birthday
                 ? formatShortDate(
                     invite.creator.profile.patient.birthday,
                     locale,
@@ -143,7 +144,7 @@ export default function PatientInvitesTable({
         case 'userId':
           return (
             <CopyableIdentifier
-              value={invite.creator.userid}
+              value={invite.creator?.userid ?? ''}
               monospace
               size="sm"
             />
