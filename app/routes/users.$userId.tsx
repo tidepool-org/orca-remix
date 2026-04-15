@@ -81,9 +81,19 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     : [];
 
   // Fetch user data (required)
-  const user: User = (await apiRequest(
-    apiRoutes.user.get(params.userId as string),
-  )) as User;
+  let user: User;
+  try {
+    user = (await apiRequest(
+      apiRoutes.user.get(params.userId as string),
+    )) as User;
+  } catch (error) {
+    if (error instanceof Response) throw error;
+    if (error instanceof APIError && error.status === 404) {
+      throw new Response('User not found', { status: 404 });
+    }
+    console.error('Error loading user:', error);
+    throw new Response('Failed to load user', { status: 500 });
+  }
 
   // Fetch profile data (optional - may not exist for all users)
   const profileState = await apiRequestSafe<Profile>(

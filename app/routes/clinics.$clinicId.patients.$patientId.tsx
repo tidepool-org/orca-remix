@@ -229,10 +229,20 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     : [];
 
   // Get the specific patient (critical) - this must succeed
-  const patient = await apiRequest({
-    ...apiRoutes.clinic.getPatient(clinicId, patientId),
-    schema: PatientSchema,
-  });
+  let patient: Patient;
+  try {
+    patient = await apiRequest({
+      ...apiRoutes.clinic.getPatient(clinicId, patientId),
+      schema: PatientSchema,
+    });
+  } catch (error) {
+    if (error instanceof Response) throw error;
+    if (error instanceof APIError && error.status === 404) {
+      throw new Response('Patient not found', { status: 404 });
+    }
+    console.error('Error loading patient:', error);
+    throw new Response('Failed to load patient', { status: 500 });
+  }
 
   // Type for clinics response that can be array or object with data
   type ClinicsResponse =
