@@ -36,17 +36,17 @@ function Sidebar({ sidebarOpen, setSidebarOpen }: SidebarOpenProps) {
     };
     document.addEventListener('click', clickHandler);
     return () => document.removeEventListener('click', clickHandler);
-  });
+  }, [sidebarOpen, setSidebarOpen]);
 
   // close if the esc key is pressed
   useEffect(() => {
-    const keyHandler = ({ keyCode }: KeyboardEvent) => {
-      if (!sidebarOpen || keyCode !== 27) return;
+    const keyHandler = ({ key }: KeyboardEvent) => {
+      if (!sidebarOpen || key !== 'Escape') return;
       setSidebarOpen(false);
     };
     document.addEventListener('keydown', keyHandler);
     return () => document.removeEventListener('keydown', keyHandler);
-  });
+  }, [sidebarOpen, setSidebarOpen]);
 
   const links = [
     {
