@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import {
   Select,
   SelectItem,
@@ -52,6 +52,20 @@ export default function PumpSettingsSection({
       ? preferredBgUnits === 'mg/dL'
       : pumpSettings[0]?.units?.bg === 'mg/dL';
   const [useMgdl, setUseMgdl] = useState(initialUseMgdl);
+
+  // Reset selection index when pumpSettings array changes
+  useEffect(() => {
+    setSelectedSettingIndex(0);
+  }, [pumpSettings]);
+
+  // Sync BG unit toggle when preferredBgUnits or pumpSettings changes
+  useEffect(() => {
+    const synced =
+      preferredBgUnits !== undefined
+        ? preferredBgUnits === 'mg/dL'
+        : pumpSettings[0]?.units?.bg === 'mg/dL';
+    setUseMgdl(synced);
+  }, [preferredBgUnits, pumpSettings]);
 
   // Get selected pump settings
   const selectedSettings = useMemo(() => {
