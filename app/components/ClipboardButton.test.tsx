@@ -1,7 +1,21 @@
-import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '~/test-utils';
-import userEvent from '@testing-library/user-event';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { render, screen, act, waitFor, fireEvent } from '~/test-utils';
 import ClipboardButton from './ClipboardButton';
+
+const mockWriteText = vi.fn().mockResolvedValue(undefined);
+
+beforeEach(() => {
+  Object.defineProperty(navigator, 'clipboard', {
+    value: { writeText: mockWriteText },
+    writable: true,
+    configurable: true,
+  });
+});
+
+afterEach(() => {
+  vi.restoreAllMocks();
+  mockWriteText.mockReset().mockResolvedValue(undefined);
+});
 
 describe('ClipboardButton', () => {
   describe('Rendering', () => {
@@ -58,34 +72,85 @@ describe('ClipboardButton', () => {
     });
   });
 
-  describe('Button interaction', () => {
-    it('can be clicked', async () => {
-      const user = userEvent.setup();
+  describe('Clipboard behavior', () => {
+    it('writes clipboardText to clipboard on click', async () => {
+      render(<ClipboardButton clipboardText="hello-world" />);
 
-      // Mock console.error to prevent clipboard error from showing
-      vi.spyOn(console, 'error').mockImplementation(() => {});
+      const button = screen.getByRole('button', { name: /copy to clipboard/i });
+      await act(async () => {
+        fireEvent.click(button);
+      });
 
+      await waitFor(() => {
+        expect(mockWriteText).toHaveBeenCalledWith('hello-world');
+      });
+    });
+
+    it('shows loading state after copy then reverts', async () => {
       render(<ClipboardButton clipboardText="test" />);
 
       const button = screen.getByRole('button', { name: /copy to clipboard/i });
 
-      // Button should be clickable without throwing
-      await expect(user.click(button)).resolves.not.toThrow();
+      // Click to trigger copy — writeText resolves immediately, sets isLoading=true
+      await act(async () => {
+        fireEvent.click(button);
+      });
 
-      vi.restoreAllMocks();
+      // Wait for the async copyContent to complete and state to update
+      await waitFor(() => {
+        expect(mockWriteText).toHaveBeenCalledWith('test');
+      });
+
+      // HeroUI Button sets data-loading="true" and disables when isLoading=true
+      await waitFor(() => {
+        expect(button).toHaveAttribute('data-loading', 'true');
+      });
+
+      // Now switch to fake timers to control debounce
+      vi.useFakeTimers();
+
+      await act(async () => {
+        vi.advanceTimersByTime(1000);
+      });
+
+      vi.useRealTimers();
+
+      // After debounce, loading state should revert
+      await waitFor(() => {
+        expect(button).not.toHaveAttribute('data-loading', 'true');
+      });
+    });
+
+    it('logs error when clipboard write fails', async () => {
+      const consoleError = vi
+        .spyOn(console, 'error')
+        .mockImplementation(() => {});
+      mockWriteText.mockRejectedValueOnce(new Error('Clipboard fail'));
+
+      render(<ClipboardButton clipboardText="test" />);
+
+      const button = screen.getByRole('button', { name: /copy to clipboard/i });
+      await act(async () => {
+        fireEvent.click(button);
+      });
+
+      await waitFor(() => {
+        expect(consoleError).toHaveBeenCalledWith(
+          'Failed to copy: ',
+          expect.any(Error),
+        );
+      });
     });
 
     it('does not trigger click when disabled', async () => {
-      const user = userEvent.setup();
-
       render(<ClipboardButton isDisabled clipboardText="test" />);
 
       const button = screen.getByRole('button', { name: /copy to clipboard/i });
+      await act(async () => {
+        fireEvent.click(button);
+      });
 
-      // Clicking disabled button should not throw
-      await user.click(button);
-
-      // Button should still be disabled
+      expect(mockWriteText).not.toHaveBeenCalled();
       expect(button).toBeDisabled();
     });
   });
