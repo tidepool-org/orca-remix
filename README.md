@@ -157,5 +157,7 @@ Or with Docker:
 
 ```sh
 docker build -t orca-remix .
-docker run -p 3000:3000 orca-remix
+docker run -p 3000:3000 --env-file .env orca-remix
 ```
+
+Environment variables are not baked into the image — they must be supplied at runtime via `--env-file` or individual `-e KEY=VALUE` flags.
