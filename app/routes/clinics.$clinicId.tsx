@@ -311,7 +311,10 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   const url = new URL(request.url);
 
   // Parse pagination and sorting parameters for patients
-  const page = Math.max(1, parseInt(url.searchParams.get('page') || '1'));
+  const patientsPage = Math.max(
+    1,
+    parseInt(url.searchParams.get('patientsPage') || '1'),
+  );
   const limit = Math.max(
     1,
     Math.min(
@@ -319,8 +322,8 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
       parseInt(url.searchParams.get('limit') || defaultPageSize.toString()),
     ),
   );
-  const offset = (page - 1) * limit;
-  const search = url.searchParams.get('search') || undefined;
+  const offset = (patientsPage - 1) * limit;
+  const patientsSearch = url.searchParams.get('patientsSearch') || undefined;
   const sort = url.searchParams.get('sort') || undefined;
 
   // Parse pagination parameters for clinicians (frontend pagination only)
@@ -386,7 +389,12 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     // (GET /v1/clinics/{clinicId}/invites/clinicians doesn't exist)
     const results = await apiRequests([
       apiRoutes.clinic.get(clinicId),
-      apiRoutes.clinic.getPatients(clinicId, { limit, offset, search, sort }),
+      apiRoutes.clinic.getPatients(clinicId, {
+        limit,
+        offset,
+        search: patientsSearch,
+        sort,
+      }),
       apiRoutes.clinic.getPatientInvites(clinicId),
       apiRoutes.clinic.getClinicians(clinicId, { limit: cliniciansFetchLimit }),
     ]);
@@ -523,7 +531,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
           recentClinicians,
           recentPrescriptions,
           pagination: {
-            currentPage: page,
+            currentPage: patientsPage,
             totalPages,
             totalPatients,
             pageSize: limit,
@@ -540,7 +548,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
           },
           sorting: {
             sort,
-            search,
+            patientsSearch,
             cliniciansSearch,
           },
         },
@@ -614,8 +622,8 @@ export default function Clinics() {
     'patients',
     {
       paramKeys: [
-        'search',
-        'page',
+        'patientsSearch',
+        'patientsPage',
         'limit',
         'sort',
         'cliniciansSearch',
@@ -643,7 +651,7 @@ export default function Clinics() {
   const handlePageChange = useCallback(
     (page: number) => {
       const newSearchParams = new URLSearchParams(searchParams);
-      newSearchParams.set('page', page.toString());
+      newSearchParams.set('patientsPage', page.toString());
       submit(newSearchParams, { method: 'GET', replace: true });
     },
     [searchParams, submit],
@@ -662,7 +670,7 @@ export default function Clinics() {
     (sort: string) => {
       const newSearchParams = new URLSearchParams(searchParams);
       newSearchParams.set('sort', sort);
-      newSearchParams.set('page', '1'); // Reset to first page when sorting
+      newSearchParams.set('patientsPage', '1'); // Reset to first page when sorting
       submit(newSearchParams, { method: 'GET', replace: true });
     },
     [searchParams, submit],
@@ -672,11 +680,11 @@ export default function Clinics() {
     (search: string) => {
       const newSearchParams = new URLSearchParams(searchParams);
       if (search) {
-        newSearchParams.set('search', search);
+        newSearchParams.set('patientsSearch', search);
       } else {
-        newSearchParams.delete('search');
+        newSearchParams.delete('patientsSearch');
       }
-      newSearchParams.set('page', '1'); // Reset to first page when searching
+      newSearchParams.set('patientsPage', '1'); // Reset to first page when searching
       submit(newSearchParams, { method: 'GET', replace: true });
     },
     [searchParams, submit],
@@ -838,7 +846,7 @@ export default function Clinics() {
             onSort={handleSort}
             onSearch={handleSearch}
             currentSort={sorting.sort}
-            currentSearch={sorting.search}
+            currentSearch={sorting.patientsSearch}
             onCliniciansPageChange={handleCliniciansPageChange}
             onCliniciansSearch={handleCliniciansSearch}
             currentCliniciansSearch={sorting.cliniciansSearch}
