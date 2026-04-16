@@ -10,8 +10,6 @@ export default function getLocale(request: Request) {
 
   const locale: Locale = {
     locale: 'en-US',
-    // TODO: implement way to detect rtl. React-aria provider does this automatically,
-    // but doesn't work properly - perhaps can leverage their detection utility
     direction: 'ltr',
   };
 
