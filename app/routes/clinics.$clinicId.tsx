@@ -3,6 +3,7 @@ import {
   type ActionFunctionArgs,
   type MetaFunction,
   redirect,
+  data,
 } from 'react-router';
 
 import ClinicProfile from '~/components/Clinic/ClinicProfile';
@@ -10,7 +11,9 @@ import type {
   Clinic,
   RecentClinic,
   Patient,
+  PatientInvite,
   RecentPatient,
+  Clinician,
   RecentClinician,
   RecentPrescription,
   ClinicianInvite,
@@ -454,7 +457,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     const totalPages = Math.ceil(totalPatients / limit);
 
     // Process patient invites data
-    const patientInvites = patientInvitesResponse || [];
+    const patientInvites = (patientInvitesResponse || []) as PatientInvite[];
     const totalInvites = patientInvites.length;
 
     // Process clinicians data - API returns both clinicians AND pending invites in the same list
@@ -507,7 +510,10 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     // Slice clinicians for current page (frontend pagination)
     const startIndex = (cliniciansPage - 1) * cliniciansLimit;
     const endIndex = startIndex + cliniciansLimit;
-    const clinicians = filteredClinicians.slice(startIndex, endIndex);
+    const clinicians = filteredClinicians.slice(
+      startIndex,
+      endIndex,
+    ) as Clinician[];
     if (clinic?.id) {
       recentClinics.unshift(pick(clinic, ['id', 'shareCode', 'name']));
       recentlyViewed.set(
@@ -515,7 +521,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
         uniqBy(recentClinics, 'id').slice(0, recentClinicsMax),
       );
 
-      return Response.json(
+      return data(
         {
           clinic,
           patients,

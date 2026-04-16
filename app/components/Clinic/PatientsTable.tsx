@@ -180,7 +180,7 @@ export default function PatientsTable({
             </div>
           );
         case 'email':
-          return <CopyableIdentifier value={patient.email} size="sm" />;
+          return <CopyableIdentifier value={patient.email ?? ''} size="sm" />;
         case 'birthDate':
           return patient.birthDate ? (
             <p className="text-sm">

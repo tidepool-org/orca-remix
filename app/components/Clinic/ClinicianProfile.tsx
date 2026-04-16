@@ -72,8 +72,8 @@ export default function ClinicianProfile({
     );
   };
 
-  const serverIsAdmin = hasRole('CLINIC_ADMIN');
-  const serverIsPrescriber = hasRole('PRESCRIBER');
+  const serverIsAdmin = hasRole('CLINIC_ADMIN') ?? false;
+  const serverIsPrescriber = hasRole('PRESCRIBER') ?? false;
 
   // Staged local state for role toggles
   const [stagedAdmin, setStagedAdmin] = useState(serverIsAdmin);

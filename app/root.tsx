@@ -16,6 +16,7 @@ import {
   ThemeProvider,
   useTheme,
   PreventFlashOnWrongTheme,
+  type Theme,
 } from 'remix-themes';
 
 import {
@@ -93,7 +94,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
   return {
     locale,
-    theme: getTheme() || 'light', // Default to light theme if no cookie is set
+    theme: (getTheme() || 'light') as Theme, // Default to light theme if no cookie is set
     sidebarExpanded,
     profileExpandedMap,
     agent,

@@ -4,6 +4,7 @@ import {
   type MetaFunction,
   type ShouldRevalidateFunctionArgs,
   redirect,
+  data,
 } from 'react-router';
 
 import UserProfile from '~/components/User/UserProfile';
@@ -386,7 +387,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     );
     recentlyViewed.set('users', updatedRecentUsers);
 
-    return Response.json(
+    return data(
       {
         user,
         profile,
@@ -693,7 +694,7 @@ export default function Users() {
   return user ? (
     <UserProfile
       user={user}
-      profile={profile || {}}
+      profile={profile}
       clinics={clinics}
       totalClinics={totalClinics}
       dataSets={dataSets}

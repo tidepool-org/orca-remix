@@ -73,11 +73,11 @@ export async function loader({ request }: LoaderFunctionArgs) {
       return {
         recentClinics,
         error: getErrorMessage(error),
-        errorType: isAPIError
+        errorType: (isAPIError
           ? 'api'
           : isInputValidation
             ? 'validation'
-            : ('api' as const),
+            : 'api') as 'api' | 'validation',
       };
     }
   }
