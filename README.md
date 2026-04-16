@@ -79,7 +79,7 @@ Authentication is handled at two layers:
 1. **Pomerium proxy** (infrastructure level) — the app runs behind a Pomerium reverse proxy that enforces SSO. The proxy injects a `x-pomerium-jwt-assertion` header containing a signed JWT with the user's identity (`name`, `email`, `picture`).
 2. **`requireAuth()` in `root.tsx`** — a defense-in-depth check that validates the header is present on every request.
 
-The app itself authenticates to the Tidepool API as a **server service account** (`auth.server.ts`). It acquires a session token using `SERVER_NAME` + `SERVER_SECRET`, caches it in memory with a 1-hour TTL, and attaches it to every `apiRequest()` call. Concurrent requests share a single in-flight auth promise to avoid thundering-herd re-authentication.
+The app itself authenticates to the Tidepool API as a **server service account** (`auth.server.ts`). It acquires a session token using `SERVER_NAME` + `SERVER_SECRET`, caches it in memory with a 1-hour TTL, and attaches it to every `apiRequest()` call. If the token expires and multiple requests arrive simultaneously, they share a single re-authentication attempt rather than each firing their own, so the API isn't flooded with redundant login requests.
 
 ### Cookie sessions
 
