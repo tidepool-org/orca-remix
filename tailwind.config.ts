@@ -131,26 +131,10 @@ export default {
     },
   },
   plugins: [
-    plugin(({ addVariant, e }) => {
-      addVariant('sidebar-expanded', ({ modifySelectors, separator }) => {
-        modifySelectors(
-          ({ className }) =>
-            `.sidebar-expanded .${e(
-              `sidebar-expanded${separator}${className}`,
-            )}`,
-        );
-      });
-      addVariant('darkTheme', ({ modifySelectors, separator }) => {
-        modifySelectors(
-          ({ className }) => `.dark .${e(`darkTheme${separator}${className}`)}`,
-        );
-      });
-      addVariant('lightTheme', ({ modifySelectors, separator }) => {
-        modifySelectors(
-          ({ className }) =>
-            `.light .${e(`lightTheme${separator}${className}`)}`,
-        );
-      });
+    plugin(({ addVariant }) => {
+      addVariant('sidebar-expanded', '.sidebar-expanded &');
+      addVariant('darkTheme', '.dark &');
+      addVariant('lightTheme', '.light &');
     }),
     heroui({
       // Moderately rounded corners for HeroUI components (Button, Input, Card, Chip, etc.)
