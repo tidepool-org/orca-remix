@@ -15,6 +15,8 @@ Internal admin tool for [Tidepool](https://www.tidepool.org/), built with React 
 | Testing        | [Vitest](https://vitest.dev/) + [React Testing Library](https://testing-library.com/docs/react-testing-library/intro/) | —                                                                         |
 | Date utilities | [date-fns](https://date-fns.org/)                                                                                      | —                                                                         |
 
+> **A note on Remix**: This project was originally built with [Remix](https://remix.run/), which is why the repo is named `orca-remix`. By Remix v2, the framework had become such a thin layer over React Router that the maintainers [merged the two projects](https://remix.run/blog/merging-remix-and-react-router) — Remix v3 became React Router v7, with its full-stack features (loaders, actions, SSR, file-based routing) folded directly in. Migration was largely an import rename. Remix documentation applies equally to this codebase.
+
 ## How It Works
 
 ### Server-Side Rendering with React Router v7
