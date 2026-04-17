@@ -26,6 +26,10 @@ type ClinicianLoaderData = {
   totalClinics: number;
 };
 
+export const handle = {
+  breadcrumb: { href: '#', label: 'Clinician Profile' },
+};
+
 /**
  * Skip loader revalidation when only the 'tab' search param changed.
  */
@@ -282,7 +286,3 @@ export default function Clinician() {
     />
   );
 }
-
-export const handle = {
-  breadcrumb: { href: '#', label: 'Clinician Profile' },
-};

@@ -43,6 +43,10 @@ export const meta: MetaFunction = () => {
   ];
 };
 
+export const handle = {
+  breadcrumb: { href: '#', label: 'User Profile' },
+};
+
 const recentUsersMax = 10;
 
 /**
@@ -722,7 +726,3 @@ export default function User() {
     />
   ) : null;
 }
-
-export const handle = {
-  breadcrumb: { href: '#', label: 'User Profile' },
-};

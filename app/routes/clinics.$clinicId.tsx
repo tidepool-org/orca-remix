@@ -63,6 +63,10 @@ export const meta: MetaFunction = () => {
   ];
 };
 
+export const handle = {
+  breadcrumb: { href: '/clinics/$clinicId', label: 'Clinic Profile' },
+};
+
 /**
  * Skip loader revalidation when only the 'tab' search param changed.
  * The loader doesn't use the tab param, so re-fetching is unnecessary.
@@ -89,206 +93,6 @@ export function shouldRevalidate({
   }
 
   return defaultShouldRevalidate;
-}
-
-export async function action({ request, params }: ActionFunctionArgs) {
-  const formData = await request.formData();
-  const actionType = formData.get('actionType');
-  const clinicId = params.clinicId as string;
-
-  if (actionType === 'updateTier') {
-    const tier = formData.get('tier');
-
-    try {
-      // Validate input
-      const validated = UpdateTierSchema.parse({ tier });
-
-      // Make API request (no schema validation - tier update returns empty response)
-      await apiRequest({
-        ...apiRoutes.clinic.updateTier(clinicId),
-        body: { tier: validated.tier },
-      });
-
-      return Response.json({
-        success: true,
-        message: 'Clinic tier updated successfully',
-      });
-    } catch (error) {
-      return errorResponse(error, 500);
-    }
-  }
-
-  if (actionType === 'updateTimezone') {
-    const timezone = formData.get('timezone');
-
-    try {
-      // Validate input
-      const validated = UpdateTimezoneSchema.parse({ timezone });
-
-      // First fetch the current clinic data to get required fields
-      const clinic = (await apiRequest(apiRoutes.clinic.get(clinicId))) as {
-        name: string;
-        preferredBgUnits: string;
-      };
-
-      // Make API request to update clinic with new timezone
-      // Include required fields (name, preferredBgUnits) from current clinic data
-      await apiRequest({
-        ...apiRoutes.clinic.update(clinicId),
-        body: {
-          name: clinic.name,
-          preferredBgUnits: clinic.preferredBgUnits,
-          timezone: validated.timezone,
-        },
-      });
-
-      return Response.json({
-        success: true,
-        message: 'Clinic timezone updated successfully',
-      });
-    } catch (error) {
-      return errorResponse(error, 500);
-    }
-  }
-
-  if (actionType === 'updateMrnSettings') {
-    const required = formData.get('mrnRequired') === 'true';
-    const unique = formData.get('mrnUnique') === 'true';
-
-    try {
-      // Validate input
-      const validated = MrnSettingsSchema.parse({ required, unique });
-
-      // Make API request
-      await apiRequest({
-        ...apiRoutes.clinic.updateMrnSettings(clinicId),
-        body: validated,
-      });
-
-      return Response.json({
-        success: true,
-        message: 'MRN settings updated successfully',
-      });
-    } catch (error) {
-      return errorResponse(error, 500);
-    }
-  }
-
-  if (actionType === 'updatePatientCountSettings') {
-    const hardLimitPlan = formData.get('hardLimitPlan');
-
-    try {
-      // Build patient count settings - omit hardLimit entirely to remove the limit
-      // The API requires `plan` if `hardLimit` is present, so we can't send { hardLimit: {} }
-      const settings: {
-        hardLimit?: { plan: number };
-      } = {};
-
-      if (hardLimitPlan !== '' && hardLimitPlan !== null) {
-        const planValue = parseInt(hardLimitPlan as string, 10);
-        if (!isNaN(planValue) && planValue >= 0) {
-          settings.hardLimit = { plan: planValue };
-        }
-      }
-      // When hardLimitPlan is empty/null, settings remains {} (no hardLimit property)
-      // which tells the API to remove any existing limit
-
-      // Validate input
-      PatientCountSettingsSchema.parse(settings);
-
-      // Make API request
-      await apiRequest({
-        ...apiRoutes.clinic.updatePatientCountSettings(clinicId),
-        body: settings,
-      });
-
-      return Response.json({
-        success: true,
-        message: 'Patient limit updated successfully',
-      });
-    } catch (error) {
-      return errorResponse(error, 500);
-    }
-  }
-
-  if (actionType === 'deleteClinic') {
-    try {
-      // Make API request to delete the clinic
-      await apiRequest({
-        ...apiRoutes.clinic.delete(clinicId),
-      });
-
-      // Redirect to clinics list after successful deletion
-      return redirect('/clinics');
-    } catch (error) {
-      return errorResponse(error, 500);
-    }
-  }
-
-  if (actionType === 'revokeClinicianInvite') {
-    const inviteId = formData.get('inviteId') as string;
-
-    if (!inviteId) {
-      return errorResponse('Invite ID is required', 400);
-    }
-
-    try {
-      await apiRequest({
-        ...apiRoutes.clinic.deleteClinicianInvite(clinicId, inviteId),
-      });
-
-      return Response.json({
-        success: true,
-        message: 'Clinician invitation revoked successfully',
-      });
-    } catch (error) {
-      return errorResponse(error, 500);
-    }
-  }
-
-  if (actionType === 'removeClinician') {
-    const clinicianId = formData.get('clinicianId') as string;
-
-    if (!clinicianId) {
-      return errorResponse('Clinician ID is required', 400);
-    }
-
-    try {
-      await apiRequest({
-        ...apiRoutes.clinic.deleteClinician(clinicId, clinicianId),
-      });
-
-      return Response.json({
-        success: true,
-        message: 'Clinician removed from clinic successfully',
-      });
-    } catch (error) {
-      return errorResponse(error, 500);
-    }
-  }
-
-  if (actionType === 'revokePatientInvite') {
-    const inviteId = formData.get('inviteId') as string;
-
-    if (!inviteId) {
-      return errorResponse('Invite ID is required', 400);
-    }
-
-    try {
-      await apiRequest({
-        ...apiRoutes.clinic.deletePatientInvite(clinicId, inviteId),
-      });
-
-      return Response.json({
-        success: true,
-        message: 'Patient invitation revoked successfully',
-      });
-    } catch (error) {
-      return errorResponse(error, 500);
-    }
-  }
-
-  return errorResponse('Invalid action', 400);
 }
 
 const recentClinicsMax = 10;
@@ -582,6 +386,206 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   throw new Response('Clinic not found', { status: 404 });
 }
 
+export async function action({ request, params }: ActionFunctionArgs) {
+  const formData = await request.formData();
+  const actionType = formData.get('actionType');
+  const clinicId = params.clinicId as string;
+
+  if (actionType === 'updateTier') {
+    const tier = formData.get('tier');
+
+    try {
+      // Validate input
+      const validated = UpdateTierSchema.parse({ tier });
+
+      // Make API request (no schema validation - tier update returns empty response)
+      await apiRequest({
+        ...apiRoutes.clinic.updateTier(clinicId),
+        body: { tier: validated.tier },
+      });
+
+      return Response.json({
+        success: true,
+        message: 'Clinic tier updated successfully',
+      });
+    } catch (error) {
+      return errorResponse(error, 500);
+    }
+  }
+
+  if (actionType === 'updateTimezone') {
+    const timezone = formData.get('timezone');
+
+    try {
+      // Validate input
+      const validated = UpdateTimezoneSchema.parse({ timezone });
+
+      // First fetch the current clinic data to get required fields
+      const clinic = (await apiRequest(apiRoutes.clinic.get(clinicId))) as {
+        name: string;
+        preferredBgUnits: string;
+      };
+
+      // Make API request to update clinic with new timezone
+      // Include required fields (name, preferredBgUnits) from current clinic data
+      await apiRequest({
+        ...apiRoutes.clinic.update(clinicId),
+        body: {
+          name: clinic.name,
+          preferredBgUnits: clinic.preferredBgUnits,
+          timezone: validated.timezone,
+        },
+      });
+
+      return Response.json({
+        success: true,
+        message: 'Clinic timezone updated successfully',
+      });
+    } catch (error) {
+      return errorResponse(error, 500);
+    }
+  }
+
+  if (actionType === 'updateMrnSettings') {
+    const required = formData.get('mrnRequired') === 'true';
+    const unique = formData.get('mrnUnique') === 'true';
+
+    try {
+      // Validate input
+      const validated = MrnSettingsSchema.parse({ required, unique });
+
+      // Make API request
+      await apiRequest({
+        ...apiRoutes.clinic.updateMrnSettings(clinicId),
+        body: validated,
+      });
+
+      return Response.json({
+        success: true,
+        message: 'MRN settings updated successfully',
+      });
+    } catch (error) {
+      return errorResponse(error, 500);
+    }
+  }
+
+  if (actionType === 'updatePatientCountSettings') {
+    const hardLimitPlan = formData.get('hardLimitPlan');
+
+    try {
+      // Build patient count settings - omit hardLimit entirely to remove the limit
+      // The API requires `plan` if `hardLimit` is present, so we can't send { hardLimit: {} }
+      const settings: {
+        hardLimit?: { plan: number };
+      } = {};
+
+      if (hardLimitPlan !== '' && hardLimitPlan !== null) {
+        const planValue = parseInt(hardLimitPlan as string, 10);
+        if (!isNaN(planValue) && planValue >= 0) {
+          settings.hardLimit = { plan: planValue };
+        }
+      }
+      // When hardLimitPlan is empty/null, settings remains {} (no hardLimit property)
+      // which tells the API to remove any existing limit
+
+      // Validate input
+      PatientCountSettingsSchema.parse(settings);
+
+      // Make API request
+      await apiRequest({
+        ...apiRoutes.clinic.updatePatientCountSettings(clinicId),
+        body: settings,
+      });
+
+      return Response.json({
+        success: true,
+        message: 'Patient limit updated successfully',
+      });
+    } catch (error) {
+      return errorResponse(error, 500);
+    }
+  }
+
+  if (actionType === 'deleteClinic') {
+    try {
+      // Make API request to delete the clinic
+      await apiRequest({
+        ...apiRoutes.clinic.delete(clinicId),
+      });
+
+      // Redirect to clinics list after successful deletion
+      return redirect('/clinics');
+    } catch (error) {
+      return errorResponse(error, 500);
+    }
+  }
+
+  if (actionType === 'revokeClinicianInvite') {
+    const inviteId = formData.get('inviteId') as string;
+
+    if (!inviteId) {
+      return errorResponse('Invite ID is required', 400);
+    }
+
+    try {
+      await apiRequest({
+        ...apiRoutes.clinic.deleteClinicianInvite(clinicId, inviteId),
+      });
+
+      return Response.json({
+        success: true,
+        message: 'Clinician invitation revoked successfully',
+      });
+    } catch (error) {
+      return errorResponse(error, 500);
+    }
+  }
+
+  if (actionType === 'removeClinician') {
+    const clinicianId = formData.get('clinicianId') as string;
+
+    if (!clinicianId) {
+      return errorResponse('Clinician ID is required', 400);
+    }
+
+    try {
+      await apiRequest({
+        ...apiRoutes.clinic.deleteClinician(clinicId, clinicianId),
+      });
+
+      return Response.json({
+        success: true,
+        message: 'Clinician removed from clinic successfully',
+      });
+    } catch (error) {
+      return errorResponse(error, 500);
+    }
+  }
+
+  if (actionType === 'revokePatientInvite') {
+    const inviteId = formData.get('inviteId') as string;
+
+    if (!inviteId) {
+      return errorResponse('Invite ID is required', 400);
+    }
+
+    try {
+      await apiRequest({
+        ...apiRoutes.clinic.deletePatientInvite(clinicId, inviteId),
+      });
+
+      return Response.json({
+        success: true,
+        message: 'Patient invitation revoked successfully',
+      });
+    } catch (error) {
+      return errorResponse(error, 500);
+    }
+  }
+
+  return errorResponse('Invalid action', 400);
+}
+
 export default function Clinic() {
   const {
     clinic,
@@ -872,10 +876,3 @@ export default function Clinic() {
     </RecentItemsProvider>
   );
 }
-
-export const handle = {
-  // breadcrumb: (args) => {
-  // return <Link href="/clinics">Clinic Profile</Link>;
-  // },
-  breadcrumb: { href: '/clinics/$clinicId', label: 'Clinic Profile' },
-};

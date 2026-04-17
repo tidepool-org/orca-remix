@@ -19,6 +19,10 @@ export const meta: MetaFunction = () => {
   ];
 };
 
+export const handle = {
+  breadcrumb: { href: '#', label: 'Prescription Details' },
+};
+
 type PrescriptionLoaderData = {
   prescription: Prescription;
   prescriber: Clinician | null;
@@ -146,7 +150,3 @@ export default function Prescription() {
     />
   );
 }
-
-export const handle = {
-  breadcrumb: { href: '#', label: 'Prescription Details' },
-};
