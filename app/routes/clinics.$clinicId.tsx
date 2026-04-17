@@ -2,8 +2,16 @@ import {
   type LoaderFunctionArgs,
   type ActionFunctionArgs,
   type MetaFunction,
+  type ShouldRevalidateFunctionArgs,
   redirect,
   data,
+  useLoaderData,
+  useSearchParams,
+  useSubmit,
+  useNavigation,
+  Outlet,
+  useLocation,
+  useActionData,
 } from 'react-router';
 
 import ClinicProfile from '~/components/Clinic/ClinicProfile';
@@ -32,16 +40,6 @@ import {
   cliniciansSession,
   prescriptionsSession,
 } from '~/sessions.server';
-import {
-  type ShouldRevalidateFunctionArgs,
-  useLoaderData,
-  useSearchParams,
-  useSubmit,
-  useNavigation,
-  Outlet,
-  useLocation,
-  useActionData,
-} from 'react-router';
 import { useCallback, useEffect } from 'react';
 import isArray from 'lodash/isArray';
 import pick from 'lodash/pick';
