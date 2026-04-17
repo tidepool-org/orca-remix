@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import {
   Table,
   TableHeader,
@@ -16,10 +17,13 @@ import type { AccessPermissionsMap, ShareInvite, Permissions } from './types';
 import type { ResourceState } from '~/api.types';
 import TableEmptyState from '~/components/ui/TableEmptyState';
 import TableLoadingState from '~/components/ui/TableLoadingState';
+import TablePagination from '~/components/ui/TablePagination';
 import StatusChip from '~/components/ui/StatusChip';
 import ResourceError from '~/components/ui/ResourceError';
 import CopyableIdentifier from '~/components/ui/CopyableIdentifier';
 import { formatShortDate } from '~/utils/dateFormatters';
+
+const PAGE_SIZE = 25;
 
 // Helper to convert permissions object to readable array
 const formatPermissions = (permissions: Permissions): string[] => {
@@ -48,11 +52,18 @@ export function TrustingAccountsTable({
   isFirstInGroup?: boolean;
 }) {
   const navigate = useNavigate();
+  const [currentPage, setCurrentPage] = useState(1);
+
   // Filter out the current user's own ID from the list
   const entries = Object.entries(accounts).filter(
     ([userId]) => userId !== currentUserId,
   );
   const totalItems = entries.length;
+  const totalPages = Math.ceil(totalItems / PAGE_SIZE);
+  const pagedEntries = entries.slice(
+    (currentPage - 1) * PAGE_SIZE,
+    currentPage * PAGE_SIZE,
+  );
 
   const columns = [
     { key: 'userId', label: 'User ID' },
@@ -111,7 +122,7 @@ export function TrustingAccountsTable({
               loadingContent={LoadingContent}
               loadingState={isLoading ? 'loading' : 'idle'}
             >
-              {entries.map(([userId, permissions]) => (
+              {pagedEntries.map(([userId, permissions]) => (
                 <TableRow key={userId}>
                   <TableCell>
                     <CopyableIdentifier value={userId} monospace size="sm" />
@@ -134,6 +145,14 @@ export function TrustingAccountsTable({
               ))}
             </TableBody>
           </Table>
+          <TablePagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={totalItems}
+            pageSize={PAGE_SIZE}
+            onPageChange={setCurrentPage}
+            showRange
+          />
         </>
       )}
     </CollapsibleTableWrapper>
@@ -156,11 +175,18 @@ export function TrustedAccountsTable({
   isFirstInGroup?: boolean;
 }) {
   const navigate = useNavigate();
+  const [currentPage, setCurrentPage] = useState(1);
+
   // Filter out the current user's own ID from the list
   const entries = Object.entries(accounts).filter(
     ([userId]) => userId !== currentUserId,
   );
   const totalItems = entries.length;
+  const totalPages = Math.ceil(totalItems / PAGE_SIZE);
+  const pagedEntries = entries.slice(
+    (currentPage - 1) * PAGE_SIZE,
+    currentPage * PAGE_SIZE,
+  );
 
   const columns = [
     { key: 'userId', label: 'User ID' },
@@ -219,7 +245,7 @@ export function TrustedAccountsTable({
               loadingContent={LoadingContent}
               loadingState={isLoading ? 'loading' : 'idle'}
             >
-              {entries.map(([userId, permissions]) => (
+              {pagedEntries.map(([userId, permissions]) => (
                 <TableRow key={userId}>
                   <TableCell>
                     <CopyableIdentifier value={userId} monospace size="sm" />
@@ -242,6 +268,14 @@ export function TrustedAccountsTable({
               ))}
             </TableBody>
           </Table>
+          <TablePagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={totalItems}
+            pageSize={PAGE_SIZE}
+            onPageChange={setCurrentPage}
+            showRange
+          />
         </>
       )}
     </CollapsibleTableWrapper>
@@ -262,7 +296,13 @@ export function SentInvitesTable({
   isFirstInGroup?: boolean;
 }) {
   const { locale } = useLocale();
+  const [currentPage, setCurrentPage] = useState(1);
   const totalItems = invites.length;
+  const totalPages = Math.ceil(totalItems / PAGE_SIZE);
+  const pagedInvites = invites.slice(
+    (currentPage - 1) * PAGE_SIZE,
+    currentPage * PAGE_SIZE,
+  );
 
   const columns = [
     { key: 'email', label: 'Invitee Email' },
@@ -319,7 +359,7 @@ export function SentInvitesTable({
               loadingContent={LoadingContent}
               loadingState={isLoading ? 'loading' : 'idle'}
             >
-              {invites.map((invite) => (
+              {pagedInvites.map((invite) => (
                 <TableRow key={invite.key}>
                   <TableCell>
                     <CopyableIdentifier value={invite.email} size="sm" />
@@ -341,6 +381,14 @@ export function SentInvitesTable({
               ))}
             </TableBody>
           </Table>
+          <TablePagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={totalItems}
+            pageSize={PAGE_SIZE}
+            onPageChange={setCurrentPage}
+            showRange
+          />
         </>
       )}
     </CollapsibleTableWrapper>
@@ -362,7 +410,13 @@ export function ReceivedInvitesTable({
 }) {
   const { locale } = useLocale();
   const navigate = useNavigate();
+  const [currentPage, setCurrentPage] = useState(1);
   const totalItems = invites.length;
+  const totalPages = Math.ceil(totalItems / PAGE_SIZE);
+  const pagedInvites = invites.slice(
+    (currentPage - 1) * PAGE_SIZE,
+    currentPage * PAGE_SIZE,
+  );
 
   const columns = [
     { key: 'creator', label: 'From' },
@@ -409,7 +463,6 @@ export function ReceivedInvitesTable({
             selectionMode="single"
             onSelectionChange={(keys: 'all' | Set<React.Key>) => {
               const key = keys instanceof Set ? Array.from(keys)[0] : keys;
-              // Find the invite by key to get the creatorId
               const invite = invites.find((i) => i.key === key);
               if (invite?.creatorId) navigate(`/users/${invite.creatorId}`);
             }}
@@ -427,7 +480,7 @@ export function ReceivedInvitesTable({
               loadingContent={LoadingContent}
               loadingState={isLoading ? 'loading' : 'idle'}
             >
-              {invites.map((invite) => (
+              {pagedInvites.map((invite) => (
                 <TableRow key={invite.key}>
                   <TableCell>
                     <div className="flex flex-col">
@@ -456,6 +509,14 @@ export function ReceivedInvitesTable({
               ))}
             </TableBody>
           </Table>
+          <TablePagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={totalItems}
+            pageSize={PAGE_SIZE}
+            onPageChange={setCurrentPage}
+            showRange
+          />
         </>
       )}
     </CollapsibleTableWrapper>
