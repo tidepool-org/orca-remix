@@ -17,6 +17,7 @@ import type {
   DataSetsResponse,
   DataSourcesResponse,
   AccessPermissionsMap,
+  AssociatedUsersResponse,
   ShareInvite,
   PumpSettings,
   ConnectionRequest,
@@ -147,6 +148,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     status: 'success',
     data: {},
   };
+  let associatedUserProfiles: Record<string, string> = {};
   let sentInvitesState: ResourceState<ShareInvite[]> = {
     status: 'success',
     data: [],
@@ -191,8 +193,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
         dataSourcesRawState,
         pumpSettingsRawState,
         prescriptionsRawState,
-        trustingRawState,
-        trustedRawState,
+        associatedUsersRawState,
         sentInvitesRawState,
         receivedInvitesRawState,
       ] = await Promise.all([
@@ -211,11 +212,8 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
         apiRequestSafe<Prescription[]>(
           apiRoutes.prescription.getPatientPrescriptions(user.userid),
         ),
-        apiRequestSafe<AccessPermissionsMap>(
-          apiRoutes.sharing.getGroupsForUser(user.userid),
-        ),
-        apiRequestSafe<AccessPermissionsMap>(
-          apiRoutes.sharing.getUsersInGroup(user.userid),
+        apiRequestSafe<AssociatedUsersResponse>(
+          apiRoutes.sharing.getAssociatedUsersDetails(user.userid),
         ),
         apiRequestSafe<ShareInvite[]>(
           apiRoutes.invites.getSentInvites(user.userid),
@@ -276,9 +274,41 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
         prescriptionsState = prescriptionsRawState;
       }
 
-      // Sharing accounts
-      trustingAccountsState = trustingRawState;
-      trustedAccountsState = trustedRawState;
+      // Derive sharing maps and user profiles from the combined associated users response
+      if (associatedUsersRawState.status === 'success') {
+        const trustingMap: AccessPermissionsMap = {};
+        const trustedMap: AccessPermissionsMap = {};
+        const profiles: Record<string, string> = {};
+
+        const users = Array.isArray(associatedUsersRawState.data)
+          ? associatedUsersRawState.data
+          : [];
+
+        users.forEach((u) => {
+          const id = u.userid;
+          if (!id) return;
+          if (u.profile?.fullName) profiles[id] = u.profile.fullName;
+          if (
+            u.trustorPermissions &&
+            Object.keys(u.trustorPermissions).length > 0
+          )
+            trustingMap[id] = u.trustorPermissions;
+          if (
+            u.trusteePermissions &&
+            Object.keys(u.trusteePermissions).length > 0
+          )
+            trustedMap[id] = u.trusteePermissions;
+        });
+
+        trustingAccountsState = { status: 'success', data: trustingMap };
+        trustedAccountsState = { status: 'success', data: trustedMap };
+        associatedUserProfiles = profiles;
+      } else {
+        trustingAccountsState =
+          associatedUsersRawState as unknown as ResourceState<AccessPermissionsMap>;
+        trustedAccountsState =
+          associatedUsersRawState as unknown as ResourceState<AccessPermissionsMap>;
+      }
 
       // Normalize sent invites (404 = empty array)
       if (
@@ -405,6 +435,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
         connectionRequests,
         trustingAccounts,
         trustedAccounts,
+        associatedUserProfiles,
         sentInvites,
         receivedInvites,
         pumpSettings,
@@ -441,6 +472,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     connectionRequests: [],
     trustingAccounts: {},
     trustedAccounts: {},
+    associatedUserProfiles: {},
     sentInvites: [],
     receivedInvites: [],
     pumpSettings: [],
@@ -670,6 +702,7 @@ export default function User() {
     connectionRequests,
     trustingAccounts,
     trustedAccounts,
+    associatedUserProfiles,
     sentInvites,
     receivedInvites,
     pumpSettings,
@@ -708,6 +741,7 @@ export default function User() {
       connectionRequests={connectionRequests}
       trustingAccounts={trustingAccounts}
       trustedAccounts={trustedAccounts}
+      associatedUserProfiles={associatedUserProfiles}
       sentInvites={sentInvites}
       receivedInvites={receivedInvites}
       pumpSettings={pumpSettings}

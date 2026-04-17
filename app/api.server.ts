@@ -145,6 +145,11 @@ export const apiRoutes = {
       method: 'get',
       path: `/access/${userId}`,
     }),
+    // Get all associated users (trustors + trustees) with their profiles in one call
+    getAssociatedUsersDetails: (userId: string) => ({
+      method: 'get',
+      path: `/metadata/users/${userId}/users`,
+    }),
   },
   invites: {
     // ref https://tidepool.redocly.app/reference/confirm.v1

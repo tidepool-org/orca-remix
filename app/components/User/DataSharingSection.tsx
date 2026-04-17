@@ -42,22 +42,28 @@ export function TrustingAccountsTable({
   trustingAccountsState,
   isLoading,
   currentUserId,
+  userProfiles,
   isFirstInGroup,
 }: {
   accounts: AccessPermissionsMap;
   trustingAccountsState?: ResourceState<AccessPermissionsMap>;
   isLoading?: boolean;
   currentUserId?: string;
+  userProfiles?: Record<string, string>;
   /** Mark this as the first table in a CollapsibleGroup to auto-expand it */
   isFirstInGroup?: boolean;
 }) {
   const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Filter out the current user's own ID from the list
-  const entries = Object.entries(accounts).filter(
-    ([userId]) => userId !== currentUserId,
-  );
+  // Filter, sort by name, then paginate
+  const entries = Object.entries(accounts)
+    .filter(([id]) => id !== currentUserId)
+    .sort(([aId], [bId]) => {
+      const aName = userProfiles?.[aId] ?? aId;
+      const bName = userProfiles?.[bId] ?? bId;
+      return aName.localeCompare(bName);
+    });
   const totalItems = entries.length;
   const totalPages = Math.ceil(totalItems / PAGE_SIZE);
   const pagedEntries = entries.slice(
@@ -66,6 +72,7 @@ export function TrustingAccountsTable({
   );
 
   const columns = [
+    { key: 'name', label: 'Name' },
     { key: 'userId', label: 'User ID' },
     { key: 'permissions', label: 'Permissions' },
   ];
@@ -125,6 +132,11 @@ export function TrustingAccountsTable({
               {pagedEntries.map(([userId, permissions]) => (
                 <TableRow key={userId}>
                   <TableCell>
+                    <span className="text-sm">
+                      {userProfiles?.[userId] || 'Unknown'}
+                    </span>
+                  </TableCell>
+                  <TableCell>
                     <CopyableIdentifier value={userId} monospace size="sm" />
                   </TableCell>
                   <TableCell>
@@ -165,22 +177,28 @@ export function TrustedAccountsTable({
   trustedAccountsState,
   isLoading,
   currentUserId,
+  userProfiles,
   isFirstInGroup,
 }: {
   accounts: AccessPermissionsMap;
   trustedAccountsState?: ResourceState<AccessPermissionsMap>;
   isLoading?: boolean;
   currentUserId?: string;
+  userProfiles?: Record<string, string>;
   /** Mark this as the first table in a CollapsibleGroup to auto-expand it */
   isFirstInGroup?: boolean;
 }) {
   const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Filter out the current user's own ID from the list
-  const entries = Object.entries(accounts).filter(
-    ([userId]) => userId !== currentUserId,
-  );
+  // Filter, sort by name, then paginate
+  const entries = Object.entries(accounts)
+    .filter(([id]) => id !== currentUserId)
+    .sort(([aId], [bId]) => {
+      const aName = userProfiles?.[aId] ?? aId;
+      const bName = userProfiles?.[bId] ?? bId;
+      return aName.localeCompare(bName);
+    });
   const totalItems = entries.length;
   const totalPages = Math.ceil(totalItems / PAGE_SIZE);
   const pagedEntries = entries.slice(
@@ -189,6 +207,7 @@ export function TrustedAccountsTable({
   );
 
   const columns = [
+    { key: 'name', label: 'Name' },
     { key: 'userId', label: 'User ID' },
     { key: 'permissions', label: 'Permissions' },
   ];
@@ -247,6 +266,11 @@ export function TrustedAccountsTable({
             >
               {pagedEntries.map(([userId, permissions]) => (
                 <TableRow key={userId}>
+                  <TableCell>
+                    <span className="text-sm">
+                      {userProfiles?.[userId] || 'Unknown'}
+                    </span>
+                  </TableCell>
                   <TableCell>
                     <CopyableIdentifier value={userId} monospace size="sm" />
                   </TableCell>

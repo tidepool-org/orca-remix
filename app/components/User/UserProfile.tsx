@@ -54,6 +54,7 @@ export type UserProfileProps = {
   connectionRequests?: ConnectionRequest[];
   trustingAccounts?: AccessPermissionsMap;
   trustedAccounts?: AccessPermissionsMap;
+  associatedUserProfiles?: Record<string, string>;
   sentInvites?: ShareInvite[];
   receivedInvites?: ShareInvite[];
   pumpSettings?: PumpSettings[];
@@ -88,6 +89,7 @@ export default function UserProfile({
   connectionRequests = [],
   trustingAccounts = {},
   trustedAccounts = {},
+  associatedUserProfiles = {},
   sentInvites = [],
   receivedInvites = [],
   pumpSettings = [],
@@ -328,12 +330,14 @@ export default function UserProfile({
                   accounts={trustedAccounts}
                   trustedAccountsState={trustedAccountsState}
                   currentUserId={userId}
+                  userProfiles={associatedUserProfiles}
                   isFirstInGroup
                 />
                 <TrustingAccountsTable
                   accounts={trustingAccounts}
                   trustingAccountsState={trustingAccountsState}
                   currentUserId={userId}
+                  userProfiles={associatedUserProfiles}
                 />
                 <SentInvitesTable
                   invites={sentInvites}
