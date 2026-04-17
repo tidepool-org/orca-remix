@@ -9,6 +9,10 @@ export const meta: MetaFunction = () => {
   ];
 };
 
+export const handle = {
+  breadcrumb: { href: '/reports', label: 'Reports' },
+};
+
 export default function Reports() {
   return (
     <div className="flex flex-col gap-4 w-full">
@@ -20,7 +24,3 @@ export default function Reports() {
     </div>
   );
 }
-
-export const handle = {
-  breadcrumb: { href: '/reports', label: 'Reports' },
-};

@@ -103,26 +103,6 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
 export type RootLoaderType = typeof loader;
 
-// Wrap your app with ThemeProvider.
-// `specifiedTheme` is the stored theme in the session storage.
-// `themeAction` is the action name that's used to change the theme in the session storage.
-export default function AppWithProviders() {
-  const { theme, locale, sidebarExpanded, profileExpandedMap } =
-    useLoaderData<typeof loader>();
-
-  return (
-    <ThemeProvider specifiedTheme={theme} themeAction="/action/set-theme">
-      <LocaleProvider locale={locale}>
-        <SidebarExpandedProvider initialExpanded={sidebarExpanded}>
-          <ProfileExpandedProvider initialExpandedMap={profileExpandedMap}>
-            <App />
-          </ProfileExpandedProvider>
-        </SidebarExpandedProvider>
-      </LocaleProvider>
-    </ThemeProvider>
-  );
-}
-
 // Use the theme in your app.
 // If the theme is missing in session storage, PreventFlashOnWrongTheme will get
 // the browser theme before hydration and will prevent a flash in browser.
@@ -158,6 +138,26 @@ function App() {
         </ToastProvider>
       </body>
     </html>
+  );
+}
+
+// Wrap your app with ThemeProvider.
+// `specifiedTheme` is the stored theme in the session storage.
+// `themeAction` is the action name that's used to change the theme in the session storage.
+export default function AppWithProviders() {
+  const { theme, locale, sidebarExpanded, profileExpandedMap } =
+    useLoaderData<typeof loader>();
+
+  return (
+    <ThemeProvider specifiedTheme={theme} themeAction="/action/set-theme">
+      <LocaleProvider locale={locale}>
+        <SidebarExpandedProvider initialExpanded={sidebarExpanded}>
+          <ProfileExpandedProvider initialExpandedMap={profileExpandedMap}>
+            <App />
+          </ProfileExpandedProvider>
+        </SidebarExpandedProvider>
+      </LocaleProvider>
+    </ThemeProvider>
   );
 }
 
