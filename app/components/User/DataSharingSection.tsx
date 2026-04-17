@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   Table,
   TableHeader,
@@ -18,6 +18,7 @@ import type { ResourceState } from '~/api.types';
 import TableEmptyState from '~/components/ui/TableEmptyState';
 import TableLoadingState from '~/components/ui/TableLoadingState';
 import TablePagination from '~/components/ui/TablePagination';
+import TableFilterInput from '~/components/ui/TableFilterInput';
 import StatusChip from '~/components/ui/StatusChip';
 import ResourceError from '~/components/ui/ResourceError';
 import CopyableIdentifier from '~/components/ui/CopyableIdentifier';
@@ -55,15 +56,29 @@ export function TrustingAccountsTable({
 }) {
   const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(1);
+  const [filterValue, setFilterValue] = useState('');
 
-  // Filter, sort by name, then paginate
-  const entries = Object.entries(accounts)
-    .filter(([id]) => id !== currentUserId)
-    .sort(([aId], [bId]) => {
-      const aName = userProfiles?.[aId] ?? aId;
-      const bName = userProfiles?.[bId] ?? bId;
-      return aName.localeCompare(bName);
+  const handleFilterChange = (value: string) => {
+    setFilterValue(value);
+    setCurrentPage(1);
+  };
+
+  // Filter (by name/id), sort by name, then paginate
+  const entries = useMemo(() => {
+    const sorted = Object.entries(accounts)
+      .filter(([id]) => id !== currentUserId)
+      .sort(([aId], [bId]) => {
+        const aName = userProfiles?.[aId] ?? aId;
+        const bName = userProfiles?.[bId] ?? bId;
+        return aName.localeCompare(bName);
+      });
+    const searchTerm = filterValue.toLowerCase().trim();
+    if (!searchTerm) return sorted;
+    return sorted.filter(([id]) => {
+      const name = (userProfiles?.[id] ?? '').toLowerCase();
+      return name.includes(searchTerm) || id.toLowerCase().includes(searchTerm);
     });
+  }, [accounts, currentUserId, userProfiles, filterValue]);
   const totalItems = entries.length;
   const totalPages = Math.ceil(totalItems / PAGE_SIZE);
   const pagedEntries = entries.slice(
@@ -106,6 +121,13 @@ export function TrustingAccountsTable({
           <p className="text-sm text-default-500 mb-4">
             These accounts have granted this user access to view their data.
           </p>
+          <TableFilterInput
+            value={filterValue}
+            onChange={handleFilterChange}
+            placeholder="Filter by name or user ID..."
+            aria-label="Filter accounts by name or user ID"
+            className="mb-4"
+          />
           <Table
             aria-label="Accounts sharing with user"
             shadow="none"
@@ -190,15 +212,29 @@ export function TrustedAccountsTable({
 }) {
   const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(1);
+  const [filterValue, setFilterValue] = useState('');
 
-  // Filter, sort by name, then paginate
-  const entries = Object.entries(accounts)
-    .filter(([id]) => id !== currentUserId)
-    .sort(([aId], [bId]) => {
-      const aName = userProfiles?.[aId] ?? aId;
-      const bName = userProfiles?.[bId] ?? bId;
-      return aName.localeCompare(bName);
+  const handleFilterChange = (value: string) => {
+    setFilterValue(value);
+    setCurrentPage(1);
+  };
+
+  // Filter (by name/id), sort by name, then paginate
+  const entries = useMemo(() => {
+    const sorted = Object.entries(accounts)
+      .filter(([id]) => id !== currentUserId)
+      .sort(([aId], [bId]) => {
+        const aName = userProfiles?.[aId] ?? aId;
+        const bName = userProfiles?.[bId] ?? bId;
+        return aName.localeCompare(bName);
+      });
+    const searchTerm = filterValue.toLowerCase().trim();
+    if (!searchTerm) return sorted;
+    return sorted.filter(([id]) => {
+      const name = (userProfiles?.[id] ?? '').toLowerCase();
+      return name.includes(searchTerm) || id.toLowerCase().includes(searchTerm);
     });
+  }, [accounts, currentUserId, userProfiles, filterValue]);
   const totalItems = entries.length;
   const totalPages = Math.ceil(totalItems / PAGE_SIZE);
   const pagedEntries = entries.slice(
@@ -241,6 +277,13 @@ export function TrustedAccountsTable({
           <p className="text-sm text-default-500 mb-4">
             These accounts can view this user&apos;s data.
           </p>
+          <TableFilterInput
+            value={filterValue}
+            onChange={handleFilterChange}
+            placeholder="Filter by name or user ID..."
+            aria-label="Filter accounts by name or user ID"
+            className="mb-4"
+          />
           <Table
             aria-label="Accounts user shares with"
             shadow="none"
