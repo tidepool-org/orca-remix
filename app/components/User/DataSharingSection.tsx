@@ -10,7 +10,7 @@ import {
 import { useNavigate } from 'react-router';
 import { Users, Send, Inbox } from 'lucide-react';
 import useLocale from '~/hooks/useLocale';
-import CollapsibleTableWrapper from '../CollapsibleTableWrapper';
+import CollapsibleTableWrapper from '../ui/CollapsibleTableWrapper';
 import { collapsibleTableClasses, columnClass } from '~/utils/tableStyles';
 import type { AccessPermissionsMap, ShareInvite, Permissions } from './types';
 import type { ResourceState } from '~/api.types';

@@ -3,7 +3,7 @@ import { useFetcher } from 'react-router';
 import { Button } from '@heroui/react';
 import { Mail, KeyRound, ShieldCheck, Send, Trash2, UserX } from 'lucide-react';
 
-import ConfirmationModal from '../ConfirmationModal';
+import ConfirmationModal from '../ui/ConfirmationModal';
 import {
   DangerZoneAction,
   ActionCard,

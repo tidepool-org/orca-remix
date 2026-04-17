@@ -10,14 +10,14 @@ import {
 } from '@heroui/react';
 import { Mail } from 'lucide-react';
 import useLocale from '~/hooks/useLocale';
-import CollapsibleTableWrapper from '../CollapsibleTableWrapper';
+import CollapsibleTableWrapper from '../ui/CollapsibleTableWrapper';
 import {
   collapsibleTableClasses,
   columnClass,
   actionsColumnClass,
 } from '~/utils/tableStyles';
 import type { PatientInvite } from './types';
-import ConfirmationModal from '../ConfirmationModal';
+import ConfirmationModal from '../ui/ConfirmationModal';
 import TableEmptyState from '~/components/ui/TableEmptyState';
 import TableLoadingState from '~/components/ui/TableLoadingState';
 import TablePagination, {

@@ -1,5 +1,5 @@
 import { ReactNode } from 'react';
-import ClipboardButton from '../ClipboardButton';
+import ClipboardButton from './ClipboardButton';
 
 export type CopyableIdentifierProps = {
   /** Optional label displayed before the value (e.g., "ID:", "Email:") */

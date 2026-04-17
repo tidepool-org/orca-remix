@@ -11,8 +11,8 @@ import {
 import { Database, Unplug, Send } from 'lucide-react';
 import { useFetcher, useParams } from 'react-router';
 import useLocale from '~/hooks/useLocale';
-import CollapsibleTableWrapper from '../CollapsibleTableWrapper';
-import ConfirmationModal from '../ConfirmationModal';
+import CollapsibleTableWrapper from '../ui/CollapsibleTableWrapper';
+import ConfirmationModal from '../ui/ConfirmationModal';
 import {
   collapsibleTableClasses,
   columnClass,

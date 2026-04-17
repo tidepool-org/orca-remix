@@ -14,7 +14,7 @@ import SaveCancelButtons from '~/components/ui/SaveCancelButtons';
 import SectionPanel from '~/components/ui/SectionPanel';
 import ViewUserAccountLink from '~/components/ui/ViewUserAccountLink';
 import RollbarLink from '~/components/ui/RollbarLink';
-import { CollapsibleGroup } from '~/components/CollapsibleGroup';
+import { CollapsibleGroup } from '~/components/ui/CollapsibleGroup';
 import { useToast } from '~/contexts/ToastContext';
 import type { Clinician, ClinicianClinicMembership } from './types';
 import { formatShortDate } from '~/utils/dateFormatters';

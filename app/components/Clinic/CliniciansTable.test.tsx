@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '~/test-utils';
 import userEvent from '@testing-library/user-event';
 import CliniciansTable from './CliniciansTable';
-import { CollapsibleGroup } from '~/components/CollapsibleGroup';
+import { CollapsibleGroup } from '~/components/ui/CollapsibleGroup';
 import type { Clinician } from './types';
 
 // Helper to render CliniciansTable in expanded state

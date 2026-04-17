@@ -11,7 +11,7 @@ import {
 } from '@heroui/react';
 import { Building2 } from 'lucide-react';
 import useLocale from '~/hooks/useLocale';
-import CollapsibleTableWrapper from '../CollapsibleTableWrapper';
+import CollapsibleTableWrapper from '../ui/CollapsibleTableWrapper';
 import { collapsibleTableClasses, columnClass } from '~/utils/tableStyles';
 import type {
   Clinic,

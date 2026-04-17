@@ -1,5 +1,5 @@
 import { Outlet } from 'react-router';
-import ErrorStack from '~/components/ErrorStack';
+import ErrorStack from '~/components/ui/ErrorStack';
 
 export const handle = {
   breadcrumb: { href: '/users', label: 'User Management' },

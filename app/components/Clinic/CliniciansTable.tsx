@@ -11,15 +11,15 @@ import {
 } from '@heroui/react';
 import { UserCheck } from 'lucide-react';
 import useLocale from '~/hooks/useLocale';
-import CollapsibleTableWrapper from '../CollapsibleTableWrapper';
+import CollapsibleTableWrapper from '../ui/CollapsibleTableWrapper';
 import {
   collapsibleTableClasses,
   columnClass,
   actionsColumnClass,
 } from '~/utils/tableStyles';
 import type { Clinician } from './types';
-import DebouncedSearchInput from '../DebouncedSearchInput';
-import ConfirmationModal from '../ConfirmationModal';
+import DebouncedSearchInput from '../ui/DebouncedSearchInput';
+import ConfirmationModal from '../ui/ConfirmationModal';
 import TableEmptyState from '~/components/ui/TableEmptyState';
 import TableLoadingState from '~/components/ui/TableLoadingState';
 import TablePagination, {

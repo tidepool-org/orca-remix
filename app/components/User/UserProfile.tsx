@@ -24,7 +24,7 @@ import ProfileTabs from '~/components/ui/ProfileTabs';
 import TabTitle from '~/components/ui/TabTitle';
 import UserActions from './UserActions';
 import RollbarLink from '~/components/ui/RollbarLink';
-import { CollapsibleGroup } from '~/components/CollapsibleGroup';
+import { CollapsibleGroup } from '~/components/ui/CollapsibleGroup';
 import type { ClinicianClinicMembership, Prescription } from '../Clinic/types';
 import type { ResourceState } from '~/api.types';
 

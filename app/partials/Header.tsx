@@ -1,7 +1,7 @@
 import { Button, Link } from '@heroui/react';
 import Logo from '~/components/Logo/Logo';
-import ThemeSwitcher from '~/components/ThemeSwitcher';
-import UserMenu from '~/components/UserMenu';
+import ThemeSwitcher from './ThemeSwitcher';
+import UserMenu from './UserMenu';
 import HeaderSearch from '~/components/ui/HeaderSearch';
 import { Menu } from 'lucide-react';
 

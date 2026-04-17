@@ -3,7 +3,7 @@ import { render, screen } from '~/test-utils';
 import CopyableIdentifier from './CopyableIdentifier';
 
 // Mock the ClipboardButton since it has complex internal state
-vi.mock('../ClipboardButton', () => ({
+vi.mock('./ClipboardButton', () => ({
   default: ({ clipboardText }: { clipboardText: string }) => (
     <button
       type="button"

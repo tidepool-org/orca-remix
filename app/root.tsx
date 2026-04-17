@@ -29,10 +29,10 @@ import { default as useLocale, LocaleProvider } from './hooks/useLocale';
 import { jwtDecode } from 'jwt-decode';
 
 import Dashboard from './layouts/Dashboard';
-import ErrorStack from './components/ErrorStack';
+import ErrorStack from './components/ui/ErrorStack';
 import getLocale from './utils/getLocale';
 import { ToastProvider } from './contexts/ToastContext';
-import ToastContainer from './components/ToastContainer';
+import ToastContainer from './components/ui/ToastContainer';
 import { requireAuth } from './utils/auth.server';
 import {
   SidebarExpandedProvider,

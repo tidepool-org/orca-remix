@@ -23,7 +23,7 @@ import DataExportSection from '../User/DataExportSection';
 import PumpSettingsSection from '../User/PumpSettingsSection';
 import ViewUserAccountLink from '~/components/ui/ViewUserAccountLink';
 import RollbarLink from '~/components/ui/RollbarLink';
-import { CollapsibleGroup } from '~/components/CollapsibleGroup';
+import { CollapsibleGroup } from '~/components/ui/CollapsibleGroup';
 import { formatShortDate } from '~/utils/dateFormatters';
 
 export type PatientProfileProps = {

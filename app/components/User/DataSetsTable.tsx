@@ -17,8 +17,8 @@ import {
 import { Upload, MoreVertical, Trash2, Database, Info } from 'lucide-react';
 import { useFetcher } from 'react-router';
 import useLocale from '~/hooks/useLocale';
-import CollapsibleTableWrapper from '../CollapsibleTableWrapper';
-import ConfirmationModal from '../ConfirmationModal';
+import CollapsibleTableWrapper from '../ui/CollapsibleTableWrapper';
+import ConfirmationModal from '../ui/ConfirmationModal';
 import CopyableIdentifier from '~/components/ui/CopyableIdentifier';
 import {
   collapsibleTableClasses,

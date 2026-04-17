@@ -33,7 +33,7 @@ import PrescriptionsTable from './PrescriptionsTable';
 import RecentPatients from './RecentPatients';
 import RecentClinicians from './RecentClinicians';
 import RecentPrescriptions from './RecentPrescriptions';
-import ConfirmationModal from '../ConfirmationModal';
+import ConfirmationModal from '../ui/ConfirmationModal';
 import ProfileHeader from '~/components/ui/ProfileHeader';
 import ProfileTabs from '~/components/ui/ProfileTabs';
 import TabTitle from '~/components/ui/TabTitle';
@@ -41,7 +41,7 @@ import SettingsToggleRow from '~/components/ui/SettingsToggleRow';
 import { DangerZoneAction } from '~/components/ui/DangerZoneSection';
 import SaveCancelButtons from '~/components/ui/SaveCancelButtons';
 import SectionPanel from '~/components/ui/SectionPanel';
-import { CollapsibleGroup } from '~/components/CollapsibleGroup';
+import { CollapsibleGroup } from '~/components/ui/CollapsibleGroup';
 import { timezoneNames } from '~/utils/timezoneNames';
 
 const tierOptions = [

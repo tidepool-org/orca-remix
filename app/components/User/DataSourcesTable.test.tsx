@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '~/test-utils';
 import userEvent from '@testing-library/user-event';
 import DataSourcesTable from './DataSourcesTable';
-import { CollapsibleGroup } from '~/components/CollapsibleGroup';
+import { CollapsibleGroup } from '~/components/ui/CollapsibleGroup';
 import type { DataSource, ConnectionRequest } from './types';
 import type { ResourceState } from '~/api.types';
 

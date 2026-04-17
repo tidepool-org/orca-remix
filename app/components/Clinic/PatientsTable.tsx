@@ -15,10 +15,10 @@ import {
 import { Users } from 'lucide-react';
 import useLocale from '~/hooks/useLocale';
 import useClinicResolvers from '~/hooks/useClinicResolvers';
-import CollapsibleTableWrapper from '../CollapsibleTableWrapper';
+import CollapsibleTableWrapper from '../ui/CollapsibleTableWrapper';
 import { collapsibleTableClasses, columnClass } from '~/utils/tableStyles';
 import type { Patient } from './types';
-import DebouncedSearchInput from '../DebouncedSearchInput';
+import DebouncedSearchInput from '../ui/DebouncedSearchInput';
 import TableEmptyState from '~/components/ui/TableEmptyState';
 import TableLoadingState from '~/components/ui/TableLoadingState';
 import TablePagination, {

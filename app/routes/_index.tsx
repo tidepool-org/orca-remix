@@ -5,7 +5,7 @@ import isArray from 'lodash/isArray';
 import ClinicLookup from '~/components/Clinic/ClinicLookup';
 import RecentClinics from '~/components/Clinic/RecentClinics';
 import { RecentClinic } from '~/components/Clinic/types';
-import ErrorStack from '~/components/ErrorStack';
+import ErrorStack from '~/components/ui/ErrorStack';
 import RecentUsers from '~/components/User/RecentUsers';
 import UserLookup from '~/components/User/UserLookup';
 import { RecentUser } from '~/components/User/types';
