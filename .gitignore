@@ -8,3 +8,4 @@ node_modules
 .vite/deps
 .opencode/plans
 
+.aider*
