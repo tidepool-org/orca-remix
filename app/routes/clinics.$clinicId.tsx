@@ -26,7 +26,6 @@ import {
   apiRequest,
   apiRequestSafe,
 } from '~/api.server';
-import type { ResourceState } from '~/api.types';
 import {
   clinicsSession,
   patientsSession,
