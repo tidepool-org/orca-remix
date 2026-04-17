@@ -77,7 +77,7 @@ export const PatientSchema = z.object({
         .array(
           z.object({
             createdTime: z.string(),
-            providerName: z.enum(['dexcom', 'twiist', 'abbott']),
+            providerName: z.literal('twiist'),
           }),
         )
         .optional(),
@@ -85,7 +85,7 @@ export const PatientSchema = z.object({
         .array(
           z.object({
             createdTime: z.string(),
-            providerName: z.enum(['dexcom', 'twiist', 'abbott']),
+            providerName: z.literal('dexcom'),
           }),
         )
         .optional(),
@@ -93,7 +93,15 @@ export const PatientSchema = z.object({
         .array(
           z.object({
             createdTime: z.string(),
-            providerName: z.enum(['dexcom', 'twiist', 'abbott']),
+            providerName: z.literal('abbott'),
+          }),
+        )
+        .optional(),
+      oura: z
+        .array(
+          z.object({
+            createdTime: z.string(),
+            providerName: z.literal('oura'),
           }),
         )
         .optional(),

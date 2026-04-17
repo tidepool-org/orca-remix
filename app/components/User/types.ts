@@ -62,7 +62,7 @@ export type DataSource = {
 
 // Flattened connection request for display in DataSourcesTable
 export type ConnectionRequest = {
-  providerName: 'dexcom' | 'twiist' | 'abbott';
+  providerName: 'dexcom' | 'twiist' | 'abbott' | 'oura';
   createdTime: string;
 };
 

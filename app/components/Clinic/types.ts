@@ -79,15 +79,19 @@ export type Patient = {
   connectionRequests?: {
     twiist?: {
       createdTime: string;
-      providerName: 'dexcom' | 'twiist' | 'abbott';
+      providerName: 'twiist';
     }[];
     dexcom?: {
       createdTime: string;
-      providerName: 'dexcom' | 'twiist' | 'abbott';
+      providerName: 'dexcom';
     }[];
     abbott?: {
       createdTime: string;
-      providerName: 'dexcom' | 'twiist' | 'abbott';
+      providerName: 'abbott';
+    }[];
+    oura?: {
+      createdTime: string;
+      providerName: 'oura';
     }[];
   };
   sites?: {
