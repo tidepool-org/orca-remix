@@ -244,7 +244,7 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
   return Response.json({ error: 'Unknown action' }, { status: 400 });
 };
 
-export default function ClinicianRoute() {
+export default function Clinician() {
   const { clinician, clinics, totalClinics } =
     useLoaderData<ClinicianLoaderData>();
   const { clinicId } = useParams();

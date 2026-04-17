@@ -653,7 +653,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
   }
 }
 
-export default function Users() {
+export default function User() {
   const {
     user,
     profile,

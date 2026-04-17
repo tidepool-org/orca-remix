@@ -530,7 +530,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   };
 }
 
-export default function PatientDetails() {
+export default function Patient() {
   const {
     patient,
     prescriptions,

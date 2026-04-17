@@ -114,7 +114,7 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
   }
 };
 
-export default function PrescriptionRoute() {
+export default function Prescription() {
   const { prescription, prescriber, clinicId, recentPrescriptions } =
     useLoaderData<PrescriptionLoaderData>();
   const { addRecentPrescription, updateRecentPrescriptions } = useRecentItems();

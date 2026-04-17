@@ -583,7 +583,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   throw new Response('Clinic not found', { status: 404 });
 }
 
-export default function Clinics() {
+export default function Clinic() {
   const {
     clinic,
     patients,
