@@ -1,0 +1,310 @@
+import { useParams, useRouteLoaderData } from 'react-router';
+import { Chip, Tab } from '@heroui/react';
+import { Database, Smartphone /* FileText */ } from 'lucide-react';
+
+import type { Patient, Prescription } from './types';
+import type {
+  DataSet,
+  DataSource,
+  PumpSettings,
+  ConnectionRequest,
+} from '../User/types';
+import type { ResourceState } from '~/api.types';
+import useLocale from '~/hooks/useLocale';
+import useProfileExpanded from '~/hooks/useProfileExpanded';
+import useClinicResolvers from '~/hooks/useClinicResolvers';
+// import PrescriptionsTable from './PrescriptionsTable';
+import DataSetsTable from '../User/DataSetsTable';
+import ProfileHeader from '~/components/ui/ProfileHeader';
+import ProfileTabs from '~/components/ui/ProfileTabs';
+import TabTitle from '~/components/ui/TabTitle';
+import DataSourcesTable from '../User/DataSourcesTable';
+import DataExportSection from '../User/DataExportSection';
+import PumpSettingsSection from '../User/PumpSettingsSection';
+import ViewUserAccountLink from '~/components/ui/ViewUserAccountLink';
+import RollbarLink from '~/components/ui/RollbarLink';
+import { CollapsibleGroup } from '~/components/ui/CollapsibleGroup';
+import { formatShortDate } from '~/utils/dateFormatters';
+
+export type PatientProfileProps = {
+  patient: Patient;
+  prescriptions?: Prescription[];
+  totalPrescriptions?: number;
+  prescriptionsLoading?: boolean;
+  clinic?: {
+    patientTags?: {
+      id: string;
+      name: string;
+    }[];
+    sites?: {
+      id: string;
+      name: string;
+    }[];
+    preferredBgUnits?: 'mg/dL' | 'mmol/L';
+  };
+  // Data tab props
+  dataSets?: DataSet[];
+  totalDataSets?: number;
+  dataSources?: DataSource[];
+  totalDataSources?: number;
+  connectionRequests?: ConnectionRequest[];
+  // Device tab props
+  pumpSettings?: PumpSettings[];
+  isPumpSettingsLoading?: boolean;
+  // ResourceState props for error display
+  prescriptionsState?: ResourceState<Prescription[]>;
+  dataSetsState?: ResourceState<DataSet[]>;
+  dataSourcesState?: ResourceState<DataSource[]>;
+  pumpSettingsState?: ResourceState<PumpSettings[]>;
+  // Tab control props
+  selectedTab?: string;
+  onTabChange?: (key: React.Key) => void;
+};
+
+export default function PatientProfile({
+  patient,
+  // Prescriptions props - temporarily unused while tab is hidden
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  prescriptions: _prescriptions = [],
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  totalPrescriptions: _totalPrescriptions = 0,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  prescriptionsLoading: _prescriptionsLoading = false,
+  clinic,
+  dataSets = [],
+  totalDataSets = 0,
+  dataSources = [],
+  totalDataSources = 0,
+  connectionRequests = [],
+  pumpSettings = [],
+  isPumpSettingsLoading = false,
+  // ResourceState props
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  prescriptionsState: _prescriptionsState,
+  dataSetsState,
+  dataSourcesState,
+  pumpSettingsState,
+  // Tab control props
+  selectedTab,
+  onTabChange,
+}: PatientProfileProps) {
+  const {
+    id,
+    fullName,
+    email,
+    birthDate,
+    mrn,
+    createdTime,
+    updatedTime,
+    tags,
+    permissions,
+  } = patient;
+  const { locale } = useLocale();
+  const { clinicId } = useParams();
+  const profileExpandedProps = useProfileExpanded('patient');
+
+  // Try to get clinic data from parent route if not provided as prop
+  const parentRouteData = useRouteLoaderData('routes/clinics.$clinicId') as
+    | {
+        clinic?: {
+          patientTags?: { id: string; name: string }[];
+          sites?: { id: string; name: string }[];
+          preferredBgUnits?: 'mg/dL' | 'mmol/L';
+        };
+      }
+    | undefined;
+  const clinicData = clinic || parentRouteData?.clinic;
+  const { getTagName, getSiteName } = useClinicResolvers(clinicData);
+
+  // ProfileHeader configuration
+  const patientIdentifiers = [
+    ...(email ? [{ value: email }] : []),
+    { label: 'ID:', value: id, monospace: true },
+    ...(mrn ? [{ label: 'MRN:', value: mrn, monospace: true }] : []),
+  ];
+
+  const patientDetailFields = [
+    {
+      label: 'Birth Date',
+      value: birthDate ? formatShortDate(birthDate, locale) : '—',
+    },
+    { label: 'Added', value: formatShortDate(createdTime, locale) },
+    { label: 'Last Updated', value: formatShortDate(updatedTime, locale) },
+    ...(permissions
+      ? [
+          {
+            label: 'Permissions',
+            value: (
+              <div className="flex gap-1 flex-wrap mt-0.5">
+                {permissions.custodian && (
+                  <span className="px-1.5 py-0.5 bg-danger/10 text-danger rounded text-xs">
+                    Custodial
+                  </span>
+                )}
+                {permissions.view && (
+                  <span className="px-1.5 py-0.5 bg-success/10 text-success rounded text-xs">
+                    View
+                  </span>
+                )}
+                {permissions.upload && (
+                  <span className="px-1.5 py-0.5 bg-warning/10 text-warning rounded text-xs">
+                    Upload
+                  </span>
+                )}
+                {permissions.note && (
+                  <span className="px-1.5 py-0.5 bg-secondary/10 text-secondary rounded text-xs">
+                    Note
+                  </span>
+                )}
+              </div>
+            ),
+          },
+        ]
+      : []),
+    ...(tags && tags.length > 0
+      ? [
+          {
+            label: 'Tags',
+            value: (
+              <div className="flex gap-1 flex-wrap mt-0.5">
+                {tags.map((tagId, index) => (
+                  <span
+                    key={index}
+                    className="px-1.5 py-0.5 bg-primary/10 text-primary rounded text-xs"
+                  >
+                    {getTagName(tagId)}
+                  </span>
+                ))}
+              </div>
+            ),
+          },
+        ]
+      : []),
+    ...(patient.sites && patient.sites.length > 0
+      ? [
+          {
+            label: 'Sites',
+            value: (
+              <div className="flex gap-1 flex-wrap mt-0.5">
+                {patient.sites.map((site, index) => (
+                  <span
+                    key={index}
+                    className="px-1.5 py-0.5 bg-secondary/10 text-secondary rounded text-xs"
+                  >
+                    {getSiteName(site.id || site.name || String(site))}
+                  </span>
+                ))}
+              </div>
+            ),
+          },
+        ]
+      : []),
+  ];
+
+  return (
+    <div className="flex flex-col gap-6 w-full">
+      <ProfileHeader
+        title={fullName}
+        titleRowExtra={
+          permissions?.custodian ? (
+            <Chip size="sm" variant="flat" color="warning">
+              Custodial
+            </Chip>
+          ) : undefined
+        }
+        identifiers={patientIdentifiers}
+        actionLinks={[
+          <ViewUserAccountLink userId={id} />,
+          <RollbarLink userId={id} />,
+        ]}
+        detailFields={patientDetailFields}
+        {...profileExpandedProps}
+      />
+
+      <div className="w-full">
+        <ProfileTabs
+          aria-label="Patient profile sections"
+          selectedKey={selectedTab}
+          onSelectionChange={onTabChange}
+        >
+          {/* Data Tab */}
+          <Tab
+            key="data"
+            title={
+              <TabTitle icon={Database} label="Data" count={totalDataSets} />
+            }
+          >
+            <div className="pt-6 flex flex-col gap-6">
+              <CollapsibleGroup>
+                <DataSetsTable
+                  dataSets={dataSets}
+                  totalDataSets={totalDataSets}
+                  dataSetsState={dataSetsState}
+                  isFirstInGroup
+                />
+                <DataSourcesTable
+                  dataSources={dataSources}
+                  connectionRequests={connectionRequests}
+                  totalDataSources={totalDataSources}
+                  dataSourcesState={dataSourcesState}
+                  patientHasEmail={!!email}
+                  clinicId={clinicId}
+                />
+                <DataExportSection
+                  userId={id}
+                  preferredBgUnits={clinicData?.preferredBgUnits}
+                />
+              </CollapsibleGroup>
+            </div>
+          </Tab>
+
+          {/* Device Tab */}
+          <Tab
+            key="device"
+            title={
+              <TabTitle
+                icon={Smartphone}
+                label="Device"
+                count={pumpSettings.length}
+              />
+            }
+          >
+            <div className="pt-6">
+              <PumpSettingsSection
+                pumpSettings={pumpSettings}
+                pumpSettingsState={pumpSettingsState}
+                isLoading={isPumpSettingsLoading}
+                preferredBgUnits={clinicData?.preferredBgUnits}
+              />
+            </div>
+          </Tab>
+
+          {/* Prescriptions Tab - Hidden for now, will be re-enabled later */}
+          {/* <Tab
+            key="prescriptions"
+            title={
+              <TabTitle
+                icon={FileText}
+                label="Prescriptions"
+                count={totalPrescriptions}
+              />
+            }
+          >
+            <div className="pt-6">
+              <CollapsibleGroup>
+                <PrescriptionsTable
+                  prescriptions={prescriptions}
+                  totalPrescriptions={totalPrescriptions}
+                  prescriptionsState={prescriptionsState}
+                  isLoading={prescriptionsLoading}
+                  context="user"
+                  isFirstInGroup
+                />
+              </CollapsibleGroup>
+            </div>
+          </Tab> */}
+        </ProfileTabs>
+      </div>
+    </div>
+  );
+}

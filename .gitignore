@@ -1,0 +1,11 @@
+node_modules
+
+/.cache
+/build
+/.react-router
+.env
+.claude
+.vite/deps
+.opencode/plans
+
+.aider*

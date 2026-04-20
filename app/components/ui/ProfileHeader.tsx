@@ -1,0 +1,107 @@
+import { ReactNode, useState } from 'react';
+import CopyableIdentifier from './CopyableIdentifier';
+import DetailGrid from './DetailGrid';
+import DetailsToggleButton from './DetailsToggleButton';
+
+export type IdentifierConfig = {
+  /** Optional label displayed before the value (e.g., "ID:", "MRN:") */
+  label?: string;
+  /** The value to display and copy */
+  value: string;
+  /** Whether to display the value in monospace font */
+  monospace?: boolean;
+};
+
+export type DetailFieldConfig = {
+  /** Label for the field */
+  label: string;
+  /** Value to display - can be string or ReactNode for custom rendering (chips, badges, etc.) */
+  value: ReactNode;
+};
+
+export type ProfileHeaderProps = {
+  /** The main title (e.g., user's full name, clinic name) */
+  title: string;
+  /** Array of copyable identifiers to display in row 2 (email, ID, MRN, etc.) */
+  identifiers?: IdentifierConfig[];
+  /** Optional links to display after identifiers */
+  actionLinks?: ReactNode[];
+  /** Array of detail fields to display in the expandable section */
+  detailFields?: DetailFieldConfig[];
+  /** Whether to start with details expanded */
+  defaultExpanded?: boolean;
+  /** Callback when expansion state changes */
+  onExpandedChange?: (expanded: boolean) => void;
+  /** Custom content to render after the title row */
+  titleRowExtra?: ReactNode;
+};
+
+export default function ProfileHeader({
+  title,
+  identifiers = [],
+  actionLinks = [],
+  detailFields = [],
+  defaultExpanded = false,
+  onExpandedChange,
+  titleRowExtra,
+}: ProfileHeaderProps) {
+  const [isExpanded, setIsExpanded] = useState(defaultExpanded);
+
+  const handleToggle = () => {
+    const newExpanded = !isExpanded;
+    setIsExpanded(newExpanded);
+    onExpandedChange?.(newExpanded);
+  };
+
+  const hasExpandableContent = detailFields.length > 0;
+
+  return (
+    <div className="w-full rounded-lg border-2 border-content2 overflow-hidden">
+      {/* Header section with title and identifiers */}
+      <div className="p-4 bg-content1">
+        {/* Row 1: Title on left, toggle button on right */}
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <h1 className="text-xl font-semibold">{title}</h1>
+            {titleRowExtra}
+          </div>
+          {hasExpandableContent && (
+            <DetailsToggleButton
+              isExpanded={isExpanded}
+              onToggle={handleToggle}
+            />
+          )}
+        </div>
+
+        {/* Row 2: Copyable identifiers and optional action link */}
+        {(identifiers.length > 0 || actionLinks.length > 0) && (
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm mt-1">
+            {identifiers.map((identifier) => (
+              <CopyableIdentifier
+                key={identifier.value}
+                label={identifier.label}
+                value={identifier.value}
+                monospace={identifier.monospace}
+              />
+            ))}
+            {actionLinks.map((link, index) => (
+              <span key={`action-${index}`}>{link}</span>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Collapsible details section */}
+      {hasExpandableContent && isExpanded && (
+        <div className="p-4 border-t border-divider">
+          <DetailGrid
+            fields={detailFields}
+            columns={{ default: 2, sm: 3, md: 4, lg: 5 }}
+            columnGap="gap-x-6"
+            rowGap="gap-y-3"
+          />
+        </div>
+      )}
+    </div>
+  );
+}

@@ -1,0 +1,58 @@
+import { Button, Link } from '@heroui/react';
+import Logo from '~/components/Logo/Logo';
+import ThemeSwitcher from './ThemeSwitcher';
+import UserMenu from './UserMenu';
+import HeaderSearch from '~/components/ui/HeaderSearch';
+import { Menu } from 'lucide-react';
+
+import { type SidebarOpenProps } from '~/layouts/Dashboard';
+
+type HeaderProps = SidebarOpenProps & {
+  onOpenShortcuts: () => void;
+};
+
+function Header({ sidebarOpen, setSidebarOpen, onOpenShortcuts }: HeaderProps) {
+  return (
+    <header className="sticky top-0 bg-content1 border-b border-content3 z-30">
+      <div className="px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16 -mb-px">
+          {/* Header: Left side */}
+          <div className="flex items-center">
+            {/* Hamburger button */}
+            <Button
+              className="bg-transparent text-foreground lg:hidden"
+              size="sm"
+              isIconOnly
+              aria-controls="sidebar"
+              aria-expanded={sidebarOpen}
+              onPress={() => setSidebarOpen(!sidebarOpen)}
+            >
+              <span className="sr-only">Open sidebar</span>
+              <Menu />
+            </Button>
+            <div>
+              <Link className="lg:hidden" href="/">
+                <Logo />
+              </Link>
+            </div>
+            <div className="hidden sm:block">
+              <HeaderSearch />
+            </div>
+          </div>
+
+          {/* Header: Right side */}
+          <div className="flex items-center space-x-3">
+            <ThemeSwitcher />
+            <div>
+              {/*  Divider */}
+              <hr className="w-px h-6 bg-slate-200 dark:bg-slate-700 border-none" />
+            </div>
+            <UserMenu onOpenShortcuts={onOpenShortcuts} />
+          </div>
+        </div>
+      </div>
+    </header>
+  );
+}
+
+export default Header;
