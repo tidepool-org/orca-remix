@@ -121,15 +121,17 @@ export default {
         ],
       },
       fontSize: {
-        // Reference uses 13px base; keep tw class names but redefine scale.
-        xs: ['11px', { lineHeight: '16px' }],
-        sm: ['12px', { lineHeight: '17px' }],
+        // Mapped to reference design tokens (skins.css). Body base = 13px.
+        // Line-heights tightened to match reference's compact rhythm.
+        tiny: ['10.5px', { lineHeight: '14px' }],
+        xs: ['11px', { lineHeight: '15px' }],
+        sm: ['12.5px', { lineHeight: '17px' }],
         base: ['13px', { lineHeight: '18px' }],
-        md: ['13px', { lineHeight: '18px' }],
+        md: ['13.5px', { lineHeight: '19px' }],
         lg: ['15px', { lineHeight: '20px' }],
         xl: ['17px', { lineHeight: '22px' }],
-        '2xl': ['20px', { lineHeight: '26px' }],
-        '3xl': ['24px', { lineHeight: '30px' }],
+        '2xl': ['19px', { lineHeight: '24px' }],
+        '3xl': ['22px', { lineHeight: '28px' }],
       },
       // Moderately rounded corners for custom components using Tailwind classes
       borderRadius: {

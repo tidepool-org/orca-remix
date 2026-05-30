@@ -75,10 +75,9 @@ export default function SectionPanel({
   const toneCls =
     tone === 'danger'
       ? {
-          container:
-            'border-[color:var(--danger-border,theme(colors.danger.200))] bg-[color:var(--surface)]',
+          container: 'border-[var(--danger-border)] bg-[var(--surface)]',
           header:
-            'bg-[color:var(--danger-soft,theme(colors.danger.50))] border-b border-[color:var(--danger-border,theme(colors.danger.200))]',
+            'bg-[var(--danger-soft)] border-b border-[var(--danger-border)]',
         }
       : {
           container:
@@ -113,7 +112,11 @@ export default function SectionPanel({
     <>
       {icon ? (
         <span
-          className="inline-grid place-items-center w-[22px] h-[22px] flex-none text-[color:var(--primary)] [&_svg]:w-4 [&_svg]:h-4"
+          className={`inline-grid place-items-center w-[22px] h-[22px] flex-none [&_svg]:w-4 [&_svg]:h-4 ${
+            tone === 'danger'
+              ? 'text-[var(--danger-soft-fg)]'
+              : 'text-[color:var(--primary)]'
+          }`}
           aria-hidden="true"
         >
           {icon}

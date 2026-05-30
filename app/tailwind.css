@@ -114,7 +114,63 @@ body {
   font-size: var(--fs-base);
   color: var(--text);
   background: var(--bg);
+  line-height: 1.4;
   -webkit-font-smoothing: antialiased;
+}
+
+/* ---------- reference-aligned base typography ----------
+ * skins.css sets no global line-height (browser default ~1.2) but
+ * relies on explicit component sizes. We give the body a sensible
+ * baseline + override Tailwind / HeroUI defaults that drift from the
+ * reference scale, so text-* utilities cascade correctly without
+ * per-call className overrides.
+ */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  color: var(--text-heading);
+  font-weight: 700;
+  letter-spacing: -0.005em;
+  line-height: 1.25;
+}
+
+/* HeroUI Button slot — match reference .btn: 38px height, 13px text,
+ * weight 600. Utility classes inside HeroUI beat plain element selectors,
+ * so target the data-slot directly with !important. */
+button[data-slot='base'],
+[data-slot='base'] > button,
+.heroui button,
+button {
+  font-weight: 600;
+}
+
+/* HeroUI Button — reference .btn weight is 600. HeroUI ships
+ * font-normal (400) as a utility on the button element, which beats
+ * any plain element selector. We target by react-aria attribute
+ * (HeroUI Button always sets data-react-aria-pressable) so every
+ * button matches the reference type weight without per-call overrides. */
+button[data-react-aria-pressable] {
+  font-weight: 600 !important;
+}
+
+/* Inputs inherit body font/size by default; reference is 13px. */
+input,
+select,
+textarea {
+  font-size: var(--fs-base);
+  line-height: 1.4;
+}
+
+/* Code / mono pairs at 12px in reference. */
+code,
+kbd,
+samp,
+pre {
+  font-family: var(--font-mono);
+  font-size: 12px;
 }
 
 /* Tinted input background for header search. Light mode → primary-50, dark mode → primary-100/.10 token tint with primary-200 border. */

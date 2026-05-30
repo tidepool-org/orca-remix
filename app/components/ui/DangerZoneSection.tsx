@@ -130,14 +130,35 @@ export function ActionCard({
   borderColor = 'border-default',
 }: ActionCardProps) {
   const dividerCls =
-    borderColor === 'border-danger' ? 'border-danger/25' : 'border-content2';
+    borderColor === 'border-danger'
+      ? 'border-[var(--danger-border)]'
+      : 'border-[color:var(--border)]';
+  const undoPhrase = 'This action cannot be undone.';
+  const descIdx =
+    typeof description === 'string' ? description.indexOf(undoPhrase) : -1;
+  const descNode =
+    descIdx >= 0 && typeof description === 'string' ? (
+      <>
+        {description.slice(0, descIdx)}
+        <span className="font-semibold text-[var(--danger-soft-fg)]">
+          {undoPhrase}
+        </span>
+        {description.slice(descIdx + undoPhrase.length)}
+      </>
+    ) : (
+      description
+    );
   return (
     <div
       className={`flex items-center justify-between gap-4 py-3 border-t ${dividerCls} first:border-t-0 first:pt-0`}
     >
       <div>
-        <p className="text-sm font-semibold text-foreground">{title}</p>
-        <p className="text-xs text-default-500 mt-0.5">{description}</p>
+        <p className="text-sm font-semibold text-[color:var(--text-heading)]">
+          {title}
+        </p>
+        <p className="text-xs text-[color:var(--text-muted)] mt-0.5">
+          {descNode}
+        </p>
       </div>
       {actionButton}
     </div>

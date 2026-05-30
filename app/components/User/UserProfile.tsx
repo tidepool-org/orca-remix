@@ -3,7 +3,7 @@ import {
   Building2,
   Share2,
   Database,
-  Settings,
+  Sun,
   // FileText,
   Smartphone,
 } from 'lucide-react';
@@ -146,7 +146,16 @@ export default function UserProfile({
   const userDetailFields = [
     {
       label: 'Account Type',
-      value: clinic ? `Clinician (${clinic.role})` : 'Patient',
+      value: clinic ? (
+        <>
+          <span>Clinician</span>
+          <span className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-[color:var(--chip-bg)] text-[color:var(--chip-fg)] font-mono text-[11px]">
+            {clinic.role}
+          </span>
+        </>
+      ) : (
+        'Patient'
+      ),
     },
     {
       label: 'Account Status',
@@ -183,7 +192,7 @@ export default function UserProfile({
         ) : undefined
       }
       identifiers={userIdentifiers}
-      actionLinks={[<RollbarLink userId={userId} />]}
+      actionLinks={[<RollbarLink key="rollbar" userId={userId} />]}
       detailFields={userDetailFields}
       {...profileExpandedProps}
     />
@@ -227,10 +236,7 @@ export default function UserProfile({
             </Tab>
 
             {/* Account Tab */}
-            <Tab
-              key="account"
-              title={<TabTitle icon={Settings} label="Account" />}
-            >
+            <Tab key="account" title={<TabTitle icon={Sun} label="Account" />}>
               <div className="pt-6 flex flex-col gap-6">
                 <UserActions user={user} />
               </div>
@@ -383,10 +389,7 @@ export default function UserProfile({
           </Tab> */}
 
           {/* Account Tab */}
-          <Tab
-            key="account"
-            title={<TabTitle icon={Settings} label="Account" />}
-          >
+          <Tab key="account" title={<TabTitle icon={Sun} label="Account" />}>
             <div className="pt-6 flex flex-col gap-6">
               <UserActions user={user} />
             </div>

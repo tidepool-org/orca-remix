@@ -39,7 +39,7 @@ export default function UserMenu({ onOpenShortcuts }: UserMenuProps) {
     () => (
       <Avatar
         showFallback
-        className="transition-transform w-8 h-8 text-tiny"
+        className="transition-transform w-[34px] h-[34px] text-tiny"
         size="sm"
         src={avatarSrc}
         // Add loading strategy to prevent excessive requests

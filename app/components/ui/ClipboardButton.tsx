@@ -49,7 +49,7 @@ export default function ClipboardButton({
   return (
     <Button
       onPress={() => copyContent(clipboardText)}
-      className="text-foreground/80 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity"
+      className="text-[color:var(--text-faint)] hover:text-[color:var(--text)] opacity-100 transition-colors min-w-0 w-5 h-5"
       isLoading={isLoading}
       title={title}
       aria-label={title}
