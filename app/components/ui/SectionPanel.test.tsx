@@ -258,8 +258,10 @@ describe('SectionPanel', () => {
       );
 
       const section = container.querySelector('section');
-      expect(section).toHaveClass('border-content2');
-      const header = section?.querySelector('div.bg-content2');
+      expect(section?.className).toMatch(/border-\[color:var\(--border\)\]/);
+      const header = section?.querySelector(
+        'div[class*="bg-[color:var(--surface-2)]"]',
+      );
       expect(header).not.toBeNull();
     });
 
@@ -275,8 +277,8 @@ describe('SectionPanel', () => {
       );
 
       const section = container.querySelector('section');
-      expect(section).toHaveClass('border-danger-200');
-      const header = section?.querySelector('div.bg-danger-50');
+      expect(section?.className).toMatch(/danger/);
+      const header = section?.querySelector('div[class*="danger"]');
       expect(header).not.toBeNull();
     });
   });

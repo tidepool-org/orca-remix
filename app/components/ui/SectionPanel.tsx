@@ -74,8 +74,18 @@ export default function SectionPanel({
 }: SectionPanelProps) {
   const toneCls =
     tone === 'danger'
-      ? { container: 'border-danger-200', header: 'bg-danger-50' }
-      : { container: 'border-content2', header: 'bg-content2' };
+      ? {
+          container:
+            'border-[color:var(--danger-border,theme(colors.danger.200))] bg-[color:var(--surface)]',
+          header:
+            'bg-[color:var(--danger-soft,theme(colors.danger.50))] border-b border-[color:var(--danger-border,theme(colors.danger.200))]',
+        }
+      : {
+          container:
+            'border-[color:var(--border)] bg-[color:var(--surface)] shadow-token',
+          header:
+            'bg-[color:var(--surface-2)] border-b border-[color:var(--border)]',
+        };
 
   const [internalExpanded, setInternalExpanded] = useState(defaultExpanded);
 
@@ -101,29 +111,40 @@ export default function SectionPanel({
 
   const titleContent = (
     <>
-      {icon}
+      {icon ? (
+        <span
+          className="inline-grid place-items-center w-[22px] h-[22px] flex-none text-[color:var(--primary)] [&_svg]:w-4 [&_svg]:h-4"
+          aria-hidden="true"
+        >
+          {icon}
+        </span>
+      ) : null}
       <div className="flex flex-col">
         <span
           id={headingId}
           role="heading"
           aria-level={2}
-          className={`text-xs font-semibold uppercase tracking-wider text-foreground/80 ${titleClassName || ''}`}
+          className={`text-[12.5px] font-semibold uppercase tracking-[0.07em] text-[color:var(--text-heading)] whitespace-nowrap ${titleClassName || ''}`}
         >
           {title}
         </span>
-        {subtitle && <p className="text-sm text-default-500">{subtitle}</p>}
+        {subtitle && (
+          <p className="text-[12px] text-[color:var(--text-muted)] mt-0.5 normal-case tracking-normal font-normal">
+            {subtitle}
+          </p>
+        )}
       </div>
     </>
   );
 
   const headerContent = (
     <div className="flex justify-between items-center w-full">
-      <div className="flex gap-2 items-center">{titleContent}</div>
-      <div className="flex items-center gap-3">
+      <div className="flex gap-[10px] items-center">{titleContent}</div>
+      <div className="flex items-center gap-[10px]">
         {headerControls}
         {collapsible && (
           <ChevronDown
-            className={`w-5 h-5 transition-transform ${
+            className={`w-4 h-4 text-[color:var(--text-faint)] transition-transform ${
               isExpanded ? 'rotate-180' : ''
             }`}
             aria-hidden="true"
@@ -135,12 +156,12 @@ export default function SectionPanel({
 
   return (
     <section
-      className={`w-full rounded-lg border ${toneCls.container} overflow-hidden`}
+      className={`w-full rounded-[8px] border ${toneCls.container} overflow-hidden`}
       aria-label={ariaLabel}
     >
       {collapsible ? (
         <button
-          className={`flex w-full px-4 py-2.5 ${toneCls.header} hover:bg-default/40 transition-colors cursor-pointer`}
+          className={`flex w-full px-4 py-2.5 min-h-[43px] ${toneCls.header} hover:brightness-[0.98] transition-colors cursor-pointer`}
           onClick={handleToggle}
           aria-expanded={isExpanded}
           aria-controls={panelId}
@@ -149,7 +170,9 @@ export default function SectionPanel({
           {headerContent}
         </button>
       ) : (
-        <div className={`flex w-full px-4 py-2.5 ${toneCls.header}`}>
+        <div
+          className={`flex w-full px-4 py-2.5 min-h-[43px] items-center ${toneCls.header}`}
+        >
           {headerContent}
         </div>
       )}

@@ -1,5 +1,6 @@
 import { Form, useSearchParams, useNavigation } from 'react-router';
 import { Input, Button } from '@heroui/react';
+import { Search as SearchIcon } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import React from 'react';
 import { useToast } from '~/contexts/ToastContext';
@@ -119,12 +120,8 @@ export default function LookupForm({
 
   return (
     <Form action={action}>
-      <SectionPanel
-        icon={<Icon className="w-5 h-5" />}
-        title={title}
-        aria-label={title}
-      >
-        <div className="flex items-center gap-4">
+      <SectionPanel icon={<Icon />} title={title} aria-label={title}>
+        <div className="flex items-end gap-[10px]">
           <Input
             name={inputName ?? searchParamName}
             type="text"
@@ -133,7 +130,10 @@ export default function LookupForm({
             value={searchValue || ''}
             onChange={handleSearchChange}
             className="flex-1 min-w-48 max-w-xs"
-            classNames={searchInputClasses}
+            classNames={{
+              ...searchInputClasses,
+              inputWrapper: `${searchInputClasses.inputWrapper} h-[38px] min-h-[38px]`,
+            }}
             isInvalid={!!error && errorType === 'validation'}
             errorMessage={errorType === 'validation' ? error : undefined}
           />
@@ -141,7 +141,12 @@ export default function LookupForm({
           <Button
             type="submit"
             color="primary"
-            className="font-semibold"
+            className="font-semibold h-[38px] px-4 gap-[7px]"
+            startContent={
+              !isSearching ? (
+                <SearchIcon className="w-4 h-4" aria-hidden="true" />
+              ) : undefined
+            }
             isLoading={isSearching}
           >
             {submitText}
