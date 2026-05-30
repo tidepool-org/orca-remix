@@ -196,7 +196,14 @@ export default function DataSetsTable({
               {item.deviceTags && item.deviceTags.length > 0 && (
                 <div className="flex gap-1 mt-1">
                   {item.deviceTags.map((tag) => (
-                    <Chip key={tag} size="sm" variant="flat" color="default">
+                    <Chip
+                      key={tag}
+                      size="sm"
+                      variant="flat"
+                      color="default"
+                      radius="sm"
+                      classNames={{ content: 'font-mono' }}
+                    >
                       {tag}
                     </Chip>
                   ))}
@@ -222,6 +229,8 @@ export default function DataSetsTable({
                 color={isContinuous ? 'success' : 'primary'}
                 variant="flat"
                 size="sm"
+                radius="sm"
+                classNames={{ content: 'font-mono' }}
               >
                 {type}
               </Chip>

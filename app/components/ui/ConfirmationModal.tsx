@@ -62,18 +62,27 @@ export default function ConfirmationModal({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size="md" aria-label={title}>
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      size="md"
+      backdrop="blur"
+      aria-label={title}
+      classNames={{ base: 'border border-content2' }}
+    >
       <ModalContent>
-        <ModalHeader className="flex items-center gap-2">
-          {icon ||
-            (confirmVariant === 'danger' && (
-              <AlertTriangle
-                className="text-danger"
-                size={20}
-                aria-hidden="true"
-              />
-            ))}
-          <span>{title}</span>
+        <ModalHeader className="flex items-center gap-3">
+          <span
+            className={`grid place-items-center w-8 h-8 rounded-lg border ${
+              confirmVariant === 'danger'
+                ? 'bg-danger-50 border-danger-200 text-danger'
+                : 'bg-primary-50 border-primary-200 text-primary'
+            }`}
+            aria-hidden="true"
+          >
+            {icon || <AlertTriangle size={18} />}
+          </span>
+          <span className="text-base font-bold">{title}</span>
         </ModalHeader>
         <ModalBody>
           <p className="text-default-600">{description}</p>
@@ -86,6 +95,8 @@ export default function ConfirmationModal({
                 onValueChange={setInputValue}
                 isDisabled={isLoading}
                 variant="bordered"
+                classNames={{ input: 'font-mono text-sm' }}
+                color={inputValue === expectedInput ? 'success' : 'default'}
                 description={`Type "${expectedInput}" to confirm`}
               />
             </div>

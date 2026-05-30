@@ -142,6 +142,7 @@ export default function ClinicMergeReportSection({
         <div className="flex justify-end">
           <Button
             color="primary"
+            className="font-semibold"
             startContent={
               isLoading ? (
                 <Spinner size="sm" color="current" />

@@ -40,17 +40,17 @@ describe('CopyableIdentifier', () => {
   });
 
   describe('Label', () => {
-    it('renders with a label when provided', () => {
+    it('renders with a label when provided (trailing colon stripped per design)', () => {
       render(<CopyableIdentifier label="Email:" value="test@example.com" />);
 
-      expect(screen.getByText('Email:')).toBeInTheDocument();
+      expect(screen.getByText('Email')).toBeInTheDocument();
       expect(screen.getByText('test@example.com')).toBeInTheDocument();
     });
 
     it('renders without a label when not provided', () => {
       render(<CopyableIdentifier value="test@example.com" />);
 
-      expect(screen.queryByText('Email:')).not.toBeInTheDocument();
+      expect(screen.queryByText('Email')).not.toBeInTheDocument();
       expect(screen.getByText('test@example.com')).toBeInTheDocument();
     });
   });
@@ -111,9 +111,10 @@ describe('CopyableIdentifier', () => {
       );
 
       const wrapper = container.querySelector('.my-custom-class');
-      expect(wrapper).toHaveClass('flex');
+      expect(wrapper).toHaveClass('inline-flex');
       expect(wrapper).toHaveClass('items-center');
-      expect(wrapper).toHaveClass('gap-1');
+      expect(wrapper).toHaveClass('gap-1.5');
+      expect(wrapper).toHaveClass('group');
     });
   });
 

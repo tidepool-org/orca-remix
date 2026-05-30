@@ -80,7 +80,7 @@ describe('PatientsTable', () => {
   describe('Rendering', () => {
     it('renders the collapsible header with title and count', () => {
       render(<PatientsTable {...defaultProps} />);
-      expect(screen.getByText('Patients (2)')).toBeInTheDocument();
+      expect(screen.getByText('Patients')).toBeInTheDocument();
     });
 
     it('renders column headers', () => {

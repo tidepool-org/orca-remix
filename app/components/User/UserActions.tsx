@@ -129,7 +129,7 @@ export default function UserActions({ user }: UserActionsProps) {
   return (
     <>
       <SectionPanel title="Account Actions" aria-label="Account Actions">
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col">
           <ActionCard
             title="Verify Email"
             description="Manually verify this user's email address, allowing them to log in immediately."
@@ -200,10 +200,11 @@ export default function UserActions({ user }: UserActionsProps) {
       <SectionPanel
         title="Danger Zone"
         titleClassName="text-danger"
+        tone="danger"
         collapsible
         defaultExpanded={false}
       >
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col">
           <DangerZoneAction
             title="Delete User Data"
             description="Permanently delete all upload data for this user. The account will remain intact, but all diabetes data will be removed. This action cannot be undone."

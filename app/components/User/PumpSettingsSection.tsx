@@ -204,7 +204,13 @@ export default function PumpSettingsSection({
         <div className="flex items-center gap-2 mb-2">
           <span className="font-medium text-sm">{scheduleName}</span>
           {selectedSettings?.activeSchedule === scheduleName && (
-            <Chip size="sm" color="primary" variant="flat">
+            <Chip
+              size="sm"
+              color="primary"
+              variant="flat"
+              radius="sm"
+              classNames={{ content: 'font-mono' }}
+            >
               Active
             </Chip>
           )}
@@ -385,7 +391,13 @@ export default function PumpSettingsSection({
             {selectedSettings.activeSchedule && (
               <div className="flex items-center gap-1">
                 <span className="text-default-400">Active Schedule:</span>{' '}
-                <Chip size="sm" color="primary" variant="flat">
+                <Chip
+                  size="sm"
+                  color="primary"
+                  variant="flat"
+                  radius="sm"
+                  classNames={{ content: 'font-mono' }}
+                >
                   {selectedSettings.activeSchedule}
                 </Chip>
               </div>

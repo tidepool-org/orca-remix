@@ -75,7 +75,7 @@ export default function ProfileHeader({
 
         {/* Row 2: Copyable identifiers and optional action link */}
         {(identifiers.length > 0 || actionLinks.length > 0) && (
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm mt-1">
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-1 text-sm mt-1">
             {identifiers.map((identifier) => (
               <CopyableIdentifier
                 key={identifier.value}

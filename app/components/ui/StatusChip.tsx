@@ -119,6 +119,8 @@ export default function StatusChip({
       color={getColor()}
       variant={variant}
       size={size}
+      radius="sm"
+      classNames={{ content: 'font-mono' }}
       className={`${capitalize ? 'capitalize' : ''} ${className ?? ''}`}
     >
       {getLabel()}

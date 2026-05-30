@@ -66,64 +66,61 @@ function Dashboard() {
   );
 
   return (
-    <div className="flex h-screen overflow-hidden justify-center">
-      {/* Centered container for sidebar + content */}
-      <div className="flex w-full max-w-[240vh] border-r border-content2">
-        {/* Sidebar */}
-        <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
+    <div className="flex h-screen overflow-hidden">
+      {/* Sidebar */}
+      <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
 
-        {/* Content area */}
-        <div className="relative flex flex-col flex-1 overflow-y-auto overflow-x-hidden">
-          {/*  Site header */}
-          <Header
-            sidebarOpen={sidebarOpen}
-            setSidebarOpen={setSidebarOpen}
-            onOpenShortcuts={openHelpModal}
-          />
+      {/* Content area */}
+      <div className="relative flex flex-col flex-1 overflow-y-auto overflow-x-hidden">
+        {/*  Site header */}
+        <Header
+          sidebarOpen={sidebarOpen}
+          setSidebarOpen={setSidebarOpen}
+          onOpenShortcuts={openHelpModal}
+        />
 
-          <main className="relative flex-1">
-            {/* Loading overlay */}
-            {isLoading && (
-              <div
-                className="absolute inset-0 bg-background/50 backdrop-blur-sm z-10 flex items-center justify-center"
-                role="status"
-                aria-live="polite"
-                aria-label="Loading content"
+        <main className="relative flex-1">
+          {/* Loading overlay */}
+          {isLoading && (
+            <div
+              className="absolute inset-0 bg-background/50 backdrop-blur-sm z-10 flex items-center justify-center"
+              role="status"
+              aria-live="polite"
+              aria-label="Loading content"
+            >
+              <Spinner size="lg" aria-hidden="true" />
+            </div>
+          )}
+
+          <div className="px-6 lg:px-8 py-6 w-full">
+            {/* Breadcrumbs */}
+            {!!breadcrumbs.length && (
+              <Breadcrumbs
+                className="mb-4"
+                classNames={{
+                  list: 'gap-2',
+                }}
+                itemClasses={{
+                  item: '[&_a]:text-[color:var(--text-faint)] [&_a]:hover:text-[color:var(--text)] data-[current=true]:text-[color:var(--text)] data-[current=true]:font-medium text-[color:var(--text-faint)]',
+                  separator: 'text-[color:var(--text-faint)]/60',
+                }}
               >
-                <Spinner size="lg" aria-hidden="true" />
-              </div>
+                <BreadcrumbItem href="/">
+                  <Home className="w-4 h-4" aria-hidden="true" />
+                  <span className="sr-only">Home</span>
+                </BreadcrumbItem>
+
+                {breadcrumbs.map(({ href, label }) => (
+                  <BreadcrumbItem key={href} href={href}>
+                    {label}
+                  </BreadcrumbItem>
+                ))}
+              </Breadcrumbs>
             )}
 
-            <div className="px-4 sm:px-6 lg:px-8 py-8 w-full">
-              {/* Breadcrumbs */}
-              {!!breadcrumbs.length && (
-                <Breadcrumbs
-                  className="mb-4"
-                  classNames={{
-                    list: 'gap-2',
-                  }}
-                  itemClasses={{
-                    item: 'text-foreground/80 data-[current=true]:text-foreground',
-                    separator: 'text-foreground/40',
-                  }}
-                >
-                  <BreadcrumbItem href="/">
-                    <Home className="w-4" aria-hidden="true" />
-                    <span className="sr-only">Home</span>
-                  </BreadcrumbItem>
-
-                  {breadcrumbs.map(({ href, label }) => (
-                    <BreadcrumbItem key={href} href={href}>
-                      {label}
-                    </BreadcrumbItem>
-                  ))}
-                </Breadcrumbs>
-              )}
-
-              <Outlet />
-            </div>
-          </main>
-        </div>
+            <Outlet />
+          </div>
+        </main>
       </div>
 
       <KeyboardShortcutsModal

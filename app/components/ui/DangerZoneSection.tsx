@@ -129,13 +129,15 @@ export function ActionCard({
   actionButton,
   borderColor = 'border-default',
 }: ActionCardProps) {
+  const dividerCls =
+    borderColor === 'border-danger' ? 'border-danger/25' : 'border-content2';
   return (
     <div
-      className={`flex items-center justify-between p-4 border ${borderColor} rounded-lg`}
+      className={`flex items-center justify-between gap-4 py-3 border-t ${dividerCls} first:border-t-0 first:pt-0`}
     >
       <div>
-        <p className="text-sm font-medium">{title}</p>
-        <p className="text-xs text-default-500">{description}</p>
+        <p className="text-sm font-semibold text-foreground">{title}</p>
+        <p className="text-xs text-default-500 mt-0.5">{description}</p>
       </div>
       {actionButton}
     </div>

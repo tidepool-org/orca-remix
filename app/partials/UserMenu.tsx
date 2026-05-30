@@ -38,10 +38,8 @@ export default function UserMenu({ onOpenShortcuts }: UserMenuProps) {
   const memoizedAvatar = useMemo(
     () => (
       <Avatar
-        isBordered
         showFallback
-        className="transition-transform"
-        color="primary"
+        className="transition-transform w-8 h-8 text-tiny"
         size="sm"
         src={avatarSrc}
         // Add loading strategy to prevent excessive requests

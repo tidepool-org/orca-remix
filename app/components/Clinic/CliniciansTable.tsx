@@ -159,6 +159,8 @@ export default function CliniciansTable({
               }
               size="sm"
               variant="flat"
+              radius="sm"
+              classNames={{ content: 'font-mono' }}
             >
               {primaryRole.replace('CLINIC_', '').toLowerCase()}
             </Chip>

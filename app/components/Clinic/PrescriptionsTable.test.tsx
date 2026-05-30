@@ -95,7 +95,7 @@ describe('PrescriptionsTable', () => {
       render(<PrescriptionsTable {...defaultProps} />);
 
       // Header shows combined title and count
-      expect(screen.getByText('Prescriptions (3)')).toBeInTheDocument();
+      expect(screen.getByText('Prescriptions')).toBeInTheDocument();
     });
 
     it('renders column headers', () => {

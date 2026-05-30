@@ -1,4 +1,5 @@
-import { Pagination } from '@heroui/react';
+import { Button, Input } from '@heroui/react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 export type TablePaginationProps = {
   /** Current page number (1-indexed) */
@@ -57,20 +58,73 @@ export default function TablePagination({
   const firstItem = getFirstItemOnPage(currentPage, pageSize, totalItems);
   const lastItem = getLastItemOnPage(currentPage, pageSize, totalItems);
 
+  const clampPage = (n: number) => Math.min(Math.max(n, 1), totalPages);
+
+  const handleJump = (raw: string) => {
+    const n = Number.parseInt(raw, 10);
+    if (Number.isNaN(n)) return currentPage;
+    return clampPage(n);
+  };
+
   return (
-    <div className={`flex flex-col items-center gap-2 mt-4 ${className}`}>
-      {showRange && totalItems > 0 && (
-        <span className="text-sm text-default-500">
-          Showing {firstItem}-{lastItem} of {totalItems}
+    <div
+      className={`flex items-center justify-between gap-4 mt-4 pt-3 border-t border-content2 ${className}`}
+    >
+      {showRange && totalItems > 0 ? (
+        <span className="text-xs font-mono text-default-500">
+          Showing{' '}
+          <b className="text-foreground/70">
+            {firstItem}-{lastItem}
+          </b>{' '}
+          of <b className="text-foreground/70">{totalItems}</b>
         </span>
+      ) : (
+        <span />
       )}
-      <Pagination
-        aria-label="Pagination"
-        page={currentPage}
-        total={totalPages}
-        onChange={onPageChange}
-        showControls
-      />
+      <div className="flex items-center gap-2">
+        <Button
+          size="sm"
+          variant="bordered"
+          isIconOnly
+          aria-label="Previous page"
+          isDisabled={currentPage <= 1}
+          onPress={() => onPageChange?.(clampPage(currentPage - 1))}
+        >
+          <ChevronLeft className="w-4 h-4" aria-hidden="true" />
+        </Button>
+        <span className="flex items-center gap-2 text-xs font-mono text-default-500">
+          Page
+          <Input
+            size="sm"
+            aria-label="Jump to page"
+            className="w-14"
+            classNames={{ input: 'text-center font-mono' }}
+            defaultValue={String(currentPage)}
+            key={currentPage}
+            onKeyDown={(e) => {
+              if (e.key !== 'Enter') return;
+              const target = e.currentTarget as HTMLInputElement;
+              const clamped = handleJump(target.value);
+              if (clamped !== currentPage) onPageChange?.(clamped);
+            }}
+            onBlur={(e) => {
+              const clamped = handleJump(e.currentTarget.value);
+              if (clamped !== currentPage) onPageChange?.(clamped);
+            }}
+          />
+          of {totalPages}
+        </span>
+        <Button
+          size="sm"
+          variant="bordered"
+          isIconOnly
+          aria-label="Next page"
+          isDisabled={currentPage >= totalPages}
+          onPress={() => onPageChange?.(clampPage(currentPage + 1))}
+        >
+          <ChevronRight className="w-4 h-4" aria-hidden="true" />
+        </Button>
+      </div>
     </div>
   );
 }

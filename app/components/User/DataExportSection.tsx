@@ -159,6 +159,7 @@ export default function DataExportSection({
         <div className="flex justify-end pt-2">
           <Button
             color="primary"
+            className="font-semibold"
             startContent={<Download className="w-4 h-4" aria-hidden="true" />}
             onPress={handleExport}
             isLoading={isExporting}

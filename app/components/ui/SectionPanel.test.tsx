@@ -249,6 +249,38 @@ describe('SectionPanel', () => {
     });
   });
 
+  describe('Tone', () => {
+    it('applies default tone classes when tone prop is omitted', () => {
+      const { container } = render(
+        <SectionPanel title="Test Section" aria-label="Default tone panel">
+          <p>Content</p>
+        </SectionPanel>,
+      );
+
+      const section = container.querySelector('section');
+      expect(section).toHaveClass('border-content2');
+      const header = section?.querySelector('div.bg-content2');
+      expect(header).not.toBeNull();
+    });
+
+    it('applies danger-tinted classes when tone="danger"', () => {
+      const { container } = render(
+        <SectionPanel
+          title="Danger Zone"
+          tone="danger"
+          aria-label="Danger tone panel"
+        >
+          <p>Content</p>
+        </SectionPanel>,
+      );
+
+      const section = container.querySelector('section');
+      expect(section).toHaveClass('border-danger-200');
+      const header = section?.querySelector('div.bg-danger-50');
+      expect(header).not.toBeNull();
+    });
+  });
+
   describe('Accessibility', () => {
     it('sets aria-label when provided', () => {
       render(

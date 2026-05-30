@@ -128,6 +128,7 @@ export default function RecentItemsTable<T extends { id: string }>({
         layout="fixed"
         classNames={{
           th: recentTableClasses.th,
+          td: recentTableClasses.td,
           tr: recentTableClasses.tr,
           table: 'table-fixed',
         }}

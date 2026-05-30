@@ -55,19 +55,23 @@ export default function CollapsibleTableWrapper({
     }
   };
 
-  // Generate header text based on expanded state and showRange
-  const headerText =
+  // Reference design: panel header shows just the title in uppercase tracked label,
+  // and the showing-range (when expanded) sits right-aligned in the same row.
+  const formattedTotal = totalItems.toLocaleString();
+  const showingText =
     isExpanded && showRange && totalItems > 0
-      ? `${title} (showing ${showRange.firstItem}-${showRange.lastItem} of ${totalItems})`
-      : `${title} (${totalItems})`;
+      ? `Showing ${showRange.firstItem.toLocaleString()}–${showRange.lastItem.toLocaleString()} of ${formattedTotal}`
+      : !isExpanded && totalItems > 0
+        ? `${formattedTotal} total`
+        : '';
 
   const panelId = useId();
   const headingId = useId();
 
   return (
-    <div className="w-full rounded-lg border-2 border-content2 overflow-hidden">
+    <div className="w-full rounded-[8px] border border-[color:var(--border)] bg-[color:var(--surface)] overflow-hidden shadow-token">
       <button
-        className="flex justify-between items-center w-full p-4 bg-content1 hover:bg-default/40 transition-colors cursor-pointer"
+        className="flex justify-between items-center w-full px-4 min-h-[43px] bg-[color:var(--surface-2)] hover:bg-[color:var(--surface-3)] transition-colors cursor-pointer"
         onClick={handleToggle}
         aria-expanded={isExpanded}
         aria-controls={panelId}
@@ -79,19 +83,24 @@ export default function CollapsibleTableWrapper({
             id={headingId}
             role="heading"
             aria-level={2}
-            className="text-lg font-semibold"
+            className="text-[12.5px] font-semibold uppercase tracking-[0.07em] text-[color:var(--text-heading)]"
           >
-            {headerText}
+            {title}
           </span>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3 ml-auto">
+          {showingText && (
+            <span className="text-[12px] text-[color:var(--text-faint)] font-medium hidden sm:inline">
+              {showingText}
+            </span>
+          )}
           {exportHref && (
             <Tooltip content="Export as CSV">
               <a
                 href={exportHref}
                 download
                 aria-label={`Export ${title} as CSV`}
-                className="p-1 rounded-md hover:bg-default-200 transition-colors"
+                className="p-1 rounded-md text-[color:var(--text-faint)] hover:bg-[color:var(--surface-3)] hover:text-[color:var(--text)] transition-colors"
                 onClick={(e) => e.stopPropagation()}
               >
                 <Download className="w-4 h-4" aria-hidden="true" />
@@ -99,7 +108,7 @@ export default function CollapsibleTableWrapper({
             </Tooltip>
           )}
           <ChevronDown
-            className={`w-5 h-5 transition-transform ${
+            className={`w-4 h-4 text-[color:var(--text-faint)] transition-transform ${
               isExpanded ? 'rotate-180' : ''
             }`}
             aria-hidden="true"
@@ -108,7 +117,7 @@ export default function CollapsibleTableWrapper({
       </button>
 
       {isExpanded && (
-        <div id={panelId} className="mt-4 p-4 transition-all duration-300">
+        <div id={panelId} className="p-4 transition-all duration-300">
           {children}
         </div>
       )}

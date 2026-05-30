@@ -171,7 +171,13 @@ export default function PatientsTable({
                   {patient.fullName}
                 </p>
                 {patient.permissions?.custodian && (
-                  <Chip size="sm" variant="flat" color="warning">
+                  <Chip
+                    size="sm"
+                    variant="flat"
+                    color="warning"
+                    radius="sm"
+                    classNames={{ content: 'font-mono' }}
+                  >
                     Custodial
                   </Chip>
                 )}
@@ -199,7 +205,14 @@ export default function PatientsTable({
           return patient.tags && patient.tags.length > 0 ? (
             <div className="flex gap-1 flex-wrap">
               {patient.tags.slice(0, 2).map((tagId: string, index: number) => (
-                <Chip key={index} size="sm" variant="flat" color="primary">
+                <Chip
+                  key={index}
+                  size="sm"
+                  variant="flat"
+                  color="primary"
+                  radius="sm"
+                  classNames={{ content: 'font-mono' }}
+                >
                   {getTagName(tagId)}
                 </Chip>
               ))}
@@ -219,6 +232,8 @@ export default function PatientsTable({
                               size="sm"
                               variant="flat"
                               color="primary"
+                              radius="sm"
+                              classNames={{ content: 'font-mono' }}
                             >
                               {getTagName(tagId)}
                             </Chip>
@@ -232,7 +247,9 @@ export default function PatientsTable({
                     size="sm"
                     variant="flat"
                     color="default"
+                    radius="sm"
                     className="cursor-help"
+                    classNames={{ content: 'font-mono' }}
                   >
                     +{patient.tags.length - 2}
                   </Chip>
@@ -246,7 +263,14 @@ export default function PatientsTable({
           return patient.sites && patient.sites.length > 0 ? (
             <div className="flex gap-1 flex-wrap">
               {patient.sites.slice(0, 2).map((site, index: number) => (
-                <Chip key={index} size="sm" variant="flat" color="secondary">
+                <Chip
+                  key={index}
+                  size="sm"
+                  variant="flat"
+                  color="secondary"
+                  radius="sm"
+                  classNames={{ content: 'font-mono' }}
+                >
                   {getSiteName(site.id || site.name || String(site))}
                 </Chip>
               ))}
@@ -264,6 +288,8 @@ export default function PatientsTable({
                             size="sm"
                             variant="flat"
                             color="secondary"
+                            radius="sm"
+                            classNames={{ content: 'font-mono' }}
                           >
                             {getSiteName(site.id || site.name || String(site))}
                           </Chip>
@@ -277,7 +303,9 @@ export default function PatientsTable({
                     size="sm"
                     variant="flat"
                     color="default"
+                    radius="sm"
                     className="cursor-help"
+                    classNames={{ content: 'font-mono' }}
                   >
                     +{patient.sites.length - 2}
                   </Chip>

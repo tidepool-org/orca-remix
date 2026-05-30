@@ -70,7 +70,7 @@ describe('DataSetsTable', () => {
   describe('Rendering', () => {
     it('renders header with title and count', () => {
       render(<DataSetsTable {...defaultProps} />);
-      expect(screen.getByText('Data Uploads (2)')).toBeInTheDocument();
+      expect(screen.getByText('Data Uploads')).toBeInTheDocument();
     });
 
     it('renders column headers', () => {

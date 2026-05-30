@@ -611,6 +611,7 @@ export default function ClinicProfile({
               <SectionPanel
                 title="Danger Zone"
                 titleClassName="text-danger"
+                tone="danger"
                 collapsible
                 defaultExpanded={false}
               >

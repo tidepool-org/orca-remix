@@ -171,7 +171,13 @@ export default function UserProfile({
       title={fullName || username || 'Unknown User'}
       titleRowExtra={
         isUnclaimedAccount ? (
-          <Chip size="sm" variant="flat" color="warning">
+          <Chip
+            size="sm"
+            variant="flat"
+            color="warning"
+            radius="sm"
+            classNames={{ content: 'font-mono' }}
+          >
             Custodial
           </Chip>
         ) : undefined

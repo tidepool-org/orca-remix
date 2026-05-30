@@ -169,6 +169,8 @@ export function TrustingAccountsTable({
                           size="sm"
                           variant="flat"
                           color="primary"
+                          radius="sm"
+                          classNames={{ content: 'font-mono' }}
                         >
                           {perm}
                         </Chip>
@@ -325,6 +327,8 @@ export function TrustedAccountsTable({
                           size="sm"
                           variant="flat"
                           color="secondary"
+                          radius="sm"
+                          classNames={{ content: 'font-mono' }}
                         >
                           {perm}
                         </Chip>
@@ -432,7 +436,12 @@ export function SentInvitesTable({
                     <CopyableIdentifier value={invite.email} size="sm" />
                   </TableCell>
                   <TableCell>
-                    <Chip size="sm" variant="flat">
+                    <Chip
+                      size="sm"
+                      variant="flat"
+                      radius="sm"
+                      classNames={{ content: 'font-mono' }}
+                    >
                       {formatType(invite.type)}
                     </Chip>
                   </TableCell>
@@ -560,7 +569,12 @@ export function ReceivedInvitesTable({
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Chip size="sm" variant="flat">
+                    <Chip
+                      size="sm"
+                      variant="flat"
+                      radius="sm"
+                      classNames={{ content: 'font-mono' }}
+                    >
                       {formatType(invite.type)}
                     </Chip>
                   </TableCell>

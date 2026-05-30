@@ -127,6 +127,8 @@ export default function HeaderSearch() {
         }}
         allowsCustomValue
         size="sm"
+        selectorIcon={null}
+        disableSelectorIconRotation
         placeholder={isFocused ? 'Name, ID, Email, or Share Code' : 'Search'}
         aria-label="Search for a user, clinic, patient, clinician, or prescription"
         onFocus={handleFocus}
@@ -161,9 +163,10 @@ export default function HeaderSearch() {
         className="w-80"
         inputProps={{
           classNames: {
-            base: `transition-[width] duration-200 ease-in-out ${isFocused || inputValue ? 'w-80' : 'w-36'}`,
-            inputWrapper: 'bg-default-100',
-            input: 'group-data-[has-value=true]:text-content1-foreground',
+            base: `transition-[width] duration-200 ease-in-out ${isFocused || inputValue ? 'w-80' : 'w-56'}`,
+            inputWrapper:
+              'bg-[color:var(--field-bg)] border border-[color:var(--field-border)] shadow-none data-[hover=true]:bg-[color:var(--field-bg)]',
+            input: 'group-data-[has-value=true]:text-[color:var(--text)]',
           },
         }}
         startContent={
@@ -175,7 +178,7 @@ export default function HeaderSearch() {
         endContent={
           !isFocused && !inputValue ? (
             <kbd
-              className="hidden sm:inline-flex items-center px-1.5 border border-default-300 rounded text-xs text-default-400 font-mono"
+              className="hidden sm:inline-flex items-center px-1.5 py-0.5 border border-[color:var(--field-border)] bg-[color:var(--surface)] rounded text-[10.5px] text-[color:var(--text-faint)] font-mono"
               aria-hidden="true"
             >
               /

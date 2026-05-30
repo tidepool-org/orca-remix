@@ -13,11 +13,11 @@ type HeaderProps = SidebarOpenProps & {
 
 function Header({ sidebarOpen, setSidebarOpen, onOpenShortcuts }: HeaderProps) {
   return (
-    <header className="sticky top-0 bg-content1 border-b border-content3 z-30">
+    <header className="sticky top-0 bg-[color:var(--topbar-bg)] border-b border-[color:var(--topbar-border)] z-30 shadow-topbar">
       <div className="px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16 -mb-px">
+        <div className="flex items-center justify-between h-[52px] -mb-px gap-4">
           {/* Header: Left side */}
-          <div className="flex items-center">
+          <div className="flex items-center flex-1">
             {/* Hamburger button */}
             <Button
               className="bg-transparent text-foreground lg:hidden"
@@ -35,18 +35,14 @@ function Header({ sidebarOpen, setSidebarOpen, onOpenShortcuts }: HeaderProps) {
                 <Logo />
               </Link>
             </div>
-            <div className="hidden sm:block">
+            <div className="hidden sm:block flex-1 max-w-2xl">
               <HeaderSearch />
             </div>
           </div>
 
           {/* Header: Right side */}
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center gap-2">
             <ThemeSwitcher />
-            <div>
-              {/*  Divider */}
-              <hr className="w-px h-6 bg-slate-200 dark:bg-slate-700 border-none" />
-            </div>
             <UserMenu onOpenShortcuts={onOpenShortcuts} />
           </div>
         </div>

@@ -52,6 +52,13 @@ type Column = {
   sortable?: boolean;
 };
 
+const TIER_COLOR: Record<string, 'default' | 'primary' | 'warning'> = {
+  tier0100: 'default',
+  tier0200: 'primary',
+  tier0300: 'primary',
+  tier0400: 'warning',
+};
+
 export default function ClinicsTable({
   clinics = [],
   clinicsState,
@@ -157,9 +164,17 @@ export default function ClinicsTable({
         case 'tier':
           return (
             <Chip
-              color={clinic.tier === 'tier0300' ? 'primary' : 'default'}
-              variant="flat"
               size="sm"
+              variant="flat"
+              radius="sm"
+              color={TIER_COLOR[clinic.tier ?? ''] ?? 'default'}
+              classNames={{ content: 'font-mono text-[10.5px]' }}
+              startContent={
+                <span
+                  className="w-1.5 h-1.5 rounded-full bg-current ml-1.5"
+                  aria-hidden="true"
+                />
+              }
             >
               {clinic.tier || 'N/A'}
             </Chip>
@@ -170,22 +185,46 @@ export default function ClinicsTable({
             return (
               <div className="flex gap-1 flex-wrap">
                 {item.patient.permissions.view && (
-                  <Chip size="sm" variant="flat" color="success">
+                  <Chip
+                    size="sm"
+                    variant="flat"
+                    color="success"
+                    radius="sm"
+                    classNames={{ content: 'font-mono' }}
+                  >
                     View
                   </Chip>
                 )}
                 {item.patient.permissions.upload && (
-                  <Chip size="sm" variant="flat" color="warning">
+                  <Chip
+                    size="sm"
+                    variant="flat"
+                    color="warning"
+                    radius="sm"
+                    classNames={{ content: 'font-mono' }}
+                  >
                     Upload
                   </Chip>
                 )}
                 {item.patient.permissions.note && (
-                  <Chip size="sm" variant="flat" color="secondary">
+                  <Chip
+                    size="sm"
+                    variant="flat"
+                    color="secondary"
+                    radius="sm"
+                    classNames={{ content: 'font-mono' }}
+                  >
                     Note
                   </Chip>
                 )}
                 {item.patient.permissions.custodian && (
-                  <Chip size="sm" variant="flat" color="primary">
+                  <Chip
+                    size="sm"
+                    variant="flat"
+                    color="primary"
+                    radius="sm"
+                    classNames={{ content: 'font-mono' }}
+                  >
                     Custodian
                   </Chip>
                 )}

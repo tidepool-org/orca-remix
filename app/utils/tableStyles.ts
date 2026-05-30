@@ -1,27 +1,44 @@
 /**
  * Reusable table styling constants
+ * Tokens map 1:1 to handoff/visual-reference/skins.css `.tbl` rules
+ * (10.5px tracked-uppercase th, 40px row height, subtle 55% surface-2 zebra,
+ * primary-soft hover, top-border per row).
  */
 
+const sharedTh =
+  'bg-[color:var(--surface-2)] text-[color:var(--text-faint)] uppercase tracking-[0.07em] text-[10.5px] font-semibold h-9 px-3';
+const sharedTd =
+  'px-3 h-[40px] py-0 text-[color:var(--text)] border-t border-[color:var(--border)]';
+const sharedTr = [
+  'transition-colors',
+  'data-[hover=true]:cursor-pointer',
+  'data-[hover=true]:bg-[color:var(--primary-soft)]',
+  '[&:nth-child(even)]:bg-[color:var(--surface-2)]/55',
+].join(' ');
+
 export const recentTableClasses = {
-  base: 'flex flex-1 flex-col text-content1-foreground gap-4',
-  th: 'bg-content1',
-  tr: 'data-[hover=true]:cursor-pointer',
+  base: 'flex flex-1 flex-col text-[color:var(--text)] gap-4',
+  th: sharedTh,
+  td: sharedTd,
+  tr: sharedTr,
 };
 
 export const searchInputClasses = {
   base: 'max-w-xs',
-  inputWrapper: 'bg-default-100',
-  input: 'group-data-[has-value=true]:text-content1-foreground',
+  inputWrapper:
+    'bg-[color:var(--field-bg)] border border-[color:var(--field-border)] shadow-none',
+  input: 'group-data-[has-value=true]:text-[color:var(--text)]',
 };
 
 /**
  * Standard table classes for collapsible tables
- * No background on headers for consistency
  */
 export const collapsibleTableClasses = {
   wrapper: 'shadow-none',
-  base: 'flex flex-1 flex-col text-content1-foreground gap-4',
-  tr: 'data-[hover=true]:cursor-pointer',
+  base: 'flex flex-1 flex-col text-[color:var(--text)] gap-4',
+  th: sharedTh,
+  td: sharedTd,
+  tr: sharedTr,
 };
 
 /** Standard className for TableColumn headers */

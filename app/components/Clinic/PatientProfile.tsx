@@ -207,7 +207,13 @@ export default function PatientProfile({
         title={fullName}
         titleRowExtra={
           permissions?.custodian ? (
-            <Chip size="sm" variant="flat" color="warning">
+            <Chip
+              size="sm"
+              variant="flat"
+              color="warning"
+              radius="sm"
+              classNames={{ content: 'font-mono' }}
+            >
               Custodial
             </Chip>
           ) : undefined

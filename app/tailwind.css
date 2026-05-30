@@ -1,10 +1,131 @@
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Force white input background in light mode for header search */
+/* ============================================================
+ * Reference design tokens, mirrored 1:1 from
+ * handoff/visual-reference/skins.css. Tailwind/HeroUI semantic
+ * tokens (in tailwind.config.ts) resolve to these CSS vars where
+ * possible; raw classes (text-[color:var(--text)]) cover gaps.
+ * ============================================================ */
+:root {
+  --font-sans: 'IBM Plex Sans', system-ui, -apple-system, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', monospace;
+  --radius: 8px;
+  --radius-sm: 6px;
+  --row-h: 40px;
+  --fs-base: 13px;
+  --card-pad: 16px;
+  --side-w: 216px;
+  --topbar-h: 52px;
+  --shadow: 0 1px 0 rgba(20, 22, 40, 0.04);
+}
+
+.light,
+[data-theme='light'] {
+  --bg: #eef0f4;
+  --surface: #ffffff;
+  --surface-2: #f5f6f8;
+  --surface-3: #e9ecf1;
+  --border: #dde1e8;
+  --border-strong: #cdd2dc;
+  --text: #1f2733;
+  --text-muted: #5c6675;
+  --text-faint: #646c7a;
+  --text-heading: #2c3854;
+  --primary: #5a63d8;
+  --primary-strong: #474fc2;
+  --primary-fg: #ffffff;
+  --primary-soft: #e7e9fb;
+  --primary-soft-fg: #3d45b0;
+  --nav-bg: #2b2148;
+  --nav-fg: #b3acce;
+  --nav-fg-dim: #8d85ad;
+  --nav-active-bg: #ffffff;
+  --nav-active-fg: #2b2148;
+  --topbar-bg: #ffffff;
+  --topbar-fg: #1f2733;
+  --topbar-fg-dim: #646c7a;
+  --topbar-border: #dde1e8;
+  --topbar-shadow:
+    0 1px 2px rgba(20, 22, 40, 0.05), 0 4px 12px -8px rgba(20, 22, 40, 0.12);
+  --warn: #b7791f;
+  --warn-bg: #fdf3e3;
+  --warn-border: #f3dcb4;
+  --field-bg: #f1f3f6;
+  --field-border: #e2e6ec;
+  --chip-bg: #dde0f3;
+  --chip-fg: #4750a8;
+  --ok: #1f9d6b;
+  --danger: #c2362c;
+  --danger-fg: #ffffff;
+  --danger-soft: #fbeae8;
+  --danger-soft-fg: #b3362c;
+  --danger-border: #f0cfca;
+}
+
+.dark,
+[data-theme='dark'] {
+  --bg: #0b0c10;
+  --surface: #14161c;
+  --surface-2: #1b1e26;
+  --surface-3: #232733;
+  --border: #262a33;
+  --border-strong: #333845;
+  --text: #e4e7ec;
+  --text-muted: #8b93a1;
+  --text-faint: #858da0;
+  --text-heading: #c5cbe0;
+  --primary: #7178e6;
+  --primary-strong: #5a61d6;
+  --primary-fg: #ffffff;
+  --primary-soft: #23263a;
+  --primary-soft-fg: #b9bdfb;
+  --nav-bg: #181433;
+  --nav-fg: #aab2c4;
+  --nav-fg-dim: #6b7384;
+  --nav-active-bg: #5a63d8;
+  --nav-active-fg: #ffffff;
+  --topbar-bg: #181a22;
+  --topbar-fg: #e4e7ec;
+  --topbar-fg-dim: #858da0;
+  --topbar-border: #262a33;
+  --topbar-shadow: 0 1px 0 rgba(0, 0, 0, 0.4);
+  --warn: #e6b563;
+  --warn-bg: #2a2418;
+  --warn-border: #4a3d22;
+  --field-bg: #1b1e26;
+  --field-border: #2a2f3a;
+  --chip-bg: #2a2f44;
+  --chip-fg: #b9bdfb;
+  --ok: #34c98a;
+  --danger: #e5705f;
+  --danger-fg: #ffffff;
+  --danger-soft: #2a1916;
+  --danger-soft-fg: #f08778;
+  --danger-border: #4a2620;
+}
+
+html,
+body {
+  font-family: var(--font-sans);
+  font-size: var(--fs-base);
+  color: var(--text);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Tinted input background for header search. Light mode → primary-50, dark mode → primary-100/.10 token tint with primary-200 border. */
 .light #header-search [data-slot='input-wrapper'] {
-  background-color: #fff !important;
+  background-color: hsl(var(--heroui-primary-50)) !important;
+  border-color: hsl(var(--heroui-primary-200)) !important;
+}
+
+.dark #header-search [data-slot='input-wrapper'] {
+  background-color: hsl(var(--heroui-primary-100) / 0.1) !important;
+  border-color: hsl(var(--heroui-primary-200) / 0.4) !important;
 }
 
 @layer base {
@@ -92,5 +213,14 @@
       format('woff');
     font-style: italic;
     font-weight: 700;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
   }
 }

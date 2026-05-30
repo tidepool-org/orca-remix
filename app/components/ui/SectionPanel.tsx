@@ -22,6 +22,8 @@ export type SectionPanelProps = {
   defaultExpanded?: boolean;
   /** Additional className for the title text */
   titleClassName?: string;
+  /** Visual tone for the panel header (default 'default') */
+  tone?: 'default' | 'danger';
   /** Aria label for the section */
   'aria-label'?: string;
 };
@@ -67,8 +69,14 @@ export default function SectionPanel({
   onToggle,
   defaultExpanded = true,
   titleClassName,
+  tone = 'default',
   'aria-label': ariaLabel,
 }: SectionPanelProps) {
+  const toneCls =
+    tone === 'danger'
+      ? { container: 'border-danger-200', header: 'bg-danger-50' }
+      : { container: 'border-content2', header: 'bg-content2' };
+
   const [internalExpanded, setInternalExpanded] = useState(defaultExpanded);
 
   // Use controlled state if provided, otherwise use internal state
@@ -99,7 +107,7 @@ export default function SectionPanel({
           id={headingId}
           role="heading"
           aria-level={2}
-          className={`text-lg font-semibold ${titleClassName || ''}`}
+          className={`text-xs font-semibold uppercase tracking-wider text-foreground/80 ${titleClassName || ''}`}
         >
           {title}
         </span>
@@ -127,12 +135,12 @@ export default function SectionPanel({
 
   return (
     <section
-      className="w-full rounded-lg border-2 border-content2 overflow-hidden"
+      className={`w-full rounded-lg border ${toneCls.container} overflow-hidden`}
       aria-label={ariaLabel}
     >
       {collapsible ? (
         <button
-          className="flex w-full p-4 bg-content1 hover:bg-default/40 transition-colors cursor-pointer"
+          className={`flex w-full px-4 py-2.5 ${toneCls.header} hover:bg-default/40 transition-colors cursor-pointer`}
           onClick={handleToggle}
           aria-expanded={isExpanded}
           aria-controls={panelId}
@@ -141,7 +149,9 @@ export default function SectionPanel({
           {headerContent}
         </button>
       ) : (
-        <div className="flex w-full p-4 bg-content1">{headerContent}</div>
+        <div className={`flex w-full px-4 py-2.5 ${toneCls.header}`}>
+          {headerContent}
+        </div>
       )}
 
       {children && (

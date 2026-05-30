@@ -138,7 +138,12 @@ export default function LookupForm({
             errorMessage={errorType === 'validation' ? error : undefined}
           />
 
-          <Button type="submit" color="primary" isLoading={isSearching}>
+          <Button
+            type="submit"
+            color="primary"
+            className="font-semibold"
+            isLoading={isSearching}
+          >
             {submitText}
           </Button>
         </div>

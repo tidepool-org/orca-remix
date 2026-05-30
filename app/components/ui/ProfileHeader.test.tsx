@@ -28,7 +28,7 @@ describe('ProfileHeader', () => {
         />,
       );
 
-      expect(screen.getByText('ID:')).toBeInTheDocument();
+      expect(screen.getByText('ID')).toBeInTheDocument();
       expect(screen.getByText('12345')).toBeInTheDocument();
     });
 
@@ -56,9 +56,9 @@ describe('ProfileHeader', () => {
       );
 
       expect(screen.getByText('user@example.com')).toBeInTheDocument();
-      expect(screen.getByText('ID:')).toBeInTheDocument();
+      expect(screen.getByText('ID')).toBeInTheDocument();
       expect(screen.getByText('abc123')).toBeInTheDocument();
-      expect(screen.getByText('MRN:')).toBeInTheDocument();
+      expect(screen.getByText('MRN')).toBeInTheDocument();
       expect(screen.getByText('MRN-001')).toBeInTheDocument();
     });
 

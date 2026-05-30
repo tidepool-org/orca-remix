@@ -62,6 +62,10 @@ export default function CopyableIdentifier({
   // Default monospace to true if a label is provided (follows existing ProfileHeader pattern)
   const useMonospace = monospace ?? !!label;
 
+  // Reference design renders labels without a trailing colon ("ID 624..." not "ID: 624...").
+  // Strip any trailing colon defensively so callers can keep grammatical label props.
+  const displayLabel = label?.replace(/:\s*$/, '');
+
   const sizeClasses = {
     sm: 'text-xs',
     md: 'text-sm',
@@ -76,9 +80,13 @@ export default function CopyableIdentifier({
 
   return (
     <span
-      className={`flex items-center gap-1 text-default-500 ${className}`.trim()}
+      className={`inline-flex items-center gap-1.5 group text-[color:var(--text-muted)] ${className}`.trim()}
     >
-      {label && <span className="text-default-400">{label}</span>}
+      {displayLabel && (
+        <span className="text-[color:var(--text-faint)] uppercase tracking-wide text-[10.5px] font-semibold">
+          {displayLabel}
+        </span>
+      )}
       {children ? (
         children
       ) : (

@@ -67,6 +67,7 @@ export default function ProfileTabs({
     <Tabs
       aria-label={ariaLabel}
       variant="underlined"
+      color="primary"
       defaultSelectedKey={defaultSelectedKey}
       selectedKey={selectedKey}
       onSelectionChange={onSelectionChange}
