@@ -6,9 +6,9 @@
  */
 
 const sharedTh =
-  'bg-[color:var(--surface-2)] text-[color:var(--text-faint)] uppercase tracking-[0.07em] text-[10.5px] font-semibold h-9 px-3';
+  'bg-[color:var(--surface-2)] text-[color:var(--text-faint)] uppercase tracking-[0.07em] text-[10.5px] font-semibold py-[9px] px-3';
 const sharedTd =
-  'px-3 h-[40px] py-0 text-[color:var(--text)] border-t border-[color:var(--border)]';
+  'px-3 h-[40px] py-0 text-[13px] text-[color:var(--text)] border-t border-[color:var(--border)]';
 const sharedTr = [
   'transition-colors',
   'data-[hover=true]:cursor-pointer',

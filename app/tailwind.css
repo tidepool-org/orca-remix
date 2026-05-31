@@ -111,11 +111,17 @@
 html,
 body {
   font-family: var(--font-sans);
-  font-size: var(--fs-base);
   color: var(--text);
   background: var(--bg);
   line-height: 1.4;
   -webkit-font-smoothing: antialiased;
+}
+
+/* Reference keeps the root font-size at the browser default (16px) so
+ * rem-based utilities (`text-sm`, `w-4`, `px-3`, etc.) resolve to their
+ * intended pixel sizes; only the body baseline drops to 13px. */
+body {
+  font-size: var(--fs-base);
 }
 
 /* ---------- reference-aligned base typography ----------
