@@ -13,6 +13,7 @@ import { Building2 } from 'lucide-react';
 import useLocale from '~/hooks/useLocale';
 import CollapsibleTableWrapper from '../ui/CollapsibleTableWrapper';
 import { collapsibleTableClasses, columnClass } from '~/utils/tableStyles';
+import { chipClassNames } from '~/utils/chipStyles';
 import type {
   Clinic,
   ClinicianClinicMembership,
@@ -157,7 +158,9 @@ export default function ClinicsTable({
         case 'name':
           return (
             <div className="flex flex-col">
-              <p className="text-bold text-sm">{clinic.name}</p>
+              <p className="font-semibold text-[color:var(--text-heading)]">
+                {clinic.name}
+              </p>
               <CopyableIdentifier value={clinic.id} monospace size="sm" />
             </div>
           );
@@ -168,13 +171,7 @@ export default function ClinicsTable({
               variant="flat"
               radius="sm"
               color={TIER_COLOR[clinic.tier ?? ''] ?? 'default'}
-              classNames={{ content: 'font-mono text-[10.5px]' }}
-              startContent={
-                <span
-                  className="w-1.5 h-1.5 rounded-full bg-current ml-1.5"
-                  aria-hidden="true"
-                />
-              }
+              classNames={chipClassNames}
             >
               {clinic.tier || 'N/A'}
             </Chip>
@@ -190,7 +187,7 @@ export default function ClinicsTable({
                     variant="flat"
                     color="success"
                     radius="sm"
-                    classNames={{ content: 'font-mono' }}
+                    classNames={chipClassNames}
                   >
                     View
                   </Chip>
@@ -201,7 +198,7 @@ export default function ClinicsTable({
                     variant="flat"
                     color="warning"
                     radius="sm"
-                    classNames={{ content: 'font-mono' }}
+                    classNames={chipClassNames}
                   >
                     Upload
                   </Chip>
@@ -212,7 +209,7 @@ export default function ClinicsTable({
                     variant="flat"
                     color="secondary"
                     radius="sm"
-                    classNames={{ content: 'font-mono' }}
+                    classNames={chipClassNames}
                   >
                     Note
                   </Chip>
@@ -223,7 +220,7 @@ export default function ClinicsTable({
                     variant="flat"
                     color="primary"
                     radius="sm"
-                    classNames={{ content: 'font-mono' }}
+                    classNames={chipClassNames}
                   >
                     Custodian
                   </Chip>

@@ -169,7 +169,7 @@ describe('PrescriptionsTable', () => {
       const naElement = within(table).getByText('N/A');
       expect(naElement).toBeInTheDocument();
       expect(naElement.tagName).toBe('P');
-      expect(naElement).toHaveClass('text-bold');
+      expect(naElement).toHaveClass('font-semibold');
     });
   });
 

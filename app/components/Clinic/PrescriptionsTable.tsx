@@ -118,7 +118,9 @@ export default function PrescriptionsTable({
           const patientName = getPatientName(item);
           return (
             <div className="flex flex-col">
-              <p className="text-bold text-sm">{patientName}</p>
+              <p className="font-semibold text-[color:var(--text-heading)]">
+                {patientName}
+              </p>
               <CopyableIdentifier label="ID:" value={item.id} size="sm" />
             </div>
           );

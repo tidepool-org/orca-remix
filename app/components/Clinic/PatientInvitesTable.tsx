@@ -123,7 +123,7 @@ export default function PatientInvitesTable({
         case 'patientName':
           return (
             <div className="flex flex-col">
-              <p className="text-bold text-sm">
+              <p className="font-semibold text-[color:var(--text-heading)]">
                 {invite.creator?.profile?.patient?.fullName ||
                   invite.creator?.profile?.fullName ||
                   'Unknown'}

@@ -14,7 +14,7 @@ import {
   DropdownItem,
   Tooltip,
 } from '@heroui/react';
-import { Upload, MoreVertical, Trash2, Database, Info } from 'lucide-react';
+import { Upload, MoreVertical, Trash2, Database } from 'lucide-react';
 import { useFetcher } from 'react-router';
 import useLocale from '~/hooks/useLocale';
 import CollapsibleTableWrapper from '../ui/CollapsibleTableWrapper';
@@ -25,6 +25,8 @@ import {
   columnClass,
   actionsColumnClass,
 } from '~/utils/tableStyles';
+import { chipClassNames } from '~/utils/chipStyles';
+import { iconButtonClassName } from '~/utils/iconButtonStyles';
 import type { DataSet } from './types';
 import type { ResourceState } from '~/api.types';
 import { useToast } from '~/contexts/ToastContext';
@@ -187,7 +189,9 @@ export default function DataSetsTable({
         case 'deviceModel':
           return (
             <div className="flex flex-col">
-              <p className="text-bold text-sm">{item.deviceModel || 'N/A'}</p>
+              <p className="font-semibold text-[color:var(--text-heading)]">
+                {item.deviceModel || 'N/A'}
+              </p>
               {item.deviceSerialNumber && (
                 <p className="text-xs text-default-400 font-mono">
                   SN: {item.deviceSerialNumber}
@@ -202,7 +206,7 @@ export default function DataSetsTable({
                       variant="flat"
                       color="default"
                       radius="sm"
-                      classNames={{ content: 'font-mono' }}
+                      classNames={chipClassNames}
                     >
                       {tag}
                     </Chip>
@@ -230,7 +234,7 @@ export default function DataSetsTable({
                 variant="flat"
                 size="sm"
                 radius="sm"
-                classNames={{ content: 'font-mono' }}
+                classNames={chipClassNames}
               >
                 {type}
               </Chip>
@@ -303,8 +307,9 @@ export default function DataSetsTable({
                     size="sm"
                     variant="light"
                     aria-label="Dataset actions"
+                    className={iconButtonClassName}
                   >
-                    <MoreVertical className="w-4 h-4" aria-hidden="true" />
+                    <MoreVertical size={18} aria-hidden="true" />
                   </Button>
                 </DropdownTrigger>
                 <DropdownMenu aria-label="Dataset actions">

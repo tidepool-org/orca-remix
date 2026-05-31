@@ -13,7 +13,10 @@ const sharedTr = [
   'transition-colors',
   'data-[hover=true]:cursor-pointer',
   'data-[hover=true]:bg-[color:var(--primary-soft)]',
-  '[&:nth-child(even)]:bg-[color:var(--surface-2)]/55',
+  // Zebra matches `skins.css:589-591` `.tbl tbody tr:nth-child(even)`.
+  // Tailwind's `/55` opacity modifier does not compile against an arbitrary
+  // CSS-var color, so the rule is expressed inline via color-mix.
+  'even:bg-[color-mix(in_srgb,var(--surface-2)_55%,transparent)]',
 ].join(' ');
 
 export const recentTableClasses = {

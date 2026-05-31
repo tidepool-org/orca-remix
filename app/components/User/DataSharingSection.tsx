@@ -13,6 +13,7 @@ import { Users, Send, Inbox } from 'lucide-react';
 import useLocale from '~/hooks/useLocale';
 import CollapsibleTableWrapper from '../ui/CollapsibleTableWrapper';
 import { collapsibleTableClasses, columnClass } from '~/utils/tableStyles';
+import { chipClassNames } from '~/utils/chipStyles';
 import type { AccessPermissionsMap, ShareInvite, Permissions } from './types';
 import type { ResourceState } from '~/api.types';
 import TableEmptyState from '~/components/ui/TableEmptyState';
@@ -170,7 +171,7 @@ export function TrustingAccountsTable({
                           variant="flat"
                           color="primary"
                           radius="sm"
-                          classNames={{ content: 'font-mono' }}
+                          classNames={chipClassNames}
                         >
                           {perm}
                         </Chip>
@@ -328,7 +329,7 @@ export function TrustedAccountsTable({
                           variant="flat"
                           color="secondary"
                           radius="sm"
-                          classNames={{ content: 'font-mono' }}
+                          classNames={chipClassNames}
                         >
                           {perm}
                         </Chip>
@@ -440,7 +441,7 @@ export function SentInvitesTable({
                       size="sm"
                       variant="flat"
                       radius="sm"
-                      classNames={{ content: 'font-mono' }}
+                      classNames={chipClassNames}
                     >
                       {formatType(invite.type)}
                     </Chip>
@@ -573,7 +574,7 @@ export function ReceivedInvitesTable({
                       size="sm"
                       variant="flat"
                       radius="sm"
-                      classNames={{ content: 'font-mono' }}
+                      classNames={chipClassNames}
                     >
                       {formatType(invite.type)}
                     </Chip>

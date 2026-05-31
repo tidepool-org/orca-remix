@@ -329,7 +329,7 @@ export default function DataSourcesTable({
         case 'providerName':
           return (
             <div className="flex flex-col">
-              <p className="text-bold text-sm capitalize">
+              <p className="font-semibold capitalize text-[color:var(--text-heading)]">
                 {item.providerName || 'N/A'}
               </p>
               {item.dataSourceId &&
