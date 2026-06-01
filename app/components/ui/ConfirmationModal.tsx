@@ -68,15 +68,15 @@ export default function ConfirmationModal({
       size="md"
       backdrop="blur"
       aria-label={title}
-      classNames={{ base: 'border border-content2' }}
+      classNames={{ base: 'border border-[color:var(--border)]' }}
     >
       <ModalContent>
         <ModalHeader className="flex items-center gap-3">
           <span
             className={`grid place-items-center w-8 h-8 rounded-lg border ${
               confirmVariant === 'danger'
-                ? 'bg-danger-50 border-danger-200 text-danger'
-                : 'bg-primary-50 border-primary-200 text-primary'
+                ? 'bg-[color:var(--danger-soft)] border-[color:var(--danger-border)] text-[color:var(--danger)]'
+                : 'bg-[color:var(--primary-soft)] border-[color:var(--primary-soft)] text-[color:var(--primary)]'
             }`}
             aria-hidden="true"
           >
@@ -85,7 +85,7 @@ export default function ConfirmationModal({
           <span className="text-base font-bold">{title}</span>
         </ModalHeader>
         <ModalBody>
-          <p className="text-default-600">{description}</p>
+          <p className="text-[color:var(--text-muted)]">{description}</p>
           {requiresInput && (
             <div className="mt-4">
               <Input
