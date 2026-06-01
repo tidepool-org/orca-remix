@@ -65,7 +65,7 @@ export default function ClinicMergeReportSection({
         <div className="space-y-4">
           <div className="flex items-center gap-2">
             <Building2
-              className="w-4 h-4 text-default-500"
+              className="w-4 h-4 text-[color:var(--text-muted)]"
               aria-hidden="true"
             />
             <span className="text-sm font-medium">Clinic IDs</span>
@@ -124,10 +124,10 @@ export default function ClinicMergeReportSection({
         {/* Report Contents Info */}
         <div className="border border-default-200 rounded-lg p-4">
           <p className="text-sm font-medium mb-2">Report Contents</p>
-          <p className="text-xs text-default-500 mb-3">
+          <p className="text-xs text-[color:var(--text-muted)] mb-3">
             The merge analysis report includes:
           </p>
-          <ul className="text-xs text-default-500 space-y-1 list-disc list-inside">
+          <ul className="text-xs text-[color:var(--text-muted)] space-y-1 list-disc list-inside">
             <li>Source clinic details (name, ID, patient count)</li>
             <li>Target clinic details (name, ID, patient count)</li>
             <li>Patients that will be transferred</li>

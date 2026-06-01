@@ -36,12 +36,12 @@ export default function ErrorStack() {
   }
 
   return (
-    <div className="bg-content1 text-content1-foreground rounded-lg px-2 border-1 border-content2">
+    <div className="bg-[color:var(--surface)] text-[color:var(--text)] rounded-lg px-2 border-1 border-[color:var(--border)]">
       <Accordion>
         <AccordionItem
           key="1"
           aria-label="error"
-          startContent={<AlertCircle className="text-danger" />}
+          startContent={<AlertCircle className="text-[color:var(--danger)]" />}
           subtitle={message}
           title={title}
         >

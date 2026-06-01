@@ -24,12 +24,15 @@ export default function ResourceError({
       role="alert"
       aria-live="polite"
     >
-      <AlertCircle className="w-12 h-12 text-danger mb-4" aria-hidden="true" />
-      <span className="text-danger font-medium text-center">
+      <AlertCircle
+        className="w-12 h-12 text-[color:var(--danger)] mb-4"
+        aria-hidden="true"
+      />
+      <span className="text-[color:var(--danger)] font-medium text-center">
         Failed to load {title}
       </span>
       {message && (
-        <span className="text-default-500 text-sm mt-1 text-center max-w-md">
+        <span className="text-[color:var(--text-muted)] text-sm mt-1 text-center max-w-md">
           {message}
         </span>
       )}
