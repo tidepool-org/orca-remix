@@ -42,7 +42,7 @@
   --primary-soft-fg: #3d45b0;
   --nav-bg: #2b2148;
   --nav-fg: #b3acce;
-  --nav-fg-dim: #8d85ad;
+  --nav-fg-dim: #968fb5; /* lightened from ref #8d85ad for WCAG AA (4.88:1) on --nav-bg */
   --nav-active-bg: #ffffff;
   --nav-active-fg: #2b2148;
   --topbar-bg: #ffffff;
@@ -85,7 +85,7 @@
   --primary-soft-fg: #b9bdfb;
   --nav-bg: #181433;
   --nav-fg: #aab2c4;
-  --nav-fg-dim: #6b7384;
+  --nav-fg-dim: #7b8499; /* lightened from ref #6b7384 for WCAG AA (4.72:1) on --nav-bg dark */
   --nav-active-bg: #5a63d8;
   --nav-active-fg: #ffffff;
   --topbar-bg: #181a22;

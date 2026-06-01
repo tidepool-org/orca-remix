@@ -28,7 +28,7 @@ vi.mock('~/hooks/useLocale', () => ({
 
 // Mock ClipboardButton since CopyableIdentifier uses it
 vi.mock('~/components/ui/ClipboardButton', () => ({
-  default: ({ clipboardText }: { clipboardText: string }) => (
+  default: () => (
     <button type="button" aria-label="Copy to clipboard">
       Copy
     </button>

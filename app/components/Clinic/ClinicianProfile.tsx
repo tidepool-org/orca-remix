@@ -175,8 +175,8 @@ export default function ClinicianProfile({
         title={clinician.name}
         identifiers={clinicianIdentifiers}
         actionLinks={[
-          <ViewUserAccountLink userId={clinician.id} />,
-          <RollbarLink userId={clinician.id} />,
+          <ViewUserAccountLink key="view-account" userId={clinician.id} />,
+          <RollbarLink key="rollbar" userId={clinician.id} />,
         ]}
         detailFields={clinicianDetailFields}
         {...profileExpandedProps}

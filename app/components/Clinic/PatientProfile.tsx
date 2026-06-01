@@ -241,8 +241,8 @@ export default function PatientProfile({
         }
         identifiers={patientIdentifiers}
         actionLinks={[
-          <ViewUserAccountLink userId={id} />,
-          <RollbarLink userId={id} />,
+          <ViewUserAccountLink key="view-account" userId={id} />,
+          <RollbarLink key="rollbar" userId={id} />,
         ]}
         detailFields={patientDetailFields}
         {...profileExpandedProps}

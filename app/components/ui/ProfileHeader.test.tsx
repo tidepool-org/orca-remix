@@ -82,8 +82,12 @@ describe('ProfileHeader', () => {
         <ProfileHeader
           title="Test"
           actionLinks={[
-            <a href="/somewhere">View Details</a>,
-            <a href="/other">Rollbar</a>,
+            <a key="details" href="/somewhere">
+              View Details
+            </a>,
+            <a key="rollbar" href="/other">
+              Rollbar
+            </a>,
           ]}
         />,
       );
