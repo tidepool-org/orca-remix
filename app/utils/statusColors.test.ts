@@ -4,12 +4,14 @@ import {
   getInviteStatusColor,
   getDataSourceStateColor,
   getRoleColor,
+  getAccountStatusColor,
   getStatusColor,
   formatRoleLabel,
   prescriptionStateColors,
   inviteStatusColors,
   dataSourceStateColors,
   roleColors,
+  accountStatusColors,
 } from './statusColors';
 
 describe('statusColors', () => {
@@ -96,6 +98,7 @@ describe('statusColors', () => {
   describe('getRoleColor', () => {
     it.each([
       ['clinic_admin', 'primary'],
+      ['clinic_manager', 'primary'],
       ['prescriber', 'success'],
       ['clinic_member', 'default'],
     ])('returns %s color for %s role', (role, expected) => {
@@ -113,6 +116,30 @@ describe('statusColors', () => {
       'returns default for %s',
       (role) => {
         expect(getRoleColor(role)).toBe('default');
+      },
+    );
+  });
+
+  describe('getAccountStatusColor', () => {
+    it.each([
+      ['verified', 'success'],
+      ['unverified', 'warning'],
+      ['unclaimed', 'default'],
+    ])('returns %s color for %s status', (status, expected) => {
+      expect(getAccountStatusColor(status)).toBe(expected);
+    });
+
+    it.each([
+      ['Verified', 'success'],
+      ['UNCLAIMED', 'default'],
+    ])('handles case insensitivity: %s returns %s', (status, expected) => {
+      expect(getAccountStatusColor(status)).toBe(expected);
+    });
+
+    it.each([['unknown'], [null], [undefined]])(
+      'returns default for %s',
+      (status) => {
+        expect(getAccountStatusColor(status)).toBe('default');
       },
     );
   });
@@ -150,6 +177,7 @@ describe('statusColors', () => {
   describe('formatRoleLabel', () => {
     it.each([
       ['clinic_admin', 'Admin'],
+      ['clinic_manager', 'Manager'],
       ['clinic_member', 'Member'],
       ['prescriber', 'Prescriber'],
     ])('formats %s as %s', (role, expected) => {
@@ -222,9 +250,21 @@ describe('statusColors', () => {
     });
 
     it('roleColors contains all expected roles', () => {
-      const expectedRoles = ['clinic_admin', 'prescriber', 'clinic_member'];
+      const expectedRoles = [
+        'clinic_admin',
+        'clinic_manager',
+        'prescriber',
+        'clinic_member',
+      ];
       expectedRoles.forEach((role) => {
         expect(Object.keys(roleColors)).toContain(role);
+      });
+    });
+
+    it('accountStatusColors contains all expected statuses', () => {
+      const expectedStatuses = ['verified', 'unverified', 'unclaimed'];
+      expectedStatuses.forEach((status) => {
+        expect(Object.keys(accountStatusColors)).toContain(status);
       });
     });
   });

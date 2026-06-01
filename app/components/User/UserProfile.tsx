@@ -41,6 +41,12 @@ import type {
 import useLocale from '~/hooks/useLocale';
 import useProfileExpanded from '~/hooks/useProfileExpanded';
 import { formatShortDate } from '~/utils/dateFormatters';
+import { getChipClassNames } from '~/utils/chipStyles';
+import {
+  getRoleColor,
+  getAccountStatusColor,
+  formatRoleLabel,
+} from '~/utils/statusColors';
 
 export type UserProfileProps = {
   user: User;
@@ -123,6 +129,11 @@ export default function UserProfile({
 
   // Determine if this is an unclaimed/custodial account
   const isUnclaimedAccount = !emailVerified && !termsAccepted;
+  const accountStatusLabel = isUnclaimedAccount
+    ? 'Unclaimed'
+    : emailVerified
+      ? 'Verified'
+      : 'Unverified';
 
   // Calculate counts for tab badges (excluding current user's own entries)
   const trustingAccountsCount = Object.keys(trustingAccounts).filter(
@@ -149,9 +160,13 @@ export default function UserProfile({
       value: clinic ? (
         <>
           <span>Clinician</span>
-          <span className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-[color:var(--chip-bg)] text-[color:var(--chip-fg)] font-mono text-[11px]">
-            {clinic.role}
-          </span>
+          <Chip
+            variant="flat"
+            radius="sm"
+            classNames={getChipClassNames(getRoleColor(clinic.role))}
+          >
+            {formatRoleLabel(clinic.role)}
+          </Chip>
         </>
       ) : (
         'Patient'
@@ -159,11 +174,17 @@ export default function UserProfile({
     },
     {
       label: 'Account Status',
-      value: isUnclaimedAccount
-        ? 'Unclaimed'
-        : emailVerified
-          ? 'Verified'
-          : 'Unverified',
+      value: (
+        <Chip
+          variant="flat"
+          radius="sm"
+          classNames={getChipClassNames(
+            getAccountStatusColor(accountStatusLabel),
+          )}
+        >
+          {accountStatusLabel}
+        </Chip>
+      ),
     },
     ...(termsAccepted
       ? [
@@ -185,7 +206,7 @@ export default function UserProfile({
             variant="flat"
             color="warning"
             radius="sm"
-            classNames={{ content: 'font-mono' }}
+            classNames={getChipClassNames('warning')}
           >
             Custodial
           </Chip>
