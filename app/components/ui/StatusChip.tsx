@@ -8,7 +8,7 @@ import {
   formatRoleLabel,
   type ChipColor,
 } from '~/utils/statusColors';
-import { chipClassNames } from '~/utils/chipStyles';
+import { getChipClassNames } from '~/utils/chipStyles';
 
 type StatusType = 'prescription' | 'invite' | 'dataSource' | 'role';
 
@@ -121,7 +121,7 @@ export default function StatusChip({
       variant={variant}
       size={size}
       radius="sm"
-      classNames={chipClassNames}
+      classNames={getChipClassNames(getColor())}
       className={`${capitalize ? 'capitalize' : ''} ${className ?? ''}`}
     >
       {getLabel()}

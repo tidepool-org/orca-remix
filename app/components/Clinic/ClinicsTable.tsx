@@ -13,7 +13,7 @@ import { Building2 } from 'lucide-react';
 import useLocale from '~/hooks/useLocale';
 import CollapsibleTableWrapper from '../ui/CollapsibleTableWrapper';
 import { collapsibleTableClasses, columnClass } from '~/utils/tableStyles';
-import { chipClassNames } from '~/utils/chipStyles';
+import { getChipClassNames } from '~/utils/chipStyles';
 import type {
   Clinic,
   ClinicianClinicMembership,
@@ -171,7 +171,9 @@ export default function ClinicsTable({
               variant="flat"
               radius="sm"
               color={TIER_COLOR[clinic.tier ?? ''] ?? 'default'}
-              classNames={chipClassNames}
+              classNames={getChipClassNames(
+                TIER_COLOR[clinic.tier ?? ''] ?? 'default',
+              )}
             >
               {clinic.tier || 'N/A'}
             </Chip>
@@ -187,7 +189,7 @@ export default function ClinicsTable({
                     variant="flat"
                     color="success"
                     radius="sm"
-                    classNames={chipClassNames}
+                    classNames={getChipClassNames('success')}
                   >
                     View
                   </Chip>
@@ -198,7 +200,7 @@ export default function ClinicsTable({
                     variant="flat"
                     color="warning"
                     radius="sm"
-                    classNames={chipClassNames}
+                    classNames={getChipClassNames('warning')}
                   >
                     Upload
                   </Chip>
@@ -209,7 +211,7 @@ export default function ClinicsTable({
                     variant="flat"
                     color="secondary"
                     radius="sm"
-                    classNames={chipClassNames}
+                    classNames={getChipClassNames('secondary')}
                   >
                     Note
                   </Chip>
@@ -220,7 +222,7 @@ export default function ClinicsTable({
                     variant="flat"
                     color="primary"
                     radius="sm"
-                    classNames={chipClassNames}
+                    classNames={getChipClassNames('primary')}
                   >
                     Custodian
                   </Chip>

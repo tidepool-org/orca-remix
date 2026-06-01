@@ -17,7 +17,7 @@ import {
   columnClass,
   actionsColumnClass,
 } from '~/utils/tableStyles';
-import { chipClassNames } from '~/utils/chipStyles';
+import { getChipClassNames } from '~/utils/chipStyles';
 import type { Clinician } from './types';
 import DebouncedSearchInput from '../ui/DebouncedSearchInput';
 import ConfirmationModal from '../ui/ConfirmationModal';
@@ -163,7 +163,11 @@ export default function CliniciansTable({
               size="sm"
               variant="flat"
               radius="sm"
-              classNames={chipClassNames}
+              classNames={getChipClassNames(
+                primaryRole.toLowerCase().includes('admin')
+                  ? 'primary'
+                  : 'default',
+              )}
             >
               {primaryRole.replace('CLINIC_', '').toLowerCase()}
             </Chip>

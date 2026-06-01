@@ -17,7 +17,7 @@ import useLocale from '~/hooks/useLocale';
 import useClinicResolvers from '~/hooks/useClinicResolvers';
 import CollapsibleTableWrapper from '../ui/CollapsibleTableWrapper';
 import { collapsibleTableClasses, columnClass } from '~/utils/tableStyles';
-import { chipClassNames } from '~/utils/chipStyles';
+import { getChipClassNames } from '~/utils/chipStyles';
 import type { Patient } from './types';
 import DebouncedSearchInput from '../ui/DebouncedSearchInput';
 import TableEmptyState from '~/components/ui/TableEmptyState';
@@ -177,7 +177,7 @@ export default function PatientsTable({
                     variant="flat"
                     color="warning"
                     radius="sm"
-                    classNames={chipClassNames}
+                    classNames={getChipClassNames('warning')}
                   >
                     Custodial
                   </Chip>
@@ -212,7 +212,7 @@ export default function PatientsTable({
                   variant="flat"
                   color="primary"
                   radius="sm"
-                  classNames={chipClassNames}
+                  classNames={getChipClassNames('primary')}
                 >
                   {getTagName(tagId)}
                 </Chip>
@@ -234,7 +234,7 @@ export default function PatientsTable({
                               variant="flat"
                               color="primary"
                               radius="sm"
-                              classNames={chipClassNames}
+                              classNames={getChipClassNames('primary')}
                             >
                               {getTagName(tagId)}
                             </Chip>
@@ -250,7 +250,7 @@ export default function PatientsTable({
                     color="default"
                     radius="sm"
                     className="cursor-help"
-                    classNames={chipClassNames}
+                    classNames={getChipClassNames('default')}
                   >
                     +{patient.tags.length - 2}
                   </Chip>
@@ -270,7 +270,7 @@ export default function PatientsTable({
                   variant="flat"
                   color="secondary"
                   radius="sm"
-                  classNames={chipClassNames}
+                  classNames={getChipClassNames('secondary')}
                 >
                   {getSiteName(site.id || site.name || String(site))}
                 </Chip>
@@ -290,7 +290,7 @@ export default function PatientsTable({
                             variant="flat"
                             color="secondary"
                             radius="sm"
-                            classNames={chipClassNames}
+                            classNames={getChipClassNames('secondary')}
                           >
                             {getSiteName(site.id || site.name || String(site))}
                           </Chip>
@@ -306,7 +306,7 @@ export default function PatientsTable({
                     color="default"
                     radius="sm"
                     className="cursor-help"
-                    classNames={chipClassNames}
+                    classNames={getChipClassNames('default')}
                   >
                     +{patient.sites.length - 2}
                   </Chip>

@@ -25,7 +25,7 @@ import {
   columnClass,
   actionsColumnClass,
 } from '~/utils/tableStyles';
-import { chipClassNames } from '~/utils/chipStyles';
+import { getChipClassNames } from '~/utils/chipStyles';
 import { iconButtonClassName } from '~/utils/iconButtonStyles';
 import type { DataSet } from './types';
 import type { ResourceState } from '~/api.types';
@@ -206,7 +206,7 @@ export default function DataSetsTable({
                       variant="flat"
                       color="default"
                       radius="sm"
-                      classNames={chipClassNames}
+                      classNames={getChipClassNames('default')}
                     >
                       {tag}
                     </Chip>
@@ -234,7 +234,9 @@ export default function DataSetsTable({
                 variant="flat"
                 size="sm"
                 radius="sm"
-                classNames={chipClassNames}
+                classNames={getChipClassNames(
+                  isContinuous ? 'success' : 'primary',
+                )}
               >
                 {type}
               </Chip>
