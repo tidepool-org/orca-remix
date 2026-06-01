@@ -54,7 +54,7 @@ export default function DangerZoneSection({
 
   return (
     <div className={className}>
-      <div className="flex items-center gap-2 text-danger mb-4">
+      <div className="flex items-center gap-2 text-[color:var(--danger)] mb-4">
         {showIcon && <AlertTriangle size={18} aria-hidden="true" />}
         <Heading className={headerClasses[size]}>{title}</Heading>
       </div>

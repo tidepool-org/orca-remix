@@ -194,13 +194,13 @@ export default function PatientsTable({
               {formatShortDate(patient.birthDate, locale)}
             </p>
           ) : (
-            <span className="text-default-400">—</span>
+            <span className="text-[color:var(--text-faint)]">—</span>
           );
         case 'mrn':
           return patient.mrn ? (
             <p className="text-sm font-mono">{patient.mrn}</p>
           ) : (
-            <span className="text-default-400">—</span>
+            <span className="text-[color:var(--text-faint)]">—</span>
           );
         case 'tags':
           return patient.tags && patient.tags.length > 0 ? (
@@ -258,7 +258,7 @@ export default function PatientsTable({
               )}
             </div>
           ) : (
-            <span className="text-default-400">—</span>
+            <span className="text-[color:var(--text-faint)]">—</span>
           );
         case 'sites':
           return patient.sites && patient.sites.length > 0 ? (
@@ -314,7 +314,7 @@ export default function PatientsTable({
               )}
             </div>
           ) : (
-            <span className="text-default-400">—</span>
+            <span className="text-[color:var(--text-faint)]">—</span>
           );
         case 'createdTime':
           return (
@@ -359,7 +359,7 @@ export default function PatientsTable({
 
       <Table
         aria-label="Clinic patients table"
-        className="flex flex-1 flex-col text-content1-foreground gap-4"
+        className="flex flex-1 flex-col text-[color:var(--text)] gap-4"
         shadow="none"
         removeWrapper
         selectionMode="single"

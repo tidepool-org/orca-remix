@@ -120,7 +120,7 @@ export default function UserActions({ user }: UserActionsProps) {
       inputPlaceholder: 'Enter email or user ID',
       expectedInput: displayName,
       inputLabel: `Confirm by typing the user ${user.username ? 'email' : 'ID'}`,
-      icon: <Trash2 className="text-danger" size={20} />,
+      icon: <Trash2 className="text-[color:var(--danger)]" size={20} />,
     },
     'delete-account': {
       title: 'Delete User Account',
@@ -131,7 +131,7 @@ export default function UserActions({ user }: UserActionsProps) {
       inputPlaceholder: 'Enter email or user ID',
       expectedInput: displayName,
       inputLabel: `Confirm by typing the user ${user.username ? 'email' : 'ID'}`,
-      icon: <UserX className="text-danger" size={20} />,
+      icon: <UserX className="text-[color:var(--danger)]" size={20} />,
     },
   };
 

@@ -90,9 +90,9 @@ export default function ClinicianProfile({
 
   if (!clinician) {
     return (
-      <div className="w-full rounded-lg border-2 border-content2 overflow-hidden">
-        <div className="p-4 bg-content1">
-          <p className="text-default-600">Clinician not found</p>
+      <div className="w-full rounded-lg border-2 border-[color:var(--border)] overflow-hidden">
+        <div className="p-4 bg-[color:var(--surface)]">
+          <p className="text-[color:var(--text-muted)]">Clinician not found</p>
         </div>
       </div>
     );
@@ -269,7 +269,7 @@ export default function ClinicianProfile({
                   </div>
 
                   {fetcher.data?.error && (
-                    <div className="mt-4 p-3 bg-danger/10 text-danger rounded-lg text-sm">
+                    <div className="mt-4 p-3 bg-[color:var(--danger-soft)] text-[color:var(--danger)] rounded-lg text-sm">
                       {fetcher.data.error}
                     </div>
                   )}

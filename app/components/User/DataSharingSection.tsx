@@ -119,7 +119,7 @@ export function TrustingAccountsTable({
         />
       ) : (
         <>
-          <p className="text-sm text-default-500 mb-4">
+          <p className="text-sm text-[color:var(--text-muted)] mb-4">
             These accounts have granted this user access to view their data.
           </p>
           <TableFilterInput
@@ -277,7 +277,7 @@ export function TrustedAccountsTable({
         />
       ) : (
         <>
-          <p className="text-sm text-default-500 mb-4">
+          <p className="text-sm text-[color:var(--text-muted)] mb-4">
             These accounts can view this user&apos;s data.
           </p>
           <TableFilterInput
@@ -410,7 +410,7 @@ export function SentInvitesTable({
         />
       ) : (
         <>
-          <p className="text-sm text-default-500 mb-4">
+          <p className="text-sm text-[color:var(--text-muted)] mb-4">
             Pending invitations sent by this user to share their data.
           </p>
           <Table
@@ -529,7 +529,7 @@ export function ReceivedInvitesTable({
         />
       ) : (
         <>
-          <p className="text-sm text-default-500 mb-4">
+          <p className="text-sm text-[color:var(--text-muted)] mb-4">
             Pending invitations received by this user from others to view their
             data.
           </p>
@@ -564,7 +564,7 @@ export function ReceivedInvitesTable({
                       <span className="text-sm">
                         {invite.creator?.profile?.fullName || 'Unknown'}
                       </span>
-                      <span className="text-xs text-default-400 font-mono">
+                      <span className="text-xs text-[color:var(--text-faint)] font-mono">
                         {invite.creatorId}
                       </span>
                     </div>

@@ -231,7 +231,7 @@ export default function CliniciansTable({
 
         <Table
           aria-label="Clinic clinicians table"
-          className="flex flex-1 flex-col text-content1-foreground gap-4"
+          className="flex flex-1 flex-col text-[color:var(--text)] gap-4"
           shadow="none"
           removeWrapper
           selectionMode="single"

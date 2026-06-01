@@ -230,7 +230,7 @@ export default function ClinicsTable({
               </div>
             );
           }
-          return <span className="text-default-400">—</span>;
+          return <span className="text-[color:var(--text-faint)]">—</span>;
         case 'createdTime':
           return (
             <div className="text-sm">

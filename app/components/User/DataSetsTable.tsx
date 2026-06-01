@@ -179,12 +179,12 @@ export default function DataSetsTable({
               monospace
               size="sm"
             >
-              <span className="text-xs font-mono text-default-500 truncate max-w-[120px]">
+              <span className="text-xs font-mono text-[color:var(--text-muted)] truncate max-w-[120px]">
                 {item.uploadId.slice(0, 8)}...
               </span>
             </CopyableIdentifier>
           ) : (
-            <span className="text-xs text-default-500">N/A</span>
+            <span className="text-xs text-[color:var(--text-muted)]">N/A</span>
           );
         case 'deviceModel':
           return (
@@ -193,7 +193,7 @@ export default function DataSetsTable({
                 {item.deviceModel || 'N/A'}
               </p>
               {item.deviceSerialNumber && (
-                <p className="text-xs text-default-400 font-mono">
+                <p className="text-xs text-[color:var(--text-faint)] font-mono">
                   SN: {item.deviceSerialNumber}
                 </p>
               )}
@@ -256,7 +256,7 @@ export default function DataSetsTable({
                   monospace
                   size="sm"
                 >
-                  <span className="text-xs font-mono text-default-400">
+                  <span className="text-xs font-mono text-[color:var(--text-faint)]">
                     {item.byUser.slice(0, 8)}...
                   </span>
                 </CopyableIdentifier>
@@ -265,7 +265,7 @@ export default function DataSetsTable({
           );
         case 'version':
           return (
-            <span className="text-xs text-default-500">
+            <span className="text-xs text-[color:var(--text-muted)]">
               {item.version || 'N/A'}
             </span>
           );
@@ -273,7 +273,7 @@ export default function DataSetsTable({
           const menuItems = [
             <DropdownItem
               key="delete-dataset"
-              className="text-danger"
+              className="text-[color:var(--danger)]"
               color="danger"
               startContent={<Trash2 className="w-4 h-4" aria-hidden="true" />}
               description="Delete entire dataset"
@@ -287,7 +287,7 @@ export default function DataSetsTable({
             menuItems.push(
               <DropdownItem
                 key="delete-data"
-                className="text-danger"
+                className="text-[color:var(--danger)]"
                 color="danger"
                 startContent={
                   <Database className="w-4 h-4" aria-hidden="true" />

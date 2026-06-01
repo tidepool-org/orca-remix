@@ -51,14 +51,14 @@
   --topbar-border: #dde1e8;
   --topbar-shadow:
     0 1px 2px rgba(20, 22, 40, 0.05), 0 4px 12px -8px rgba(20, 22, 40, 0.12);
-  --warn: #b7791f;
+  --warn: #946011; /* darkened from ref #b7791f for WCAG AA (4.85:1) on --warn-bg */
   --warn-bg: #fdf3e3;
   --warn-border: #f3dcb4;
   --field-bg: #f1f3f6;
   --field-border: #e2e6ec;
   --chip-bg: #dde0f3;
   --chip-fg: #4750a8;
-  --ok: #1f9d6b;
+  --ok: #136a43; /* darkened from ref #1f9d6b for WCAG AA (≥4.86:1) on success-chip mix over white/surface-2 */
   --danger: #c2362c;
   --danger-fg: #ffffff;
   --danger-soft: #fbeae8;

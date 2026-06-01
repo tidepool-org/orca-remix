@@ -107,7 +107,9 @@ export default function RecentItemsTable<T extends { id: string }>({
   };
 
   const EmptyContent = (
-    <p className="text-center text-default-400 py-4">{emptyMessage}</p>
+    <p className="text-center text-[color:var(--text-faint)] py-4">
+      {emptyMessage}
+    </p>
   );
 
   const defaultRenderCell = (item: T, columnKey: string) => {
@@ -117,7 +119,7 @@ export default function RecentItemsTable<T extends { id: string }>({
   return (
     <SectionPanel icon={<Icon />} title={title} aria-label={ariaLabel}>
       <Table
-        className="flex flex-1 flex-col text-content1-foreground gap-4"
+        className="flex flex-1 flex-col text-[color:var(--text)] gap-4"
         aria-label={ariaLabel}
         shadow="none"
         removeWrapper
