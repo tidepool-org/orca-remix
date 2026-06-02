@@ -194,6 +194,13 @@ pre {
   box-shadow: 0 0 0 3px var(--primary-soft) !important;
 }
 
+/* HeroUI/react-aria injects a hidden sentinel <tr aria-hidden="true"> at the
+   end of the table head; though aria-hidden + 1px, it still occupies ~6px of
+   layout and opens a visible gap below the header. Collapse it. */
+thead tr[aria-hidden='true'] {
+  display: none;
+}
+
 @layer base {
   @font-face {
     font-family: 'Basis';

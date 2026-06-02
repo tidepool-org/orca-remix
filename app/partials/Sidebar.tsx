@@ -85,7 +85,7 @@ function Sidebar({ sidebarOpen, setSidebarOpen }: SidebarOpenProps) {
         }`}
       >
         {/* Sidebar header */}
-        <div className="flex items-center justify-between lg:justify-center sidebar-expanded:justify-between mb-4 pr-3 sm:px-2 pb-[10px]">
+        <div className="flex items-center justify-between lg:justify-center lg:sidebar-expanded:justify-start mb-4 pb-[10px]">
           {/* Close button */}
           <Button
             ref={trigger}
@@ -100,11 +100,14 @@ function Sidebar({ sidebarOpen, setSidebarOpen }: SidebarOpenProps) {
             <ArrowLeftFromLine aria-hidden="true" />
           </Button>
 
-          <NavLink to="/" className="block px-2 py-1">
+          <NavLink
+            to="/"
+            className="block px-2 sidebar-expanded:px-0 py-1 sidebar-expanded:pt-0"
+          >
             <Logo
-              className={`hidden lg:block ${sidebarExpanded ? 'right-3' : 'right-0'}`}
+              className="hidden lg:block"
               src={sidebarExpanded ? undefined : SmallLogo}
-              width={sidebarExpanded ? 152 : 28}
+              width={sidebarExpanded ? 172 : 22}
               theme={Theme.DARK}
             />
             <Logo

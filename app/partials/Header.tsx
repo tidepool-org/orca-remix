@@ -20,7 +20,7 @@ function Header({ sidebarOpen, setSidebarOpen, onOpenShortcuts }: HeaderProps) {
           <div className="flex items-center flex-1">
             {/* Hamburger button */}
             <Button
-              className="bg-transparent text-foreground lg:hidden"
+              className="bg-transparent text-foreground lg:hidden mr-1"
               size="sm"
               isIconOnly
               aria-controls="sidebar"
@@ -30,12 +30,7 @@ function Header({ sidebarOpen, setSidebarOpen, onOpenShortcuts }: HeaderProps) {
               <span className="sr-only">Open sidebar</span>
               <Menu />
             </Button>
-            <div>
-              <Link className="lg:hidden" href="/">
-                <Logo />
-              </Link>
-            </div>
-            <div className="hidden sm:block flex-1 max-w-2xl">
+            <div className="block flex-1 max-w-2xl">
               <HeaderSearch />
             </div>
           </div>

@@ -73,10 +73,11 @@ export default function CopyableIdentifier({
 
   const valueClasses = [
     useMonospace ? `font-mono ${sizeClasses[size]}` : sizeClasses[size],
-    // In truncate mode the value must be allowed to shrink (min-w-0) and take
-    // the available row width (flex-1) so the ellipsis engages inside a
-    // fixed-layout table cell, leaving the copy icon flush within the cell.
-    truncate ? 'truncate min-w-0 flex-1' : '',
+    // In truncate mode the value shrinks (min-w-0) and ellipsizes inside a
+    // fixed-layout cell, but does NOT grow to fill it — so the copy icon stays
+    // flush against the text (matching non-truncated cells) rather than being
+    // pushed to the cell's right edge.
+    truncate ? 'truncate min-w-0' : '',
   ]
     .filter(Boolean)
     .join(' ');

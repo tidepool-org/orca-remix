@@ -129,6 +129,7 @@ export default function HeaderSearch() {
         size="sm"
         selectorIcon={null}
         disableSelectorIconRotation
+        selectorButtonProps={{ className: 'hidden' }}
         placeholder={isFocused ? 'Name, ID, Email, or Share Code' : 'Search'}
         aria-label="Search for a user, clinic, patient, clinician, or prescription"
         onFocus={handleFocus}
@@ -176,7 +177,7 @@ export default function HeaderSearch() {
         endContent={
           !isFocused && !inputValue ? (
             <kbd
-              className="hidden sm:inline-flex items-center px-1.5 py-0.5 border border-[color:var(--field-border)] bg-[color:var(--surface)] rounded text-[10.5px] text-[color:var(--text-faint)] font-mono"
+              className="inline-flex items-center mr-1.5 px-1.5 py-0.5 border border-[color:var(--field-border)] bg-[color:var(--surface)] rounded text-[10.5px] text-[color:var(--text-faint)] font-mono"
               aria-hidden="true"
             >
               /

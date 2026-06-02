@@ -71,7 +71,9 @@ export default function CollapsibleTableWrapper({
   return (
     <div className="w-full rounded-[8px] border border-[color:var(--border)] bg-[color:var(--surface)] overflow-hidden shadow-token">
       <button
-        className="flex justify-between items-center w-full px-4 min-h-[43px] bg-[color:var(--surface-2)] hover:bg-[color:var(--surface-3)] transition-colors cursor-pointer"
+        className={`flex justify-between items-center w-full px-4 min-h-[43px] bg-[color:var(--surface-2)] hover:bg-[color:var(--surface-3)] transition-colors cursor-pointer ${
+          isExpanded ? 'border-b border-[color:var(--border)]' : ''
+        }`}
         onClick={handleToggle}
         aria-expanded={isExpanded}
         aria-controls={panelId}
