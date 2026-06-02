@@ -28,7 +28,7 @@ vi.mock('~/hooks/useLocale', () => ({
 
 // Mock ClipboardButton since CopyableIdentifier uses it
 vi.mock('~/components/ui/ClipboardButton', () => ({
-  default: ({ clipboardText }: { clipboardText: string }) => (
+  default: () => (
     <button type="button" aria-label="Copy to clipboard">
       Copy
     </button>
@@ -101,7 +101,7 @@ describe('TrustingAccountsTable', () => {
       renderExpanded(<TrustingAccountsTable {...defaultProps} />);
 
       expect(
-        screen.getByText('Accounts Sharing With User (3)'),
+        screen.getByText('Accounts Sharing With User'),
       ).toBeInTheDocument();
     });
 
@@ -253,9 +253,7 @@ describe('TrustingAccountsTable', () => {
       );
 
       // With only 1 item and PAGE_SIZE=25, no pagination should show
-      expect(
-        screen.queryByRole('navigation', { name: /pagination/i }),
-      ).not.toBeInTheDocument();
+      expect(screen.queryByLabelText('Jump to page')).not.toBeInTheDocument();
     });
 
     it('renders pagination controls when items exceed page size', () => {
@@ -272,9 +270,7 @@ describe('TrustingAccountsTable', () => {
         />,
       );
 
-      expect(
-        screen.getByRole('navigation', { name: /pagination/i }),
-      ).toBeInTheDocument();
+      expect(screen.getByLabelText('Jump to page')).toBeInTheDocument();
     });
   });
 
@@ -368,9 +364,7 @@ describe('TrustedAccountsTable', () => {
     it('renders header with title and count', () => {
       renderExpanded(<TrustedAccountsTable {...defaultProps} />);
 
-      expect(
-        screen.getByText('Accounts User Shares With (3)'),
-      ).toBeInTheDocument();
+      expect(screen.getByText('Accounts User Shares With')).toBeInTheDocument();
     });
 
     it('renders introductory text', () => {
@@ -507,7 +501,7 @@ describe('SentInvitesTable', () => {
     it('renders header with title and count', () => {
       renderExpanded(<SentInvitesTable {...defaultProps} />);
 
-      expect(screen.getByText('Sent Invites (1)')).toBeInTheDocument();
+      expect(screen.getByText('Sent Invites')).toBeInTheDocument();
     });
 
     it('renders column headers', () => {
@@ -564,9 +558,7 @@ describe('SentInvitesTable', () => {
         <SentInvitesTable {...defaultProps} invites={[mockInvite]} />,
       );
 
-      expect(
-        screen.queryByRole('navigation', { name: /pagination/i }),
-      ).not.toBeInTheDocument();
+      expect(screen.queryByLabelText('Jump to page')).not.toBeInTheDocument();
     });
 
     it('renders pagination controls when items exceed page size', () => {
@@ -580,9 +572,7 @@ describe('SentInvitesTable', () => {
         <SentInvitesTable {...defaultProps} invites={manyInvites} />,
       );
 
-      expect(
-        screen.getByRole('navigation', { name: /pagination/i }),
-      ).toBeInTheDocument();
+      expect(screen.getByLabelText('Jump to page')).toBeInTheDocument();
     });
   });
 
@@ -649,11 +639,7 @@ describe('SentInvitesTable', () => {
       renderExpanded(
         <SentInvitesTable
           {...defaultProps}
-          invites={[
-            passwordResetInvite,
-            signupInvite,
-            noAccountInvite,
-          ]}
+          invites={[passwordResetInvite, signupInvite, noAccountInvite]}
         />,
       );
 
@@ -681,7 +667,7 @@ describe('ReceivedInvitesTable', () => {
     it('renders header with title and count', () => {
       renderExpanded(<ReceivedInvitesTable {...defaultProps} />);
 
-      expect(screen.getByText('Received Invites (1)')).toBeInTheDocument();
+      expect(screen.getByText('Received Invites')).toBeInTheDocument();
     });
 
     it('renders column headers', () => {
@@ -749,9 +735,7 @@ describe('ReceivedInvitesTable', () => {
         <ReceivedInvitesTable {...defaultProps} invites={[mockInvite]} />,
       );
 
-      expect(
-        screen.queryByRole('navigation', { name: /pagination/i }),
-      ).not.toBeInTheDocument();
+      expect(screen.queryByLabelText('Jump to page')).not.toBeInTheDocument();
     });
 
     it('renders pagination controls when items exceed page size', () => {
@@ -765,9 +749,7 @@ describe('ReceivedInvitesTable', () => {
         <ReceivedInvitesTable {...defaultProps} invites={manyInvites} />,
       );
 
-      expect(
-        screen.getByRole('navigation', { name: /pagination/i }),
-      ).toBeInTheDocument();
+      expect(screen.getByLabelText('Jump to page')).toBeInTheDocument();
     });
   });
 

@@ -102,9 +102,9 @@ export default function ClinicianInvitesTable({
         }
         case 'createdTime':
           if (!invite.createdTime)
-            return <span className="text-default-400">-</span>;
+            return <span className="text-[color:var(--text-faint)]">-</span>;
           return (
-            <p className="text-sm text-default-600">
+            <p className="text-sm text-[color:var(--text-muted)]">
               {formatShortDate(invite.createdTime, locale)}
             </p>
           );
@@ -122,7 +122,7 @@ export default function ClinicianInvitesTable({
             </div>
           );
         default:
-          return <span className="text-default-400">-</span>;
+          return <span className="text-[color:var(--text-faint)]">-</span>;
       }
     },
     [locale, onRevokeInvite],
@@ -146,7 +146,7 @@ export default function ClinicianInvitesTable({
       >
         <Table
           aria-label="Clinic clinician invites table"
-          className="flex flex-1 flex-col text-content1-foreground gap-4"
+          className="flex flex-1 flex-col text-[color:var(--text)]"
           shadow="none"
           removeWrapper
           classNames={collapsibleTableClasses}

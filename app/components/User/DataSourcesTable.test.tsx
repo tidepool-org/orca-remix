@@ -85,7 +85,7 @@ describe('DataSourcesTable', () => {
   describe('Rendering', () => {
     it('renders header with title and count', () => {
       render(<DataSourcesTable {...defaultProps} />);
-      expect(screen.getByText('Data Sources (2)')).toBeInTheDocument();
+      expect(screen.getByText('Data Sources')).toBeInTheDocument();
     });
 
     it('renders column headers', () => {

@@ -67,6 +67,7 @@ export default function ProfileTabs({
     <Tabs
       aria-label={ariaLabel}
       variant="underlined"
+      color="primary"
       defaultSelectedKey={defaultSelectedKey}
       selectedKey={selectedKey}
       onSelectionChange={onSelectionChange}
@@ -76,7 +77,8 @@ export default function ProfileTabs({
           'gap-4 w-full relative rounded-none p-0 border-b border-divider',
         cursor: 'w-full bg-primary',
         tab: 'max-w-fit px-2 h-12',
-        tabContent: 'group-data-[selected=true]:text-primary',
+        tabContent:
+          'group-data-[selected=true]:text-[color:var(--primary-strong)]',
       }}
     >
       {children}

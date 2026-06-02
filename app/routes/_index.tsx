@@ -46,12 +46,12 @@ export default function Index() {
   const { recentClinics, recentUsers } = useLoaderData<typeof loader>();
 
   return (
-    <div className="flex flex-col md:flex-row gap-8 md:gap-x-6 lg:gap-8">
-      <div className="flex flex-1 min-w-0 flex-col gap-8 md:gap-x-6 lg:gap-8">
+    <div className="flex flex-col md:flex-row gap-[22px]">
+      <div className="flex flex-1 min-w-0 flex-col gap-[22px]">
         <UserLookup />
         <RecentUsers rows={recentUsers} />
       </div>
-      <div className="flex flex-1 min-w-0 flex-col gap-8 md:gap-x-6 lg:gap-8">
+      <div className="flex flex-1 min-w-0 flex-col gap-[22px]">
         <ClinicLookup />
         <RecentClinics rows={recentClinics} />
       </div>

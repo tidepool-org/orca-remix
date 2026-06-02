@@ -102,16 +102,25 @@ export default function TableFilterInput({
         placeholder={placeholder}
         aria-label={ariaLabel ?? `Filter ${itemLabel}`}
         startContent={
-          <Search className="w-4 h-4 text-default-400" aria-hidden="true" />
+          <Search
+            className="w-4 h-4 text-[color:var(--text-faint)]"
+            aria-hidden="true"
+          />
         }
         value={value}
         onClear={handleClear}
         onValueChange={onChange}
         size={size}
         className={maxWidth}
+        classNames={{
+          inputWrapper:
+            'h-[34px] min-h-[34px] px-[11px] gap-2 bg-[color:var(--field-bg)] border border-[color:var(--field-border)] shadow-none rounded-[6px] data-[hover=true]:bg-[color:var(--field-bg)] data-[focus=true]:border-[color:var(--primary)] data-[focus=true]:!bg-[color:var(--surface)] group-data-[focus=true]:!bg-[color:var(--surface)] data-[focus=true]:shadow-[0_0_0_3px_var(--primary-soft)] group-data-[focus-visible=true]:!ring-0 group-data-[focus-visible=true]:!ring-offset-0',
+          input:
+            'text-[13px] text-[color:var(--text)] placeholder:text-[color:var(--text-faint)]',
+        }}
       />
       {showCount && (
-        <span className="text-sm text-default-400 whitespace-nowrap">
+        <span className="text-[11.5px] font-mono text-[color:var(--text-faint)] whitespace-nowrap">
           Showing {filteredCount} of {totalCount} {itemLabel}
         </span>
       )}

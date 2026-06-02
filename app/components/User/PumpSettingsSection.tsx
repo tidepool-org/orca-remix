@@ -120,7 +120,7 @@ export default function PumpSettingsSection({
   // BG units toggle component for header
   const bgUnitsToggle = (
     <div className="flex items-center gap-2">
-      <span className="text-sm text-default-500">mg/dL</span>
+      <span className="text-sm text-[color:var(--text-muted)]">mg/dL</span>
       <Switch
         size="sm"
         isSelected={!useMgdl}
@@ -130,7 +130,7 @@ export default function PumpSettingsSection({
           wrapper: '!bg-primary',
         }}
       />
-      <span className="text-sm text-default-500">mmol/L</span>
+      <span className="text-sm text-[color:var(--text-muted)]">mmol/L</span>
     </div>
   );
 
@@ -175,8 +175,13 @@ export default function PumpSettingsSection({
         aria-label="Pump settings section"
       >
         <div className="flex flex-col justify-center items-center py-8 gap-2">
-          <Settings className="w-12 h-12 text-default-300" aria-hidden="true" />
-          <span className="text-default-500">No pump settings found</span>
+          <Settings
+            className="w-12 h-12 text-[color:var(--text-faint)]"
+            aria-hidden="true"
+          />
+          <span className="text-[color:var(--text-muted)]">
+            No pump settings found
+          </span>
         </div>
       </SectionPanel>
     );
@@ -204,11 +209,17 @@ export default function PumpSettingsSection({
         <div className="flex items-center gap-2 mb-2">
           <span className="font-medium text-sm">{scheduleName}</span>
           {selectedSettings?.activeSchedule === scheduleName && (
-            <Chip size="sm" color="primary" variant="flat">
+            <Chip
+              size="sm"
+              color="primary"
+              variant="flat"
+              radius="sm"
+              classNames={{ content: 'font-mono' }}
+            >
               Active
             </Chip>
           )}
-          <span className="text-xs text-default-400 ml-auto">
+          <span className="text-xs text-[color:var(--text-faint)] ml-auto">
             Total: {totalDaily.toFixed(2)} U/day
           </span>
         </div>
@@ -360,32 +371,42 @@ export default function PumpSettingsSection({
             {selectedSettings.manufacturers &&
               selectedSettings.manufacturers.length > 0 && (
                 <div>
-                  <span className="text-default-400">Manufacturer:</span>{' '}
+                  <span className="text-[color:var(--text-faint)]">
+                    Manufacturer:
+                  </span>{' '}
                   <span>{selectedSettings.manufacturers.join(', ')}</span>
                 </div>
               )}
             {selectedSettings.model && (
               <div>
-                <span className="text-default-400">Model:</span>{' '}
+                <span className="text-[color:var(--text-faint)]">Model:</span>{' '}
                 <span>{selectedSettings.model}</span>
               </div>
             )}
             {selectedSettings.serialNumber && (
               <div>
-                <span className="text-default-400">Serial:</span>{' '}
+                <span className="text-[color:var(--text-faint)]">Serial:</span>{' '}
                 <span className="font-mono">
                   {selectedSettings.serialNumber}
                 </span>
               </div>
             )}
             <div>
-              <span className="text-default-400">Time:</span>{' '}
+              <span className="text-[color:var(--text-faint)]">Time:</span>{' '}
               <span>{formatDate(selectedSettings.time)}</span>
             </div>
             {selectedSettings.activeSchedule && (
               <div className="flex items-center gap-1">
-                <span className="text-default-400">Active Schedule:</span>{' '}
-                <Chip size="sm" color="primary" variant="flat">
+                <span className="text-[color:var(--text-faint)]">
+                  Active Schedule:
+                </span>{' '}
+                <Chip
+                  size="sm"
+                  color="primary"
+                  variant="flat"
+                  radius="sm"
+                  classNames={{ content: 'font-mono' }}
+                >
                   {selectedSettings.activeSchedule}
                 </Chip>
               </div>
@@ -437,7 +458,7 @@ export default function PumpSettingsSection({
                   ),
                 )
               ) : (
-                <div className="text-center text-default-400 py-4">
+                <div className="text-center text-[color:var(--text-faint)] py-4">
                   No basal schedules available
                 </div>
               )}
@@ -463,7 +484,7 @@ export default function PumpSettingsSection({
                   return entries ? renderBgTargetTable(name, entries) : null;
                 })
               ) : (
-                <div className="text-center text-default-400 py-4">
+                <div className="text-center text-[color:var(--text-faint)] py-4">
                   No BG targets available
                 </div>
               )}
@@ -489,7 +510,7 @@ export default function PumpSettingsSection({
                   return entries ? renderCarbRatioTable(name, entries) : null;
                 })
               ) : (
-                <div className="text-center text-default-400 py-4">
+                <div className="text-center text-[color:var(--text-faint)] py-4">
                   No carb ratios available
                 </div>
               )}
@@ -517,7 +538,7 @@ export default function PumpSettingsSection({
                     : null;
                 })
               ) : (
-                <div className="text-center text-default-400 py-4">
+                <div className="text-center text-[color:var(--text-faint)] py-4">
                   No insulin sensitivity factors available
                 </div>
               )}

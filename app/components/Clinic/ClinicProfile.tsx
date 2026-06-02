@@ -475,7 +475,7 @@ export default function ClinicProfile({
                 subtitle="Set a maximum number of patients for this clinic. Use the toggle to enable or disable the limit."
               >
                 {!isPatientLimitApplicable && (
-                  <p className="text-xs text-default-500 mb-4 p-2 bg-default-100 rounded-md">
+                  <p className="text-xs text-[color:var(--text-muted)] mb-4 p-2 bg-[color:var(--surface-2)] rounded-md">
                     Patient limits only apply to tier0100 clinics. Change the
                     clinic tier to tier0100 to enable this setting.
                   </p>
@@ -511,7 +511,9 @@ export default function ClinicProfile({
                           !isLimitEnabled
                         }
                       />
-                      <span className="text-sm text-default-500">patients</span>
+                      <span className="text-sm text-[color:var(--text-muted)]">
+                        patients
+                      </span>
                       {isPatientLimitApplicable && isPatientLimitDirty && (
                         <SaveCancelButtons
                           onSave={handlePatientLimitSave}
@@ -610,7 +612,8 @@ export default function ClinicProfile({
               {/* Danger Zone */}
               <SectionPanel
                 title="Danger Zone"
-                titleClassName="text-danger"
+                titleClassName="text-[color:var(--danger)]"
+                tone="danger"
                 collapsible
                 defaultExpanded={false}
               >

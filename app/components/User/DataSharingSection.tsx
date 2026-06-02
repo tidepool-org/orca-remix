@@ -13,6 +13,7 @@ import { Users, Send, Inbox } from 'lucide-react';
 import useLocale from '~/hooks/useLocale';
 import CollapsibleTableWrapper from '../ui/CollapsibleTableWrapper';
 import { collapsibleTableClasses, columnClass } from '~/utils/tableStyles';
+import { getChipClassNames } from '~/utils/chipStyles';
 import type { AccessPermissionsMap, ShareInvite, Permissions } from './types';
 import type { ResourceState } from '~/api.types';
 import TableEmptyState from '~/components/ui/TableEmptyState';
@@ -118,7 +119,7 @@ export function TrustingAccountsTable({
         />
       ) : (
         <>
-          <p className="text-sm text-default-500 mb-4">
+          <p className="text-sm text-[color:var(--text-muted)] mb-4">
             These accounts have granted this user access to view their data.
           </p>
           <TableFilterInput
@@ -169,6 +170,8 @@ export function TrustingAccountsTable({
                           size="sm"
                           variant="flat"
                           color="primary"
+                          radius="sm"
+                          classNames={getChipClassNames('primary')}
                         >
                           {perm}
                         </Chip>
@@ -274,7 +277,7 @@ export function TrustedAccountsTable({
         />
       ) : (
         <>
-          <p className="text-sm text-default-500 mb-4">
+          <p className="text-sm text-[color:var(--text-muted)] mb-4">
             These accounts can view this user&apos;s data.
           </p>
           <TableFilterInput
@@ -325,6 +328,8 @@ export function TrustedAccountsTable({
                           size="sm"
                           variant="flat"
                           color="secondary"
+                          radius="sm"
+                          classNames={getChipClassNames('secondary')}
                         >
                           {perm}
                         </Chip>
@@ -405,7 +410,7 @@ export function SentInvitesTable({
         />
       ) : (
         <>
-          <p className="text-sm text-default-500 mb-4">
+          <p className="text-sm text-[color:var(--text-muted)] mb-4">
             Pending invitations sent by this user to share their data.
           </p>
           <Table
@@ -432,7 +437,12 @@ export function SentInvitesTable({
                     <CopyableIdentifier value={invite.email} size="sm" />
                   </TableCell>
                   <TableCell>
-                    <Chip size="sm" variant="flat">
+                    <Chip
+                      size="sm"
+                      variant="flat"
+                      radius="sm"
+                      classNames={getChipClassNames('default')}
+                    >
                       {formatType(invite.type)}
                     </Chip>
                   </TableCell>
@@ -519,7 +529,7 @@ export function ReceivedInvitesTable({
         />
       ) : (
         <>
-          <p className="text-sm text-default-500 mb-4">
+          <p className="text-sm text-[color:var(--text-muted)] mb-4">
             Pending invitations received by this user from others to view their
             data.
           </p>
@@ -554,13 +564,18 @@ export function ReceivedInvitesTable({
                       <span className="text-sm">
                         {invite.creator?.profile?.fullName || 'Unknown'}
                       </span>
-                      <span className="text-xs text-default-400 font-mono">
+                      <span className="text-xs text-[color:var(--text-faint)] font-mono">
                         {invite.creatorId}
                       </span>
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Chip size="sm" variant="flat">
+                    <Chip
+                      size="sm"
+                      variant="flat"
+                      radius="sm"
+                      classNames={getChipClassNames('default')}
+                    >
                       {formatType(invite.type)}
                     </Chip>
                   </TableCell>

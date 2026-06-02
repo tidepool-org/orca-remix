@@ -54,7 +54,7 @@ export default function DangerZoneSection({
 
   return (
     <div className={className}>
-      <div className="flex items-center gap-2 text-danger mb-4">
+      <div className="flex items-center gap-2 text-[color:var(--danger)] mb-4">
         {showIcon && <AlertTriangle size={18} aria-hidden="true" />}
         <Heading className={headerClasses[size]}>{title}</Heading>
       </div>
@@ -129,13 +129,36 @@ export function ActionCard({
   actionButton,
   borderColor = 'border-default',
 }: ActionCardProps) {
+  const dividerCls =
+    borderColor === 'border-danger'
+      ? 'border-[color:var(--danger-border)]'
+      : 'border-[color:var(--border)]';
+  const undoPhrase = 'This action cannot be undone.';
+  const descIdx =
+    typeof description === 'string' ? description.indexOf(undoPhrase) : -1;
+  const descNode =
+    descIdx >= 0 && typeof description === 'string' ? (
+      <>
+        {description.slice(0, descIdx)}
+        <span className="font-semibold text-[color:var(--danger-soft-fg)]">
+          {undoPhrase}
+        </span>
+        {description.slice(descIdx + undoPhrase.length)}
+      </>
+    ) : (
+      description
+    );
   return (
     <div
-      className={`flex items-center justify-between p-4 border ${borderColor} rounded-lg`}
+      className={`flex items-center justify-between gap-4 py-3 border-t ${dividerCls} first:border-t-0 first:pt-0`}
     >
       <div>
-        <p className="text-sm font-medium">{title}</p>
-        <p className="text-xs text-default-500">{description}</p>
+        <p className="text-sm font-semibold text-[color:var(--text-heading)]">
+          {title}
+        </p>
+        <p className="text-xs text-[color:var(--text-muted)] mt-0.5">
+          {descNode}
+        </p>
       </div>
       {actionButton}
     </div>

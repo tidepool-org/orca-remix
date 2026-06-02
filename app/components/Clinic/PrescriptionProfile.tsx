@@ -79,7 +79,9 @@ export default function PrescriptionProfile({
         title={`Prescription for ${patientName}`}
         titleRowExtra={stateChip}
         identifiers={prescriptionIdentifiers}
-        actionLinks={[<ViewUserAccountLink userId={createdUserId} />]}
+        actionLinks={[
+          <ViewUserAccountLink key="view-account" userId={createdUserId} />,
+        ]}
         detailFields={prescriptionDetailFields}
         {...profileExpandedProps}
       />

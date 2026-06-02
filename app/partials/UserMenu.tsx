@@ -38,10 +38,9 @@ export default function UserMenu({ onOpenShortcuts }: UserMenuProps) {
   const memoizedAvatar = useMemo(
     () => (
       <Avatar
-        isBordered
         showFallback
-        className="transition-transform"
-        color="primary"
+        className="transition-transform w-[34px] h-[34px] text-tiny"
+        classNames={{ icon: 'text-[color:var(--primary)]' }}
         size="sm"
         src={avatarSrc}
         // Add loading strategy to prevent excessive requests
@@ -61,7 +60,7 @@ export default function UserMenu({ onOpenShortcuts }: UserMenuProps) {
         <DropdownSection showDivider>
           <DropdownItem
             key="profile"
-            className="h-14 gap-2 data-[hover=true]:bg-transparent data-[hover=true]:text-foreground cursor-default"
+            className="h-14 gap-2 data-[hover=true]:bg-transparent data-[hover=true]:text-[color:var(--text)] cursor-default"
             isReadOnly
           >
             <p>Signed in as</p>
@@ -81,7 +80,7 @@ export default function UserMenu({ onOpenShortcuts }: UserMenuProps) {
         <DropdownSection>
           <DropdownItem
             key="version"
-            className="text-default-400 text-xs text-center justify-center data-[hover=true]:bg-transparent data-[hover=true]:text-default-400 cursor-default"
+            className="text-[color:var(--text-faint)] text-xs text-center justify-center data-[hover=true]:bg-transparent data-[hover=true]:text-[color:var(--text-faint)] cursor-default"
             isReadOnly
           >
             v{version}

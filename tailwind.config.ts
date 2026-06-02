@@ -1,23 +1,22 @@
 import { type Config } from 'tailwindcss';
 import plugin from 'tailwindcss/plugin';
-import { heroui, semanticColors } from '@heroui/react';
+import { heroui } from '@heroui/react';
 import defaultTheme from 'tailwindcss/defaultTheme';
 
 const brandColors = {
   primary: {
-    // ref: https://tailcolor.com/palettes/687df7
-    // DEFAULT uses 600 shade for WCAG AA contrast on flat chip backgrounds
-    DEFAULT: '#5364c6',
-    '50': '#f0f2fe',
-    '100': '#e1e5fd',
-    '200': '#c3cbfc',
-    '300': '#a4b1fa',
-    '400': '#8697f9',
-    '500': '#687df7',
-    '600': '#5364c6',
-    '700': '#3e4b94',
-    '800': '#2a3263',
-    '900': '#151931',
+    // Reference: handoff/visual-reference/skins.css --primary #5a63d8
+    DEFAULT: '#5a63d8',
+    '50': '#f0f1fc',
+    '100': '#e7e9fb', // matches --primary-soft
+    '200': '#c8ccf3',
+    '300': '#a3a9ea',
+    '400': '#7d85e0',
+    '500': '#5a63d8',
+    '600': '#474fc2', // matches --primary-strong
+    '700': '#3d45b0', // matches --primary-soft-fg
+    '800': '#2c3380',
+    '900': '#1c2150',
     foreground: '#FFFFFF',
   },
   secondary: {
@@ -37,67 +36,64 @@ const brandColors = {
     foreground: '#FFFFFF',
   },
   success: {
-    // ref: https://tailcolor.com/palettes/4A9A4E
-    // DEFAULT uses 600 shade for WCAG AA contrast on flat chip backgrounds
-    DEFAULT: '#3b7b3e',
-    '50': '#edf5ed',
-    '100': '#dbebdc',
-    '200': '#b7d7b8',
-    '300': '#92c295',
-    '400': '#6eae71',
-    '500': '#4a9a4e',
-    '600': '#3b7b3e',
-    '700': '#2c5c2f',
-    '800': '#1e3e1f',
-    '900': '#0f1f10',
+    // ref: --ok #1f9d6b
+    DEFAULT: '#1f9d6b',
+    '50': '#e8f7f0',
+    '100': '#d1efe1',
+    '200': '#a3dfc3',
+    '300': '#75cfa5',
+    '400': '#47bf87',
+    '500': '#1f9d6b',
+    '600': '#198056',
+    '700': '#136041',
+    '800': '#0c402b',
+    '900': '#062016',
     foreground: '#FFFFFF',
   },
   warning: {
-    // ref: https://tailcolor.com/palettes/D69657
-    // DEFAULT uses 600 shade for WCAG AA contrast on flat chip backgrounds
-    DEFAULT: '#ab7846',
-    '50': '#fbf5ee',
-    '100': '#f7eadd',
-    '200': '#efd5bc',
-    '300': '#e6c09a',
-    '400': '#deab79',
-    '500': '#d69657',
-    '600': '#ab7846',
-    '700': '#805a34',
-    '800': '#563c23',
-    '900': '#2b1e11',
+    // ref: --warn #b7791f / --warn-bg #fdf3e3 / --warn-border #f3dcb4
+    DEFAULT: '#b7791f',
+    '50': '#fdf3e3', // matches --warn-bg
+    '100': '#f9e6c4',
+    '200': '#f3dcb4', // matches --warn-border
+    '300': '#ecc887',
+    '400': '#dca555',
+    '500': '#b7791f',
+    '600': '#92611a',
+    '700': '#6d4914',
+    '800': '#48300d',
+    '900': '#241807',
     foreground: '#FFFFFF',
   },
   danger: {
-    // ref: https://tailcolor.com/palettes/DA584E
-    // DEFAULT uses 600 shade for WCAG AA contrast on flat chip backgrounds
-    DEFAULT: '#ae463e',
-    '50': '#fbeeed',
-    '100': '#f8dedc',
-    '200': '#f0bcb8',
-    '300': '#e99b95',
-    '400': '#e17971',
-    '500': '#da584e',
-    '600': '#ae463e',
-    '700': '#83352f',
-    '800': '#57231f',
-    '900': '#2c1210',
+    // ref: --danger #c2362c / --danger-soft #fbeae8 / --danger-border #f0cfca
+    DEFAULT: '#c2362c',
+    '50': '#fbeae8', // matches --danger-soft
+    '100': '#f7d4d1',
+    '200': '#f0cfca', // matches --danger-border
+    '300': '#e29991',
+    '400': '#d36b60',
+    '500': '#c2362c',
+    '600': '#b3362c', // matches --danger-soft-fg
+    '700': '#852720',
+    '800': '#581a15',
+    '900': '#2c0d0a',
     foreground: '#FFFFFF',
   },
-  focus: '#5364c6',
+  focus: '#5a63d8',
 };
 
 const text = {
   light: {
     link: brandColors.primary.DEFAULT,
-    primary: '#3D5278', // Darker than original #4F6A92 for better contrast
-    primaryGrey: '#4A5A6A', // Darker than original #66788A
-    primaryDisabled: '#7A8290', // Darker than original #A5ADBA
-    primarySubdued: '#5A7299', // Darker than original #7E98C3
+    primary: '#1f2733', // matches --text
+    primaryGrey: '#5c6675', // matches --text-muted
+    primaryDisabled: '#646c7a', // matches --text-faint
+    primarySubdued: '#5c6675',
   },
   dark: {
-    link: brandColors.primary[400], // Lighter shade for dark mode links
-    primary: semanticColors.dark.default[800], // Brighter than 700 for better contrast
+    link: brandColors.primary[400],
+    primary: '#e4e7ec', // matches --text dark
   },
 };
 
@@ -116,17 +112,39 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        mono: ['"Basis Mono"', ...defaultTheme.fontFamily.mono],
-        sans: ['Basis', ...defaultTheme.fontFamily.sans],
+        mono: ['"IBM Plex Mono"', ...defaultTheme.fontFamily.mono],
+        sans: [
+          '"IBM Plex Sans"',
+          'system-ui',
+          '-apple-system',
+          ...defaultTheme.fontFamily.sans,
+        ],
+      },
+      fontSize: {
+        // Mapped to reference design tokens (skins.css). Body base = 13px.
+        // Line-heights tightened to match reference's compact rhythm.
+        tiny: ['10.5px', { lineHeight: '14px' }],
+        xs: ['11px', { lineHeight: '15px' }],
+        sm: ['12.5px', { lineHeight: '17px' }],
+        base: ['13px', { lineHeight: '18px' }],
+        md: ['13.5px', { lineHeight: '19px' }],
+        lg: ['15px', { lineHeight: '20px' }],
+        xl: ['17px', { lineHeight: '22px' }],
+        '2xl': ['19px', { lineHeight: '24px' }],
+        '3xl': ['22px', { lineHeight: '28px' }],
       },
       // Moderately rounded corners for custom components using Tailwind classes
       borderRadius: {
-        sm: '4px',
-        DEFAULT: '6px',
+        sm: '6px', // matches --radius-sm
+        DEFAULT: '8px', // matches --radius
         md: '6px',
         lg: '8px',
         xl: '10px',
         '2xl': '12px',
+      },
+      boxShadow: {
+        token: 'var(--shadow)',
+        topbar: 'var(--topbar-shadow)',
       },
     },
   },
@@ -140,7 +158,7 @@ export default {
       // Moderately rounded corners for HeroUI components (Button, Input, Card, Chip, etc.)
       layout: {
         radius: {
-          small: '4px',
+          small: '6px',
           medium: '6px',
           large: '8px',
         },
@@ -149,51 +167,53 @@ export default {
         light: {
           colors: {
             ...brandColors,
+            background: '#eef0f4', // matches --bg
             foreground: text.light.primary,
-            // Custom default scale with better contrast for muted text
+            // Reference surface scale: --surface, --surface-2, --surface-3.
+            // HeroUI default scale also re-mapped onto the surface ramp + neutral text tints.
             default: {
-              50: '#fafafa',
-              100: '#f4f4f5',
-              200: '#e4e4e7',
-              300: '#d4d4d8',
-              400: '#71717a', // Darker than HeroUI default (#a1a1aa) for WCAG AA
-              500: '#52525b', // Shifted darker
-              600: '#3f3f46',
-              700: '#27272a',
-              800: '#18181b',
-              900: '#09090b',
-              foreground: '#000',
-              DEFAULT: '#d4d4d8',
+              50: '#f5f6f8', // matches --surface-2
+              100: '#e9ecf1', // matches --surface-3
+              200: '#dde1e8', // matches --border
+              300: '#cdd2dc', // matches --border-strong
+              400: '#9aa1b0',
+              500: '#646c7a', // matches --text-faint
+              600: '#5c6675', // matches --text-muted
+              700: '#2c3854', // matches --text-heading
+              800: '#1f2733', // matches --text
+              900: '#0f1320',
+              foreground: '#1f2733',
+              DEFAULT: '#dde1e8',
             },
-            content1: '#F6F6F6',
-            content2: '#EDEDED',
-            content3: '#D3D3D3',
-            content4: { DEFAULT: '#271B46', foreground: '#FFFFFF' },
+            content1: '#ffffff', // matches --surface
+            content2: '#f5f6f8', // matches --surface-2
+            content3: '#e9ecf1', // matches --surface-3
+            content4: { DEFAULT: '#2b2148', foreground: '#ffffff' }, // matches --nav-bg / --primary-fg
           },
         },
         dark: {
           colors: {
             ...brandColors,
+            background: '#0b0c10', // matches --bg dark
             foreground: text.dark.primary,
-            // Custom default scale with better contrast for muted text
             default: {
-              50: '#18181b',
-              100: '#27272a',
-              200: '#3f3f46',
-              300: '#52525b',
-              400: '#a1a1aa', // Lighter than HeroUI default (#71717a) for WCAG AA
-              500: '#d4d4d8', // Shifted lighter
-              600: '#e4e4e7',
-              700: '#f4f4f5',
-              800: '#fafafa',
+              50: '#14161c', // matches --surface dark
+              100: '#1b1e26', // matches --surface-2 dark
+              200: '#232733', // matches --surface-3 dark
+              300: '#333845', // matches --border-strong dark
+              400: '#858da0', // matches --text-faint dark
+              500: '#8b93a1', // matches --text-muted dark
+              600: '#c5cbe0', // matches --text-heading dark
+              700: '#e4e7ec',
+              800: '#f1f3f7',
               900: '#ffffff',
-              foreground: '#fff',
-              DEFAULT: '#3f3f46',
+              foreground: '#e4e7ec',
+              DEFAULT: '#232733',
             },
-            content1: '#0A0A0A',
-            content2: '#131313',
-            content3: '#2C2C2C',
-            content4: { DEFAULT: '#271B46', foreground: '#FFFFFF' },
+            content1: '#14161c', // matches --surface dark
+            content2: '#1b1e26', // matches --surface-2 dark
+            content3: '#232733', // matches --surface-3 dark
+            content4: { DEFAULT: '#181433', foreground: '#ffffff' }, // matches --nav-bg dark
           },
         },
       },

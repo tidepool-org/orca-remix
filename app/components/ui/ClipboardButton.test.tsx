@@ -121,6 +121,23 @@ describe('ClipboardButton', () => {
       });
     });
 
+    it('shows a success-green check icon while in the post-copy success state', async () => {
+      render(<ClipboardButton clipboardText="test" />);
+
+      const button = screen.getByRole('button', { name: /copy to clipboard/i });
+      await act(async () => {
+        fireEvent.click(button);
+      });
+
+      await waitFor(() => {
+        expect(button).toHaveAttribute('data-loading', 'true');
+      });
+
+      // The success (spinner) icon uses the --ok success token.
+      const successSvg = button.querySelector('svg[class*="var(--ok)"]');
+      expect(successSvg).toBeInTheDocument();
+    });
+
     it('logs error when clipboard write fails', async () => {
       const consoleError = vi
         .spyOn(console, 'error')

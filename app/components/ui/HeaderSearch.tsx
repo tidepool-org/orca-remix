@@ -127,6 +127,9 @@ export default function HeaderSearch() {
         }}
         allowsCustomValue
         size="sm"
+        selectorIcon={null}
+        disableSelectorIconRotation
+        selectorButtonProps={{ className: 'hidden' }}
         placeholder={isFocused ? 'Name, ID, Email, or Share Code' : 'Search'}
         aria-label="Search for a user, clinic, patient, clinician, or prescription"
         onFocus={handleFocus}
@@ -161,21 +164,20 @@ export default function HeaderSearch() {
         className="w-80"
         inputProps={{
           classNames: {
-            base: `transition-[width] duration-200 ease-in-out ${isFocused || inputValue ? 'w-80' : 'w-36'}`,
-            inputWrapper: 'bg-default-100',
-            input: 'group-data-[has-value=true]:text-content1-foreground',
+            base: `transition-[width] duration-200 ease-in-out ${isFocused || inputValue ? 'w-80' : 'w-40'}`,
+            input: 'group-data-[has-value=true]:text-[color:var(--text)]',
           },
         }}
         startContent={
           <Search
-            className="w-4 h-4 shrink-0 text-default-400"
+            className="w-4 h-4 shrink-0 text-[color:var(--text-faint)]"
             aria-hidden="true"
           />
         }
         endContent={
           !isFocused && !inputValue ? (
             <kbd
-              className="hidden sm:inline-flex items-center px-1.5 border border-default-300 rounded text-xs text-default-400 font-mono"
+              className="inline-flex items-center mr-1.5 px-1.5 py-0.5 border border-[color:var(--field-border)] bg-[color:var(--surface)] rounded text-[10.5px] text-[color:var(--text-faint)] font-mono"
               aria-hidden="true"
             >
               /
@@ -199,7 +201,7 @@ export default function HeaderSearch() {
             title={section.label}
             classNames={{
               heading:
-                'flex w-full sticky top-1 z-20 py-1.5 px-2 bg-default-100 shadow-small rounded-small text-xs font-semibold text-default-500',
+                'flex w-full sticky top-1 z-20 py-1.5 px-2 bg-[color:var(--surface-2)] shadow-small rounded-small text-xs font-semibold text-[color:var(--text-muted)]',
             }}
           >
             {section.items.map((entity) => {
@@ -210,11 +212,11 @@ export default function HeaderSearch() {
                   textValue={`${entity.label} ${entity.sublabel || ''} ${entity.id}`}
                 >
                   <div className="flex items-center gap-2">
-                    <Icon className="w-4 h-4 shrink-0 text-default-400" />
+                    <Icon className="w-4 h-4 shrink-0 text-[color:var(--text-faint)]" />
                     <div className="flex flex-col">
                       <span className="text-sm">{entity.label}</span>
                       {entity.sublabel && (
-                        <span className="text-xs text-default-400">
+                        <span className="text-xs text-[color:var(--text-faint)]">
                           {entity.sublabel}
                         </span>
                       )}

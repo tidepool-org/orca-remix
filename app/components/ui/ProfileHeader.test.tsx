@@ -28,7 +28,7 @@ describe('ProfileHeader', () => {
         />,
       );
 
-      expect(screen.getByText('ID:')).toBeInTheDocument();
+      expect(screen.getByText('ID')).toBeInTheDocument();
       expect(screen.getByText('12345')).toBeInTheDocument();
     });
 
@@ -56,9 +56,9 @@ describe('ProfileHeader', () => {
       );
 
       expect(screen.getByText('user@example.com')).toBeInTheDocument();
-      expect(screen.getByText('ID:')).toBeInTheDocument();
+      expect(screen.getByText('ID')).toBeInTheDocument();
       expect(screen.getByText('abc123')).toBeInTheDocument();
-      expect(screen.getByText('MRN:')).toBeInTheDocument();
+      expect(screen.getByText('MRN')).toBeInTheDocument();
       expect(screen.getByText('MRN-001')).toBeInTheDocument();
     });
 
@@ -82,8 +82,12 @@ describe('ProfileHeader', () => {
         <ProfileHeader
           title="Test"
           actionLinks={[
-            <a href="/somewhere">View Details</a>,
-            <a href="/other">Rollbar</a>,
+            <a key="details" href="/somewhere">
+              View Details
+            </a>,
+            <a key="rollbar" href="/other">
+              Rollbar
+            </a>,
           ]}
         />,
       );

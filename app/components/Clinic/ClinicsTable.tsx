@@ -13,6 +13,7 @@ import { Building2 } from 'lucide-react';
 import useLocale from '~/hooks/useLocale';
 import CollapsibleTableWrapper from '../ui/CollapsibleTableWrapper';
 import { collapsibleTableClasses, columnClass } from '~/utils/tableStyles';
+import { getChipClassNames } from '~/utils/chipStyles';
 import type {
   Clinic,
   ClinicianClinicMembership,
@@ -50,6 +51,13 @@ type Column = {
   key: keyof Clinic | 'permissions';
   label: string;
   sortable?: boolean;
+};
+
+const TIER_COLOR: Record<string, 'default' | 'primary' | 'warning'> = {
+  tier0100: 'default',
+  tier0200: 'primary',
+  tier0300: 'primary',
+  tier0400: 'warning',
 };
 
 export default function ClinicsTable({
@@ -150,16 +158,22 @@ export default function ClinicsTable({
         case 'name':
           return (
             <div className="flex flex-col">
-              <p className="text-bold text-sm">{clinic.name}</p>
+              <p className="font-semibold text-[color:var(--text-heading)]">
+                {clinic.name}
+              </p>
               <CopyableIdentifier value={clinic.id} monospace size="sm" />
             </div>
           );
         case 'tier':
           return (
             <Chip
-              color={clinic.tier === 'tier0300' ? 'primary' : 'default'}
-              variant="flat"
               size="sm"
+              variant="flat"
+              radius="sm"
+              color={TIER_COLOR[clinic.tier ?? ''] ?? 'default'}
+              classNames={getChipClassNames(
+                TIER_COLOR[clinic.tier ?? ''] ?? 'default',
+              )}
             >
               {clinic.tier || 'N/A'}
             </Chip>
@@ -170,29 +184,53 @@ export default function ClinicsTable({
             return (
               <div className="flex gap-1 flex-wrap">
                 {item.patient.permissions.view && (
-                  <Chip size="sm" variant="flat" color="success">
+                  <Chip
+                    size="sm"
+                    variant="flat"
+                    color="success"
+                    radius="sm"
+                    classNames={getChipClassNames('success')}
+                  >
                     View
                   </Chip>
                 )}
                 {item.patient.permissions.upload && (
-                  <Chip size="sm" variant="flat" color="warning">
+                  <Chip
+                    size="sm"
+                    variant="flat"
+                    color="warning"
+                    radius="sm"
+                    classNames={getChipClassNames('warning')}
+                  >
                     Upload
                   </Chip>
                 )}
                 {item.patient.permissions.note && (
-                  <Chip size="sm" variant="flat" color="secondary">
+                  <Chip
+                    size="sm"
+                    variant="flat"
+                    color="secondary"
+                    radius="sm"
+                    classNames={getChipClassNames('secondary')}
+                  >
                     Note
                   </Chip>
                 )}
                 {item.patient.permissions.custodian && (
-                  <Chip size="sm" variant="flat" color="primary">
+                  <Chip
+                    size="sm"
+                    variant="flat"
+                    color="primary"
+                    radius="sm"
+                    classNames={getChipClassNames('primary')}
+                  >
                     Custodian
                   </Chip>
                 )}
               </div>
             );
           }
-          return <span className="text-default-400">—</span>;
+          return <span className="text-[color:var(--text-faint)]">—</span>;
         case 'createdTime':
           return (
             <div className="text-sm">

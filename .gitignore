@@ -7,5 +7,18 @@ node_modules
 .claude
 .vite/deps
 .opencode/plans
-
+.pi
+.pi-lens
 .aider*
+
+# ApoVault — ignore all local state; commit only team-owned knowledge + shared templates.
+# Allowlist approach: everything under .apo/ is ignored except 01_Knowledge/ (minus _pending/)
+# and 04_Templates/. New transient dirs (inbox/, outbox/, log/, _quarantine-*, etc.) are
+# ignored automatically without enumeration. The **/ prefix matches .apo/ at any depth, so
+# nested monorepo vaults follow the same rules.
+**/.apo/**
+# !**/.apo/01_Knowledge/
+# !**/.apo/01_Knowledge/**
+# **/.apo/01_Knowledge/_pending/
+# !**/.apo/04_Templates/
+# !**/.apo/04_Templates/**

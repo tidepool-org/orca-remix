@@ -17,6 +17,7 @@ import {
   columnClass,
   actionsColumnClass,
 } from '~/utils/tableStyles';
+import { getChipClassNames } from '~/utils/chipStyles';
 import type { Clinician } from './types';
 import DebouncedSearchInput from '../ui/DebouncedSearchInput';
 import ConfirmationModal from '../ui/ConfirmationModal';
@@ -138,7 +139,9 @@ export default function CliniciansTable({
         case 'name':
           return (
             <div className="flex flex-col">
-              <p className="text-bold text-sm capitalize">{cellValue}</p>
+              <p className="font-semibold capitalize text-[color:var(--text-heading)]">
+                {cellValue}
+              </p>
               <CopyableIdentifier label="ID:" value={clinician.id} size="sm" />
             </div>
           );
@@ -159,6 +162,12 @@ export default function CliniciansTable({
               }
               size="sm"
               variant="flat"
+              radius="sm"
+              classNames={getChipClassNames(
+                primaryRole.toLowerCase().includes('admin')
+                  ? 'primary'
+                  : 'default',
+              )}
             >
               {primaryRole.replace('CLINIC_', '').toLowerCase()}
             </Chip>
@@ -222,7 +231,7 @@ export default function CliniciansTable({
 
         <Table
           aria-label="Clinic clinicians table"
-          className="flex flex-1 flex-col text-content1-foreground gap-4"
+          className="flex flex-1 flex-col text-[color:var(--text)]"
           shadow="none"
           removeWrapper
           selectionMode="single"

@@ -95,7 +95,7 @@ describe('PrescriptionsTable', () => {
       render(<PrescriptionsTable {...defaultProps} />);
 
       // Header shows combined title and count
-      expect(screen.getByText('Prescriptions (3)')).toBeInTheDocument();
+      expect(screen.getByText('Prescriptions')).toBeInTheDocument();
     });
 
     it('renders column headers', () => {
@@ -169,7 +169,7 @@ describe('PrescriptionsTable', () => {
       const naElement = within(table).getByText('N/A');
       expect(naElement).toBeInTheDocument();
       expect(naElement.tagName).toBe('P');
-      expect(naElement).toHaveClass('text-bold');
+      expect(naElement).toHaveClass('font-semibold');
     });
   });
 

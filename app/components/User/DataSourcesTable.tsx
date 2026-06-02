@@ -329,12 +329,12 @@ export default function DataSourcesTable({
         case 'providerName':
           return (
             <div className="flex flex-col">
-              <p className="text-bold text-sm capitalize">
+              <p className="font-semibold capitalize text-[color:var(--text-heading)]">
                 {item.providerName || 'N/A'}
               </p>
               {item.dataSourceId &&
                 !item.dataSourceId.startsWith('invite-') && (
-                  <p className="text-xs text-default-400 font-mono">
+                  <p className="text-xs text-[color:var(--text-faint)] font-mono">
                     {item.dataSourceId}
                   </p>
                 )}
@@ -356,7 +356,7 @@ export default function DataSourcesTable({
           return (
             <div className="flex flex-col text-sm">
               <span>{formatShortDate(value, locale)}</span>
-              <span className="text-default-400">
+              <span className="text-[color:var(--text-faint)]">
                 {formatTimeOnly(value, locale)}
               </span>
             </div>
@@ -434,7 +434,9 @@ export default function DataSourcesTable({
           <>
             {availableProviders.length > 0 && (
               <div className="flex items-center gap-2 mb-4 flex-wrap">
-                <span className="text-sm text-default-500">Send invite:</span>
+                <span className="text-sm text-[color:var(--text-muted)]">
+                  Send invite:
+                </span>
                 {availableProviders.map((provider) => (
                   <Button
                     key={provider}

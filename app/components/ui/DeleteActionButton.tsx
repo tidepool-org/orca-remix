@@ -1,5 +1,9 @@
 import { Button, Tooltip } from '@heroui/react';
 import { Trash2, type LucideIcon } from 'lucide-react';
+import {
+  iconButtonClassName,
+  iconButtonIconSize,
+} from '~/utils/iconButtonStyles';
 
 type DeleteActionButtonProps = {
   /**
@@ -60,7 +64,7 @@ export default function DeleteActionButton({
   onPress,
   isDisabled = false,
   icon: Icon = Trash2,
-  iconSize = 16,
+  iconSize = iconButtonIconSize,
   size = 'sm',
 }: DeleteActionButtonProps) {
   return (
@@ -73,6 +77,7 @@ export default function DeleteActionButton({
         onPress={onPress}
         aria-label={ariaLabel}
         isDisabled={isDisabled}
+        className={iconButtonClassName}
       >
         <Icon size={iconSize} aria-hidden="true" />
       </Button>

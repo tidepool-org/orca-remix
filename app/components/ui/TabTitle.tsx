@@ -56,8 +56,8 @@ export default function TabTitle({
       <Icon className="w-4 h-4" aria-hidden="true" />
       <span>{label}</span>
       {shouldShowBadge && count !== undefined && (
-        <span className="text-xs bg-default-100 px-1.5 py-0.5 rounded-full">
-          {count}
+        <span className="text-[11px] font-mono bg-[color:var(--chip-bg)] text-[color:var(--chip-fg)] px-1.5 py-0.5 rounded-md">
+          {count.toLocaleString()}
         </span>
       )}
     </div>

@@ -14,7 +14,7 @@ import {
   DropdownItem,
   Tooltip,
 } from '@heroui/react';
-import { Upload, MoreVertical, Trash2, Database, Info } from 'lucide-react';
+import { Upload, MoreVertical, Trash2, Database } from 'lucide-react';
 import { useFetcher } from 'react-router';
 import useLocale from '~/hooks/useLocale';
 import CollapsibleTableWrapper from '../ui/CollapsibleTableWrapper';
@@ -25,6 +25,8 @@ import {
   columnClass,
   actionsColumnClass,
 } from '~/utils/tableStyles';
+import { getChipClassNames } from '~/utils/chipStyles';
+import { iconButtonClassName } from '~/utils/iconButtonStyles';
 import type { DataSet } from './types';
 import type { ResourceState } from '~/api.types';
 import { useToast } from '~/contexts/ToastContext';
@@ -177,26 +179,35 @@ export default function DataSetsTable({
               monospace
               size="sm"
             >
-              <span className="text-xs font-mono text-default-500 truncate max-w-[120px]">
+              <span className="text-xs font-mono text-[color:var(--text-muted)] truncate max-w-[120px]">
                 {item.uploadId.slice(0, 8)}...
               </span>
             </CopyableIdentifier>
           ) : (
-            <span className="text-xs text-default-500">N/A</span>
+            <span className="text-xs text-[color:var(--text-muted)]">N/A</span>
           );
         case 'deviceModel':
           return (
             <div className="flex flex-col">
-              <p className="text-bold text-sm">{item.deviceModel || 'N/A'}</p>
+              <p className="font-semibold text-[color:var(--text-heading)]">
+                {item.deviceModel || 'N/A'}
+              </p>
               {item.deviceSerialNumber && (
-                <p className="text-xs text-default-400 font-mono">
+                <p className="text-xs text-[color:var(--text-faint)] font-mono">
                   SN: {item.deviceSerialNumber}
                 </p>
               )}
               {item.deviceTags && item.deviceTags.length > 0 && (
                 <div className="flex gap-1 mt-1">
                   {item.deviceTags.map((tag) => (
-                    <Chip key={tag} size="sm" variant="flat" color="default">
+                    <Chip
+                      key={tag}
+                      size="sm"
+                      variant="flat"
+                      color="default"
+                      radius="sm"
+                      classNames={getChipClassNames('default')}
+                    >
                       {tag}
                     </Chip>
                   ))}
@@ -222,6 +233,10 @@ export default function DataSetsTable({
                 color={isContinuous ? 'success' : 'primary'}
                 variant="flat"
                 size="sm"
+                radius="sm"
+                classNames={getChipClassNames(
+                  isContinuous ? 'success' : 'primary',
+                )}
               >
                 {type}
               </Chip>
@@ -241,7 +256,7 @@ export default function DataSetsTable({
                   monospace
                   size="sm"
                 >
-                  <span className="text-xs font-mono text-default-400">
+                  <span className="text-xs font-mono text-[color:var(--text-faint)]">
                     {item.byUser.slice(0, 8)}...
                   </span>
                 </CopyableIdentifier>
@@ -250,7 +265,7 @@ export default function DataSetsTable({
           );
         case 'version':
           return (
-            <span className="text-xs text-default-500">
+            <span className="text-xs text-[color:var(--text-muted)]">
               {item.version || 'N/A'}
             </span>
           );
@@ -258,7 +273,7 @@ export default function DataSetsTable({
           const menuItems = [
             <DropdownItem
               key="delete-dataset"
-              className="text-danger"
+              className="text-[color:var(--danger)]"
               color="danger"
               startContent={<Trash2 className="w-4 h-4" aria-hidden="true" />}
               description="Delete entire dataset"
@@ -272,7 +287,7 @@ export default function DataSetsTable({
             menuItems.push(
               <DropdownItem
                 key="delete-data"
-                className="text-danger"
+                className="text-[color:var(--danger)]"
                 color="danger"
                 startContent={
                   <Database className="w-4 h-4" aria-hidden="true" />
@@ -294,8 +309,9 @@ export default function DataSetsTable({
                     size="sm"
                     variant="light"
                     aria-label="Dataset actions"
+                    className={iconButtonClassName}
                   >
-                    <MoreVertical className="w-4 h-4" aria-hidden="true" />
+                    <MoreVertical size={18} aria-hidden="true" />
                   </Button>
                 </DropdownTrigger>
                 <DropdownMenu aria-label="Dataset actions">

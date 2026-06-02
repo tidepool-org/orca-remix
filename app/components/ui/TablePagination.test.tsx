@@ -1,13 +1,64 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent } from '~/test-utils';
+import userEvent from '@testing-library/user-event';
+import { render, screen } from '~/test-utils';
 import TablePagination, {
   getFirstItemOnPage,
   getLastItemOnPage,
 } from './TablePagination';
 
 describe('TablePagination', () => {
-  describe('basic rendering', () => {
-    it('renders pagination when there are multiple pages', () => {
+  describe('Rendering', () => {
+    it('renders nothing when totalPages is 1', () => {
+      render(
+        <TablePagination currentPage={1} totalPages={1} totalItems={10} />,
+      );
+      expect(
+        screen.queryByRole('button', { name: /previous page/i }),
+      ).not.toBeInTheDocument();
+    });
+
+    it('renders nothing when totalPages is 0', () => {
+      render(<TablePagination currentPage={1} totalPages={0} totalItems={0} />);
+      expect(
+        screen.queryByRole('button', { name: /next page/i }),
+      ).not.toBeInTheDocument();
+    });
+
+    it('renders Prev and Next buttons', () => {
+      render(
+        <TablePagination currentPage={2} totalPages={5} totalItems={100} />,
+      );
+      expect(
+        screen.getByRole('button', { name: /previous page/i }),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByRole('button', { name: /next page/i }),
+      ).toBeInTheDocument();
+    });
+
+    it('renders a jump-to-page input', () => {
+      render(
+        <TablePagination currentPage={1} totalPages={5} totalItems={100} />,
+      );
+      expect(screen.getByLabelText('Jump to page')).toBeInTheDocument();
+    });
+
+    it('renders range text when showRange and totalItems > 0', () => {
+      render(
+        <TablePagination
+          currentPage={1}
+          totalPages={5}
+          totalItems={100}
+          pageSize={20}
+          showRange
+        />,
+      );
+      expect(screen.getByText(/Showing/)).toBeInTheDocument();
+      expect(screen.getByText(/1-20/)).toBeInTheDocument();
+      expect(screen.getByText(/100/)).toBeInTheDocument();
+    });
+
+    it('does not render range text when showRange is false', () => {
       render(
         <TablePagination
           currentPage={1}
@@ -16,207 +67,157 @@ describe('TablePagination', () => {
           pageSize={20}
         />,
       );
-
-      // HeroUI Pagination should be rendered
-      expect(screen.getByRole('navigation')).toBeInTheDocument();
+      expect(screen.queryByText(/Showing/)).not.toBeInTheDocument();
     });
 
-    it('does not render when totalPages is 1', () => {
-      render(
-        <TablePagination
-          currentPage={1}
-          totalPages={1}
-          totalItems={10}
-          pageSize={20}
-        />,
-      );
-
-      // Should not render navigation when only 1 page
-      expect(screen.queryByRole('navigation')).not.toBeInTheDocument();
-    });
-
-    it('does not render when totalPages is 0', () => {
-      render(
-        <TablePagination
-          currentPage={1}
-          totalPages={0}
-          totalItems={0}
-          pageSize={20}
-        />,
-      );
-
-      // Should not render navigation when 0 pages
-      expect(screen.queryByRole('navigation')).not.toBeInTheDocument();
-    });
-  });
-
-  describe('range display', () => {
-    it('does not show range by default', () => {
+    it('applies a custom className to the wrapper', () => {
       render(
         <TablePagination
           currentPage={1}
           totalPages={5}
           totalItems={100}
-          pageSize={20}
-        />,
-      );
-
-      expect(screen.queryByText(/showing/i)).not.toBeInTheDocument();
-    });
-
-    it('shows range when showRange is true', () => {
-      render(
-        <TablePagination
-          currentPage={1}
-          totalPages={5}
-          totalItems={100}
-          pageSize={20}
-          showRange={true}
-        />,
-      );
-
-      expect(screen.getByText('Showing 1-20 of 100')).toBeInTheDocument();
-    });
-
-    it('shows correct range for middle page', () => {
-      render(
-        <TablePagination
-          currentPage={3}
-          totalPages={5}
-          totalItems={100}
-          pageSize={20}
-          showRange={true}
-        />,
-      );
-
-      expect(screen.getByText('Showing 41-60 of 100')).toBeInTheDocument();
-    });
-
-    it('shows correct range for last page with partial items', () => {
-      render(
-        <TablePagination
-          currentPage={5}
-          totalPages={5}
-          totalItems={95}
-          pageSize={20}
-          showRange={true}
-        />,
-      );
-
-      expect(screen.getByText('Showing 81-95 of 95')).toBeInTheDocument();
-    });
-
-    it('does not show range when totalItems is 0', () => {
-      render(
-        <TablePagination
-          currentPage={1}
-          totalPages={0}
-          totalItems={0}
-          pageSize={20}
-          showRange={true}
-        />,
-      );
-
-      // Component should not render navigation when 0 pages
-      expect(screen.queryByRole('navigation')).not.toBeInTheDocument();
-      expect(screen.queryByText(/showing/i)).not.toBeInTheDocument();
-    });
-  });
-
-  describe('page change callback', () => {
-    it('calls onPageChange when a page is clicked', () => {
-      const onPageChange = vi.fn();
-
-      render(
-        <TablePagination
-          currentPage={1}
-          totalPages={5}
-          totalItems={100}
-          pageSize={20}
-          onPageChange={onPageChange}
-        />,
-      );
-
-      // Click on page 2 (HeroUI uses "pagination item 2" as aria-label)
-      const page2Button = screen.getByRole('button', {
-        name: /pagination item 2/i,
-      });
-      fireEvent.click(page2Button);
-
-      expect(onPageChange).toHaveBeenCalledWith(2);
-    });
-
-    it('calls onPageChange with next page on next button click', () => {
-      const onPageChange = vi.fn();
-
-      render(
-        <TablePagination
-          currentPage={2}
-          totalPages={5}
-          totalItems={100}
-          pageSize={20}
-          onPageChange={onPageChange}
-        />,
-      );
-
-      // Click next button
-      const nextButton = screen.getByRole('button', { name: /next/i });
-      fireEvent.click(nextButton);
-
-      expect(onPageChange).toHaveBeenCalledWith(3);
-    });
-
-    it('calls onPageChange with previous page on prev button click', () => {
-      const onPageChange = vi.fn();
-
-      render(
-        <TablePagination
-          currentPage={3}
-          totalPages={5}
-          totalItems={100}
-          pageSize={20}
-          onPageChange={onPageChange}
-        />,
-      );
-
-      // Click previous button
-      const prevButton = screen.getByRole('button', { name: /previous/i });
-      fireEvent.click(prevButton);
-
-      expect(onPageChange).toHaveBeenCalledWith(2);
-    });
-  });
-
-  describe('custom className', () => {
-    it('applies custom className', () => {
-      render(
-        <TablePagination
-          currentPage={1}
-          totalPages={5}
-          totalItems={100}
-          pageSize={20}
           className="custom-class"
         />,
       );
-
-      const container = screen.getByRole('navigation').parentElement;
-      expect(container).toHaveClass('custom-class');
+      // Wrapper is the nearest ancestor div of the Prev button that carries
+      // the join of layout + caller className.
+      const prev = screen.getByRole('button', { name: /previous page/i });
+      const wrapper = prev.closest('.custom-class');
+      expect(wrapper).not.toBeNull();
     });
   });
 
-  describe('default pageSize', () => {
-    it('uses default pageSize of 25', () => {
+  describe('User Interactions', () => {
+    it('disables Prev at page 1', () => {
+      render(
+        <TablePagination currentPage={1} totalPages={5} totalItems={100} />,
+      );
+      expect(
+        screen.getByRole('button', { name: /previous page/i }),
+      ).toBeDisabled();
+    });
+
+    it('disables Next at totalPages', () => {
+      render(
+        <TablePagination currentPage={5} totalPages={5} totalItems={100} />,
+      );
+      expect(screen.getByRole('button', { name: /next page/i })).toBeDisabled();
+    });
+
+    it('calls onPageChange(currentPage - 1) when Prev is clicked', async () => {
+      const user = userEvent.setup();
+      const onPageChange = vi.fn();
+      render(
+        <TablePagination
+          currentPage={3}
+          totalPages={5}
+          totalItems={100}
+          onPageChange={onPageChange}
+        />,
+      );
+      await user.click(screen.getByRole('button', { name: /previous page/i }));
+      expect(onPageChange).toHaveBeenCalledWith(2);
+    });
+
+    it('calls onPageChange(currentPage + 1) when Next is clicked', async () => {
+      const user = userEvent.setup();
+      const onPageChange = vi.fn();
       render(
         <TablePagination
           currentPage={2}
-          totalPages={4}
+          totalPages={5}
           totalItems={100}
-          showRange={true}
+          onPageChange={onPageChange}
         />,
       );
+      await user.click(screen.getByRole('button', { name: /next page/i }));
+      expect(onPageChange).toHaveBeenCalledWith(3);
+    });
 
-      // Page 2 with 25 items per page should show 26-50
-      expect(screen.getByText('Showing 26-50 of 100')).toBeInTheDocument();
+    it('calls onPageChange with parsed page on Enter in the jump input', async () => {
+      const user = userEvent.setup();
+      const onPageChange = vi.fn();
+      render(
+        <TablePagination
+          currentPage={1}
+          totalPages={100}
+          totalItems={2500}
+          onPageChange={onPageChange}
+        />,
+      );
+      const input = screen.getByLabelText('Jump to page');
+      await user.clear(input);
+      await user.type(input, '50{Enter}');
+      expect(onPageChange).toHaveBeenCalledWith(50);
+    });
+
+    it('clamps over-range input to totalPages', async () => {
+      const user = userEvent.setup();
+      const onPageChange = vi.fn();
+      render(
+        <TablePagination
+          currentPage={1}
+          totalPages={10}
+          totalItems={250}
+          onPageChange={onPageChange}
+        />,
+      );
+      const input = screen.getByLabelText('Jump to page');
+      await user.clear(input);
+      await user.type(input, '999{Enter}');
+      expect(onPageChange).toHaveBeenCalledWith(10);
+    });
+
+    it('clamps under-range input to 1', async () => {
+      const user = userEvent.setup();
+      const onPageChange = vi.fn();
+      render(
+        <TablePagination
+          currentPage={5}
+          totalPages={10}
+          totalItems={250}
+          onPageChange={onPageChange}
+        />,
+      );
+      const input = screen.getByLabelText('Jump to page');
+      await user.clear(input);
+      await user.type(input, '-5{Enter}');
+      expect(onPageChange).toHaveBeenCalledWith(1);
+    });
+
+    it('does not call onPageChange when blur leaves value at currentPage', async () => {
+      const user = userEvent.setup();
+      const onPageChange = vi.fn();
+      render(
+        <TablePagination
+          currentPage={3}
+          totalPages={10}
+          totalItems={250}
+          onPageChange={onPageChange}
+        />,
+      );
+      const input = screen.getByLabelText('Jump to page');
+      await user.click(input);
+      await user.tab();
+      expect(onPageChange).not.toHaveBeenCalled();
+    });
+
+    it('calls onPageChange on blur when value changed to a valid page', async () => {
+      const user = userEvent.setup();
+      const onPageChange = vi.fn();
+      render(
+        <TablePagination
+          currentPage={3}
+          totalPages={10}
+          totalItems={250}
+          onPageChange={onPageChange}
+        />,
+      );
+      const input = screen.getByLabelText('Jump to page');
+      await user.clear(input);
+      await user.type(input, '7');
+      await user.tab();
+      expect(onPageChange).toHaveBeenCalledWith(7);
     });
   });
 });

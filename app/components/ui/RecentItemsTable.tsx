@@ -15,6 +15,8 @@ import { recentTableClasses, columnClass } from '~/utils/tableStyles';
 type Column = {
   key: string;
   label: string;
+  /** When true, render this column's cells in primary-cell style (semibold + heading color). Defaults to true for the first column. */
+  primary?: boolean;
 };
 
 type RecentItemsTableProps<T extends { id: string }> = {
@@ -105,7 +107,9 @@ export default function RecentItemsTable<T extends { id: string }>({
   };
 
   const EmptyContent = (
-    <p className="text-center text-default-400 py-4">{emptyMessage}</p>
+    <p className="text-center text-[color:var(--text-faint)] py-4">
+      {emptyMessage}
+    </p>
   );
 
   const defaultRenderCell = (item: T, columnKey: string) => {
@@ -113,13 +117,9 @@ export default function RecentItemsTable<T extends { id: string }>({
   };
 
   return (
-    <SectionPanel
-      icon={<Icon className="w-5 h-5" />}
-      title={title}
-      aria-label={ariaLabel}
-    >
+    <SectionPanel icon={<Icon />} title={title} aria-label={ariaLabel}>
       <Table
-        className="flex flex-1 flex-col text-content1-foreground gap-4"
+        className="flex flex-1 flex-col text-[color:var(--text)]"
         aria-label={ariaLabel}
         shadow="none"
         removeWrapper
@@ -128,6 +128,7 @@ export default function RecentItemsTable<T extends { id: string }>({
         layout="fixed"
         classNames={{
           th: recentTableClasses.th,
+          td: recentTableClasses.td,
           tr: recentTableClasses.tr,
           table: 'table-fixed',
         }}
@@ -142,13 +143,21 @@ export default function RecentItemsTable<T extends { id: string }>({
         <TableBody emptyContent={EmptyContent} items={items}>
           {(item) => (
             <TableRow key={String(item[rowKey])}>
-              {(columnKey) => (
-                <TableCell>
-                  {renderCell
-                    ? renderCell(item, columnKey as string)
-                    : defaultRenderCell(item, columnKey as string)}
-                </TableCell>
-              )}
+              {(columnKey) => {
+                const colIndex = columns.findIndex((c) => c.key === columnKey);
+                const col = columns[colIndex];
+                const isPrimary = col?.primary ?? colIndex === 0;
+                const cellClass = isPrimary
+                  ? 'font-semibold text-[color:var(--text-heading)]'
+                  : undefined;
+                return (
+                  <TableCell className={cellClass}>
+                    {renderCell
+                      ? renderCell(item, columnKey as string)
+                      : defaultRenderCell(item, columnKey as string)}
+                  </TableCell>
+                );
+              }}
             </TableRow>
           )}
         </TableBody>

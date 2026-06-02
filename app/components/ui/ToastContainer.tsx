@@ -22,14 +22,14 @@ export default function ToastContainer() {
   const getColorClasses = (type: string) => {
     switch (type) {
       case 'success':
-        return 'bg-success/10 text-success border-success/20';
+        return 'bg-[color-mix(in_srgb,var(--ok)_12%,transparent)] text-[color:var(--ok)] border-[color-mix(in_srgb,var(--ok)_24%,transparent)]';
       case 'error':
-        return 'bg-danger/10 text-danger border-danger/20';
+        return 'bg-[color:var(--danger-soft)] text-[color:var(--danger)] border-[color:var(--danger-border)]';
       case 'warning':
-        return 'bg-warning/10 text-warning border-warning/20';
+        return 'bg-[color:var(--warn-bg)] text-[color:var(--warn)] border-[color:var(--warn-border)]';
       case 'info':
       default:
-        return 'bg-primary/10 text-primary border-primary/20';
+        return 'bg-[color:var(--primary-soft)] text-[color:var(--primary)] border-[color-mix(in_srgb,var(--primary)_24%,transparent)]';
     }
   };
 

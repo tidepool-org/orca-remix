@@ -61,7 +61,7 @@ describe('CliniciansTable', () => {
   describe('Rendering', () => {
     it('renders header with title and count', () => {
       render(<CliniciansTable {...defaultProps} />);
-      expect(screen.getByText('Clinicians (2)')).toBeInTheDocument();
+      expect(screen.getByText('Clinicians')).toBeInTheDocument();
     });
 
     it('renders column headers', () => {

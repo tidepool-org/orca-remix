@@ -17,6 +17,7 @@ import useLocale from '~/hooks/useLocale';
 import useClinicResolvers from '~/hooks/useClinicResolvers';
 import CollapsibleTableWrapper from '../ui/CollapsibleTableWrapper';
 import { collapsibleTableClasses, columnClass } from '~/utils/tableStyles';
+import { getChipClassNames } from '~/utils/chipStyles';
 import type { Patient } from './types';
 import DebouncedSearchInput from '../ui/DebouncedSearchInput';
 import TableEmptyState from '~/components/ui/TableEmptyState';
@@ -167,11 +168,17 @@ export default function PatientsTable({
           return (
             <div className="flex flex-col">
               <div className="flex items-center gap-1.5">
-                <p className="text-bold text-sm capitalize">
+                <p className="font-semibold capitalize text-[color:var(--text-heading)]">
                   {patient.fullName}
                 </p>
                 {patient.permissions?.custodian && (
-                  <Chip size="sm" variant="flat" color="warning">
+                  <Chip
+                    size="sm"
+                    variant="flat"
+                    color="warning"
+                    radius="sm"
+                    classNames={getChipClassNames('warning')}
+                  >
                     Custodial
                   </Chip>
                 )}
@@ -187,19 +194,26 @@ export default function PatientsTable({
               {formatShortDate(patient.birthDate, locale)}
             </p>
           ) : (
-            <span className="text-default-400">—</span>
+            <span className="text-[color:var(--text-faint)]">—</span>
           );
         case 'mrn':
           return patient.mrn ? (
             <p className="text-sm font-mono">{patient.mrn}</p>
           ) : (
-            <span className="text-default-400">—</span>
+            <span className="text-[color:var(--text-faint)]">—</span>
           );
         case 'tags':
           return patient.tags && patient.tags.length > 0 ? (
             <div className="flex gap-1 flex-wrap">
               {patient.tags.slice(0, 2).map((tagId: string, index: number) => (
-                <Chip key={index} size="sm" variant="flat" color="primary">
+                <Chip
+                  key={index}
+                  size="sm"
+                  variant="flat"
+                  color="primary"
+                  radius="sm"
+                  classNames={getChipClassNames('primary')}
+                >
                   {getTagName(tagId)}
                 </Chip>
               ))}
@@ -219,6 +233,8 @@ export default function PatientsTable({
                               size="sm"
                               variant="flat"
                               color="primary"
+                              radius="sm"
+                              classNames={getChipClassNames('primary')}
                             >
                               {getTagName(tagId)}
                             </Chip>
@@ -232,7 +248,9 @@ export default function PatientsTable({
                     size="sm"
                     variant="flat"
                     color="default"
+                    radius="sm"
                     className="cursor-help"
+                    classNames={getChipClassNames('default')}
                   >
                     +{patient.tags.length - 2}
                   </Chip>
@@ -240,13 +258,20 @@ export default function PatientsTable({
               )}
             </div>
           ) : (
-            <span className="text-default-400">—</span>
+            <span className="text-[color:var(--text-faint)]">—</span>
           );
         case 'sites':
           return patient.sites && patient.sites.length > 0 ? (
             <div className="flex gap-1 flex-wrap">
               {patient.sites.slice(0, 2).map((site, index: number) => (
-                <Chip key={index} size="sm" variant="flat" color="secondary">
+                <Chip
+                  key={index}
+                  size="sm"
+                  variant="flat"
+                  color="secondary"
+                  radius="sm"
+                  classNames={getChipClassNames('secondary')}
+                >
                   {getSiteName(site.id || site.name || String(site))}
                 </Chip>
               ))}
@@ -264,6 +289,8 @@ export default function PatientsTable({
                             size="sm"
                             variant="flat"
                             color="secondary"
+                            radius="sm"
+                            classNames={getChipClassNames('secondary')}
                           >
                             {getSiteName(site.id || site.name || String(site))}
                           </Chip>
@@ -277,7 +304,9 @@ export default function PatientsTable({
                     size="sm"
                     variant="flat"
                     color="default"
+                    radius="sm"
                     className="cursor-help"
+                    classNames={getChipClassNames('default')}
                   >
                     +{patient.sites.length - 2}
                   </Chip>
@@ -285,7 +314,7 @@ export default function PatientsTable({
               )}
             </div>
           ) : (
-            <span className="text-default-400">—</span>
+            <span className="text-[color:var(--text-faint)]">—</span>
           );
         case 'createdTime':
           return (
@@ -330,7 +359,7 @@ export default function PatientsTable({
 
       <Table
         aria-label="Clinic patients table"
-        className="flex flex-1 flex-col text-content1-foreground gap-4"
+        className="flex flex-1 flex-col text-[color:var(--text)]"
         shadow="none"
         removeWrapper
         selectionMode="single"
