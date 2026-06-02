@@ -179,15 +179,19 @@ pre {
   font-size: 12px;
 }
 
-/* Tinted input background for header search. Light mode → primary-50, dark mode → primary-100/.10 token tint with primary-200 border. */
-.light #header-search [data-slot='input-wrapper'] {
-  background-color: hsl(var(--heroui-primary-50)) !important;
-  border-color: hsl(var(--heroui-primary-200)) !important;
+/* Header search field — neutral field tokens at rest (matches the lookup
+   inputs + handoff .search), primary focus ring on focus. Dual-mode via the
+   field/primary CSS vars, so a single rule covers light + dark. */
+#header-search [data-slot='input-wrapper'] {
+  background-color: var(--field-bg) !important;
+  border-color: var(--field-border) !important;
+  box-shadow: none !important;
 }
 
-.dark #header-search [data-slot='input-wrapper'] {
-  background-color: hsl(var(--heroui-primary-100) / 0.1) !important;
-  border-color: hsl(var(--heroui-primary-200) / 0.4) !important;
+#header-search [data-slot='input-wrapper'][data-focus='true'] {
+  background-color: var(--surface) !important;
+  border-color: var(--primary) !important;
+  box-shadow: 0 0 0 3px var(--primary-soft) !important;
 }
 
 @layer base {

@@ -78,7 +78,12 @@ export default function CollapsibleTableWrapper({
         aria-labelledby={headingId}
       >
         <div className="flex gap-2 items-center">
-          {icon}
+          <span
+            className="inline-grid place-items-center w-[22px] h-[22px] flex-none [&_svg]:w-4 [&_svg]:h-4 text-[color:var(--primary)]"
+            aria-hidden="true"
+          >
+            {icon}
+          </span>
           <span
             id={headingId}
             role="heading"

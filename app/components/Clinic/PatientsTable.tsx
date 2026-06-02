@@ -359,7 +359,7 @@ export default function PatientsTable({
 
       <Table
         aria-label="Clinic patients table"
-        className="flex flex-1 flex-col text-[color:var(--text)] gap-4"
+        className="flex flex-1 flex-col text-[color:var(--text)]"
         shadow="none"
         removeWrapper
         selectionMode="single"

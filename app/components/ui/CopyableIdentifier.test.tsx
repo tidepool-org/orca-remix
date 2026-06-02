@@ -84,14 +84,14 @@ describe('CopyableIdentifier', () => {
       render(<CopyableIdentifier value="test" />);
 
       const valueElement = screen.getByText('test');
-      expect(valueElement).toHaveClass('text-sm');
+      expect(valueElement).toHaveClass('text-md');
     });
 
     it('renders with sm size when specified', () => {
       render(<CopyableIdentifier value="test" size="sm" />);
 
       const valueElement = screen.getByText('test');
-      expect(valueElement).toHaveClass('text-xs');
+      expect(valueElement).toHaveClass('text-base');
     });
   });
 

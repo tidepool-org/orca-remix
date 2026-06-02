@@ -92,13 +92,15 @@ export default function ProfileHeader({
           )}
         </div>
 
-        {/* entity-stats: 3-col grid with 1px dividers (gap on border-bg). */}
+        {/* entity-stats: 3-col grid with 1px dividers drawn per-cell (top + left)
+            so a ragged last row leaves empty tracks with no background and no
+            orphan borders — only edges shared with a populated cell show. */}
         {hasExpandableContent && isExpanded && (
-          <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-px overflow-hidden rounded-[6px] border border-[color:var(--border)] bg-[color:var(--border)]">
+          <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 overflow-hidden rounded-[6px] border border-[color:var(--border)] bg-[color:var(--surface)]">
             {detailFields.map((field, i) => (
               <div
                 key={i}
-                className="bg-[color:var(--surface)] py-[11px] px-[14px]"
+                className="bg-[color:var(--surface)] py-[11px] px-[14px] -mt-px -ml-px border-t border-l border-[color:var(--border)]"
               >
                 <div className="text-[10px] font-semibold uppercase tracking-[0.07em] text-[color:var(--text-faint)]">
                   {field.label}

@@ -163,9 +163,7 @@ export default function HeaderSearch() {
         className="w-80"
         inputProps={{
           classNames: {
-            base: `transition-[width] duration-200 ease-in-out ${isFocused || inputValue ? 'w-80' : 'w-56'}`,
-            inputWrapper:
-              'bg-[color:var(--field-bg)] border border-[color:var(--field-border)] shadow-none data-[hover=true]:bg-[color:var(--field-bg)]',
+            base: `transition-[width] duration-200 ease-in-out ${isFocused || inputValue ? 'w-80' : 'w-40'}`,
             input: 'group-data-[has-value=true]:text-[color:var(--text)]',
           },
         }}

@@ -67,20 +67,23 @@ export default function CopyableIdentifier({
   const displayLabel = label?.replace(/:\s*$/, '');
 
   const sizeClasses = {
-    sm: 'text-xs',
-    md: 'text-sm',
+    sm: 'text-base',
+    md: 'text-md',
   };
 
   const valueClasses = [
     useMonospace ? `font-mono ${sizeClasses[size]}` : sizeClasses[size],
-    truncate ? 'truncate' : '',
+    // In truncate mode the value must be allowed to shrink (min-w-0) and take
+    // the available row width (flex-1) so the ellipsis engages inside a
+    // fixed-layout table cell, leaving the copy icon flush within the cell.
+    truncate ? 'truncate min-w-0 flex-1' : '',
   ]
     .filter(Boolean)
     .join(' ');
 
   return (
     <span
-      className={`inline-flex items-center gap-1.5 group text-[color:var(--text-muted)] ${className}`.trim()}
+      className={`${truncate ? 'flex w-full min-w-0' : 'inline-flex'} items-center gap-1.5 group text-[color:var(--text-muted)] ${className}`.trim()}
     >
       {displayLabel && (
         <span className="text-[color:var(--text-faint)] uppercase tracking-wide text-[10.5px] font-semibold">
@@ -98,7 +101,7 @@ export default function CopyableIdentifier({
           {value}
         </span>
       )}
-      <ClipboardButton clipboardText={value} />
+      <ClipboardButton clipboardText={value} size={size} />
     </span>
   );
 }

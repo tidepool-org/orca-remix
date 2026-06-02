@@ -146,7 +146,7 @@ export default function ClinicianInvitesTable({
       >
         <Table
           aria-label="Clinic clinician invites table"
-          className="flex flex-1 flex-col text-[color:var(--text)] gap-4"
+          className="flex flex-1 flex-col text-[color:var(--text)]"
           shadow="none"
           removeWrapper
           classNames={collapsibleTableClasses}

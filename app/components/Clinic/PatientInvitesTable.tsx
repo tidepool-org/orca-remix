@@ -208,7 +208,7 @@ export default function PatientInvitesTable({
       >
         <Table
           aria-label="Clinic patient invites table"
-          className="flex flex-1 flex-col text-[color:var(--text)] gap-4"
+          className="flex flex-1 flex-col text-[color:var(--text)]"
           shadow="none"
           removeWrapper
           selectionMode="single"

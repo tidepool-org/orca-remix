@@ -43,6 +43,10 @@ function Header({ sidebarOpen, setSidebarOpen, onOpenShortcuts }: HeaderProps) {
           {/* Header: Right side */}
           <div className="flex items-center gap-2">
             <ThemeSwitcher />
+            <div
+              className="w-px h-[22px] bg-[color:var(--border-strong)]"
+              aria-hidden="true"
+            />
             <UserMenu onOpenShortcuts={onOpenShortcuts} />
           </div>
         </div>

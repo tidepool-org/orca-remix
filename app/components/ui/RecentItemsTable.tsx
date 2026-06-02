@@ -119,7 +119,7 @@ export default function RecentItemsTable<T extends { id: string }>({
   return (
     <SectionPanel icon={<Icon />} title={title} aria-label={ariaLabel}>
       <Table
-        className="flex flex-1 flex-col text-[color:var(--text)] gap-4"
+        className="flex flex-1 flex-col text-[color:var(--text)]"
         aria-label={ariaLabel}
         shadow="none"
         removeWrapper
