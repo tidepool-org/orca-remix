@@ -131,7 +131,7 @@ export function ActionCard({
 }: ActionCardProps) {
   const dividerCls =
     borderColor === 'border-danger'
-      ? 'border-[var(--danger-border)]'
+      ? 'border-[color:var(--danger-border)]'
       : 'border-[color:var(--border)]';
   const undoPhrase = 'This action cannot be undone.';
   const descIdx =
@@ -140,7 +140,7 @@ export function ActionCard({
     descIdx >= 0 && typeof description === 'string' ? (
       <>
         {description.slice(0, descIdx)}
-        <span className="font-semibold text-[var(--danger-soft-fg)]">
+        <span className="font-semibold text-[color:var(--danger-soft-fg)]">
           {undoPhrase}
         </span>
         {description.slice(descIdx + undoPhrase.length)}

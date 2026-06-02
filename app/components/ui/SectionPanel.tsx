@@ -75,9 +75,10 @@ export default function SectionPanel({
   const toneCls =
     tone === 'danger'
       ? {
-          container: 'border-[var(--danger-border)] bg-[var(--surface)]',
+          container:
+            'border-[color:var(--danger-border)] bg-[color:var(--surface)]',
           header:
-            'bg-[var(--danger-soft)] border-b border-[var(--danger-border)]',
+            'bg-[color:var(--danger-soft)] border-b border-[color:var(--danger-border)]',
         }
       : {
           container:
@@ -114,7 +115,7 @@ export default function SectionPanel({
         <span
           className={`inline-grid place-items-center w-[22px] h-[22px] flex-none [&_svg]:w-4 [&_svg]:h-4 ${
             tone === 'danger'
-              ? 'text-[var(--danger-soft-fg)]'
+              ? 'text-[color:var(--danger-soft-fg)]'
               : 'text-[color:var(--primary)]'
           }`}
           aria-hidden="true"

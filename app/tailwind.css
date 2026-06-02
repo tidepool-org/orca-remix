@@ -201,6 +201,15 @@ thead tr[aria-hidden='true'] {
   display: none;
 }
 
+/* WCAG AA: --text-faint reads 4.40:1 (light) / 4.48:1 (dark) on the
+   --primary-soft row-hover background — just under the 4.5:1 small-text bar.
+   While a row is hovered, lift faint secondary text (empty-cell dashes, mono
+   sub-lines, copyable IDs) to --text-muted, which clears AA on primary-soft
+   (4.83:1 / 4.81:1) in both themes. Resting rows are unaffected. */
+tbody tr[data-hover='true'] [class*='--text-faint'] {
+  color: var(--text-muted);
+}
+
 @layer base {
   @font-face {
     font-family: 'Basis';
