@@ -92,15 +92,19 @@ export default function ProfileHeader({
           )}
         </div>
 
-        {/* entity-stats: 3-col grid with 1px dividers drawn per-cell (top + left)
-            so a ragged last row leaves empty tracks with no background and no
-            orphan borders — only edges shared with a populated cell show. */}
+        {/* entity-stats: 3-col grid with 1px dividers drawn per-cell. Each cell
+            draws top + bottom + left borders offset by negative margins so shared
+            edges collapse to a single 1px line (against neighbors and the outer
+            border alike). Drawing bottom per-cell — not relying on the next row's
+            top border — keeps a ragged last row from leaving the cells above its
+            empty tracks without a bottom edge. No right border: a trailing empty
+            column stays open (no background, no orphan border). */}
         {hasExpandableContent && isExpanded && (
           <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 overflow-hidden rounded-[6px] border border-[color:var(--border)] bg-[color:var(--surface)]">
             {detailFields.map((field, i) => (
               <div
                 key={i}
-                className="bg-[color:var(--surface)] py-[11px] px-[14px] -mt-px -ml-px border-t border-l border-[color:var(--border)]"
+                className="bg-[color:var(--surface)] py-[11px] px-[14px] -mt-px -mb-px -ml-px border-t border-b border-l border-[color:var(--border)]"
               >
                 <div className="text-[10px] font-semibold uppercase tracking-[0.07em] text-[color:var(--text-faint)]">
                   {field.label}

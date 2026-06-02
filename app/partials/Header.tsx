@@ -1,5 +1,4 @@
-import { Button, Link } from '@heroui/react';
-import Logo from '~/components/Logo/Logo';
+import { Button } from '@heroui/react';
 import ThemeSwitcher from './ThemeSwitcher';
 import UserMenu from './UserMenu';
 import HeaderSearch from '~/components/ui/HeaderSearch';
