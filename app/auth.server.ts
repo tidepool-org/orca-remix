@@ -51,6 +51,7 @@ export const authorizeServer = async (): Promise<void> => {
 
 /** Invalidate the cached token so the next `authorizeServer()` call re-authenticates. */
 export function invalidateServerToken(): void {
+  serverAuth.serverSessionToken = '';
   tokenExpiresAt = 0;
 }
 

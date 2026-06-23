@@ -80,11 +80,13 @@ export function getErrorMessage(error: unknown): string {
 
 /**
  * Create a Response with error data for loaders/actions.
- * Only passes through messages from known, user-safe error types.
- * Unknown errors get a generic message to avoid leaking internals.
+ * Passes through plain strings (treated as already-user-facing messages)
+ * and messages from known, user-safe error types. Unknown errors get a
+ * generic message to avoid leaking internals.
  */
 export function errorResponse(error: unknown, status?: number): Response {
   const isUserFacing =
+    typeof error === 'string' ||
     error instanceof APIError ||
     error instanceof ValidationError ||
     error instanceof z.ZodError;

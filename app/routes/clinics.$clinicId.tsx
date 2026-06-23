@@ -203,44 +203,41 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
       apiRoutes.clinic.getClinicians(clinicId, { limit: cliniciansFetchLimit }),
     ]);
 
-    // Fetch prescriptions separately using safe wrapper to avoid breaking the page
-    // Returns ResourceState which the frontend can use to show inline error
-    const prescriptionsState = await apiRequestSafe<Prescription[]>(
-      apiRoutes.prescription.getClinicPrescriptions(clinicId),
-    );
+    // Fetch prescriptions and the optional clinic settings concurrently.
+    // These run outside the throwing `apiRequests` batch above because each is
+    // resilient: a failure degrades gracefully (inline error / null) rather
+    // than breaking the whole page.
+    const [prescriptionsState, mrnSettings, patientCountSettings] =
+      await Promise.all([
+        // Safe wrapper returns a ResourceState the frontend can render as an
+        // inline error.
+        apiRequestSafe<Prescription[]>(
+          apiRoutes.prescription.getClinicPrescriptions(clinicId),
+        ),
+        apiRequest(apiRoutes.clinic.getMrnSettings(clinicId))
+          .then((data) => data as { required: boolean; unique: boolean })
+          .catch((err) => {
+            console.error('Error fetching MRN settings:', err);
+            return null;
+          }),
+        apiRequest(apiRoutes.clinic.getPatientCountSettings(clinicId))
+          .then(
+            (data) =>
+              data as {
+                hardLimit?: { plan?: number };
+                softLimit?: { plan?: number };
+              },
+          )
+          .catch((err) => {
+            console.error('Error fetching patient count settings:', err);
+            return null;
+          }),
+      ]);
 
     // Extract data for backward compatibility and compute total
     const prescriptions =
       prescriptionsState.status === 'success' ? prescriptionsState.data : [];
     const totalPrescriptions = prescriptions.length;
-
-    // Fetch MRN settings separately to avoid breaking the page if the API is unavailable
-    let mrnSettings: { required: boolean; unique: boolean } | null = null;
-    try {
-      mrnSettings = (await apiRequest(
-        apiRoutes.clinic.getMrnSettings(clinicId),
-      )) as { required: boolean; unique: boolean };
-    } catch (err) {
-      console.error('Error fetching MRN settings:', err);
-      // Continue without MRN settings
-    }
-
-    // Fetch patient count settings separately
-    let patientCountSettings: {
-      hardLimit?: { plan?: number };
-      softLimit?: { plan?: number };
-    } | null = null;
-    try {
-      patientCountSettings = (await apiRequest(
-        apiRoutes.clinic.getPatientCountSettings(clinicId),
-      )) as {
-        hardLimit?: { plan?: number };
-        softLimit?: { plan?: number };
-      };
-    } catch (err) {
-      console.error('Error fetching patient count settings:', err);
-      // Continue without patient count settings
-    }
 
     const clinic: Clinic = results?.[0] as Clinic;
     const patientsResponse = results?.[1] as

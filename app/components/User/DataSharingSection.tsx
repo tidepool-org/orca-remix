@@ -38,22 +38,34 @@ const formatPermissions = (permissions: Permissions): string[] => {
   return perms;
 };
 
-// Sub-component for Trusting Accounts (accounts that share WITH user)
-export function TrustingAccountsTable({
+// Shared renderer for the two account-sharing tables (trusting + trusted).
+// They are identical apart from copy and the permission chip color, so the
+// differing bits are passed in as props.
+function AccountsTable({
   accounts,
-  trustingAccountsState,
+  state,
   isLoading,
   currentUserId,
   userProfiles,
   isFirstInGroup,
+  title,
+  ariaLabel,
+  description,
+  emptyMessage,
+  chipColor,
 }: {
   accounts: AccessPermissionsMap;
-  trustingAccountsState?: ResourceState<AccessPermissionsMap>;
+  state?: ResourceState<AccessPermissionsMap>;
   isLoading?: boolean;
   currentUserId?: string;
   userProfiles?: Record<string, string>;
   /** Mark this as the first table in a CollapsibleGroup to auto-expand it */
   isFirstInGroup?: boolean;
+  title: string;
+  ariaLabel: string;
+  description: string;
+  emptyMessage: string;
+  chipColor: 'primary' | 'secondary';
 }) {
   const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(1);
@@ -93,34 +105,26 @@ export function TrustingAccountsTable({
     { key: 'permissions', label: 'Permissions' },
   ];
 
-  const EmptyContent = (
-    <TableEmptyState
-      icon={Users}
-      message="No accounts are sharing data with this user"
-    />
-  );
+  const EmptyContent = <TableEmptyState icon={Users} message={emptyMessage} />;
 
   const LoadingContent = <TableLoadingState />;
 
   // Check if there's an error state to display
-  const hasError = trustingAccountsState?.status === 'error';
+  const hasError = state?.status === 'error';
 
   return (
     <CollapsibleTableWrapper
       icon={<Users className="h-5 w-5" />}
-      title="Accounts Sharing With User"
+      title={title}
       totalItems={totalItems}
       isFirstInGroup={isFirstInGroup}
     >
       {hasError ? (
-        <ResourceError
-          title="Accounts Sharing With User"
-          message={trustingAccountsState.error.message}
-        />
+        <ResourceError title={title} message={state.error.message} />
       ) : (
         <>
           <p className="text-sm text-[color:var(--text-muted)] mb-4">
-            These accounts have granted this user access to view their data.
+            {description}
           </p>
           <TableFilterInput
             value={filterValue}
@@ -130,7 +134,7 @@ export function TrustingAccountsTable({
             className="mb-4"
           />
           <Table
-            aria-label="Accounts sharing with user"
+            aria-label={ariaLabel}
             shadow="none"
             removeWrapper
             selectionMode="single"
@@ -169,9 +173,9 @@ export function TrustingAccountsTable({
                           key={perm}
                           size="sm"
                           variant="flat"
-                          color="primary"
+                          color={chipColor}
                           radius="sm"
-                          classNames={getChipClassNames('primary')}
+                          classNames={getChipClassNames(chipColor)}
                         >
                           {perm}
                         </Chip>
@@ -196,6 +200,40 @@ export function TrustingAccountsTable({
   );
 }
 
+// Sub-component for Trusting Accounts (accounts that share WITH user)
+export function TrustingAccountsTable({
+  accounts,
+  trustingAccountsState,
+  isLoading,
+  currentUserId,
+  userProfiles,
+  isFirstInGroup,
+}: {
+  accounts: AccessPermissionsMap;
+  trustingAccountsState?: ResourceState<AccessPermissionsMap>;
+  isLoading?: boolean;
+  currentUserId?: string;
+  userProfiles?: Record<string, string>;
+  /** Mark this as the first table in a CollapsibleGroup to auto-expand it */
+  isFirstInGroup?: boolean;
+}) {
+  return (
+    <AccountsTable
+      accounts={accounts}
+      state={trustingAccountsState}
+      isLoading={isLoading}
+      currentUserId={currentUserId}
+      userProfiles={userProfiles}
+      isFirstInGroup={isFirstInGroup}
+      title="Accounts Sharing With User"
+      ariaLabel="Accounts sharing with user"
+      description="These accounts have granted this user access to view their data."
+      emptyMessage="No accounts are sharing data with this user"
+      chipColor="primary"
+    />
+  );
+}
+
 // Sub-component for Trusted Accounts (accounts user shares WITH)
 export function TrustedAccountsTable({
   accounts,
@@ -213,144 +251,20 @@ export function TrustedAccountsTable({
   /** Mark this as the first table in a CollapsibleGroup to auto-expand it */
   isFirstInGroup?: boolean;
 }) {
-  const navigate = useNavigate();
-  const [currentPage, setCurrentPage] = useState(1);
-  const [filterValue, setFilterValue] = useState('');
-
-  const handleFilterChange = (value: string) => {
-    setFilterValue(value);
-    setCurrentPage(1);
-  };
-
-  // Filter (by name/id), sort by name, then paginate
-  const entries = useMemo(() => {
-    const sorted = Object.entries(accounts)
-      .filter(([id]) => id !== currentUserId)
-      .sort(([aId], [bId]) => {
-        const aName = userProfiles?.[aId] ?? aId;
-        const bName = userProfiles?.[bId] ?? bId;
-        return aName.localeCompare(bName);
-      });
-    const searchTerm = filterValue.toLowerCase().trim();
-    if (!searchTerm) return sorted;
-    return sorted.filter(([id]) => {
-      const name = (userProfiles?.[id] ?? '').toLowerCase();
-      return name.includes(searchTerm) || id.toLowerCase().includes(searchTerm);
-    });
-  }, [accounts, currentUserId, userProfiles, filterValue]);
-  const totalItems = entries.length;
-  const totalPages = Math.ceil(totalItems / PAGE_SIZE);
-  const pagedEntries = entries.slice(
-    (currentPage - 1) * PAGE_SIZE,
-    currentPage * PAGE_SIZE,
-  );
-
-  const columns = [
-    { key: 'name', label: 'Name' },
-    { key: 'userId', label: 'User ID' },
-    { key: 'permissions', label: 'Permissions' },
-  ];
-
-  const EmptyContent = (
-    <TableEmptyState
-      icon={Users}
-      message="This user is not sharing data with anyone"
-    />
-  );
-
-  const LoadingContent = <TableLoadingState />;
-
-  // Check if there's an error state to display
-  const hasError = trustedAccountsState?.status === 'error';
-
   return (
-    <CollapsibleTableWrapper
-      icon={<Users className="h-5 w-5" />}
-      title="Accounts User Shares With"
-      totalItems={totalItems}
+    <AccountsTable
+      accounts={accounts}
+      state={trustedAccountsState}
+      isLoading={isLoading}
+      currentUserId={currentUserId}
+      userProfiles={userProfiles}
       isFirstInGroup={isFirstInGroup}
-    >
-      {hasError ? (
-        <ResourceError
-          title="Accounts User Shares With"
-          message={trustedAccountsState.error.message}
-        />
-      ) : (
-        <>
-          <p className="text-sm text-[color:var(--text-muted)] mb-4">
-            These accounts can view this user&apos;s data.
-          </p>
-          <TableFilterInput
-            value={filterValue}
-            onChange={handleFilterChange}
-            placeholder="Filter by name or user ID..."
-            aria-label="Filter accounts by name or user ID"
-            className="mb-4"
-          />
-          <Table
-            aria-label="Accounts user shares with"
-            shadow="none"
-            removeWrapper
-            selectionMode="single"
-            onSelectionChange={(keys: 'all' | Set<React.Key>) => {
-              const key = keys instanceof Set ? Array.from(keys)[0] : keys;
-              if (key && key !== 'all') navigate(`/users/${key}`);
-            }}
-            classNames={collapsibleTableClasses}
-          >
-            <TableHeader columns={columns}>
-              {(column) => (
-                <TableColumn key={column.key} className={columnClass}>
-                  {column.label}
-                </TableColumn>
-              )}
-            </TableHeader>
-            <TableBody
-              emptyContent={EmptyContent}
-              loadingContent={LoadingContent}
-              loadingState={isLoading ? 'loading' : 'idle'}
-            >
-              {pagedEntries.map(([userId, permissions]) => (
-                <TableRow key={userId}>
-                  <TableCell>
-                    <span className="text-sm">
-                      {userProfiles?.[userId] || 'Unknown'}
-                    </span>
-                  </TableCell>
-                  <TableCell>
-                    <CopyableIdentifier value={userId} monospace size="sm" />
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex gap-1 flex-wrap">
-                      {formatPermissions(permissions).map((perm) => (
-                        <Chip
-                          key={perm}
-                          size="sm"
-                          variant="flat"
-                          color="secondary"
-                          radius="sm"
-                          classNames={getChipClassNames('secondary')}
-                        >
-                          {perm}
-                        </Chip>
-                      ))}
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-          <TablePagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            totalItems={totalItems}
-            pageSize={PAGE_SIZE}
-            onPageChange={setCurrentPage}
-            showRange
-          />
-        </>
-      )}
-    </CollapsibleTableWrapper>
+      title="Accounts User Shares With"
+      ariaLabel="Accounts user shares with"
+      description="These accounts can view this user's data."
+      emptyMessage="This user is not sharing data with anyone"
+      chipColor="secondary"
+    />
   );
 }
 

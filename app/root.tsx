@@ -26,7 +26,6 @@ import {
 } from './sessions.server';
 import { authorizeServer } from './auth.server';
 import { default as useLocale, LocaleProvider } from './hooks/useLocale';
-import { jwtDecode } from 'jwt-decode';
 
 import Dashboard from './layouts/Dashboard';
 import ErrorStack from './components/ui/ErrorStack';
@@ -46,14 +45,13 @@ type Agent = {
   email?: string | undefined;
 };
 
-const isAuthBypassed =
-  process.env.NODE_ENV === 'development' &&
-  process.env.DEV_AUTH_BYPASS === 'true';
-
 // Return the theme from the session storage using the loader
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  // Verify authentication (defense-in-depth alongside Pomerium proxy)
-  requireAuth(request);
+  // Verify authentication (defense-in-depth alongside Pomerium proxy).
+  // requireAuth decodes and validates the Pomerium JWT (or returns the dev
+  // mock payload when auth is bypassed), so reuse its result for agent info
+  // rather than decoding the token a second time.
+  const authPayload = requireAuth(request);
 
   const { getTheme } = await themeSessionResolver(request);
   await authorizeServer();
@@ -70,27 +68,13 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const profileExpandedMap: Record<string, boolean> =
     profileExpandedCookie.get('expanded') || {};
 
-  // Extract agent data from Pomerium JWT (available server-side)
-  let agent: Agent = {};
-  const pomeriumJWT = request.headers.get('x-pomerium-jwt-assertion');
-
-  if (typeof pomeriumJWT === 'string') {
-    try {
-      const decoded = jwtDecode<Agent>(pomeriumJWT);
-      agent = {
-        name: decoded.name,
-        picture: decoded.picture,
-        email: decoded.email,
-      };
-    } catch {
-      console.warn('Failed to decode Pomerium JWT');
-    }
-  } else if (isAuthBypassed) {
-    agent = {
-      email: process.env.DEV_AUTH_EMAIL || 'dev@localhost',
-      name: process.env.DEV_AUTH_NAME || 'Development User',
-    };
-  }
+  // Agent data comes from the already-verified Pomerium JWT payload
+  // (or the dev mock payload when auth is bypassed).
+  const agent: Agent = {
+    name: authPayload.name,
+    picture: authPayload.picture,
+    email: authPayload.email,
+  };
 
   return {
     locale,

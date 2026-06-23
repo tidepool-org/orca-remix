@@ -270,13 +270,13 @@ describe('errors', () => {
       }
     });
 
-    it('creates generic Response for string errors', async () => {
-      const response = errorResponse('Simple error message');
+    it('passes through plain string errors as user-facing messages', async () => {
+      const response = errorResponse('Invite ID is required', 400);
 
-      expect(response.status).toBe(500);
+      expect(response.status).toBe(400);
 
       const body = await response.json();
-      expect(body.error).toBe('An unexpected error occurred');
+      expect(body.error).toBe('Invite ID is required');
     });
 
     it('handles unknown error types', async () => {
