@@ -1,0 +1,540 @@
+import { useEffect, useMemo, useState } from 'react';
+import {
+  Table,
+  TableHeader,
+  TableColumn,
+  TableBody,
+  TableRow,
+  TableCell,
+  Chip,
+} from '@heroui/react';
+import { useNavigate } from 'react-router';
+import { Users, Send, Inbox } from 'lucide-react';
+import useLocale from '~/hooks/useLocale';
+import CollapsibleTableWrapper from '../ui/CollapsibleTableWrapper';
+import { collapsibleTableClasses, columnClass } from '~/utils/tableStyles';
+import { getChipClassNames } from '~/utils/chipStyles';
+import type { AccessPermissionsMap, ShareInvite, Permissions } from './types';
+import type { ResourceState } from '~/api.types';
+import TableEmptyState from '~/components/ui/TableEmptyState';
+import TableLoadingState from '~/components/ui/TableLoadingState';
+import TablePagination from '~/components/ui/TablePagination';
+import TableFilterInput from '~/components/ui/TableFilterInput';
+import StatusChip from '~/components/ui/StatusChip';
+import ResourceError from '~/components/ui/ResourceError';
+import CopyableIdentifier from '~/components/ui/CopyableIdentifier';
+import { formatShortDate } from '~/utils/dateFormatters';
+
+const PAGE_SIZE = 25;
+
+// Format an invite type token (e.g. "care_team") into a readable label.
+const formatType = (type: string): string =>
+  type.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+
+// Helper to convert permissions object to readable array
+const formatPermissions = (permissions: Permissions): string[] => {
+  const perms: string[] = [];
+  if (permissions.root) perms.push('Owner');
+  if (permissions.custodian) perms.push('Custodian');
+  if (permissions.view) perms.push('View');
+  if (permissions.note) perms.push('Notes');
+  if (permissions.upload) perms.push('Upload');
+  return perms;
+};
+
+// Shared renderer for the two account-sharing tables (trusting + trusted).
+// They are identical apart from copy and the permission chip color, so the
+// differing bits are passed in as props.
+function AccountsTable({
+  accounts,
+  state,
+  isLoading,
+  currentUserId,
+  userProfiles,
+  isFirstInGroup,
+  title,
+  ariaLabel,
+  description,
+  emptyMessage,
+  chipColor,
+}: {
+  accounts: AccessPermissionsMap;
+  state?: ResourceState<AccessPermissionsMap>;
+  isLoading?: boolean;
+  currentUserId?: string;
+  userProfiles?: Record<string, string>;
+  /** Mark this as the first table in a CollapsibleGroup to auto-expand it */
+  isFirstInGroup?: boolean;
+  title: string;
+  ariaLabel: string;
+  description: string;
+  emptyMessage: string;
+  chipColor: 'primary' | 'secondary';
+}) {
+  const navigate = useNavigate();
+  const [currentPage, setCurrentPage] = useState(1);
+  const [filterValue, setFilterValue] = useState('');
+
+  const handleFilterChange = (value: string) => {
+    setFilterValue(value);
+    setCurrentPage(1);
+  };
+
+  // Filter (by name/id), sort by name, then paginate
+  const entries = useMemo(() => {
+    const sorted = Object.entries(accounts)
+      .filter(([id]) => id !== currentUserId)
+      .sort(([aId], [bId]) => {
+        const aName = userProfiles?.[aId] ?? aId;
+        const bName = userProfiles?.[bId] ?? bId;
+        return aName.localeCompare(bName);
+      });
+    const searchTerm = filterValue.toLowerCase().trim();
+    if (!searchTerm) return sorted;
+    return sorted.filter(([id]) => {
+      const name = (userProfiles?.[id] ?? '').toLowerCase();
+      return name.includes(searchTerm) || id.toLowerCase().includes(searchTerm);
+    });
+  }, [accounts, currentUserId, userProfiles, filterValue]);
+  const totalItems = entries.length;
+  const totalPages = Math.ceil(totalItems / PAGE_SIZE);
+
+  // Clamp the page when the list shrinks (e.g. filtering or an invite being
+  // accepted) so a now-out-of-range page doesn't show the empty state.
+  useEffect(() => {
+    const maxPage = Math.max(1, totalPages);
+    if (currentPage > maxPage) setCurrentPage(maxPage);
+  }, [currentPage, totalPages]);
+
+  const pagedEntries = entries.slice(
+    (currentPage - 1) * PAGE_SIZE,
+    currentPage * PAGE_SIZE,
+  );
+
+  const columns = [
+    { key: 'name', label: 'Name' },
+    { key: 'userId', label: 'User ID' },
+    { key: 'permissions', label: 'Permissions' },
+  ];
+
+  const EmptyContent = <TableEmptyState icon={Users} message={emptyMessage} />;
+
+  const LoadingContent = <TableLoadingState />;
+
+  // Check if there's an error state to display
+  const hasError = state?.status === 'error';
+
+  return (
+    <CollapsibleTableWrapper
+      icon={<Users className="h-5 w-5" />}
+      title={title}
+      totalItems={totalItems}
+      isFirstInGroup={isFirstInGroup}
+    >
+      {hasError ? (
+        <ResourceError title={title} message={state.error.message} />
+      ) : (
+        <>
+          <p className="text-sm text-[color:var(--text-muted)] mb-4">
+            {description}
+          </p>
+          <TableFilterInput
+            value={filterValue}
+            onChange={handleFilterChange}
+            placeholder="Filter by name or user ID..."
+            aria-label="Filter accounts by name or user ID"
+            className="mb-4"
+          />
+          <Table
+            aria-label={ariaLabel}
+            shadow="none"
+            removeWrapper
+            selectionMode="single"
+            onSelectionChange={(keys: 'all' | Set<React.Key>) => {
+              const key = keys instanceof Set ? Array.from(keys)[0] : keys;
+              if (key && key !== 'all') navigate(`/users/${key}`);
+            }}
+            classNames={collapsibleTableClasses}
+          >
+            <TableHeader columns={columns}>
+              {(column) => (
+                <TableColumn key={column.key} className={columnClass}>
+                  {column.label}
+                </TableColumn>
+              )}
+            </TableHeader>
+            <TableBody
+              emptyContent={EmptyContent}
+              loadingContent={LoadingContent}
+              loadingState={isLoading ? 'loading' : 'idle'}
+            >
+              {pagedEntries.map(([userId, permissions]) => (
+                <TableRow key={userId}>
+                  <TableCell>
+                    <span className="text-sm">
+                      {userProfiles?.[userId] || 'Unknown'}
+                    </span>
+                  </TableCell>
+                  <TableCell>
+                    <CopyableIdentifier value={userId} monospace size="sm" />
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex gap-1 flex-wrap">
+                      {formatPermissions(permissions).map((perm) => (
+                        <Chip
+                          key={perm}
+                          size="sm"
+                          variant="flat"
+                          color={chipColor}
+                          radius="sm"
+                          classNames={getChipClassNames(chipColor)}
+                        >
+                          {perm}
+                        </Chip>
+                      ))}
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+          <TablePagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={totalItems}
+            pageSize={PAGE_SIZE}
+            onPageChange={setCurrentPage}
+            showRange
+          />
+        </>
+      )}
+    </CollapsibleTableWrapper>
+  );
+}
+
+// Sub-component for Trusting Accounts (accounts that share WITH user)
+export function TrustingAccountsTable({
+  accounts,
+  trustingAccountsState,
+  isLoading,
+  currentUserId,
+  userProfiles,
+  isFirstInGroup,
+}: {
+  accounts: AccessPermissionsMap;
+  trustingAccountsState?: ResourceState<AccessPermissionsMap>;
+  isLoading?: boolean;
+  currentUserId?: string;
+  userProfiles?: Record<string, string>;
+  /** Mark this as the first table in a CollapsibleGroup to auto-expand it */
+  isFirstInGroup?: boolean;
+}) {
+  return (
+    <AccountsTable
+      accounts={accounts}
+      state={trustingAccountsState}
+      isLoading={isLoading}
+      currentUserId={currentUserId}
+      userProfiles={userProfiles}
+      isFirstInGroup={isFirstInGroup}
+      title="Accounts Sharing With User"
+      ariaLabel="Accounts sharing with user"
+      description="These accounts have granted this user access to view their data."
+      emptyMessage="No accounts are sharing data with this user"
+      chipColor="primary"
+    />
+  );
+}
+
+// Sub-component for Trusted Accounts (accounts user shares WITH)
+export function TrustedAccountsTable({
+  accounts,
+  trustedAccountsState,
+  isLoading,
+  currentUserId,
+  userProfiles,
+  isFirstInGroup,
+}: {
+  accounts: AccessPermissionsMap;
+  trustedAccountsState?: ResourceState<AccessPermissionsMap>;
+  isLoading?: boolean;
+  currentUserId?: string;
+  userProfiles?: Record<string, string>;
+  /** Mark this as the first table in a CollapsibleGroup to auto-expand it */
+  isFirstInGroup?: boolean;
+}) {
+  return (
+    <AccountsTable
+      accounts={accounts}
+      state={trustedAccountsState}
+      isLoading={isLoading}
+      currentUserId={currentUserId}
+      userProfiles={userProfiles}
+      isFirstInGroup={isFirstInGroup}
+      title="Accounts User Shares With"
+      ariaLabel="Accounts user shares with"
+      description="These accounts can view this user's data."
+      emptyMessage="This user is not sharing data with anyone"
+      chipColor="secondary"
+    />
+  );
+}
+
+// Sub-component for Sent Invites
+export function SentInvitesTable({
+  invites,
+  sentInvitesState,
+  isLoading,
+  isFirstInGroup,
+}: {
+  invites: ShareInvite[];
+  sentInvitesState?: ResourceState<ShareInvite[]>;
+  isLoading?: boolean;
+  /** Mark this as the first table in a CollapsibleGroup to auto-expand it */
+  isFirstInGroup?: boolean;
+}) {
+  const { locale } = useLocale();
+  const [currentPage, setCurrentPage] = useState(1);
+  const totalItems = invites.length;
+  const totalPages = Math.ceil(totalItems / PAGE_SIZE);
+
+  // Clamp the page when the list shrinks so an out-of-range page doesn't show
+  // the empty state.
+  useEffect(() => {
+    const maxPage = Math.max(1, totalPages);
+    if (currentPage > maxPage) setCurrentPage(maxPage);
+  }, [currentPage, totalPages]);
+
+  const pagedInvites = invites.slice(
+    (currentPage - 1) * PAGE_SIZE,
+    currentPage * PAGE_SIZE,
+  );
+
+  const columns = [
+    { key: 'email', label: 'Invitee Email' },
+    { key: 'type', label: 'Type' },
+    { key: 'status', label: 'Status' },
+    { key: 'created', label: 'Sent Date' },
+  ];
+
+  const EmptyContent = (
+    <TableEmptyState icon={Send} message="No pending sent invites" />
+  );
+
+  const LoadingContent = <TableLoadingState />;
+
+  // Check if there's an error state to display
+  const hasError = sentInvitesState?.status === 'error';
+
+  return (
+    <CollapsibleTableWrapper
+      icon={<Send className="h-5 w-5" />}
+      title="Sent Invites"
+      totalItems={totalItems}
+      isFirstInGroup={isFirstInGroup}
+    >
+      {hasError ? (
+        <ResourceError
+          title="Sent Invites"
+          message={sentInvitesState.error.message}
+        />
+      ) : (
+        <>
+          <p className="text-sm text-[color:var(--text-muted)] mb-4">
+            Pending invitations sent by this user to share their data.
+          </p>
+          <Table
+            aria-label="Sent invites"
+            shadow="none"
+            removeWrapper
+            classNames={collapsibleTableClasses}
+          >
+            <TableHeader columns={columns}>
+              {(column) => (
+                <TableColumn key={column.key} className={columnClass}>
+                  {column.label}
+                </TableColumn>
+              )}
+            </TableHeader>
+            <TableBody
+              emptyContent={EmptyContent}
+              loadingContent={LoadingContent}
+              loadingState={isLoading ? 'loading' : 'idle'}
+            >
+              {pagedInvites.map((invite) => (
+                <TableRow key={invite.key}>
+                  <TableCell>
+                    <CopyableIdentifier value={invite.email} size="sm" />
+                  </TableCell>
+                  <TableCell>
+                    <Chip
+                      size="sm"
+                      variant="flat"
+                      radius="sm"
+                      classNames={getChipClassNames('default')}
+                    >
+                      {formatType(invite.type)}
+                    </Chip>
+                  </TableCell>
+                  <TableCell>
+                    <StatusChip status={invite.status} type="invite" />
+                  </TableCell>
+                  <TableCell>
+                    <span className="text-sm">
+                      {formatShortDate(invite.created, locale)}
+                    </span>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+          <TablePagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={totalItems}
+            pageSize={PAGE_SIZE}
+            onPageChange={setCurrentPage}
+            showRange
+          />
+        </>
+      )}
+    </CollapsibleTableWrapper>
+  );
+}
+
+// Sub-component for Received Invites
+export function ReceivedInvitesTable({
+  invites,
+  receivedInvitesState,
+  isLoading,
+  isFirstInGroup,
+}: {
+  invites: ShareInvite[];
+  receivedInvitesState?: ResourceState<ShareInvite[]>;
+  isLoading?: boolean;
+  /** Mark this as the first table in a CollapsibleGroup to auto-expand it */
+  isFirstInGroup?: boolean;
+}) {
+  const { locale } = useLocale();
+  const navigate = useNavigate();
+  const [currentPage, setCurrentPage] = useState(1);
+  const totalItems = invites.length;
+  const totalPages = Math.ceil(totalItems / PAGE_SIZE);
+
+  // Clamp the page when the list shrinks so an out-of-range page doesn't show
+  // the empty state.
+  useEffect(() => {
+    const maxPage = Math.max(1, totalPages);
+    if (currentPage > maxPage) setCurrentPage(maxPage);
+  }, [currentPage, totalPages]);
+
+  const pagedInvites = invites.slice(
+    (currentPage - 1) * PAGE_SIZE,
+    currentPage * PAGE_SIZE,
+  );
+
+  const columns = [
+    { key: 'creator', label: 'From' },
+    { key: 'type', label: 'Type' },
+    { key: 'status', label: 'Status' },
+    { key: 'created', label: 'Received Date' },
+  ];
+
+  const EmptyContent = (
+    <TableEmptyState icon={Inbox} message="No pending received invites" />
+  );
+
+  const LoadingContent = <TableLoadingState />;
+
+  // Check if there's an error state to display
+  const hasError = receivedInvitesState?.status === 'error';
+
+  return (
+    <CollapsibleTableWrapper
+      icon={<Inbox className="h-5 w-5" />}
+      title="Received Invites"
+      totalItems={totalItems}
+      isFirstInGroup={isFirstInGroup}
+    >
+      {hasError ? (
+        <ResourceError
+          title="Received Invites"
+          message={receivedInvitesState.error.message}
+        />
+      ) : (
+        <>
+          <p className="text-sm text-[color:var(--text-muted)] mb-4">
+            Pending invitations received by this user from others to view their
+            data.
+          </p>
+          <Table
+            aria-label="Received invites"
+            shadow="none"
+            removeWrapper
+            selectionMode="single"
+            onSelectionChange={(keys: 'all' | Set<React.Key>) => {
+              const key = keys instanceof Set ? Array.from(keys)[0] : keys;
+              const invite = invites.find((i) => i.key === key);
+              if (invite?.creatorId) navigate(`/users/${invite.creatorId}`);
+            }}
+            classNames={collapsibleTableClasses}
+          >
+            <TableHeader columns={columns}>
+              {(column) => (
+                <TableColumn key={column.key} className={columnClass}>
+                  {column.label}
+                </TableColumn>
+              )}
+            </TableHeader>
+            <TableBody
+              emptyContent={EmptyContent}
+              loadingContent={LoadingContent}
+              loadingState={isLoading ? 'loading' : 'idle'}
+            >
+              {pagedInvites.map((invite) => (
+                <TableRow key={invite.key}>
+                  <TableCell>
+                    <div className="flex flex-col">
+                      <span className="text-sm">
+                        {invite.creator?.profile?.fullName || 'Unknown'}
+                      </span>
+                      <span className="text-xs text-[color:var(--text-faint)] font-mono">
+                        {invite.creatorId}
+                      </span>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <Chip
+                      size="sm"
+                      variant="flat"
+                      radius="sm"
+                      classNames={getChipClassNames('default')}
+                    >
+                      {formatType(invite.type)}
+                    </Chip>
+                  </TableCell>
+                  <TableCell>
+                    <StatusChip status={invite.status} type="invite" />
+                  </TableCell>
+                  <TableCell>
+                    <span className="text-sm">
+                      {formatShortDate(invite.created, locale)}
+                    </span>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+          <TablePagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={totalItems}
+            pageSize={PAGE_SIZE}
+            onPageChange={setCurrentPage}
+            showRange
+          />
+        </>
+      )}
+    </CollapsibleTableWrapper>
+  );
+}
