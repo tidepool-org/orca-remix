@@ -1,7 +1,7 @@
 import { Button, ButtonProps } from '@heroui/react';
 import debounce from 'lodash/debounce';
 import { Copy, CopyCheck } from 'lucide-react';
-import React, { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 type ClipboardButtonProps = ButtonProps & {
   clipboardText?: string;
@@ -18,7 +18,7 @@ export default function ClipboardButton({
   variant = 'light',
   ...buttonProps
 }: ClipboardButtonProps) {
-  const [isLoading, setIsLoading] = React.useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const debouncedRef = useRef<ReturnType<typeof debounce> | null>(null);
 
   // Icon scales with the button size so it stays proportional to the

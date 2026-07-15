@@ -195,7 +195,7 @@ export default function PrescriptionsTable({
                   targetClinicId = prescription?.clinicId;
                 } else {
                   // In clinic context, use prop or route params, preserve search params
-                  targetClinicId = clinicId || params.clinicId;
+                  targetClinicId = effectiveClinicId;
                 }
 
                 if (targetClinicId) {

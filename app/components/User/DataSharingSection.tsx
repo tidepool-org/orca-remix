@@ -27,6 +27,10 @@ import { formatShortDate } from '~/utils/dateFormatters';
 
 const PAGE_SIZE = 25;
 
+// Format an invite type token (e.g. "care_team") into a readable label.
+const formatType = (type: string): string =>
+  type.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+
 // Helper to convert permissions object to readable array
 const formatPermissions = (permissions: Permissions): string[] => {
   const perms: string[] = [];
@@ -313,10 +317,6 @@ export function SentInvitesTable({
     { key: 'created', label: 'Sent Date' },
   ];
 
-  const formatType = (type: string): string => {
-    return type.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
-  };
-
   const EmptyContent = (
     <TableEmptyState icon={Send} message="No pending sent invites" />
   );
@@ -439,10 +439,6 @@ export function ReceivedInvitesTable({
     { key: 'status', label: 'Status' },
     { key: 'created', label: 'Received Date' },
   ];
-
-  const formatType = (type: string): string => {
-    return type.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
-  };
 
   const EmptyContent = (
     <TableEmptyState icon={Inbox} message="No pending received invites" />

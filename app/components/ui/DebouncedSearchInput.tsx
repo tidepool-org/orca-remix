@@ -16,7 +16,7 @@ export default function DebouncedSearchInput({
   debounceMs = 1000,
 }: DebouncedSearchInputProps) {
   const [localValue, setLocalValue] = useState(value);
-  const timeoutRef = useRef<NodeJS.Timeout>();
+  const timeoutRef = useRef<ReturnType<typeof setTimeout>>();
   const onSearchRef = useRef(onSearch);
 
   // Keep ref in sync with latest callback

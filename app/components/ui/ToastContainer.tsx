@@ -1,11 +1,11 @@
-import { useToast } from '~/contexts/ToastContext';
+import { useToast, type ToastType } from '~/contexts/ToastContext';
 import { Button } from '@heroui/react';
 import { CheckCircle2, XCircle, AlertTriangle, Info, X } from 'lucide-react';
 
 export default function ToastContainer() {
   const { toasts, hideToast } = useToast();
 
-  const getIcon = (type: string) => {
+  const getIcon = (type: ToastType) => {
     switch (type) {
       case 'success':
         return <CheckCircle2 className="w-5 h-5" aria-hidden="true" />;
@@ -19,7 +19,7 @@ export default function ToastContainer() {
     }
   };
 
-  const getColorClasses = (type: string) => {
+  const getColorClasses = (type: ToastType) => {
     switch (type) {
       case 'success':
         return 'bg-[color-mix(in_srgb,var(--ok)_12%,transparent)] text-[color:var(--ok)] border-[color-mix(in_srgb,var(--ok)_24%,transparent)]';

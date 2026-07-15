@@ -64,7 +64,7 @@ These errors don't affect the build or runtime. To fix them would require:
 
 1. **CJS Build Warning**:
 
-   ```
+   ```text
    The CJS build of Vite's Node API is deprecated
    ```
 
@@ -72,7 +72,7 @@ These errors don't affect the build or runtime. To fix them would require:
 
 2. **Single Fetch Resource Routes**:
 
-   ```
+   ```text
    ⚠️ REMIX FUTURE CHANGE: Externally-accessed resource routes...
    ```
 

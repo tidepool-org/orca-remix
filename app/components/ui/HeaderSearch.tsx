@@ -1,4 +1,5 @@
 import { useRef, useState, useEffect, useCallback } from 'react';
+import { z } from 'zod';
 import { useNavigate, useLocation } from 'react-router';
 import {
   Autocomplete,
@@ -53,6 +54,17 @@ const typeLabels = {
   prescription: 'Prescriptions',
 };
 
+// Validate the suggestions payload at runtime rather than trusting a bare cast.
+const recentEntitiesSchema = z.array(
+  z.object({
+    id: z.string(),
+    label: z.string(),
+    sublabel: z.string().optional(),
+    type: z.enum(['clinic', 'user', 'patient', 'clinician', 'prescription']),
+    href: z.string(),
+  }),
+);
+
 const typeOrder: RecentEntity['type'][] = [
   'clinician',
   'clinic',
@@ -83,8 +95,8 @@ export default function HeaderSearch() {
         signal: controller.signal,
       });
       if (res.ok) {
-        const data: RecentEntity[] = await res.json();
-        setEntities(data);
+        const parsed = recentEntitiesSchema.safeParse(await res.json());
+        if (parsed.success) setEntities(parsed.data);
       }
     } catch (err) {
       // A stale request aborted on navigation must not mark the cache fetched.

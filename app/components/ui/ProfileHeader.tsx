@@ -70,9 +70,9 @@ export default function ProfileHeader({
             {/* entity-meta: 9px row gap × 26px col gap, 12.5px text-muted */}
             {(identifiers.length > 0 || actionLinks.length > 0) && (
               <div className="flex flex-wrap items-center gap-y-[9px] gap-x-[26px] mt-[9px] text-[12.5px] text-[color:var(--text-muted)]">
-                {identifiers.map((identifier) => (
+                {identifiers.map((identifier, index) => (
                   <CopyableIdentifier
-                    key={identifier.value}
+                    key={`${identifier.label ?? 'id'}-${index}`}
                     label={identifier.label}
                     value={identifier.value}
                     monospace={identifier.monospace}

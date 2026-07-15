@@ -95,8 +95,8 @@ export default function DetailGrid({
 
   return (
     <div className={gridClasses}>
-      {visibleFields.map((field, index) => (
-        <div key={index} className="flex flex-col gap-1">
+      {visibleFields.map((field) => (
+        <div key={field.label} className="flex flex-col gap-1">
           <span className="text-[10.5px] font-semibold uppercase tracking-[0.07em] text-[color:var(--text-faint)]">
             {field.label}
           </span>

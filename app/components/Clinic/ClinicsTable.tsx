@@ -60,6 +60,17 @@ const TIER_COLOR: Record<string, 'default' | 'primary' | 'warning'> = {
   tier0400: 'warning',
 };
 
+const PERMISSION_CHIPS: {
+  key: 'view' | 'upload' | 'note' | 'custodian';
+  label: string;
+  color: 'success' | 'warning' | 'secondary' | 'primary';
+}[] = [
+  { key: 'view', label: 'View', color: 'success' },
+  { key: 'upload', label: 'Upload', color: 'warning' },
+  { key: 'note', label: 'Note', color: 'secondary' },
+  { key: 'custodian', label: 'Custodian', color: 'primary' },
+];
+
 export default function ClinicsTable({
   clinics = [],
   clinicsState,
@@ -178,59 +189,32 @@ export default function ClinicsTable({
               {clinic.tier || 'N/A'}
             </Chip>
           );
-        case 'permissions':
+        case 'permissions': {
           // Type guard to check if item is PatientClinicMembership
           if ('patient' in item && item.patient.permissions) {
-            return (
-              <div className="flex gap-1 flex-wrap">
-                {item.patient.permissions.view && (
-                  <Chip
-                    size="sm"
-                    variant="flat"
-                    color="success"
-                    radius="sm"
-                    classNames={getChipClassNames('success')}
-                  >
-                    View
-                  </Chip>
-                )}
-                {item.patient.permissions.upload && (
-                  <Chip
-                    size="sm"
-                    variant="flat"
-                    color="warning"
-                    radius="sm"
-                    classNames={getChipClassNames('warning')}
-                  >
-                    Upload
-                  </Chip>
-                )}
-                {item.patient.permissions.note && (
-                  <Chip
-                    size="sm"
-                    variant="flat"
-                    color="secondary"
-                    radius="sm"
-                    classNames={getChipClassNames('secondary')}
-                  >
-                    Note
-                  </Chip>
-                )}
-                {item.patient.permissions.custodian && (
-                  <Chip
-                    size="sm"
-                    variant="flat"
-                    color="primary"
-                    radius="sm"
-                    classNames={getChipClassNames('primary')}
-                  >
-                    Custodian
-                  </Chip>
-                )}
-              </div>
-            );
+            const perms = item.patient.permissions;
+            const enabled = PERMISSION_CHIPS.filter((p) => perms[p.key]);
+            if (enabled.length > 0) {
+              return (
+                <div className="flex gap-1 flex-wrap">
+                  {enabled.map((p) => (
+                    <Chip
+                      key={p.key}
+                      size="sm"
+                      variant="flat"
+                      color={p.color}
+                      radius="sm"
+                      classNames={getChipClassNames(p.color)}
+                    >
+                      {p.label}
+                    </Chip>
+                  ))}
+                </div>
+              );
+            }
           }
           return <span className="text-[color:var(--text-faint)]">—</span>;
+        }
         case 'createdTime':
           return (
             <div className="text-sm">
