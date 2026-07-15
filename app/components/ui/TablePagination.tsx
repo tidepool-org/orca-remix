@@ -74,10 +74,17 @@ export default function TablePagination({
 
   const clampPage = (n: number) => Math.min(Math.max(n, 1), totalPages);
 
-  const handleJump = (raw: string) => {
-    const n = Number.parseInt(raw, 10);
-    if (Number.isNaN(n)) return currentPage;
-    return clampPage(n);
+  const commitJump = (target: HTMLInputElement) => {
+    const n = Number.parseInt(target.value, 10);
+    const clamped = Number.isNaN(n) ? currentPage : clampPage(n);
+    if (clamped !== currentPage) {
+      onPageChange?.(clamped);
+    } else {
+      // No page change — the input may hold a blank/invalid/out-of-range value
+      // that clamped back to the current page. Since it's uncontrolled
+      // (defaultValue + key), reset the displayed text to the current page.
+      target.value = String(currentPage);
+    }
   };
 
   return (
@@ -126,13 +133,10 @@ export default function TablePagination({
             key={currentPage}
             onKeyDown={(e) => {
               if (e.key !== 'Enter') return;
-              const target = e.currentTarget as HTMLInputElement;
-              const clamped = handleJump(target.value);
-              if (clamped !== currentPage) onPageChange?.(clamped);
+              commitJump(e.currentTarget);
             }}
             onBlur={(e) => {
-              const clamped = handleJump(e.currentTarget.value);
-              if (clamped !== currentPage) onPageChange?.(clamped);
+              commitJump(e.currentTarget);
             }}
           />
           <span className="font-mono text-[color:var(--text-faint)]">

@@ -80,11 +80,12 @@ describe('CopyableIdentifier', () => {
   });
 
   describe('Size Variants', () => {
-    it('renders with default md size', () => {
+    it('renders with default md size (inherits surrounding text size)', () => {
       render(<CopyableIdentifier value="test" />);
 
+      // md inherits the ambient text size, so it should not carry the sm size class.
       const valueElement = screen.getByText('test');
-      expect(valueElement).toHaveClass('text-md');
+      expect(valueElement).not.toHaveClass('text-base');
     });
 
     it('renders with sm size when specified', () => {

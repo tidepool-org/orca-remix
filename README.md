@@ -91,7 +91,7 @@ All Tidepool API calls go through `apiRequest()` / `apiRequestSafe()` in `api.se
 
 ## Project Structure
 
-```
+```text
 app/
 ├── routes/              # File-based routes (loader + action + component per file)
 ├── components/

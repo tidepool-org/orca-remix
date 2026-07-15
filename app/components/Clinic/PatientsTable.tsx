@@ -85,7 +85,7 @@ export default function PatientsTable({
   );
 
   // Parse current sort to set initial sort descriptor
-  const parseSortString = (sortStr?: string) => {
+  const parseSortString = React.useCallback((sortStr?: string) => {
     if (!sortStr)
       return { column: 'fullName', direction: 'ascending' as const };
     const direction = sortStr.startsWith('-')
@@ -93,11 +93,18 @@ export default function PatientsTable({
       : ('ascending' as const);
     const column = sortStr.replace(/^[+-]/, '');
     return { column, direction };
-  };
+  }, []);
 
   const [sortDescriptor, setSortDescriptor] = React.useState<SortDescriptor>(
     parseSortString(currentSort),
   );
+
+  // Keep the header sort state aligned when currentSort changes after mount
+  // (e.g. back/forward navigation or a reset), since the state above only
+  // seeds from the prop once.
+  React.useEffect(() => {
+    setSortDescriptor(parseSortString(currentSort));
+  }, [currentSort, parseSortString]);
 
   // Calculate pagination details
   const effectivePageSize =

@@ -506,6 +506,7 @@ export default function ClinicProfile({
                         type="number"
                         size="sm"
                         placeholder="Enter limit"
+                        aria-label="Maximum patients"
                         value={isLimitEnabled ? patientLimitValue : ''}
                         onValueChange={setPatientLimitValue}
                         className="w-40"
@@ -631,7 +632,7 @@ export default function ClinicProfile({
                       color="danger"
                       variant="flat"
                       size="sm"
-                      startContent={<Trash2 size={14} />}
+                      startContent={<Trash2 size={14} aria-hidden="true" />}
                       onPress={() => setIsDeleteModalOpen(true)}
                     >
                       Delete Clinic

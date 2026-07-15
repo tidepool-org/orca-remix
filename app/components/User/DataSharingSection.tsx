@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   Table,
   TableHeader,
@@ -94,6 +94,14 @@ function AccountsTable({
   }, [accounts, currentUserId, userProfiles, filterValue]);
   const totalItems = entries.length;
   const totalPages = Math.ceil(totalItems / PAGE_SIZE);
+
+  // Clamp the page when the list shrinks (e.g. filtering or an invite being
+  // accepted) so a now-out-of-range page doesn't show the empty state.
+  useEffect(() => {
+    const maxPage = Math.max(1, totalPages);
+    if (currentPage > maxPage) setCurrentPage(maxPage);
+  }, [currentPage, totalPages]);
+
   const pagedEntries = entries.slice(
     (currentPage - 1) * PAGE_SIZE,
     currentPage * PAGE_SIZE,
@@ -285,6 +293,14 @@ export function SentInvitesTable({
   const [currentPage, setCurrentPage] = useState(1);
   const totalItems = invites.length;
   const totalPages = Math.ceil(totalItems / PAGE_SIZE);
+
+  // Clamp the page when the list shrinks so an out-of-range page doesn't show
+  // the empty state.
+  useEffect(() => {
+    const maxPage = Math.max(1, totalPages);
+    if (currentPage > maxPage) setCurrentPage(maxPage);
+  }, [currentPage, totalPages]);
+
   const pagedInvites = invites.slice(
     (currentPage - 1) * PAGE_SIZE,
     currentPage * PAGE_SIZE,
@@ -404,6 +420,14 @@ export function ReceivedInvitesTable({
   const [currentPage, setCurrentPage] = useState(1);
   const totalItems = invites.length;
   const totalPages = Math.ceil(totalItems / PAGE_SIZE);
+
+  // Clamp the page when the list shrinks so an out-of-range page doesn't show
+  // the empty state.
+  useEffect(() => {
+    const maxPage = Math.max(1, totalPages);
+    if (currentPage > maxPage) setCurrentPage(maxPage);
+  }, [currentPage, totalPages]);
+
   const pagedInvites = invites.slice(
     (currentPage - 1) * PAGE_SIZE,
     currentPage * PAGE_SIZE,

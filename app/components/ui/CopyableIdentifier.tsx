@@ -66,9 +66,13 @@ export default function CopyableIdentifier({
   // Strip any trailing colon defensively so callers can keep grammatical label props.
   const displayLabel = label?.replace(/:\s*$/, '');
 
+  // `md` inherits the surrounding text size (no explicit class). Previously
+  // this used `text-md`, which isn't a defined Tailwind/theme token and so was
+  // a silent no-op; the empty string keeps the same rendering while removing
+  // the misleading dead class.
   const sizeClasses = {
     sm: 'text-base',
-    md: 'text-md',
+    md: '',
   };
 
   const valueClasses = [

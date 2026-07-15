@@ -66,6 +66,7 @@ export default function HeaderSearch() {
   const [isFocused, setIsFocused] = useState(false);
   const [entities, setEntities] = useState<RecentEntity[]>([]);
   const hasFetchedRef = useRef(false);
+  const abortRef = useRef<AbortController | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
   const autocompleteRef = useRef<HTMLInputElement>(null);
@@ -73,21 +74,31 @@ export default function HeaderSearch() {
 
   const fetchEntities = useCallback(async () => {
     if (hasFetchedRef.current) return;
+    // Abort any previous in-flight request before starting a new one.
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
     try {
-      const res = await fetch('/action/recent-entities');
+      const res = await fetch('/action/recent-entities', {
+        signal: controller.signal,
+      });
       if (res.ok) {
         const data: RecentEntity[] = await res.json();
         setEntities(data);
       }
-    } catch {
+    } catch (err) {
+      // A stale request aborted on navigation must not mark the cache fetched.
+      if (err instanceof DOMException && err.name === 'AbortError') return;
       // Silently fail - search still works without suggestions
     }
     hasFetchedRef.current = true;
   }, []);
 
-  // Invalidate cache on navigation so newly viewed entities appear
+  // Invalidate cache on navigation so newly viewed entities appear, and abort
+  // any pending request so a stale response can't overwrite fresh state.
   useEffect(() => {
     hasFetchedRef.current = false;
+    return () => abortRef.current?.abort();
   }, [location.pathname]);
 
   const handleFocus = () => {

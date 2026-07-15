@@ -90,8 +90,13 @@ export default function StatusChip({
   // Get color from custom map or default based on type
   const getColor = (): ChipColor => {
     const normalizedStatus = status.toLowerCase();
-    if (colorMap && normalizedStatus in colorMap) {
-      return colorMap[normalizedStatus];
+    // Normalize colorMap keys too, so callers passing non-lowercase keys still
+    // match (status is already lowercased above).
+    if (colorMap) {
+      const match = Object.entries(colorMap).find(
+        ([key]) => key.toLowerCase() === normalizedStatus,
+      );
+      if (match) return match[1];
     }
 
     switch (type) {

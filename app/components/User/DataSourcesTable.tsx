@@ -420,7 +420,7 @@ export default function DataSourcesTable({
   return (
     <>
       <CollapsibleTableWrapper
-        icon={<Database className="h-5 w-5" />}
+        icon={<Database className="h-5 w-5" aria-hidden="true" />}
         title="Data Sources"
         totalItems={totalItems}
         isFirstInGroup={isFirstInGroup}
