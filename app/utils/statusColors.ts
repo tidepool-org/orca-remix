@@ -49,8 +49,19 @@ export const dataSourceStateColors: Record<string, ChipColor> = {
  */
 export const roleColors: Record<string, ChipColor> = {
   clinic_admin: 'primary',
+  clinic_manager: 'primary',
   prescriber: 'success',
   clinic_member: 'default',
+};
+
+/**
+ * Color mapping for account status. Verified is a positive state, Unverified
+ * is a caution state, and Unclaimed/custodial accounts read as neutral.
+ */
+export const accountStatusColors: Record<string, ChipColor> = {
+  verified: 'success',
+  unverified: 'warning',
+  unclaimed: 'default',
 };
 
 /**
@@ -88,6 +99,15 @@ export function getRoleColor(role: string | undefined | null): ChipColor {
 }
 
 /**
+ * Get account status color
+ */
+export function getAccountStatusColor(
+  status: string | undefined | null,
+): ChipColor {
+  return accountStatusColors[status?.toLowerCase() ?? ''] ?? 'default';
+}
+
+/**
  * Generic status color getter supporting multiple types
  */
 export function getStatusColor(
@@ -115,6 +135,8 @@ export function formatRoleLabel(role: string | undefined | null): string {
   switch (role?.toLowerCase()) {
     case 'clinic_admin':
       return 'Admin';
+    case 'clinic_manager':
+      return 'Manager';
     case 'clinic_member':
       return 'Member';
     case 'prescriber':

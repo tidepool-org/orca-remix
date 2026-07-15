@@ -33,7 +33,7 @@ import PrescriptionsTable from './PrescriptionsTable';
 import RecentPatients from './RecentPatients';
 import RecentClinicians from './RecentClinicians';
 import RecentPrescriptions from './RecentPrescriptions';
-import ConfirmationModal from '../ConfirmationModal';
+import ConfirmationModal from '../ui/ConfirmationModal';
 import ProfileHeader from '~/components/ui/ProfileHeader';
 import ProfileTabs from '~/components/ui/ProfileTabs';
 import TabTitle from '~/components/ui/TabTitle';
@@ -41,7 +41,7 @@ import SettingsToggleRow from '~/components/ui/SettingsToggleRow';
 import { DangerZoneAction } from '~/components/ui/DangerZoneSection';
 import SaveCancelButtons from '~/components/ui/SaveCancelButtons';
 import SectionPanel from '~/components/ui/SectionPanel';
-import { CollapsibleGroup } from '~/components/CollapsibleGroup';
+import { CollapsibleGroup } from '~/components/ui/CollapsibleGroup';
 import { timezoneNames } from '~/utils/timezoneNames';
 
 const tierOptions = [
@@ -211,11 +211,17 @@ export default function ClinicProfile({
     setSelectedTimezone(timezone || '');
   }, [timezone]);
 
-  // Reset MRN settings when they change
+  // Reset each MRN toggle independently when its own server value changes.
+  // Keying both off the whole mrnSettings object would reset an unrelated,
+  // still-unsaved toggle whenever the other was saved — silently discarding
+  // the user's pending edit.
   useEffect(() => {
     setMrnRequired(mrnSettings?.required ?? false);
+  }, [mrnSettings?.required]);
+
+  useEffect(() => {
     setMrnUnique(mrnSettings?.unique ?? false);
-  }, [mrnSettings]);
+  }, [mrnSettings?.unique]);
 
   // Reset patient limit when it changes from server
   useEffect(() => {
@@ -475,7 +481,7 @@ export default function ClinicProfile({
                 subtitle="Set a maximum number of patients for this clinic. Use the toggle to enable or disable the limit."
               >
                 {!isPatientLimitApplicable && (
-                  <p className="text-xs text-default-500 mb-4 p-2 bg-default-100 rounded-md">
+                  <p className="text-xs text-[color:var(--text-muted)] mb-4 p-2 bg-[color:var(--surface-2)] rounded-md">
                     Patient limits only apply to tier0100 clinics. Change the
                     clinic tier to tier0100 to enable this setting.
                   </p>
@@ -500,6 +506,7 @@ export default function ClinicProfile({
                         type="number"
                         size="sm"
                         placeholder="Enter limit"
+                        aria-label="Maximum patients"
                         value={isLimitEnabled ? patientLimitValue : ''}
                         onValueChange={setPatientLimitValue}
                         className="w-40"
@@ -511,7 +518,9 @@ export default function ClinicProfile({
                           !isLimitEnabled
                         }
                       />
-                      <span className="text-sm text-default-500">patients</span>
+                      <span className="text-sm text-[color:var(--text-muted)]">
+                        patients
+                      </span>
                       {isPatientLimitApplicable && isPatientLimitDirty && (
                         <SaveCancelButtons
                           onSave={handlePatientLimitSave}
@@ -610,7 +619,8 @@ export default function ClinicProfile({
               {/* Danger Zone */}
               <SectionPanel
                 title="Danger Zone"
-                titleClassName="text-danger"
+                titleClassName="text-[color:var(--danger)]"
+                tone="danger"
                 collapsible
                 defaultExpanded={false}
               >
@@ -622,7 +632,7 @@ export default function ClinicProfile({
                       color="danger"
                       variant="flat"
                       size="sm"
-                      startContent={<Trash2 size={14} />}
+                      startContent={<Trash2 size={14} aria-hidden="true" />}
                       onPress={() => setIsDeleteModalOpen(true)}
                     >
                       Delete Clinic

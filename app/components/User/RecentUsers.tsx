@@ -21,7 +21,7 @@ export default function RecentUsers({ rows }: RecentUsersProps) {
   };
 
   return (
-    <RecentItemsTable<RecentUser & { id?: string }>
+    <RecentItemsTable<RecentUser & { id: string }>
       items={rows.map((r) => ({ ...r, id: r.userid }))}
       columns={columns}
       onSelect={handleSelect}

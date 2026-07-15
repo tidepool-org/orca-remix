@@ -17,6 +17,14 @@ export type Clinic = {
   }[];
 };
 
+// Subset of Clinic fields needed to resolve patient tags/sites and BG units.
+// Shared between components that receive a clinic prop and those that read it
+// off the parent route loader, so the two shapes can't drift apart.
+export type ClinicSummary = Pick<
+  Clinic,
+  'patientTags' | 'sites' | 'preferredBgUnits'
+>;
+
 // MRN settings for a clinic
 export type ClinicMrnSettings = {
   required: boolean;
@@ -79,15 +87,19 @@ export type Patient = {
   connectionRequests?: {
     twiist?: {
       createdTime: string;
-      providerName: 'dexcom' | 'twiist' | 'abbott';
+      providerName: 'twiist';
     }[];
     dexcom?: {
       createdTime: string;
-      providerName: 'dexcom' | 'twiist' | 'abbott';
+      providerName: 'dexcom';
     }[];
     abbott?: {
       createdTime: string;
-      providerName: 'dexcom' | 'twiist' | 'abbott';
+      providerName: 'abbott';
+    }[];
+    oura?: {
+      createdTime: string;
+      providerName: 'oura';
     }[];
   };
   sites?: {

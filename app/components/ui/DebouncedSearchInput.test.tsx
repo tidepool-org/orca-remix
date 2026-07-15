@@ -1,5 +1,5 @@
-import { describe, it, expect, vi } from 'vitest';
-import { render, screen, act } from '~/test-utils';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { render, screen, act, fireEvent } from '~/test-utils';
 import userEvent from '@testing-library/user-event';
 import DebouncedSearchInput from './DebouncedSearchInput';
 
@@ -87,6 +87,66 @@ describe('DebouncedSearchInput', () => {
       await user.type(input, 'test');
 
       expect(input).toHaveValue('test');
+    });
+  });
+
+  describe('Debounce behavior', () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
+    it('does not call onSearch before the debounce delay', () => {
+      const onSearch = vi.fn();
+      render(<DebouncedSearchInput onSearch={onSearch} debounceMs={500} />);
+
+      const input = screen.getByRole('textbox');
+      fireEvent.change(input, { target: { value: 'test' } });
+
+      // Advance less than the debounce time
+      act(() => vi.advanceTimersByTime(400));
+      expect(onSearch).not.toHaveBeenCalled();
+    });
+
+    it('calls onSearch after the debounce delay', () => {
+      const onSearch = vi.fn();
+      render(<DebouncedSearchInput onSearch={onSearch} debounceMs={500} />);
+
+      const input = screen.getByRole('textbox');
+      fireEvent.change(input, { target: { value: 'test' } });
+
+      act(() => vi.advanceTimersByTime(500));
+      expect(onSearch).toHaveBeenCalledWith('test');
+    });
+
+    it('resets the debounce timer on each input change', () => {
+      const onSearch = vi.fn();
+      render(<DebouncedSearchInput onSearch={onSearch} debounceMs={500} />);
+
+      const input = screen.getByRole('textbox');
+      fireEvent.change(input, { target: { value: 'te' } });
+      act(() => vi.advanceTimersByTime(400));
+      expect(onSearch).not.toHaveBeenCalled();
+
+      fireEvent.change(input, { target: { value: 'test' } });
+      act(() => vi.advanceTimersByTime(500));
+      // Should fire once with the final value
+      expect(onSearch).toHaveBeenCalledTimes(1);
+      expect(onSearch).toHaveBeenCalledWith('test');
+    });
+
+    it('calls onSearch with empty string when cleared', () => {
+      const onSearch = vi.fn();
+      render(<DebouncedSearchInput onSearch={onSearch} value="initial" />);
+
+      const input = screen.getByRole('textbox');
+      fireEvent.change(input, { target: { value: '' } });
+
+      act(() => vi.advanceTimersByTime(1000));
+      expect(onSearch).toHaveBeenCalledWith('');
     });
   });
 

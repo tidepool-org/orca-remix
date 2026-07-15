@@ -1,4 +1,4 @@
-import { ReactNode, useState } from 'react';
+import { ReactNode, useId, useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 
 export type SectionPanelProps = {
@@ -22,6 +22,8 @@ export type SectionPanelProps = {
   defaultExpanded?: boolean;
   /** Additional className for the title text */
   titleClassName?: string;
+  /** Visual tone for the panel header (default 'default') */
+  tone?: 'default' | 'danger';
   /** Aria label for the section */
   'aria-label'?: string;
 };
@@ -67,8 +69,24 @@ export default function SectionPanel({
   onToggle,
   defaultExpanded = true,
   titleClassName,
+  tone = 'default',
   'aria-label': ariaLabel,
 }: SectionPanelProps) {
+  const toneCls =
+    tone === 'danger'
+      ? {
+          container:
+            'border-[color:var(--danger-border)] bg-[color:var(--surface)]',
+          header:
+            'bg-[color:var(--danger-soft)] border-b border-[color:var(--danger-border)]',
+        }
+      : {
+          container:
+            'border-[color:var(--border)] bg-[color:var(--surface)] shadow-token',
+          header:
+            'bg-[color:var(--surface-2)] border-b border-[color:var(--border)]',
+        };
+
   const [internalExpanded, setInternalExpanded] = useState(defaultExpanded);
 
   // Use controlled state if provided, otherwise use internal state
@@ -88,24 +106,49 @@ export default function SectionPanel({
     }
   };
 
-  const panelId = `${title.toLowerCase().replace(/\s+/g, '-')}-panel-content`;
+  const panelId = useId();
+  const headingId = useId();
+
+  const titleContent = (
+    <>
+      {icon ? (
+        <span
+          className={`inline-grid place-items-center w-[22px] h-[22px] flex-none [&_svg]:w-4 [&_svg]:h-4 ${
+            tone === 'danger'
+              ? 'text-[color:var(--danger-soft-fg)]'
+              : 'text-[color:var(--primary)]'
+          }`}
+          aria-hidden="true"
+        >
+          {icon}
+        </span>
+      ) : null}
+      <div className="flex flex-col">
+        <span
+          id={headingId}
+          role="heading"
+          aria-level={2}
+          className={`text-[12.5px] font-semibold uppercase tracking-[0.07em] text-[color:var(--text-heading)] whitespace-nowrap ${titleClassName || ''}`}
+        >
+          {title}
+        </span>
+        {subtitle && (
+          <p className="text-[12px] text-[color:var(--text-muted)] mt-0.5 normal-case tracking-normal font-normal">
+            {subtitle}
+          </p>
+        )}
+      </div>
+    </>
+  );
 
   const headerContent = (
     <div className="flex justify-between items-center w-full">
-      <div className="flex gap-2 items-center">
-        {icon}
-        <div className="flex flex-col">
-          <h2 className={`text-lg font-semibold ${titleClassName || ''}`}>
-            {title}
-          </h2>
-          {subtitle && <p className="text-sm text-default-500">{subtitle}</p>}
-        </div>
-      </div>
-      <div className="flex items-center gap-3">
+      <div className="flex gap-[10px] items-center">{titleContent}</div>
+      <div className="flex items-center gap-[10px]">
         {headerControls}
         {collapsible && (
           <ChevronDown
-            className={`w-5 h-5 transition-transform ${
+            className={`w-4 h-4 text-[color:var(--text-faint)] transition-transform ${
               isExpanded ? 'rotate-180' : ''
             }`}
             aria-hidden="true"
@@ -116,28 +159,37 @@ export default function SectionPanel({
   );
 
   return (
-    <div
-      className="w-full rounded-lg border-2 border-content2 overflow-hidden"
+    <section
+      className={`w-full rounded-[8px] border ${toneCls.container} overflow-hidden`}
       aria-label={ariaLabel}
     >
       {collapsible ? (
         <button
-          className="flex w-full p-4 bg-content1 hover:bg-default/40 transition-colors cursor-pointer"
+          className={`flex w-full px-4 py-2.5 min-h-[43px] ${toneCls.header} hover:brightness-[0.98] transition-colors cursor-pointer`}
           onClick={handleToggle}
           aria-expanded={isExpanded}
           aria-controls={panelId}
+          aria-labelledby={headingId}
         >
           {headerContent}
         </button>
       ) : (
-        <div className="flex w-full p-4 bg-content1">{headerContent}</div>
+        <div
+          className={`flex w-full px-4 py-2.5 min-h-[43px] items-center ${toneCls.header}`}
+        >
+          {headerContent}
+        </div>
       )}
 
-      {isExpanded && children && (
-        <div id={panelId} className="p-4 transition-all duration-300">
+      {children && (
+        <div
+          id={panelId}
+          className="p-4 transition-all duration-300"
+          hidden={!isExpanded}
+        >
           {children}
         </div>
       )}
-    </div>
+    </section>
   );
 }

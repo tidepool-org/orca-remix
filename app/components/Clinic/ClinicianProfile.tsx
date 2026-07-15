@@ -14,7 +14,7 @@ import SaveCancelButtons from '~/components/ui/SaveCancelButtons';
 import SectionPanel from '~/components/ui/SectionPanel';
 import ViewUserAccountLink from '~/components/ui/ViewUserAccountLink';
 import RollbarLink from '~/components/ui/RollbarLink';
-import { CollapsibleGroup } from '~/components/CollapsibleGroup';
+import { CollapsibleGroup } from '~/components/ui/CollapsibleGroup';
 import { useToast } from '~/contexts/ToastContext';
 import type { Clinician, ClinicianClinicMembership } from './types';
 import { formatShortDate } from '~/utils/dateFormatters';
@@ -72,27 +72,35 @@ export default function ClinicianProfile({
     );
   };
 
-  const serverIsAdmin = hasRole('CLINIC_ADMIN');
-  const serverIsPrescriber = hasRole('PRESCRIBER');
+  const serverIsAdmin = hasRole('CLINIC_ADMIN') ?? false;
+  const serverIsPrescriber = hasRole('PRESCRIBER') ?? false;
 
   // Staged local state for role toggles
   const [stagedAdmin, setStagedAdmin] = useState(serverIsAdmin);
   const [stagedPrescriber, setStagedPrescriber] = useState(serverIsPrescriber);
 
-  // Reset staged state when server roles change (after successful save)
-  const rolesKey = clinician?.roles?.join(',');
-  const [prevRolesKey, setPrevRolesKey] = useState(rolesKey);
-  if (rolesKey !== prevRolesKey) {
-    setPrevRolesKey(rolesKey);
+  // Reset each staged toggle independently when its own server-derived value
+  // changes (after a successful save). Keying both off the combined roles
+  // string would reset an unrelated, still-unsaved toggle whenever the other
+  // role was saved — silently discarding the user's pending edit.
+  const [prevServerIsAdmin, setPrevServerIsAdmin] = useState(serverIsAdmin);
+  if (serverIsAdmin !== prevServerIsAdmin) {
+    setPrevServerIsAdmin(serverIsAdmin);
     setStagedAdmin(serverIsAdmin);
+  }
+
+  const [prevServerIsPrescriber, setPrevServerIsPrescriber] =
+    useState(serverIsPrescriber);
+  if (serverIsPrescriber !== prevServerIsPrescriber) {
+    setPrevServerIsPrescriber(serverIsPrescriber);
     setStagedPrescriber(serverIsPrescriber);
   }
 
   if (!clinician) {
     return (
-      <div className="w-full rounded-lg border-2 border-content2 overflow-hidden">
-        <div className="p-4 bg-content1">
-          <p className="text-default-600">Clinician not found</p>
+      <div className="w-full rounded-lg border-2 border-[color:var(--border)] overflow-hidden">
+        <div className="p-4 bg-[color:var(--surface)]">
+          <p className="text-[color:var(--text-muted)]">Clinician not found</p>
         </div>
       </div>
     );
@@ -175,8 +183,8 @@ export default function ClinicianProfile({
         title={clinician.name}
         identifiers={clinicianIdentifiers}
         actionLinks={[
-          <ViewUserAccountLink userId={clinician.id} />,
-          <RollbarLink userId={clinician.id} />,
+          <ViewUserAccountLink key="view-account" userId={clinician.id} />,
+          <RollbarLink key="rollbar" userId={clinician.id} />,
         ]}
         detailFields={clinicianDetailFields}
         {...profileExpandedProps}
@@ -269,7 +277,7 @@ export default function ClinicianProfile({
                   </div>
 
                   {fetcher.data?.error && (
-                    <div className="mt-4 p-3 bg-danger/10 text-danger rounded-lg text-sm">
+                    <div className="mt-4 p-3 bg-[color:var(--danger-soft)] text-[color:var(--danger)] rounded-lg text-sm">
                       {fetcher.data.error}
                     </div>
                   )}

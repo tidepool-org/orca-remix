@@ -16,6 +16,7 @@ import type {
 import { useEffect } from 'react';
 import { APIError } from '~/utils/errors';
 import { z } from 'zod';
+import { ClinicianSchema } from '~/schemas';
 import { usePersistedTab } from '~/hooks/usePersistedTab';
 
 type ClinicianLoaderData = {
@@ -23,6 +24,10 @@ type ClinicianLoaderData = {
   recentClinicians: RecentClinician[];
   clinics: ClinicianClinicMembership[];
   totalClinics: number;
+};
+
+export const handle = {
+  breadcrumb: { href: '#', label: 'Clinician Profile' },
 };
 
 /**
@@ -141,6 +146,7 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
       },
     );
   } catch (error) {
+    if (error instanceof Response) throw error;
     console.error('Error loading clinician:', error);
     throw new Response('Failed to load clinician', { status: 500 });
   }
@@ -185,7 +191,7 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
       let parsedClinician: Clinician;
       try {
         parsedRoles = JSON.parse(rolesJson);
-        parsedClinician = JSON.parse(clinicianJson);
+        parsedClinician = ClinicianSchema.parse(JSON.parse(clinicianJson));
       } catch {
         return Response.json({ error: 'Invalid JSON format' }, { status: 400 });
       }
@@ -207,10 +213,14 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
       }
 
       // Update the clinician with the new roles
-      // Uses the already-loaded clinician data from the client to avoid an extra API call
+      // Only pick the fields the API expects — don't spread raw client data
       await apiRequest({
         ...apiRoutes.clinic.updateClinician(clinicId, clinicianId),
-        body: { ...parsedClinician, roles },
+        body: {
+          name: parsedClinician.name,
+          email: parsedClinician.email,
+          roles,
+        },
       });
 
       return Response.json({ success: true });
@@ -238,7 +248,7 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
   return Response.json({ error: 'Unknown action' }, { status: 400 });
 };
 
-export default function ClinicianRoute() {
+export default function Clinician() {
   const { clinician, clinics, totalClinics } =
     useLoaderData<ClinicianLoaderData>();
   const { clinicId } = useParams();
@@ -276,7 +286,3 @@ export default function ClinicianRoute() {
     />
   );
 }
-
-export const handle = {
-  breadcrumb: { href: '#', label: 'Clinician Profile' },
-};

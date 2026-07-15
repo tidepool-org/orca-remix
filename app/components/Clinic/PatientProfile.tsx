@@ -2,7 +2,7 @@ import { useParams, useRouteLoaderData } from 'react-router';
 import { Chip, Tab } from '@heroui/react';
 import { Database, Smartphone /* FileText */ } from 'lucide-react';
 
-import type { Patient, Prescription } from './types';
+import type { ClinicSummary, Patient, Prescription } from './types';
 import type {
   DataSet,
   DataSource,
@@ -23,25 +23,16 @@ import DataExportSection from '../User/DataExportSection';
 import PumpSettingsSection from '../User/PumpSettingsSection';
 import ViewUserAccountLink from '~/components/ui/ViewUserAccountLink';
 import RollbarLink from '~/components/ui/RollbarLink';
-import { CollapsibleGroup } from '~/components/CollapsibleGroup';
+import { CollapsibleGroup } from '~/components/ui/CollapsibleGroup';
 import { formatShortDate } from '~/utils/dateFormatters';
+import { getChipClassNames } from '~/utils/chipStyles';
 
 export type PatientProfileProps = {
   patient: Patient;
   prescriptions?: Prescription[];
   totalPrescriptions?: number;
   prescriptionsLoading?: boolean;
-  clinic?: {
-    patientTags?: {
-      id: string;
-      name: string;
-    }[];
-    sites?: {
-      id: string;
-      name: string;
-    }[];
-    preferredBgUnits?: 'mg/dL' | 'mmol/L';
-  };
+  clinic?: ClinicSummary;
   // Data tab props
   dataSets?: DataSet[];
   totalDataSets?: number;
@@ -105,13 +96,7 @@ export default function PatientProfile({
 
   // Try to get clinic data from parent route if not provided as prop
   const parentRouteData = useRouteLoaderData('routes/clinics.$clinicId') as
-    | {
-        clinic?: {
-          patientTags?: { id: string; name: string }[];
-          sites?: { id: string; name: string }[];
-          preferredBgUnits?: 'mg/dL' | 'mmol/L';
-        };
-      }
+    | { clinic?: ClinicSummary }
     | undefined;
   const clinicData = clinic || parentRouteData?.clinic;
   const { getTagName, getSiteName } = useClinicResolvers(clinicData);
@@ -137,24 +122,40 @@ export default function PatientProfile({
             value: (
               <div className="flex gap-1 flex-wrap mt-0.5">
                 {permissions.custodian && (
-                  <span className="px-1.5 py-0.5 bg-danger/10 text-danger rounded text-xs">
+                  <Chip
+                    variant="flat"
+                    radius="sm"
+                    classNames={getChipClassNames('danger')}
+                  >
                     Custodial
-                  </span>
+                  </Chip>
                 )}
                 {permissions.view && (
-                  <span className="px-1.5 py-0.5 bg-success/10 text-success rounded text-xs">
+                  <Chip
+                    variant="flat"
+                    radius="sm"
+                    classNames={getChipClassNames('success')}
+                  >
                     View
-                  </span>
+                  </Chip>
                 )}
                 {permissions.upload && (
-                  <span className="px-1.5 py-0.5 bg-warning/10 text-warning rounded text-xs">
+                  <Chip
+                    variant="flat"
+                    radius="sm"
+                    classNames={getChipClassNames('warning')}
+                  >
                     Upload
-                  </span>
+                  </Chip>
                 )}
                 {permissions.note && (
-                  <span className="px-1.5 py-0.5 bg-secondary/10 text-secondary rounded text-xs">
+                  <Chip
+                    variant="flat"
+                    radius="sm"
+                    classNames={getChipClassNames('secondary')}
+                  >
                     Note
-                  </span>
+                  </Chip>
                 )}
               </div>
             ),
@@ -168,12 +169,14 @@ export default function PatientProfile({
             value: (
               <div className="flex gap-1 flex-wrap mt-0.5">
                 {tags.map((tagId, index) => (
-                  <span
+                  <Chip
                     key={index}
-                    className="px-1.5 py-0.5 bg-primary/10 text-primary rounded text-xs"
+                    variant="flat"
+                    radius="sm"
+                    classNames={getChipClassNames('primary')}
                   >
                     {getTagName(tagId)}
-                  </span>
+                  </Chip>
                 ))}
               </div>
             ),
@@ -187,12 +190,14 @@ export default function PatientProfile({
             value: (
               <div className="flex gap-1 flex-wrap mt-0.5">
                 {patient.sites.map((site, index) => (
-                  <span
+                  <Chip
                     key={index}
-                    className="px-1.5 py-0.5 bg-secondary/10 text-secondary rounded text-xs"
+                    variant="flat"
+                    radius="sm"
+                    classNames={getChipClassNames('secondary')}
                   >
                     {getSiteName(site.id || site.name || String(site))}
-                  </span>
+                  </Chip>
                 ))}
               </div>
             ),
@@ -207,15 +212,21 @@ export default function PatientProfile({
         title={fullName}
         titleRowExtra={
           permissions?.custodian ? (
-            <Chip size="sm" variant="flat" color="warning">
+            <Chip
+              size="sm"
+              variant="flat"
+              color="warning"
+              radius="sm"
+              classNames={getChipClassNames('warning')}
+            >
               Custodial
             </Chip>
           ) : undefined
         }
         identifiers={patientIdentifiers}
         actionLinks={[
-          <ViewUserAccountLink userId={id} />,
-          <RollbarLink userId={id} />,
+          <ViewUserAccountLink key="view-account" userId={id} />,
+          <RollbarLink key="rollbar" userId={id} />,
         ]}
         detailFields={patientDetailFields}
         {...profileExpandedProps}

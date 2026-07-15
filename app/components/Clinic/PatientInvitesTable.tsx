@@ -10,14 +10,14 @@ import {
 } from '@heroui/react';
 import { Mail } from 'lucide-react';
 import useLocale from '~/hooks/useLocale';
-import CollapsibleTableWrapper from '../CollapsibleTableWrapper';
+import CollapsibleTableWrapper from '../ui/CollapsibleTableWrapper';
 import {
   collapsibleTableClasses,
   columnClass,
   actionsColumnClass,
 } from '~/utils/tableStyles';
 import type { PatientInvite } from './types';
-import ConfirmationModal from '../ConfirmationModal';
+import ConfirmationModal from '../ui/ConfirmationModal';
 import TableEmptyState from '~/components/ui/TableEmptyState';
 import TableLoadingState from '~/components/ui/TableLoadingState';
 import TablePagination, {
@@ -123,16 +123,17 @@ export default function PatientInvitesTable({
         case 'patientName':
           return (
             <div className="flex flex-col">
-              <p className="text-bold text-sm">
-                {invite.creator.profile.patient.fullName ||
-                  invite.creator.profile.fullName}
+              <p className="font-semibold text-[color:var(--text-heading)]">
+                {invite.creator?.profile?.patient?.fullName ||
+                  invite.creator?.profile?.fullName ||
+                  'Unknown'}
               </p>
             </div>
           );
         case 'birthday':
           return (
-            <p className="text-sm text-default-600">
-              {invite.creator.profile.patient.birthday
+            <p className="text-sm text-[color:var(--text-muted)]">
+              {invite.creator?.profile?.patient?.birthday
                 ? formatShortDate(
                     invite.creator.profile.patient.birthday,
                     locale,
@@ -143,22 +144,24 @@ export default function PatientInvitesTable({
         case 'userId':
           return (
             <CopyableIdentifier
-              value={invite.creator.userid}
+              value={invite.creator?.userid ?? ''}
               monospace
               size="sm"
             />
           );
         case 'created':
-          if (!cellValue) return <span className="text-default-400">—</span>;
+          if (!cellValue)
+            return <span className="text-[color:var(--text-faint)]">—</span>;
           return (
-            <p className="text-sm text-default-600">
+            <p className="text-sm text-[color:var(--text-muted)]">
               {formatShortDate(cellValue as string, locale)}
             </p>
           );
         case 'expiresAt':
-          if (!cellValue) return <span className="text-default-400">—</span>;
+          if (!cellValue)
+            return <span className="text-[color:var(--text-faint)]">—</span>;
           return (
-            <p className="text-sm text-default-600">
+            <p className="text-sm text-[color:var(--text-muted)]">
               {formatShortDate(cellValue as string, locale)}
             </p>
           );
@@ -174,7 +177,7 @@ export default function PatientInvitesTable({
             </div>
           );
         default:
-          return <span className="text-default-400">—</span>;
+          return <span className="text-[color:var(--text-faint)]">—</span>;
       }
     },
     [locale, onRevokeInvite],
@@ -205,7 +208,7 @@ export default function PatientInvitesTable({
       >
         <Table
           aria-label="Clinic patient invites table"
-          className="flex flex-1 flex-col text-content1-foreground gap-4"
+          className="flex flex-1 flex-col text-[color:var(--text)]"
           shadow="none"
           removeWrapper
           selectionMode="single"

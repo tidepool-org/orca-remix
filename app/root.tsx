@@ -6,7 +6,7 @@ import {
   ScrollRestoration,
   useNavigate,
   useLoaderData,
-  type ClientLoaderFunctionArgs,
+  useRouteLoaderData,
 } from 'react-router';
 
 import './tailwind.css';
@@ -16,6 +16,7 @@ import {
   ThemeProvider,
   useTheme,
   PreventFlashOnWrongTheme,
+  type Theme,
 } from 'remix-themes';
 
 import {
@@ -27,11 +28,10 @@ import { authorizeServer } from './auth.server';
 import { default as useLocale, LocaleProvider } from './hooks/useLocale';
 
 import Dashboard from './layouts/Dashboard';
-import { Agent } from './routes/action.get-agent';
-import ErrorStack from './components/ErrorStack';
+import ErrorStack from './components/ui/ErrorStack';
 import getLocale from './utils/getLocale';
 import { ToastProvider } from './contexts/ToastContext';
-import ToastContainer from './components/ToastContainer';
+import ToastContainer from './components/ui/ToastContainer';
 import { requireAuth } from './utils/auth.server';
 import {
   SidebarExpandedProvider,
@@ -39,10 +39,19 @@ import {
 } from './contexts/SidebarExpandedContext';
 import { ProfileExpandedProvider } from './contexts/ProfileExpandedContext';
 
+type Agent = {
+  name?: string | undefined;
+  picture?: string | undefined;
+  email?: string | undefined;
+};
+
 // Return the theme from the session storage using the loader
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  // Verify authentication (defense-in-depth alongside Pomerium proxy)
-  requireAuth(request);
+  // Verify authentication (defense-in-depth alongside Pomerium proxy).
+  // requireAuth decodes and validates the Pomerium JWT (or returns the dev
+  // mock payload when auth is bypassed), so reuse its result for agent info
+  // rather than decoding the token a second time.
+  const authPayload = requireAuth(request);
 
   const { getTheme } = await themeSessionResolver(request);
   await authorizeServer();
@@ -59,58 +68,31 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const profileExpandedMap: Record<string, boolean> =
     profileExpandedCookie.get('expanded') || {};
 
+  // Agent data comes from the already-verified Pomerium JWT payload
+  // (or the dev mock payload when auth is bypassed).
+  const agent: Agent = {
+    name: authPayload.name,
+    picture: authPayload.picture,
+    email: authPayload.email,
+  };
+
   return {
     locale,
-    theme: getTheme() || 'light', // Default to light theme if no cookie is set
+    theme: (getTheme() || 'light') as Theme, // Default to light theme if no cookie is set
     sidebarExpanded,
     profileExpandedMap,
+    agent,
   };
 };
 
-export async function clientLoader({
-  request,
-  serverLoader,
-}: ClientLoaderFunctionArgs) {
-  const { origin } = new URL(request.url);
-  const [serverData] = await Promise.all([serverLoader<typeof loader>()]);
-  const agentData = await fetch(`${origin}/action/get-agent`);
-  const agent: Agent = await agentData.json();
-
-  return {
-    ...serverData,
-    agent,
-  };
-}
-clientLoader.hydrate = true;
-
-export type RootLoaderType = typeof clientLoader;
-
-// Wrap your app with ThemeProvider.
-// `specifiedTheme` is the stored theme in the session storage.
-// `themeAction` is the action name that's used to change the theme in the session storage.
-export default function AppWithProviders() {
-  const { theme, locale, sidebarExpanded, profileExpandedMap } =
-    useLoaderData<typeof clientLoader>();
-
-  return (
-    <ThemeProvider specifiedTheme={theme} themeAction="/action/set-theme">
-      <LocaleProvider locale={locale}>
-        <SidebarExpandedProvider initialExpanded={sidebarExpanded}>
-          <ProfileExpandedProvider initialExpandedMap={profileExpandedMap}>
-            <App />
-          </ProfileExpandedProvider>
-        </SidebarExpandedProvider>
-      </LocaleProvider>
-    </ThemeProvider>
-  );
-}
+export type RootLoaderType = typeof loader;
 
 // Use the theme in your app.
 // If the theme is missing in session storage, PreventFlashOnWrongTheme will get
 // the browser theme before hydration and will prevent a flash in browser.
 // The client code runs conditionally, it won't be rendered if we have a theme in session storage.
 function App() {
-  const data = useLoaderData<typeof clientLoader>();
+  const data = useLoaderData<typeof loader>();
   const navigate = useNavigate();
   const [theme] = useTheme();
   const { locale, direction } = useLocale();
@@ -143,8 +125,28 @@ function App() {
   );
 }
 
+// Wrap your app with ThemeProvider.
+// `specifiedTheme` is the stored theme in the session storage.
+// `themeAction` is the action name that's used to change the theme in the session storage.
+export default function AppWithProviders() {
+  const { theme, locale, sidebarExpanded, profileExpandedMap } =
+    useLoaderData<typeof loader>();
+
+  return (
+    <ThemeProvider specifiedTheme={theme} themeAction="/action/set-theme">
+      <LocaleProvider locale={locale}>
+        <SidebarExpandedProvider initialExpanded={sidebarExpanded}>
+          <ProfileExpandedProvider initialExpandedMap={profileExpandedMap}>
+            <App />
+          </ProfileExpandedProvider>
+        </SidebarExpandedProvider>
+      </LocaleProvider>
+    </ThemeProvider>
+  );
+}
+
 export function ErrorBoundary() {
-  const data = useLoaderData<typeof loader>();
+  const data = useRouteLoaderData<typeof loader>('root');
   const theme = data?.theme || 'dark';
 
   return (

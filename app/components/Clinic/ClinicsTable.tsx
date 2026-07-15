@@ -11,8 +11,9 @@ import {
 } from '@heroui/react';
 import { Building2 } from 'lucide-react';
 import useLocale from '~/hooks/useLocale';
-import CollapsibleTableWrapper from '../CollapsibleTableWrapper';
+import CollapsibleTableWrapper from '../ui/CollapsibleTableWrapper';
 import { collapsibleTableClasses, columnClass } from '~/utils/tableStyles';
+import { getChipClassNames } from '~/utils/chipStyles';
 import type {
   Clinic,
   ClinicianClinicMembership,
@@ -51,6 +52,24 @@ type Column = {
   label: string;
   sortable?: boolean;
 };
+
+const TIER_COLOR: Record<string, 'default' | 'primary' | 'warning'> = {
+  tier0100: 'default',
+  tier0200: 'primary',
+  tier0300: 'primary',
+  tier0400: 'warning',
+};
+
+const PERMISSION_CHIPS: {
+  key: 'view' | 'upload' | 'note' | 'custodian';
+  label: string;
+  color: 'success' | 'warning' | 'secondary' | 'primary';
+}[] = [
+  { key: 'view', label: 'View', color: 'success' },
+  { key: 'upload', label: 'Upload', color: 'warning' },
+  { key: 'note', label: 'Note', color: 'secondary' },
+  { key: 'custodian', label: 'Custodian', color: 'primary' },
+];
 
 export default function ClinicsTable({
   clinics = [],
@@ -150,49 +169,52 @@ export default function ClinicsTable({
         case 'name':
           return (
             <div className="flex flex-col">
-              <p className="text-bold text-sm">{clinic.name}</p>
+              <p className="font-semibold text-[color:var(--text-heading)]">
+                {clinic.name}
+              </p>
               <CopyableIdentifier value={clinic.id} monospace size="sm" />
             </div>
           );
         case 'tier':
           return (
             <Chip
-              color={clinic.tier === 'tier0300' ? 'primary' : 'default'}
-              variant="flat"
               size="sm"
+              variant="flat"
+              radius="sm"
+              color={TIER_COLOR[clinic.tier ?? ''] ?? 'default'}
+              classNames={getChipClassNames(
+                TIER_COLOR[clinic.tier ?? ''] ?? 'default',
+              )}
             >
               {clinic.tier || 'N/A'}
             </Chip>
           );
-        case 'permissions':
+        case 'permissions': {
           // Type guard to check if item is PatientClinicMembership
           if ('patient' in item && item.patient.permissions) {
-            return (
-              <div className="flex gap-1 flex-wrap">
-                {item.patient.permissions.view && (
-                  <Chip size="sm" variant="flat" color="success">
-                    View
-                  </Chip>
-                )}
-                {item.patient.permissions.upload && (
-                  <Chip size="sm" variant="flat" color="warning">
-                    Upload
-                  </Chip>
-                )}
-                {item.patient.permissions.note && (
-                  <Chip size="sm" variant="flat" color="secondary">
-                    Note
-                  </Chip>
-                )}
-                {item.patient.permissions.custodian && (
-                  <Chip size="sm" variant="flat" color="primary">
-                    Custodian
-                  </Chip>
-                )}
-              </div>
-            );
+            const perms = item.patient.permissions;
+            const enabled = PERMISSION_CHIPS.filter((p) => perms[p.key]);
+            if (enabled.length > 0) {
+              return (
+                <div className="flex gap-1 flex-wrap">
+                  {enabled.map((p) => (
+                    <Chip
+                      key={p.key}
+                      size="sm"
+                      variant="flat"
+                      color={p.color}
+                      radius="sm"
+                      classNames={getChipClassNames(p.color)}
+                    >
+                      {p.label}
+                    </Chip>
+                  ))}
+                </div>
+              );
+            }
           }
-          return <span className="text-default-400">—</span>;
+          return <span className="text-[color:var(--text-faint)]">—</span>;
+        }
         case 'createdTime':
           return (
             <div className="text-sm">
@@ -256,8 +278,8 @@ export default function ClinicsTable({
               loadingContent={LoadingContent}
               loadingState={isLoading ? 'loading' : 'idle'}
             >
-              {filteredClinics.map((item) => (
-                <TableRow key={item.clinic?.id || Math.random()}>
+              {filteredClinics.map((item, index) => (
+                <TableRow key={item.clinic?.id ?? `clinic-row-${index}`}>
                   {(columnKey) => (
                     <TableCell>
                       {renderCell(

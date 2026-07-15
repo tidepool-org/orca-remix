@@ -1,4 +1,8 @@
-import { serverAuth } from './auth.server';
+import {
+  authorizeServer,
+  invalidateServerToken,
+  serverAuth,
+} from './auth.server';
 import { z } from 'zod';
 import { APIError } from './utils/errors';
 import type { ResourceState } from './api.types';
@@ -7,7 +11,7 @@ export const apiRoutes = {
   user: {
     get: (search: string) => ({
       method: 'get',
-      path: `/auth/user/${search}`,
+      path: `/auth/user/${encodeURIComponent(search)}`,
     }),
     getMetadata: (userId: string, collection: string) => ({
       method: 'get',
@@ -29,12 +33,12 @@ export const apiRoutes = {
     }),
     resendConfirmation: (email: string) => ({
       method: 'post',
-      path: `/confirm/resend/signup/${email}`,
+      path: `/confirm/resend/signup/${encodeURIComponent(email)}`,
     }),
     // Password reset
     sendPasswordReset: (email: string) => ({
       method: 'post',
-      path: `/confirm/send/forgot/${email}`,
+      path: `/confirm/send/forgot/${encodeURIComponent(email)}`,
     }),
     // Destructive actions
     delete: (userId: string) => ({
@@ -141,6 +145,11 @@ export const apiRoutes = {
       method: 'get',
       path: `/access/${userId}`,
     }),
+    // Get all associated users (trustors + trustees) with their profiles in one call
+    getAssociatedUsersDetails: (userId: string) => ({
+      method: 'get',
+      path: `/metadata/users/${userId}/users`,
+    }),
   },
   invites: {
     // ref https://tidepool.redocly.app/reference/confirm.v1
@@ -159,11 +168,11 @@ export const apiRoutes = {
     // ref https://tidepool.redocly.app/reference/clinic.v1
     get: (search: string) => ({
       method: 'get',
-      path: `/v1/clinics/${search}`,
+      path: `/v1/clinics/${encodeURIComponent(search)}`,
     }),
     getByShareCode: (search: string) => ({
       method: 'get',
-      path: `/v1/clinics/share_code/${search}`,
+      path: `/v1/clinics/share_code/${encodeURIComponent(search)}`,
     }),
     getPatients: (
       clinicId: string,
@@ -175,8 +184,9 @@ export const apiRoutes = {
       },
     ) => {
       const params = new URLSearchParams();
-      if (options?.limit) params.set('limit', options.limit.toString());
-      if (options?.offset) params.set('offset', options.offset.toString());
+      if (options?.limit != null) params.set('limit', options.limit.toString());
+      if (options?.offset != null)
+        params.set('offset', options.offset.toString());
       if (options?.search) params.set('search', options.search);
 
       if (options?.sort) {
@@ -218,8 +228,10 @@ export const apiRoutes = {
       path: `/v1/clinics/${clinicId}/clinicians${
         options
           ? `?${new URLSearchParams({
-              ...(options.limit && { limit: options.limit.toString() }),
-              ...(options.offset && { offset: options.offset.toString() }),
+              ...(options.limit != null && { limit: options.limit.toString() }),
+              ...(options.offset != null && {
+                offset: options.offset.toString(),
+              }),
             })}`
           : ''
       }`,
@@ -236,8 +248,10 @@ export const apiRoutes = {
       path: `/v1/clinicians/${clinicianId}/clinics${
         options
           ? `?${new URLSearchParams({
-              ...(options.limit && { limit: options.limit.toString() }),
-              ...(options.offset && { offset: options.offset.toString() }),
+              ...(options.limit != null && { limit: options.limit.toString() }),
+              ...(options.offset != null && {
+                offset: options.offset.toString(),
+              }),
             })}`
           : ''
       }`,
@@ -250,8 +264,10 @@ export const apiRoutes = {
       path: `/v1/patients/${patientId}/clinics${
         options
           ? `?${new URLSearchParams({
-              ...(options.limit && { limit: options.limit.toString() }),
-              ...(options.offset && { offset: options.offset.toString() }),
+              ...(options.limit != null && { limit: options.limit.toString() }),
+              ...(options.offset != null && {
+                offset: options.offset.toString(),
+              }),
             })}`
           : ''
       }`,
@@ -399,14 +415,15 @@ export const apiRequest = async <T = unknown>({
   body,
   schema,
 }: apiRequestWithSchemaArgs<T>): Promise<T> => {
-  try {
-    const result = await fetch(`${process.env.API_HOST}${path}`, {
+  const execute = async (): Promise<T> => {
+    const result = await fetch(`${serverAuth.apiHost}${path}`, {
       method,
       headers: {
         'x-tidepool-session-token': serverAuth.serverSessionToken,
         ...(body && { 'Content-Type': 'application/json' }),
       },
       ...(body && { body: JSON.stringify(body) }),
+      signal: AbortSignal.timeout(30_000),
     });
 
     if (!result.ok) {
@@ -421,20 +438,54 @@ export const apiRequest = async <T = unknown>({
 
     // Try to parse JSON response, but don't fail if it's empty
     const text = await result.text();
-    const data = text ? JSON.parse(text) : {};
+    let data: unknown = {};
+    if (text) {
+      try {
+        data = JSON.parse(text);
+      } catch {
+        const preview = text.length > 200 ? `${text.slice(0, 200)}…` : text;
+        throw new APIError(
+          `Invalid JSON response from ${path}: ${preview}`,
+          result.status,
+        );
+      }
+    }
 
     // Validate with schema if provided
     if (schema) {
-      return schema.parse(data);
+      const result = schema.safeParse(data);
+      if (!result.success) {
+        const issues = result.error.issues
+          .map((i) => `${i.path.join('.')}: ${i.message}`)
+          .join('; ');
+        throw new APIError(`Schema validation failed for ${path}: ${issues}`);
+      }
+      return result.data;
     }
 
     return data as T;
+  };
+
+  try {
+    return await execute();
   } catch (e) {
-    // Re-throw APIError as-is, don't wrap it
+    // On 401, re-authenticate once and retry the request
+    if (e instanceof APIError && e.status === 401) {
+      invalidateServerToken();
+      await authorizeServer();
+      return await execute();
+    }
+    // Surface timeout as a descriptive APIError
+    if (e instanceof DOMException && e.name === 'TimeoutError') {
+      throw new APIError(`Request to ${path} timed out after 30s`, 504);
+    }
+    // Wrap unknown errors in APIError for consistent error typing
     if (e instanceof APIError) {
       throw e;
     }
-    throw e;
+    throw new APIError(
+      e instanceof Error ? e.message : `Unknown error requesting ${path}`,
+    );
   }
 };
 
@@ -452,26 +503,78 @@ export const apiRequestFile = async ({
   method,
   body,
 }: apiRequestArgs): Promise<Response> => {
-  const result = await fetch(`${process.env.API_HOST}${path}`, {
-    method,
-    headers: {
-      'x-tidepool-session-token': serverAuth.serverSessionToken,
-      ...(body && { 'Content-Type': 'application/json' }),
-    },
-    ...(body && { body: JSON.stringify(body) }),
-  });
+  try {
+    const result = await fetch(`${serverAuth.apiHost}${path}`, {
+      method,
+      headers: {
+        'x-tidepool-session-token': serverAuth.serverSessionToken,
+        ...(body && { 'Content-Type': 'application/json' }),
+      },
+      ...(body && { body: JSON.stringify(body) }),
+      signal: AbortSignal.timeout(30_000),
+    });
 
-  if (!result.ok) {
-    const errorText = await result.text();
-    const statusText = result.statusText || 'Request failed';
-    const message = errorText
-      ? `${statusText} (${result.status}): ${errorText}`
-      : `${statusText} (${result.status})`;
+    if (!result.ok) {
+      const errorText = await result.text();
+      const statusText = result.statusText || 'Request failed';
+      const message = errorText
+        ? `${statusText} (${result.status}): ${errorText}`
+        : `${statusText} (${result.status})`;
 
-    throw new APIError(message, result.status);
+      throw new APIError(message, result.status);
+    }
+
+    return result;
+  } catch (e) {
+    if (e instanceof APIError) throw e;
+    if (e instanceof DOMException && e.name === 'TimeoutError') {
+      throw new APIError(`File request to ${path} timed out after 30s`, 504);
+    }
+    throw new APIError(
+      `File request to ${path} failed: ${e instanceof Error ? e.message : 'Unknown error'}`,
+    );
   }
+};
 
-  return result;
+/**
+ * Redact PII/PHI from an API path before logging.
+ *
+ * Several routes embed concrete emails and user/patient/clinic identifiers
+ * directly in the path (e.g. `/auth/user/{email}`,
+ * `/v1/clinics/{id}/patients/{id}`). Emitting the raw path to server logs
+ * would leak that data, so query strings are dropped and identifier-looking
+ * segments are replaced with placeholders, leaving the route template intact
+ * for debugging.
+ */
+const redactPath = (path: string): string => {
+  const [pathname] = path.split('?');
+  return pathname
+    .split('/')
+    .map((segment) => {
+      if (!segment) return segment;
+      let decoded = segment;
+      try {
+        decoded = decodeURIComponent(segment);
+      } catch {
+        // Malformed encoding — fall back to the raw segment.
+      }
+      if (decoded.includes('@')) return ':email';
+      const isUuid =
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+          decoded,
+        );
+      const isHexId = /^[0-9a-f]{8,}$/i.test(decoded);
+      const isNumericId = /^\d+$/.test(decoded);
+      // Mixed-case tokens containing a digit (Tidepool share codes, opaque
+      // ids). Route keywords are letters-only, so they're left untouched.
+      const isMixedToken =
+        decoded.length >= 6 &&
+        /\d/.test(decoded) &&
+        /^[A-Za-z0-9._-]+$/.test(decoded);
+      if (isUuid || isHexId || isNumericId || isMixedToken) return ':id';
+      return segment;
+    })
+    .join('/');
 };
 
 /**
@@ -502,12 +605,18 @@ export const apiRequestSafe = async <T = unknown>(
           : 'An unknown error occurred';
     const code = err instanceof APIError ? err.status : undefined;
 
-    // Log to console for server-side debugging
+    // Log to console for server-side debugging. The path is redacted and the
+    // raw backend message is intentionally omitted, since both can carry
+    // PII/PHI (concrete emails/ids in the path; echoed response body in the
+    // message). The unredacted message is still returned to the caller below
+    // for UI-level handling.
     // Use warn for auth errors (403) since they're expected for optional data fetches
     if (code === 403) {
-      console.warn(`API request not authorized: ${request.path}`);
+      console.warn(`API request not authorized: ${redactPath(request.path)}`);
     } else {
-      console.error(`API request failed: ${request.path}`, { message, code });
+      console.error(`API request failed: ${redactPath(request.path)}`, {
+        code,
+      });
     }
 
     return {

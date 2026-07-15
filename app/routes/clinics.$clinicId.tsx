@@ -2,7 +2,16 @@ import {
   type LoaderFunctionArgs,
   type ActionFunctionArgs,
   type MetaFunction,
+  type ShouldRevalidateFunctionArgs,
   redirect,
+  data,
+  useLoaderData,
+  useSearchParams,
+  useSubmit,
+  useNavigation,
+  Outlet,
+  useLocation,
+  useActionData,
 } from 'react-router';
 
 import ClinicProfile from '~/components/Clinic/ClinicProfile';
@@ -10,7 +19,9 @@ import type {
   Clinic,
   RecentClinic,
   Patient,
+  PatientInvite,
   RecentPatient,
+  Clinician,
   RecentClinician,
   RecentPrescription,
   ClinicianInvite,
@@ -23,23 +34,12 @@ import {
   apiRequest,
   apiRequestSafe,
 } from '~/api.server';
-import type { ResourceState } from '~/api.types';
 import {
   clinicsSession,
   patientsSession,
   cliniciansSession,
   prescriptionsSession,
 } from '~/sessions.server';
-import {
-  type ShouldRevalidateFunctionArgs,
-  useLoaderData,
-  useSearchParams,
-  useSubmit,
-  useNavigation,
-  Outlet,
-  useLocation,
-  useActionData,
-} from 'react-router';
 import { useCallback, useEffect } from 'react';
 import isArray from 'lodash/isArray';
 import pick from 'lodash/pick';
@@ -59,6 +59,10 @@ export const meta: MetaFunction = () => {
     { title: 'Clinic Profile | Tidepool ORCA' },
     { name: 'description', content: 'Tidepool ORCA Clinic Profile' },
   ];
+};
+
+export const handle = {
+  breadcrumb: { href: '/clinics/$clinicId', label: 'Clinic Profile' },
 };
 
 /**
@@ -87,6 +91,294 @@ export function shouldRevalidate({
   }
 
   return defaultShouldRevalidate;
+}
+
+const recentClinicsMax = 10;
+const defaultPageSize = 10;
+const cliniciansFetchLimit = 1000;
+
+export async function loader({ request, params }: LoaderFunctionArgs) {
+  const { getSession, commitSession } = clinicsSession;
+  const { getSession: getRecentPatientsSession } = patientsSession;
+  const { getSession: getRecentCliniciansSession } = cliniciansSession;
+  const { getSession: getRecentPrescriptionsSession } = prescriptionsSession;
+  const recentlyViewed = await getSession(request.headers.get('Cookie'));
+  const recentPatientsData = await getRecentPatientsSession(
+    request.headers.get('Cookie'),
+  );
+  const recentCliniciansData = await getRecentCliniciansSession(
+    request.headers.get('Cookie'),
+  );
+  const recentPrescriptionsData = await getRecentPrescriptionsSession(
+    request.headers.get('Cookie'),
+  );
+  const url = new URL(request.url);
+
+  // Parse pagination and sorting parameters for patients
+  const patientsPage = Math.max(
+    1,
+    parseInt(url.searchParams.get('patientsPage') || '1'),
+  );
+  const limit = Math.max(
+    1,
+    Math.min(
+      100,
+      parseInt(url.searchParams.get('limit') || defaultPageSize.toString()),
+    ),
+  );
+  const offset = (patientsPage - 1) * limit;
+  const patientsSearch = url.searchParams.get('patientsSearch') || undefined;
+  const sort = url.searchParams.get('sort') || undefined;
+
+  // Parse pagination parameters for clinicians (frontend pagination only)
+  const cliniciansPage = Math.max(
+    1,
+    parseInt(url.searchParams.get('cliniciansPage') || '1'),
+  );
+  const cliniciansLimit = Math.max(
+    1,
+    Math.min(
+      100,
+      parseInt(
+        url.searchParams.get('cliniciansLimit') || defaultPageSize.toString(),
+      ),
+    ),
+  );
+  const cliniciansSearch =
+    url.searchParams.get('cliniciansSearch') || undefined;
+
+  const clinicId = params.clinicId as string;
+
+  // We store recently viewed clinics, patients, and clinicians in session storage
+  const recentClinics: RecentClinic[] = isArray(recentlyViewed.get('clinics'))
+    ? recentlyViewed.get('clinics')
+    : [];
+
+  const recentPatients: RecentPatient[] = isArray(
+    recentPatientsData.get(`patients-${clinicId}`),
+  )
+    ? recentPatientsData.get(`patients-${clinicId}`)
+    : [];
+
+  let recentClinicians: RecentClinician[] = [];
+  try {
+    const recentCliniciansString = recentCliniciansData.get(
+      `recentClinicians-${clinicId}`,
+    );
+    if (recentCliniciansString && typeof recentCliniciansString === 'string') {
+      recentClinicians = JSON.parse(recentCliniciansString);
+    }
+  } catch {
+    recentClinicians = [];
+  }
+
+  let recentPrescriptions: RecentPrescription[] = [];
+  try {
+    const recentPrescriptionsString = recentPrescriptionsData.get(
+      `recentPrescriptions-${clinicId}`,
+    );
+    if (
+      recentPrescriptionsString &&
+      typeof recentPrescriptionsString === 'string'
+    ) {
+      recentPrescriptions = JSON.parse(recentPrescriptionsString);
+    }
+  } catch {
+    recentPrescriptions = [];
+  }
+
+  try {
+    // Fetch clinic data, patients, patient invites, and clinicians in parallel
+    // Note: There is no API endpoint to list all clinician invites for a clinic
+    // (GET /v1/clinics/{clinicId}/invites/clinicians doesn't exist)
+    const results = await apiRequests([
+      apiRoutes.clinic.get(clinicId),
+      apiRoutes.clinic.getPatients(clinicId, {
+        limit,
+        offset,
+        search: patientsSearch,
+        sort,
+      }),
+      apiRoutes.clinic.getPatientInvites(clinicId),
+      apiRoutes.clinic.getClinicians(clinicId, { limit: cliniciansFetchLimit }),
+    ]);
+
+    // Fetch prescriptions and the optional clinic settings concurrently.
+    // These run outside the throwing `apiRequests` batch above because each is
+    // resilient: a failure degrades gracefully (inline error / null) rather
+    // than breaking the whole page.
+    const [prescriptionsState, mrnSettings, patientCountSettings] =
+      await Promise.all([
+        // Safe wrapper returns a ResourceState the frontend can render as an
+        // inline error.
+        apiRequestSafe<Prescription[]>(
+          apiRoutes.prescription.getClinicPrescriptions(clinicId),
+        ),
+        apiRequest(apiRoutes.clinic.getMrnSettings(clinicId))
+          .then((data) => data as { required: boolean; unique: boolean })
+          .catch((err) => {
+            console.error('Error fetching MRN settings:', err);
+            return null;
+          }),
+        apiRequest(apiRoutes.clinic.getPatientCountSettings(clinicId))
+          .then(
+            (data) =>
+              data as {
+                hardLimit?: { plan?: number };
+                softLimit?: { plan?: number };
+              },
+          )
+          .catch((err) => {
+            console.error('Error fetching patient count settings:', err);
+            return null;
+          }),
+      ]);
+
+    // Extract data for backward compatibility and compute total
+    const prescriptions =
+      prescriptionsState.status === 'success' ? prescriptionsState.data : [];
+    const totalPrescriptions = prescriptions.length;
+
+    const clinic: Clinic = results?.[0] as Clinic;
+    const patientsResponse = results?.[1] as
+      | { data: Patient[]; meta?: { count: number } }
+      | undefined;
+    const patientInvitesResponse = results?.[2] as unknown[] | undefined;
+    const cliniciansResponse = results?.[3] as
+      | { name?: string; email?: string }[]
+      | undefined;
+
+    // Parse response data
+    // The API structure may vary based on clinic configuration
+    const patients: Patient[] = patientsResponse?.data || [];
+    const totalPatients = patientsResponse?.meta?.count || 0;
+    const totalPages = Math.ceil(totalPatients / limit);
+
+    // Process patient invites data
+    const patientInvites = (patientInvitesResponse || []) as PatientInvite[];
+    const totalInvites = patientInvites.length;
+
+    // Process clinicians data - API returns both clinicians AND pending invites in the same list
+    // Clinicians have 'id' (no 'inviteId'), invites have 'inviteId' (no 'id')
+    const allRecords = (cliniciansResponse || []) as Array<{
+      id?: string;
+      inviteId?: string;
+      email?: string;
+      name?: string;
+      roles?: string[];
+      createdTime?: string;
+      updatedTime?: string;
+    }>;
+
+    // Separate actual clinicians from pending invites
+    const allClinicians = allRecords.filter(
+      (record) => record.id && !record.inviteId,
+    );
+
+    // Extract pending clinician invites and map to ClinicianInvite type
+    const clinicianInvites: ClinicianInvite[] = allRecords
+      .filter((record) => record.inviteId)
+      .map((invite) => ({
+        inviteId: invite.inviteId!,
+        email: invite.email || '',
+        roles: invite.roles || [],
+        clinicId: clinicId,
+        createdTime: invite.createdTime || '',
+        status: 'pending' as const,
+      }));
+
+    const totalClinicianInvites = clinicianInvites.length;
+
+    // Filter clinicians by search term (frontend search)
+    const filteredClinicians = cliniciansSearch
+      ? allClinicians.filter(
+          (clinician) =>
+            clinician.name
+              ?.toLowerCase()
+              .includes(cliniciansSearch.toLowerCase()) ||
+            clinician.email
+              ?.toLowerCase()
+              .includes(cliniciansSearch.toLowerCase()),
+        )
+      : allClinicians;
+
+    const totalClinicians = filteredClinicians.length;
+    const cliniciansTotalPages = Math.ceil(totalClinicians / cliniciansLimit);
+
+    // Slice clinicians for current page (frontend pagination)
+    const startIndex = (cliniciansPage - 1) * cliniciansLimit;
+    const endIndex = startIndex + cliniciansLimit;
+    const clinicians = filteredClinicians.slice(
+      startIndex,
+      endIndex,
+    ) as Clinician[];
+    if (clinic?.id) {
+      recentClinics.unshift(pick(clinic, ['id', 'shareCode', 'name']));
+      recentlyViewed.set(
+        'clinics',
+        uniqBy(recentClinics, 'id').slice(0, recentClinicsMax),
+      );
+
+      return data(
+        {
+          clinic,
+          patients,
+          patientInvites,
+          clinicians,
+          clinicianInvites,
+          prescriptions,
+          prescriptionsState,
+          totalPrescriptions,
+          mrnSettings,
+          patientCountSettings,
+          recentPatients,
+          recentClinicians,
+          recentPrescriptions,
+          pagination: {
+            currentPage: patientsPage,
+            totalPages,
+            totalPatients,
+            pageSize: limit,
+          },
+          cliniciansPagination: {
+            currentPage: cliniciansPage,
+            totalPages: cliniciansTotalPages,
+            totalClinicians,
+            pageSize: cliniciansLimit,
+          },
+          invitesPagination: {
+            totalInvites,
+            totalClinicianInvites,
+          },
+          sorting: {
+            sort,
+            patientsSearch,
+            cliniciansSearch,
+          },
+        },
+        {
+          headers: {
+            'Cache-Control': 'private, no-cache',
+            'Set-Cookie': await commitSession(recentlyViewed),
+          },
+        },
+      );
+    }
+  } catch (error) {
+    // Handle specific error cases
+    if (error instanceof APIError) {
+      if (error.status === 404) {
+        throw new Response('Clinic not found', { status: 404 });
+      }
+      // For other API errors, throw with the original status
+      throw new Response(error.message, { status: error.status || 500 });
+    }
+    // Re-throw unknown errors to be handled by error boundary
+    throw error;
+  }
+
+  // If we get here without a clinic, it wasn't found
+  throw new Response('Clinic not found', { status: 404 });
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {
@@ -289,287 +581,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
   return errorResponse('Invalid action', 400);
 }
 
-const recentClinicsMax = 10;
-const defaultPageSize = 10;
-const cliniciansFetchLimit = 1000;
-
-export async function loader({ request, params }: LoaderFunctionArgs) {
-  const { getSession, commitSession } = clinicsSession;
-  const { getSession: getRecentPatientsSession } = patientsSession;
-  const { getSession: getRecentCliniciansSession } = cliniciansSession;
-  const { getSession: getRecentPrescriptionsSession } = prescriptionsSession;
-  const recentlyViewed = await getSession(request.headers.get('Cookie'));
-  const recentPatientsData = await getRecentPatientsSession(
-    request.headers.get('Cookie'),
-  );
-  const recentCliniciansData = await getRecentCliniciansSession(
-    request.headers.get('Cookie'),
-  );
-  const recentPrescriptionsData = await getRecentPrescriptionsSession(
-    request.headers.get('Cookie'),
-  );
-  const url = new URL(request.url);
-
-  // Parse pagination and sorting parameters for patients
-  const page = Math.max(1, parseInt(url.searchParams.get('page') || '1'));
-  const limit = Math.max(
-    1,
-    Math.min(
-      100,
-      parseInt(url.searchParams.get('limit') || defaultPageSize.toString()),
-    ),
-  );
-  const offset = (page - 1) * limit;
-  const search = url.searchParams.get('search') || undefined;
-  const sort = url.searchParams.get('sort') || undefined;
-
-  // Parse pagination parameters for clinicians (frontend pagination only)
-  const cliniciansPage = Math.max(
-    1,
-    parseInt(url.searchParams.get('cliniciansPage') || '1'),
-  );
-  const cliniciansLimit = Math.max(
-    1,
-    Math.min(
-      100,
-      parseInt(
-        url.searchParams.get('cliniciansLimit') || defaultPageSize.toString(),
-      ),
-    ),
-  );
-  const cliniciansSearch =
-    url.searchParams.get('cliniciansSearch') || undefined;
-
-  const clinicId = params.clinicId as string;
-
-  // We store recently viewed clinics, patients, and clinicians in session storage
-  const recentClinics: RecentClinic[] = isArray(recentlyViewed.get('clinics'))
-    ? recentlyViewed.get('clinics')
-    : [];
-
-  const recentPatients: RecentPatient[] = isArray(
-    recentPatientsData.get(`patients-${clinicId}`),
-  )
-    ? recentPatientsData.get(`patients-${clinicId}`)
-    : [];
-
-  let recentClinicians: RecentClinician[] = [];
-  try {
-    const recentCliniciansString = recentCliniciansData.get(
-      `recentClinicians-${clinicId}`,
-    );
-    if (recentCliniciansString && typeof recentCliniciansString === 'string') {
-      recentClinicians = JSON.parse(recentCliniciansString);
-    }
-  } catch {
-    recentClinicians = [];
-  }
-
-  let recentPrescriptions: RecentPrescription[] = [];
-  try {
-    const recentPrescriptionsString = recentPrescriptionsData.get(
-      `recentPrescriptions-${clinicId}`,
-    );
-    if (
-      recentPrescriptionsString &&
-      typeof recentPrescriptionsString === 'string'
-    ) {
-      recentPrescriptions = JSON.parse(recentPrescriptionsString);
-    }
-  } catch {
-    recentPrescriptions = [];
-  }
-
-  try {
-    // Fetch clinic data, patients, patient invites, and clinicians in parallel
-    // Note: There is no API endpoint to list all clinician invites for a clinic
-    // (GET /v1/clinics/{clinicId}/invites/clinicians doesn't exist)
-    const results = await apiRequests([
-      apiRoutes.clinic.get(clinicId),
-      apiRoutes.clinic.getPatients(clinicId, { limit, offset, search, sort }),
-      apiRoutes.clinic.getPatientInvites(clinicId),
-      apiRoutes.clinic.getClinicians(clinicId, { limit: cliniciansFetchLimit }),
-    ]);
-
-    // Fetch prescriptions separately using safe wrapper to avoid breaking the page
-    // Returns ResourceState which the frontend can use to show inline error
-    const prescriptionsState = await apiRequestSafe<Prescription[]>(
-      apiRoutes.prescription.getClinicPrescriptions(clinicId),
-    );
-
-    // Extract data for backward compatibility and compute total
-    const prescriptions =
-      prescriptionsState.status === 'success' ? prescriptionsState.data : [];
-    const totalPrescriptions = prescriptions.length;
-
-    // Fetch MRN settings separately to avoid breaking the page if the API is unavailable
-    let mrnSettings: { required: boolean; unique: boolean } | null = null;
-    try {
-      mrnSettings = (await apiRequest(
-        apiRoutes.clinic.getMrnSettings(clinicId),
-      )) as { required: boolean; unique: boolean };
-    } catch (err) {
-      console.error('Error fetching MRN settings:', err);
-      // Continue without MRN settings
-    }
-
-    // Fetch patient count settings separately
-    let patientCountSettings: {
-      hardLimit?: { plan?: number };
-      softLimit?: { plan?: number };
-    } | null = null;
-    try {
-      patientCountSettings = (await apiRequest(
-        apiRoutes.clinic.getPatientCountSettings(clinicId),
-      )) as {
-        hardLimit?: { plan?: number };
-        softLimit?: { plan?: number };
-      };
-    } catch (err) {
-      console.error('Error fetching patient count settings:', err);
-      // Continue without patient count settings
-    }
-
-    const clinic: Clinic = results?.[0] as Clinic;
-    const patientsResponse = results?.[1] as
-      | { data: Patient[]; meta?: { count: number } }
-      | undefined;
-    const patientInvitesResponse = results?.[2] as unknown[] | undefined;
-    const cliniciansResponse = results?.[3] as
-      | { name?: string; email?: string }[]
-      | undefined;
-
-    // Mock patient data structure for now since the actual API structure may vary
-    // In a real implementation, you'd parse the actual API response
-    const patients: Patient[] = patientsResponse?.data || [];
-    const totalPatients = patientsResponse?.meta?.count || 0;
-    const totalPages = Math.ceil(totalPatients / limit);
-
-    // Process patient invites data
-    const patientInvites = patientInvitesResponse || [];
-    const totalInvites = patientInvites.length;
-
-    // Process clinicians data - API returns both clinicians AND pending invites in the same list
-    // Clinicians have 'id' (no 'inviteId'), invites have 'inviteId' (no 'id')
-    const allRecords = (cliniciansResponse || []) as Array<{
-      id?: string;
-      inviteId?: string;
-      email?: string;
-      name?: string;
-      roles?: string[];
-      createdTime?: string;
-      updatedTime?: string;
-    }>;
-
-    // Separate actual clinicians from pending invites
-    const allClinicians = allRecords.filter(
-      (record) => record.id && !record.inviteId,
-    );
-
-    // Extract pending clinician invites and map to ClinicianInvite type
-    const clinicianInvites: ClinicianInvite[] = allRecords
-      .filter((record) => record.inviteId)
-      .map((invite) => ({
-        inviteId: invite.inviteId!,
-        email: invite.email || '',
-        roles: invite.roles || [],
-        clinicId: clinicId,
-        createdTime: invite.createdTime || '',
-        status: 'pending' as const,
-      }));
-
-    const totalClinicianInvites = clinicianInvites.length;
-
-    // Filter clinicians by search term (frontend search)
-    const filteredClinicians = cliniciansSearch
-      ? allClinicians.filter(
-          (clinician) =>
-            clinician.name
-              ?.toLowerCase()
-              .includes(cliniciansSearch.toLowerCase()) ||
-            clinician.email
-              ?.toLowerCase()
-              .includes(cliniciansSearch.toLowerCase()),
-        )
-      : allClinicians;
-
-    const totalClinicians = filteredClinicians.length;
-    const cliniciansTotalPages = Math.ceil(totalClinicians / cliniciansLimit);
-
-    // Slice clinicians for current page (frontend pagination)
-    const startIndex = (cliniciansPage - 1) * cliniciansLimit;
-    const endIndex = startIndex + cliniciansLimit;
-    const clinicians = filteredClinicians.slice(startIndex, endIndex);
-    if (clinic?.id) {
-      recentClinics.unshift(pick(clinic, ['id', 'shareCode', 'name']));
-      recentlyViewed.set(
-        'clinics',
-        uniqBy(recentClinics, 'id').slice(0, recentClinicsMax),
-      );
-
-      return Response.json(
-        {
-          clinic,
-          patients,
-          patientInvites,
-          clinicians,
-          clinicianInvites,
-          prescriptions,
-          prescriptionsState,
-          totalPrescriptions,
-          mrnSettings,
-          patientCountSettings,
-          recentPatients,
-          recentClinicians,
-          recentPrescriptions,
-          pagination: {
-            currentPage: page,
-            totalPages,
-            totalPatients,
-            pageSize: limit,
-          },
-          cliniciansPagination: {
-            currentPage: cliniciansPage,
-            totalPages: cliniciansTotalPages,
-            totalClinicians,
-            pageSize: cliniciansLimit,
-          },
-          invitesPagination: {
-            totalInvites,
-            totalClinicianInvites,
-          },
-          sorting: {
-            sort,
-            search,
-            cliniciansSearch,
-          },
-        },
-        {
-          headers: {
-            'Cache-Control': 'private, max-age=60',
-            'Set-Cookie': await commitSession(recentlyViewed),
-          },
-        },
-      );
-    }
-  } catch (error) {
-    // Handle specific error cases
-    if (error instanceof APIError) {
-      if (error.status === 404) {
-        throw new Response('Clinic not found', { status: 404 });
-      }
-      // For other API errors, throw with the original status
-      throw new Response(error.message, { status: error.status || 500 });
-    }
-    // Re-throw unknown errors to be handled by error boundary
-    throw error;
-  }
-
-  // If we get here without a clinic, it wasn't found
-  throw new Response('Clinic not found', { status: 404 });
-}
-
-export default function Clinics() {
+export default function Clinic() {
   const {
     clinic,
     patients,
@@ -614,8 +626,8 @@ export default function Clinics() {
     'patients',
     {
       paramKeys: [
-        'search',
-        'page',
+        'patientsSearch',
+        'patientsPage',
         'limit',
         'sort',
         'cliniciansSearch',
@@ -643,7 +655,7 @@ export default function Clinics() {
   const handlePageChange = useCallback(
     (page: number) => {
       const newSearchParams = new URLSearchParams(searchParams);
-      newSearchParams.set('page', page.toString());
+      newSearchParams.set('patientsPage', page.toString());
       submit(newSearchParams, { method: 'GET', replace: true });
     },
     [searchParams, submit],
@@ -662,7 +674,7 @@ export default function Clinics() {
     (sort: string) => {
       const newSearchParams = new URLSearchParams(searchParams);
       newSearchParams.set('sort', sort);
-      newSearchParams.set('page', '1'); // Reset to first page when sorting
+      newSearchParams.set('patientsPage', '1'); // Reset to first page when sorting
       submit(newSearchParams, { method: 'GET', replace: true });
     },
     [searchParams, submit],
@@ -672,11 +684,11 @@ export default function Clinics() {
     (search: string) => {
       const newSearchParams = new URLSearchParams(searchParams);
       if (search) {
-        newSearchParams.set('search', search);
+        newSearchParams.set('patientsSearch', search);
       } else {
-        newSearchParams.delete('search');
+        newSearchParams.delete('patientsSearch');
       }
-      newSearchParams.set('page', '1'); // Reset to first page when searching
+      newSearchParams.set('patientsPage', '1'); // Reset to first page when searching
       submit(newSearchParams, { method: 'GET', replace: true });
     },
     [searchParams, submit],
@@ -784,10 +796,8 @@ export default function Clinics() {
     [submit],
   );
 
-  // Check if we're currently submitting a tier update
-  const isSubmitting =
-    navigation.state === 'submitting' &&
-    navigation.formData?.get('actionType') === 'updateTier';
+  // Check if we're currently submitting any action
+  const isSubmitting = navigation.state === 'submitting';
 
   // If we're on a nested route, render the outlet
   if (isNestedRoute) {
@@ -840,7 +850,7 @@ export default function Clinics() {
             onSort={handleSort}
             onSearch={handleSearch}
             currentSort={sorting.sort}
-            currentSearch={sorting.search}
+            currentSearch={sorting.patientsSearch}
             onCliniciansPageChange={handleCliniciansPageChange}
             onCliniciansSearch={handleCliniciansSearch}
             currentCliniciansSearch={sorting.cliniciansSearch}
@@ -861,10 +871,3 @@ export default function Clinics() {
     </RecentItemsProvider>
   );
 }
-
-export const handle = {
-  // breadcrumb: (args) => {
-  // return <Link href="/clinics">Clinic Profile</Link>;
-  // },
-  breadcrumb: { href: '/clinics/$clinicId', label: 'Clinic Profile' },
-};

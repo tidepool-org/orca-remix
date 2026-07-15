@@ -11,6 +11,7 @@ import { useMemo } from 'react';
 
 import { type RootLoaderType } from '~/root';
 import { useLoaderData } from 'react-router';
+import { version } from '../../package.json';
 
 type UserMenuProps = {
   onOpenShortcuts: () => void;
@@ -37,11 +38,9 @@ export default function UserMenu({ onOpenShortcuts }: UserMenuProps) {
   const memoizedAvatar = useMemo(
     () => (
       <Avatar
-        isBordered
         showFallback
-        as="button"
-        className="transition-transform"
-        color="primary"
+        className="transition-transform w-[34px] h-[34px] text-tiny"
+        classNames={{ icon: 'text-[color:var(--primary)]' }}
         size="sm"
         src={avatarSrc}
         // Add loading strategy to prevent excessive requests
@@ -59,7 +58,11 @@ export default function UserMenu({ onOpenShortcuts }: UserMenuProps) {
       <DropdownTrigger>{memoizedAvatar}</DropdownTrigger>
       <DropdownMenu aria-label="Profile Actions" variant="flat">
         <DropdownSection showDivider>
-          <DropdownItem key="profile" className="h-14 gap-2" isReadOnly>
+          <DropdownItem
+            key="profile"
+            className="h-14 gap-2 data-[hover=true]:bg-transparent data-[hover=true]:text-[color:var(--text)] cursor-default"
+            isReadOnly
+          >
             <p>Signed in as</p>
             <p className="font-semibold">{agent?.name}</p>
             <em>{agent?.email}</em>
@@ -72,6 +75,15 @@ export default function UserMenu({ onOpenShortcuts }: UserMenuProps) {
             endContent={<Kbd className="font-mono text-xs">?</Kbd>}
           >
             Shortcuts
+          </DropdownItem>
+        </DropdownSection>
+        <DropdownSection>
+          <DropdownItem
+            key="version"
+            className="text-[color:var(--text-faint)] text-xs text-center justify-center data-[hover=true]:bg-transparent data-[hover=true]:text-[color:var(--text-faint)] cursor-default"
+            isReadOnly
+          >
+            v{version}
           </DropdownItem>
         </DropdownSection>
       </DropdownMenu>

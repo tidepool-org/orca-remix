@@ -13,6 +13,7 @@ import { useLoaderData } from 'react-router';
 import isArray from 'lodash/isArray';
 import { ClinicSchema, ClinicSearchSchema } from '~/schemas';
 import { getErrorMessage, APIError } from '~/utils/errors';
+import { z } from 'zod';
 
 export const meta: MetaFunction = () => {
   return [
@@ -66,18 +67,17 @@ export async function loader({ request }: LoaderFunctionArgs) {
         (error instanceof Error && error.name === 'APIError');
       const isInputValidation =
         !isAPIError &&
-        error instanceof Error &&
-        error.name === 'ZodError' &&
-        error.message.includes('search');
+        error instanceof z.ZodError &&
+        error.errors[0]?.path.includes('search');
 
       return {
         recentClinics,
         error: getErrorMessage(error),
-        errorType: isAPIError
+        errorType: (isAPIError
           ? 'api'
           : isInputValidation
             ? 'validation'
-            : ('api' as const),
+            : 'api') as 'api' | 'validation',
       };
     }
   }

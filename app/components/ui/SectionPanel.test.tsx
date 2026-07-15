@@ -165,7 +165,9 @@ describe('SectionPanel', () => {
         </SectionPanel>,
       );
 
-      expect(screen.queryByText('Hidden content')).not.toBeInTheDocument();
+      expect(
+        screen.getByText('Hidden content').closest('[hidden]'),
+      ).toBeInTheDocument();
     });
 
     it('toggles content visibility when header is clicked', async () => {
@@ -182,15 +184,19 @@ describe('SectionPanel', () => {
       );
 
       // Content should be hidden initially
-      expect(screen.queryByText('Toggle content')).not.toBeInTheDocument();
+      expect(
+        screen.getByText('Toggle content').closest('[hidden]'),
+      ).toBeInTheDocument();
 
       // Click to expand
       await user.click(screen.getByRole('button'));
-      expect(screen.getByText('Toggle content')).toBeInTheDocument();
+      expect(screen.getByText('Toggle content')).toBeVisible();
 
       // Click to collapse
       await user.click(screen.getByRole('button'));
-      expect(screen.queryByText('Toggle content')).not.toBeInTheDocument();
+      expect(
+        screen.getByText('Toggle content').closest('[hidden]'),
+      ).toBeInTheDocument();
     });
 
     it('calls onToggle callback when header is clicked', async () => {
@@ -224,7 +230,9 @@ describe('SectionPanel', () => {
         </SectionPanel>,
       );
 
-      expect(screen.queryByText('Controlled content')).not.toBeInTheDocument();
+      expect(
+        screen.getByText('Controlled content').closest('[hidden]'),
+      ).toBeInTheDocument();
 
       rerender(
         <SectionPanel
@@ -237,7 +245,41 @@ describe('SectionPanel', () => {
         </SectionPanel>,
       );
 
-      expect(screen.getByText('Controlled content')).toBeInTheDocument();
+      expect(screen.getByText('Controlled content')).toBeVisible();
+    });
+  });
+
+  describe('Tone', () => {
+    it('applies default tone classes when tone prop is omitted', () => {
+      const { container } = render(
+        <SectionPanel title="Test Section" aria-label="Default tone panel">
+          <p>Content</p>
+        </SectionPanel>,
+      );
+
+      const section = container.querySelector('section');
+      expect(section?.className).toMatch(/border-\[color:var\(--border\)\]/);
+      const header = section?.querySelector(
+        'div[class*="bg-[color:var(--surface-2)]"]',
+      );
+      expect(header).not.toBeNull();
+    });
+
+    it('applies danger-tinted classes when tone="danger"', () => {
+      const { container } = render(
+        <SectionPanel
+          title="Danger Zone"
+          tone="danger"
+          aria-label="Danger tone panel"
+        >
+          <p>Content</p>
+        </SectionPanel>,
+      );
+
+      const section = container.querySelector('section');
+      expect(section?.className).toMatch(/danger/);
+      const header = section?.querySelector('div[class*="danger"]');
+      expect(header).not.toBeNull();
     });
   });
 
@@ -288,7 +330,8 @@ describe('SectionPanel', () => {
 
       const button = screen.getByRole('button');
       const controlsId = button.getAttribute('aria-controls');
-      expect(controlsId).toBe('test-section-panel-content');
+      expect(controlsId).toBeTruthy();
+      expect(document.getElementById(controlsId!)).toBeInTheDocument();
     });
 
     it('content panel has matching id for aria-controls', () => {

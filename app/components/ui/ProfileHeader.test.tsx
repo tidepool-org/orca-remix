@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent } from '~/test-utils';
+import userEvent from '@testing-library/user-event';
+import { render, screen } from '~/test-utils';
 import ProfileHeader from './ProfileHeader';
 
 describe('ProfileHeader', () => {
@@ -28,7 +29,7 @@ describe('ProfileHeader', () => {
         />,
       );
 
-      expect(screen.getByText('ID:')).toBeInTheDocument();
+      expect(screen.getByText('ID')).toBeInTheDocument();
       expect(screen.getByText('12345')).toBeInTheDocument();
     });
 
@@ -56,9 +57,9 @@ describe('ProfileHeader', () => {
       );
 
       expect(screen.getByText('user@example.com')).toBeInTheDocument();
-      expect(screen.getByText('ID:')).toBeInTheDocument();
+      expect(screen.getByText('ID')).toBeInTheDocument();
       expect(screen.getByText('abc123')).toBeInTheDocument();
-      expect(screen.getByText('MRN:')).toBeInTheDocument();
+      expect(screen.getByText('MRN')).toBeInTheDocument();
       expect(screen.getByText('MRN-001')).toBeInTheDocument();
     });
 
@@ -82,8 +83,12 @@ describe('ProfileHeader', () => {
         <ProfileHeader
           title="Test"
           actionLinks={[
-            <a href="/somewhere">View Details</a>,
-            <a href="/other">Rollbar</a>,
+            <a key="details" href="/somewhere">
+              View Details
+            </a>,
+            <a key="rollbar" href="/other">
+              Rollbar
+            </a>,
           ]}
         />,
       );
@@ -137,13 +142,14 @@ describe('ProfileHeader', () => {
       expect(screen.queryByText('Active')).not.toBeInTheDocument();
     });
 
-    it('shows detail fields when toggle button is clicked', () => {
+    it('shows detail fields when toggle button is clicked', async () => {
+      const user = userEvent.setup();
       render(<ProfileHeader title="Test" detailFields={detailFields} />);
 
       const toggleButton = screen.getByRole('button', {
         name: /show details/i,
       });
-      fireEvent.click(toggleButton);
+      await user.click(toggleButton);
 
       expect(screen.getByText('Status')).toBeInTheDocument();
       expect(screen.getByText('Active')).toBeInTheDocument();
@@ -151,20 +157,21 @@ describe('ProfileHeader', () => {
       expect(screen.getByText('2024-01-01')).toBeInTheDocument();
     });
 
-    it('hides detail fields when toggle button is clicked twice', () => {
+    it('hides detail fields when toggle button is clicked twice', async () => {
+      const user = userEvent.setup();
       render(<ProfileHeader title="Test" detailFields={detailFields} />);
 
       const toggleButton = screen.getByRole('button', {
         name: /show details/i,
       });
-      fireEvent.click(toggleButton);
+      await user.click(toggleButton);
 
       // Now details should be visible
       expect(screen.getByText('Active')).toBeInTheDocument();
 
       // Click again to hide
       const hideButton = screen.getByRole('button', { name: /hide details/i });
-      fireEvent.click(hideButton);
+      await user.click(hideButton);
 
       expect(screen.queryByText('Active')).not.toBeInTheDocument();
     });
@@ -182,7 +189,8 @@ describe('ProfileHeader', () => {
       expect(screen.getByText('Active')).toBeInTheDocument();
     });
 
-    it('calls onExpandedChange callback when expansion state changes', () => {
+    it('calls onExpandedChange callback when expansion state changes', async () => {
+      const user = userEvent.setup();
       const onExpandedChange = vi.fn();
 
       render(
@@ -196,12 +204,12 @@ describe('ProfileHeader', () => {
       const toggleButton = screen.getByRole('button', {
         name: /show details/i,
       });
-      fireEvent.click(toggleButton);
+      await user.click(toggleButton);
 
       expect(onExpandedChange).toHaveBeenCalledWith(true);
 
       const hideButton = screen.getByRole('button', { name: /hide details/i });
-      fireEvent.click(hideButton);
+      await user.click(hideButton);
 
       expect(onExpandedChange).toHaveBeenCalledWith(false);
     });

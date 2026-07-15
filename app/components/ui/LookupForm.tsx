@@ -1,5 +1,6 @@
 import { Form, useSearchParams, useNavigation } from 'react-router';
 import { Input, Button } from '@heroui/react';
+import { Search as SearchIcon } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import React from 'react';
 import { useToast } from '~/contexts/ToastContext';
@@ -119,12 +120,8 @@ export default function LookupForm({
 
   return (
     <Form action={action}>
-      <SectionPanel
-        icon={<Icon className="w-5 h-5" />}
-        title={title}
-        aria-label={title}
-      >
-        <div className="flex items-center gap-4">
+      <SectionPanel icon={<Icon />} title={title} aria-label={title}>
+        <div className="flex items-end gap-[10px]">
           <Input
             name={inputName ?? searchParamName}
             type="text"
@@ -133,12 +130,26 @@ export default function LookupForm({
             value={searchValue || ''}
             onChange={handleSearchChange}
             className="flex-1 min-w-48 max-w-xs"
-            classNames={searchInputClasses}
+            classNames={{
+              ...searchInputClasses,
+              inputWrapper: `${searchInputClasses.inputWrapper} h-[38px] min-h-[38px] data-[focus=true]:border-[color:var(--primary)] data-[focus=true]:!bg-[color:var(--surface)] group-data-[focus=true]:!bg-[color:var(--surface)] data-[focus=true]:shadow-[0_0_0_3px_var(--primary-soft)] group-data-[focus-visible=true]:!ring-0 group-data-[focus-visible=true]:!ring-offset-0`,
+              input: `${searchInputClasses.input} text-[13px] placeholder:text-[color:var(--text-faint)]`,
+            }}
             isInvalid={!!error && errorType === 'validation'}
             errorMessage={errorType === 'validation' ? error : undefined}
           />
 
-          <Button type="submit" color="primary" isLoading={isSearching}>
+          <Button
+            type="submit"
+            color="primary"
+            className="font-semibold text-[13px] h-[38px] px-4 gap-[7px] shadow-[0_1px_2px_rgba(70,79,194,0.3)] data-[hover=true]:!bg-[color:var(--primary-strong)] data-[disabled=true]:opacity-[0.45] data-[disabled=true]:shadow-none"
+            startContent={
+              !isSearching ? (
+                <SearchIcon className="w-4 h-4" aria-hidden="true" />
+              ) : undefined
+            }
+            isLoading={isSearching}
+          >
             {submitText}
           </Button>
         </div>

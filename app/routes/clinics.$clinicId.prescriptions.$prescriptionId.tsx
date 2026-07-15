@@ -5,6 +5,7 @@ import { apiRequest, apiRoutes } from '~/api.server';
 import { prescriptionsSession } from '~/sessions.server';
 import { useRecentItems } from '~/components/Clinic/RecentItemsContext';
 import PrescriptionProfile from '~/components/Clinic/PrescriptionProfile';
+import { getPatientName } from '~/utils/prescriptions';
 import type {
   Prescription,
   Clinician,
@@ -18,22 +19,16 @@ export const meta: MetaFunction = () => {
   ];
 };
 
+export const handle = {
+  breadcrumb: { href: '#', label: 'Prescription Details' },
+};
+
 type PrescriptionLoaderData = {
   prescription: Prescription;
   prescriber: Clinician | null;
   clinicId: string;
   recentPrescriptions: RecentPrescription[];
 };
-
-function getPatientName(prescription: Prescription): string {
-  const attrs = prescription.latestRevision?.attributes;
-  if (attrs?.firstName && attrs?.lastName) {
-    return `${attrs.firstName} ${attrs.lastName}`;
-  }
-  if (attrs?.firstName) return attrs.firstName;
-  if (attrs?.lastName) return attrs.lastName;
-  return 'N/A';
-}
 
 const recentPrescriptionsMax = 10;
 
@@ -117,12 +112,13 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
       },
     );
   } catch (error) {
+    if (error instanceof Response) throw error;
     console.error('Error loading prescription:', error);
     throw new Response('Failed to load prescription', { status: 500 });
   }
 };
 
-export default function PrescriptionRoute() {
+export default function Prescription() {
   const { prescription, prescriber, clinicId, recentPrescriptions } =
     useLoaderData<PrescriptionLoaderData>();
   const { addRecentPrescription, updateRecentPrescriptions } = useRecentItems();
@@ -133,18 +129,9 @@ export default function PrescriptionRoute() {
       updateRecentPrescriptions(recentPrescriptions);
     }
     if (prescription) {
-      const attrs = prescription.latestRevision?.attributes;
-      let patientName = 'N/A';
-      if (attrs?.firstName && attrs?.lastName) {
-        patientName = `${attrs.firstName} ${attrs.lastName}`;
-      } else if (attrs?.firstName) {
-        patientName = attrs.firstName;
-      } else if (attrs?.lastName) {
-        patientName = attrs.lastName;
-      }
       addRecentPrescription({
         id: prescription.id,
-        patientName,
+        patientName: getPatientName(prescription),
         state: prescription.state,
       });
     }
@@ -163,7 +150,3 @@ export default function PrescriptionRoute() {
     />
   );
 }
-
-export const handle = {
-  breadcrumb: { href: '#', label: 'Prescription Details' },
-};

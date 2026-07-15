@@ -9,13 +9,13 @@ import {
 } from '@heroui/react';
 import { UserPlus } from 'lucide-react';
 import useLocale from '~/hooks/useLocale';
-import CollapsibleTableWrapper from '../CollapsibleTableWrapper';
+import CollapsibleTableWrapper from '../ui/CollapsibleTableWrapper';
 import {
   collapsibleTableClasses,
   columnClass,
   actionsColumnClass,
 } from '~/utils/tableStyles';
-import ConfirmationModal from '../ConfirmationModal';
+import ConfirmationModal from '../ui/ConfirmationModal';
 import type { ClinicianInvite } from './types';
 import TableEmptyState from '~/components/ui/TableEmptyState';
 import TableLoadingState from '~/components/ui/TableLoadingState';
@@ -102,9 +102,9 @@ export default function ClinicianInvitesTable({
         }
         case 'createdTime':
           if (!invite.createdTime)
-            return <span className="text-default-400">-</span>;
+            return <span className="text-[color:var(--text-faint)]">-</span>;
           return (
-            <p className="text-sm text-default-600">
+            <p className="text-sm text-[color:var(--text-muted)]">
               {formatShortDate(invite.createdTime, locale)}
             </p>
           );
@@ -122,7 +122,7 @@ export default function ClinicianInvitesTable({
             </div>
           );
         default:
-          return <span className="text-default-400">-</span>;
+          return <span className="text-[color:var(--text-faint)]">-</span>;
       }
     },
     [locale, onRevokeInvite],
@@ -139,14 +139,14 @@ export default function ClinicianInvitesTable({
   return (
     <>
       <CollapsibleTableWrapper
-        icon={<UserPlus className="h-5 w-5" />}
+        icon={<UserPlus className="h-5 w-5" aria-hidden="true" />}
         title="Pending Clinician Invites"
         totalItems={pendingInvites.length}
         isFirstInGroup={isFirstInGroup}
       >
         <Table
           aria-label="Clinic clinician invites table"
-          className="flex flex-1 flex-col text-content1-foreground gap-4"
+          className="flex flex-1 flex-col text-[color:var(--text)]"
           shadow="none"
           removeWrapper
           classNames={collapsibleTableClasses}

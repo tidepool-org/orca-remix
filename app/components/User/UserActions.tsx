@@ -1,9 +1,18 @@
 import { useState, useEffect } from 'react';
 import { useFetcher } from 'react-router';
 import { Button } from '@heroui/react';
-import { Mail, KeyRound, ShieldCheck, Send, Trash2, UserX } from 'lucide-react';
+import {
+  Mail,
+  KeyRound,
+  ShieldCheck,
+  Send,
+  Trash2,
+  UserX,
+  Sun,
+  AlertTriangle,
+} from 'lucide-react';
 
-import ConfirmationModal from '../ConfirmationModal';
+import ConfirmationModal from '../ui/ConfirmationModal';
 import {
   DangerZoneAction,
   ActionCard,
@@ -111,7 +120,7 @@ export default function UserActions({ user }: UserActionsProps) {
       inputPlaceholder: 'Enter email or user ID',
       expectedInput: displayName,
       inputLabel: `Confirm by typing the user ${user.username ? 'email' : 'ID'}`,
-      icon: <Trash2 className="text-danger" size={20} />,
+      icon: <Trash2 className="text-[color:var(--danger)]" size={20} />,
     },
     'delete-account': {
       title: 'Delete User Account',
@@ -122,23 +131,26 @@ export default function UserActions({ user }: UserActionsProps) {
       inputPlaceholder: 'Enter email or user ID',
       expectedInput: displayName,
       inputLabel: `Confirm by typing the user ${user.username ? 'email' : 'ID'}`,
-      icon: <UserX className="text-danger" size={20} />,
+      icon: <UserX className="text-[color:var(--danger)]" size={20} />,
     },
   };
 
   return (
     <>
-      <SectionPanel title="Account Actions" aria-label="Account Actions">
-        <div className="flex flex-col gap-4">
+      <SectionPanel
+        title="Account Actions"
+        aria-label="Account Actions"
+        icon={<Sun />}
+      >
+        <div className="flex flex-col">
           <ActionCard
             title="Verify Email"
             description="Manually verify this user's email address, allowing them to log in immediately."
             actionButton={
               <Button
-                size="sm"
                 variant="flat"
                 color="primary"
-                startContent={<ShieldCheck size={14} />}
+                startContent={<ShieldCheck size={16} />}
                 onPress={() => openModal('verify-email')}
                 isDisabled={user.emailVerified || isUnclaimedAccount}
               >
@@ -151,10 +163,9 @@ export default function UserActions({ user }: UserActionsProps) {
             description="Send a password reset email with instructions to create a new password."
             actionButton={
               <Button
-                size="sm"
                 variant="flat"
                 color="primary"
-                startContent={<KeyRound size={14} />}
+                startContent={<KeyRound size={16} />}
                 onPress={() => openModal('password-reset')}
                 isDisabled={isUnclaimedAccount}
               >
@@ -167,10 +178,9 @@ export default function UserActions({ user }: UserActionsProps) {
             description="Send a new account confirmation email if the user never received their initial confirmation."
             actionButton={
               <Button
-                size="sm"
                 variant="flat"
                 color="primary"
-                startContent={<Send size={14} />}
+                startContent={<Send size={16} />}
                 onPress={() => openModal('send-confirmation')}
                 isDisabled={user.emailVerified || isUnclaimedAccount}
               >
@@ -183,10 +193,9 @@ export default function UserActions({ user }: UserActionsProps) {
             description="Resend the account confirmation email if the previous one expired."
             actionButton={
               <Button
-                size="sm"
                 variant="flat"
                 color="primary"
-                startContent={<Mail size={14} />}
+                startContent={<Mail size={16} />}
                 onPress={() => openModal('resend-confirmation')}
                 isDisabled={user.emailVerified || isUnclaimedAccount}
               >
@@ -199,20 +208,21 @@ export default function UserActions({ user }: UserActionsProps) {
 
       <SectionPanel
         title="Danger Zone"
-        titleClassName="text-danger"
+        titleClassName="text-[color:var(--danger,#c2362c)]"
+        tone="danger"
+        icon={<AlertTriangle />}
         collapsible
         defaultExpanded={false}
       >
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col">
           <DangerZoneAction
             title="Delete User Data"
             description="Permanently delete all upload data for this user. The account will remain intact, but all diabetes data will be removed. This action cannot be undone."
             actionButton={
               <Button
-                size="sm"
                 variant="flat"
                 color="danger"
-                startContent={<Trash2 size={14} />}
+                startContent={<Trash2 size={16} />}
                 onPress={() => openModal('delete-data')}
               >
                 Delete Data
@@ -224,10 +234,9 @@ export default function UserActions({ user }: UserActionsProps) {
             description="Permanently delete this account and all associated data. This action cannot be undone."
             actionButton={
               <Button
-                size="sm"
                 variant="flat"
                 color="danger"
-                startContent={<UserX size={14} />}
+                startContent={<UserX size={16} />}
                 onPress={() => openModal('delete-account')}
               >
                 Delete Account

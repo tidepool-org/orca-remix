@@ -1,4 +1,5 @@
 import { useRef, useState, useEffect, useCallback } from 'react';
+import { z } from 'zod';
 import { useNavigate, useLocation } from 'react-router';
 import {
   Autocomplete,
@@ -53,6 +54,17 @@ const typeLabels = {
   prescription: 'Prescriptions',
 };
 
+// Validate the suggestions payload at runtime rather than trusting a bare cast.
+const recentEntitiesSchema = z.array(
+  z.object({
+    id: z.string(),
+    label: z.string(),
+    sublabel: z.string().optional(),
+    type: z.enum(['clinic', 'user', 'patient', 'clinician', 'prescription']),
+    href: z.string(),
+  }),
+);
+
 const typeOrder: RecentEntity['type'][] = [
   'clinician',
   'clinic',
@@ -65,29 +77,40 @@ export default function HeaderSearch() {
   const [inputValue, setInputValue] = useState('');
   const [isFocused, setIsFocused] = useState(false);
   const [entities, setEntities] = useState<RecentEntity[]>([]);
-  const [hasFetched, setHasFetched] = useState(false);
+  const hasFetchedRef = useRef(false);
+  const abortRef = useRef<AbortController | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
   const autocompleteRef = useRef<HTMLInputElement>(null);
   const hasArrowNavigated = useRef(false);
 
   const fetchEntities = useCallback(async () => {
-    if (hasFetched) return;
+    if (hasFetchedRef.current) return;
+    // Abort any previous in-flight request before starting a new one.
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
     try {
-      const res = await fetch('/action/recent-entities');
+      const res = await fetch('/action/recent-entities', {
+        signal: controller.signal,
+      });
       if (res.ok) {
-        const data: RecentEntity[] = await res.json();
-        setEntities(data);
+        const parsed = recentEntitiesSchema.safeParse(await res.json());
+        if (parsed.success) setEntities(parsed.data);
       }
-    } catch {
+    } catch (err) {
+      // A stale request aborted on navigation must not mark the cache fetched.
+      if (err instanceof DOMException && err.name === 'AbortError') return;
       // Silently fail - search still works without suggestions
     }
-    setHasFetched(true);
-  }, [hasFetched]);
+    hasFetchedRef.current = true;
+  }, []);
 
-  // Invalidate cache on navigation so newly viewed entities appear
+  // Invalidate cache on navigation so newly viewed entities appear, and abort
+  // any pending request so a stale response can't overwrite fresh state.
   useEffect(() => {
-    setHasFetched(false);
+    hasFetchedRef.current = false;
+    return () => abortRef.current?.abort();
   }, [location.pathname]);
 
   const handleFocus = () => {
@@ -127,6 +150,9 @@ export default function HeaderSearch() {
         }}
         allowsCustomValue
         size="sm"
+        selectorIcon={null}
+        disableSelectorIconRotation
+        selectorButtonProps={{ className: 'hidden' }}
         placeholder={isFocused ? 'Name, ID, Email, or Share Code' : 'Search'}
         aria-label="Search for a user, clinic, patient, clinician, or prescription"
         onFocus={handleFocus}
@@ -161,21 +187,20 @@ export default function HeaderSearch() {
         className="w-80"
         inputProps={{
           classNames: {
-            base: `transition-[width] duration-200 ease-in-out ${isFocused || inputValue ? 'w-80' : 'w-36'}`,
-            inputWrapper: 'bg-default-100',
-            input: 'group-data-[has-value=true]:text-content1-foreground',
+            base: `transition-[width] duration-200 ease-in-out ${isFocused || inputValue ? 'w-80' : 'w-40'}`,
+            input: 'group-data-[has-value=true]:text-[color:var(--text)]',
           },
         }}
         startContent={
           <Search
-            className="w-4 h-4 shrink-0 text-default-400"
+            className="w-4 h-4 shrink-0 text-[color:var(--text-faint)]"
             aria-hidden="true"
           />
         }
         endContent={
           !isFocused && !inputValue ? (
             <kbd
-              className="hidden sm:inline-flex items-center px-1.5 border border-default-300 rounded text-xs text-default-400 font-mono"
+              className="inline-flex items-center mr-1.5 px-1.5 py-0.5 border border-[color:var(--field-border)] bg-[color:var(--surface)] rounded text-[10.5px] text-[color:var(--text-faint)] font-mono"
               aria-hidden="true"
             >
               /
@@ -199,7 +224,7 @@ export default function HeaderSearch() {
             title={section.label}
             classNames={{
               heading:
-                'flex w-full sticky top-1 z-20 py-1.5 px-2 bg-default-100 shadow-small rounded-small text-xs font-semibold text-default-500',
+                'flex w-full sticky top-1 z-20 py-1.5 px-2 bg-[color:var(--surface-2)] shadow-small rounded-small text-xs font-semibold text-[color:var(--text-muted)]',
             }}
           >
             {section.items.map((entity) => {
@@ -210,11 +235,11 @@ export default function HeaderSearch() {
                   textValue={`${entity.label} ${entity.sublabel || ''} ${entity.id}`}
                 >
                   <div className="flex items-center gap-2">
-                    <Icon className="w-4 h-4 shrink-0 text-default-400" />
+                    <Icon className="w-4 h-4 shrink-0 text-[color:var(--text-faint)]" />
                     <div className="flex flex-col">
                       <span className="text-sm">{entity.label}</span>
                       {entity.sublabel && (
-                        <span className="text-xs text-default-400">
+                        <span className="text-xs text-[color:var(--text-faint)]">
                           {entity.sublabel}
                         </span>
                       )}

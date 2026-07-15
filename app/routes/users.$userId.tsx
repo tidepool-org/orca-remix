@@ -4,6 +4,7 @@ import {
   type MetaFunction,
   type ShouldRevalidateFunctionArgs,
   redirect,
+  data,
 } from 'react-router';
 
 import UserProfile from '~/components/User/UserProfile';
@@ -16,6 +17,7 @@ import type {
   DataSetsResponse,
   DataSourcesResponse,
   AccessPermissionsMap,
+  AssociatedUsersResponse,
   ShareInvite,
   PumpSettings,
   ConnectionRequest,
@@ -40,6 +42,10 @@ export const meta: MetaFunction = () => {
     { title: 'User Profile | Tidepool ORCA' },
     { name: 'description', content: 'Tidepool ORCA User Profile' },
   ];
+};
+
+export const handle = {
+  breadcrumb: { href: '#', label: 'User Profile' },
 };
 
 const recentUsersMax = 10;
@@ -81,9 +87,19 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     : [];
 
   // Fetch user data (required)
-  const user: User = (await apiRequest(
-    apiRoutes.user.get(params.userId as string),
-  )) as User;
+  let user: User;
+  try {
+    user = (await apiRequest(
+      apiRoutes.user.get(params.userId as string),
+    )) as User;
+  } catch (error) {
+    if (error instanceof Response) throw error;
+    if (error instanceof APIError && error.status === 404) {
+      throw new Response('User not found', { status: 404 });
+    }
+    console.error('Error loading user:', error);
+    throw new Response('Failed to load user', { status: 500 });
+  }
 
   // Fetch profile data (optional - may not exist for all users)
   const profileState = await apiRequestSafe<Profile>(
@@ -132,6 +148,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     status: 'success',
     data: {},
   };
+  let associatedUserProfiles: Record<string, string> = {};
   let sentInvitesState: ResourceState<ShareInvite[]> = {
     status: 'success',
     data: [],
@@ -170,10 +187,43 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 
     // Fetch additional data for non-clinician users
     if (!profile?.clinic) {
-      // Fetch data sets
-      const dataSetsRawState = await apiRequestSafe<DataSetsResponse>(
-        apiRoutes.data.getDataSets(user.userid),
-      );
+      // All these fetches are independent — run them in parallel
+      const [
+        dataSetsRawState,
+        dataSourcesRawState,
+        pumpSettingsRawState,
+        prescriptionsRawState,
+        associatedUsersRawState,
+        sentInvitesRawState,
+        receivedInvitesRawState,
+      ] = await Promise.all([
+        apiRequestSafe<DataSetsResponse>(
+          apiRoutes.data.getDataSets(user.userid),
+        ),
+        apiRequestSafe<DataSourcesResponse>(
+          apiRoutes.data.getDataSources(user.userid),
+        ),
+        apiRequestSafe<PumpSettings[]>(
+          apiRoutes.data.getData(user.userid, {
+            type: 'pumpSettings',
+            latest: true,
+          }),
+        ),
+        apiRequestSafe<Prescription[]>(
+          apiRoutes.prescription.getPatientPrescriptions(user.userid),
+        ),
+        apiRequestSafe<AssociatedUsersResponse>(
+          apiRoutes.sharing.getAssociatedUsersDetails(user.userid),
+        ),
+        apiRequestSafe<ShareInvite[]>(
+          apiRoutes.invites.getSentInvites(user.userid),
+        ),
+        apiRequestSafe<ShareInvite[]>(
+          apiRoutes.invites.getReceivedInvites(user.userid),
+        ),
+      ]);
+
+      // Normalize data sets
       if (dataSetsRawState.status === 'success') {
         const response = dataSetsRawState.data;
         dataSetsState = {
@@ -184,10 +234,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
         dataSetsState = dataSetsRawState as ResourceState<DataSet[]>;
       }
 
-      // Fetch data sources
-      const dataSourcesRawState = await apiRequestSafe<DataSourcesResponse>(
-        apiRoutes.data.getDataSources(user.userid),
-      );
+      // Normalize data sources
       if (dataSourcesRawState.status === 'success') {
         const response = dataSourcesRawState.data;
         dataSourcesState = {
@@ -198,13 +245,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
         dataSourcesState = dataSourcesRawState as ResourceState<DataSource[]>;
       }
 
-      // Fetch pump settings (latest 10)
-      const pumpSettingsRawState = await apiRequestSafe<PumpSettings[]>(
-        apiRoutes.data.getData(user.userid, {
-          type: 'pumpSettings',
-          latest: true,
-        }),
-      );
+      // Normalize pump settings
       if (pumpSettingsRawState.status === 'success') {
         pumpSettingsState = {
           status: 'success',
@@ -216,12 +257,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
         pumpSettingsState = pumpSettingsRawState;
       }
 
-      // Fetch prescriptions for this patient
-      const prescriptionsRawState = await apiRequestSafe<Prescription[]>(
-        apiRoutes.prescription.getPatientPrescriptions(user.userid),
-      );
-
-      // Treat 404 as empty array (expected when no prescriptions exist)
+      // Normalize prescriptions (404 = empty array)
       if (
         prescriptionsRawState.status === 'error' &&
         prescriptionsRawState.error.code === 404
@@ -238,20 +274,43 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
         prescriptionsState = prescriptionsRawState;
       }
 
-      // Fetch data sharing information
-      trustingAccountsState = await apiRequestSafe<AccessPermissionsMap>(
-        apiRoutes.sharing.getGroupsForUser(user.userid),
-      );
+      // Derive sharing maps and user profiles from the combined associated users response
+      if (associatedUsersRawState.status === 'success') {
+        const trustingMap: AccessPermissionsMap = {};
+        const trustedMap: AccessPermissionsMap = {};
+        const profiles: Record<string, string> = {};
 
-      trustedAccountsState = await apiRequestSafe<AccessPermissionsMap>(
-        apiRoutes.sharing.getUsersInGroup(user.userid),
-      );
+        const users = Array.isArray(associatedUsersRawState.data)
+          ? associatedUsersRawState.data
+          : [];
 
-      // Fetch pending invites - 404 is expected when none exist
-      const sentInvitesRawState = await apiRequestSafe<ShareInvite[]>(
-        apiRoutes.invites.getSentInvites(user.userid),
-      );
-      // Treat 404 as empty array (expected when no invites)
+        users.forEach((u) => {
+          const id = u.userid;
+          if (!id) return;
+          if (u.profile?.fullName) profiles[id] = u.profile.fullName;
+          if (
+            u.trustorPermissions &&
+            Object.keys(u.trustorPermissions).length > 0
+          )
+            trustingMap[id] = u.trustorPermissions;
+          if (
+            u.trusteePermissions &&
+            Object.keys(u.trusteePermissions).length > 0
+          )
+            trustedMap[id] = u.trusteePermissions;
+        });
+
+        trustingAccountsState = { status: 'success', data: trustingMap };
+        trustedAccountsState = { status: 'success', data: trustedMap };
+        associatedUserProfiles = profiles;
+      } else {
+        trustingAccountsState =
+          associatedUsersRawState as unknown as ResourceState<AccessPermissionsMap>;
+        trustedAccountsState =
+          associatedUsersRawState as unknown as ResourceState<AccessPermissionsMap>;
+      }
+
+      // Normalize sent invites (404 = empty array)
       if (
         sentInvitesRawState.status === 'error' &&
         sentInvitesRawState.error.code === 404
@@ -268,10 +327,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
         sentInvitesState = sentInvitesRawState;
       }
 
-      const receivedInvitesRawState = await apiRequestSafe<ShareInvite[]>(
-        apiRoutes.invites.getReceivedInvites(user.userid),
-      );
-      // Treat 404 as empty array (expected when no invites)
+      // Normalize received invites (404 = empty array)
       if (
         receivedInvitesRawState.status === 'error' &&
         receivedInvitesRawState.error.code === 404
@@ -296,13 +352,20 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   const clinicsList =
     clinicsState.status === 'success' ? clinicsState.data : [];
   if (user?.userid && !profile?.clinic && clinicsList.length > 0) {
-    const patientResults = await Promise.all(
-      clinicsList.map((membership) =>
-        apiRequestSafe<Patient>(
-          apiRoutes.clinic.getPatient(membership.clinic.id, user.userid),
+    // Batch requests to avoid overwhelming the API (demo account can belong to hundreds of clinics)
+    const BATCH_SIZE = 5;
+    const patientResults: ResourceState<Patient>[] = [];
+    for (let i = 0; i < clinicsList.length; i += BATCH_SIZE) {
+      const batch = clinicsList.slice(i, i + BATCH_SIZE);
+      const batchResults = await Promise.all(
+        batch.map((membership) =>
+          apiRequestSafe<Patient>(
+            apiRoutes.clinic.getPatient(membership.clinic.id, user.userid),
+          ),
         ),
-      ),
-    );
+      );
+      patientResults.push(...batchResults);
+    }
 
     for (const result of patientResults) {
       if (result.status === 'success' && result.data?.connectionRequests) {
@@ -358,7 +421,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     );
     recentlyViewed.set('users', updatedRecentUsers);
 
-    return Response.json(
+    return data(
       {
         user,
         profile,
@@ -372,6 +435,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
         connectionRequests,
         trustingAccounts,
         trustedAccounts,
+        associatedUserProfiles,
         sentInvites,
         receivedInvites,
         pumpSettings,
@@ -408,6 +472,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     connectionRequests: [],
     trustingAccounts: {},
     trustedAccounts: {},
+    associatedUserProfiles: {},
     sentInvites: [],
     receivedInvites: [],
     pumpSettings: [],
@@ -624,7 +689,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
   }
 }
 
-export default function Users() {
+export default function User() {
   const {
     user,
     profile,
@@ -637,6 +702,7 @@ export default function Users() {
     connectionRequests,
     trustingAccounts,
     trustedAccounts,
+    associatedUserProfiles,
     sentInvites,
     receivedInvites,
     pumpSettings,
@@ -665,7 +731,7 @@ export default function Users() {
   return user ? (
     <UserProfile
       user={user}
-      profile={profile || {}}
+      profile={profile}
       clinics={clinics}
       totalClinics={totalClinics}
       dataSets={dataSets}
@@ -675,6 +741,7 @@ export default function Users() {
       connectionRequests={connectionRequests}
       trustingAccounts={trustingAccounts}
       trustedAccounts={trustedAccounts}
+      associatedUserProfiles={associatedUserProfiles}
       sentInvites={sentInvites}
       receivedInvites={receivedInvites}
       pumpSettings={pumpSettings}
@@ -693,7 +760,3 @@ export default function Users() {
     />
   ) : null;
 }
-
-export const handle = {
-  breadcrumb: { href: '#', label: 'User Profile' },
-};

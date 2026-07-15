@@ -6,20 +6,31 @@ if (!SESSION_SECRET) {
   throw new Error('Missing SESSION_SECRET environment variable');
 }
 
-const commonCookieOptions = {
+const baseCookieOptions = {
   httpOnly: true,
-  maxAge: 60 * 60 * 24 * 30, // 30 days
   path: '/',
   sameSite: 'lax' as const,
   secrets: [SESSION_SECRET],
   secure: process.env.NODE_ENV === 'production',
 };
 
+// Data/cache cookies expire after 3 days of inactivity (resets on each write)
+const dataCookieOptions = {
+  ...baseCookieOptions,
+  maxAge: 60 * 60 * 24 * 3, // 3 days
+};
+
+// UI preference cookies persist longer for convenience
+const prefCookieOptions = {
+  ...baseCookieOptions,
+  maxAge: 60 * 60 * 24 * 90, // 90 days
+};
+
 // Store light/dark theme prefs in a session cookie
 const themeSessionStorage = createCookieSessionStorage({
   cookie: {
     name: '__remix-themes',
-    ...commonCookieOptions,
+    ...prefCookieOptions,
   },
 });
 
@@ -30,14 +41,14 @@ export const themeSessionResolver =
 export const usersSession = createCookieSessionStorage({
   cookie: {
     name: '__users',
-    ...commonCookieOptions,
+    ...dataCookieOptions,
   },
 });
 
 export const clinicsSession = createCookieSessionStorage({
   cookie: {
     name: '__clinics',
-    ...commonCookieOptions,
+    ...dataCookieOptions,
   },
 });
 
@@ -45,21 +56,21 @@ export const clinicsSession = createCookieSessionStorage({
 export const patientsSession = createCookieSessionStorage({
   cookie: {
     name: '__patients_session',
-    ...commonCookieOptions,
+    ...dataCookieOptions,
   },
 });
 
 export const cliniciansSession = createCookieSessionStorage({
   cookie: {
     name: '__clinicians_session',
-    ...commonCookieOptions,
+    ...dataCookieOptions,
   },
 });
 
 export const prescriptionsSession = createCookieSessionStorage({
   cookie: {
     name: '__prescriptions_session',
-    ...commonCookieOptions,
+    ...dataCookieOptions,
   },
 });
 
@@ -67,7 +78,7 @@ export const prescriptionsSession = createCookieSessionStorage({
 export const sidebarSession = createCookieSessionStorage({
   cookie: {
     name: '__sidebar',
-    ...commonCookieOptions,
+    ...prefCookieOptions,
   },
 });
 
@@ -75,6 +86,6 @@ export const sidebarSession = createCookieSessionStorage({
 export const profileExpandedSession = createCookieSessionStorage({
   cookie: {
     name: '__profile-expanded',
-    ...commonCookieOptions,
+    ...prefCookieOptions,
   },
 });

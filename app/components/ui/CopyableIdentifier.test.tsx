@@ -3,7 +3,7 @@ import { render, screen } from '~/test-utils';
 import CopyableIdentifier from './CopyableIdentifier';
 
 // Mock the ClipboardButton since it has complex internal state
-vi.mock('../ClipboardButton', () => ({
+vi.mock('./ClipboardButton', () => ({
   default: ({ clipboardText }: { clipboardText: string }) => (
     <button
       type="button"
@@ -40,17 +40,17 @@ describe('CopyableIdentifier', () => {
   });
 
   describe('Label', () => {
-    it('renders with a label when provided', () => {
+    it('renders with a label when provided (trailing colon stripped per design)', () => {
       render(<CopyableIdentifier label="Email:" value="test@example.com" />);
 
-      expect(screen.getByText('Email:')).toBeInTheDocument();
+      expect(screen.getByText('Email')).toBeInTheDocument();
       expect(screen.getByText('test@example.com')).toBeInTheDocument();
     });
 
     it('renders without a label when not provided', () => {
       render(<CopyableIdentifier value="test@example.com" />);
 
-      expect(screen.queryByText('Email:')).not.toBeInTheDocument();
+      expect(screen.queryByText('Email')).not.toBeInTheDocument();
       expect(screen.getByText('test@example.com')).toBeInTheDocument();
     });
   });
@@ -80,18 +80,19 @@ describe('CopyableIdentifier', () => {
   });
 
   describe('Size Variants', () => {
-    it('renders with default md size', () => {
+    it('renders with default md size (inherits surrounding text size)', () => {
       render(<CopyableIdentifier value="test" />);
 
+      // md inherits the ambient text size, so it should not carry the sm size class.
       const valueElement = screen.getByText('test');
-      expect(valueElement).toHaveClass('text-sm');
+      expect(valueElement).not.toHaveClass('text-base');
     });
 
     it('renders with sm size when specified', () => {
       render(<CopyableIdentifier value="test" size="sm" />);
 
       const valueElement = screen.getByText('test');
-      expect(valueElement).toHaveClass('text-xs');
+      expect(valueElement).toHaveClass('text-base');
     });
   });
 
@@ -111,9 +112,10 @@ describe('CopyableIdentifier', () => {
       );
 
       const wrapper = container.querySelector('.my-custom-class');
-      expect(wrapper).toHaveClass('flex');
+      expect(wrapper).toHaveClass('inline-flex');
       expect(wrapper).toHaveClass('items-center');
-      expect(wrapper).toHaveClass('gap-1');
+      expect(wrapper).toHaveClass('gap-1.5');
+      expect(wrapper).toHaveClass('group');
     });
   });
 

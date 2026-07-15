@@ -64,7 +64,7 @@ export default function KeyboardShortcutsModal({
         <ModalBody className="pb-6">
           {SHORTCUT_GROUPS.map((group) => (
             <div key={group.title}>
-              <h3 className="text-sm font-semibold text-default-500 mb-2">
+              <h3 className="text-sm font-semibold text-[color:var(--text-muted)] mb-2">
                 {group.title}
               </h3>
               <div className="space-y-2">
@@ -73,14 +73,14 @@ export default function KeyboardShortcutsModal({
                     key={shortcut.description}
                     className="flex items-center justify-between"
                   >
-                    <span className="text-sm text-default-700">
+                    <span className="text-sm text-[color:var(--text)]">
                       {shortcut.description}
                     </span>
                     <div className="flex items-center gap-1">
                       {shortcut.keys.map((key, i) => (
                         <span key={i} className="flex items-center gap-1">
                           {i > 0 && (
-                            <span className="text-xs text-default-400">
+                            <span className="text-xs text-[color:var(--text-faint)]">
                               then
                             </span>
                           )}

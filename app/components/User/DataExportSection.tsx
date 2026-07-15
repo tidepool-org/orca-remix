@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Button, Select, SelectItem, RadioGroup, Radio } from '@heroui/react';
 import { Download, Calendar, FileSpreadsheet, FileJson } from 'lucide-react';
-import { subDays, format } from 'date-fns';
+import { subDays } from 'date-fns';
 import SectionPanel from '~/components/ui/SectionPanel';
 
 export type DataExportSectionProps = {
@@ -24,22 +24,22 @@ export default function DataExportSection({
 
   const getDateRange = (): { startDate?: string; endDate?: string } => {
     const now = new Date();
-    const endDate = format(now, "yyyy-MM-dd'T'HH:mm:ss'Z'");
+    const endDate = now.toISOString();
 
     switch (dateRange) {
       case '14days':
         return {
-          startDate: format(subDays(now, 14), "yyyy-MM-dd'T'HH:mm:ss'Z'"),
+          startDate: subDays(now, 14).toISOString(),
           endDate,
         };
       case '30days':
         return {
-          startDate: format(subDays(now, 30), "yyyy-MM-dd'T'HH:mm:ss'Z'"),
+          startDate: subDays(now, 30).toISOString(),
           endDate,
         };
       case '90days':
         return {
-          startDate: format(subDays(now, 90), "yyyy-MM-dd'T'HH:mm:ss'Z'"),
+          startDate: subDays(now, 90).toISOString(),
           endDate,
         };
       case 'all':
@@ -159,6 +159,7 @@ export default function DataExportSection({
         <div className="flex justify-end pt-2">
           <Button
             color="primary"
+            className="font-semibold"
             startContent={<Download className="w-4 h-4" aria-hidden="true" />}
             onPress={handleExport}
             isLoading={isExporting}

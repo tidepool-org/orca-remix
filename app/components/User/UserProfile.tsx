@@ -3,7 +3,7 @@ import {
   Building2,
   Share2,
   Database,
-  Settings,
+  Sun,
   // FileText,
   Smartphone,
 } from 'lucide-react';
@@ -24,7 +24,7 @@ import ProfileTabs from '~/components/ui/ProfileTabs';
 import TabTitle from '~/components/ui/TabTitle';
 import UserActions from './UserActions';
 import RollbarLink from '~/components/ui/RollbarLink';
-import { CollapsibleGroup } from '~/components/CollapsibleGroup';
+import { CollapsibleGroup } from '~/components/ui/CollapsibleGroup';
 import type { ClinicianClinicMembership, Prescription } from '../Clinic/types';
 import type { ResourceState } from '~/api.types';
 
@@ -41,6 +41,12 @@ import type {
 import useLocale from '~/hooks/useLocale';
 import useProfileExpanded from '~/hooks/useProfileExpanded';
 import { formatShortDate } from '~/utils/dateFormatters';
+import { getChipClassNames } from '~/utils/chipStyles';
+import {
+  getRoleColor,
+  getAccountStatusColor,
+  formatRoleLabel,
+} from '~/utils/statusColors';
 
 export type UserProfileProps = {
   user: User;
@@ -54,6 +60,7 @@ export type UserProfileProps = {
   connectionRequests?: ConnectionRequest[];
   trustingAccounts?: AccessPermissionsMap;
   trustedAccounts?: AccessPermissionsMap;
+  associatedUserProfiles?: Record<string, string>;
   sentInvites?: ShareInvite[];
   receivedInvites?: ShareInvite[];
   pumpSettings?: PumpSettings[];
@@ -88,6 +95,7 @@ export default function UserProfile({
   connectionRequests = [],
   trustingAccounts = {},
   trustedAccounts = {},
+  associatedUserProfiles = {},
   sentInvites = [],
   receivedInvites = [],
   pumpSettings = [],
@@ -121,6 +129,11 @@ export default function UserProfile({
 
   // Determine if this is an unclaimed/custodial account
   const isUnclaimedAccount = !emailVerified && !termsAccepted;
+  const accountStatusLabel = isUnclaimedAccount
+    ? 'Unclaimed'
+    : emailVerified
+      ? 'Verified'
+      : 'Unverified';
 
   // Calculate counts for tab badges (excluding current user's own entries)
   const trustingAccountsCount = Object.keys(trustingAccounts).filter(
@@ -144,15 +157,34 @@ export default function UserProfile({
   const userDetailFields = [
     {
       label: 'Account Type',
-      value: clinic ? `Clinician (${clinic.role})` : 'Patient',
+      value: clinic ? (
+        <>
+          <span>Clinician</span>
+          <Chip
+            variant="flat"
+            radius="sm"
+            classNames={getChipClassNames(getRoleColor(clinic.role))}
+          >
+            {formatRoleLabel(clinic.role)}
+          </Chip>
+        </>
+      ) : (
+        'Patient'
+      ),
     },
     {
       label: 'Account Status',
-      value: isUnclaimedAccount
-        ? 'Unclaimed'
-        : emailVerified
-          ? 'Verified'
-          : 'Unverified',
+      value: (
+        <Chip
+          variant="flat"
+          radius="sm"
+          classNames={getChipClassNames(
+            getAccountStatusColor(accountStatusLabel),
+          )}
+        >
+          {accountStatusLabel}
+        </Chip>
+      ),
     },
     ...(termsAccepted
       ? [
@@ -169,13 +201,19 @@ export default function UserProfile({
       title={fullName || username || 'Unknown User'}
       titleRowExtra={
         isUnclaimedAccount ? (
-          <Chip size="sm" variant="flat" color="warning">
+          <Chip
+            size="sm"
+            variant="flat"
+            color="warning"
+            radius="sm"
+            classNames={getChipClassNames('warning')}
+          >
             Custodial
           </Chip>
         ) : undefined
       }
       identifiers={userIdentifiers}
-      actionLinks={[<RollbarLink userId={userId} />]}
+      actionLinks={[<RollbarLink key="rollbar" userId={userId} />]}
       detailFields={userDetailFields}
       {...profileExpandedProps}
     />
@@ -219,10 +257,7 @@ export default function UserProfile({
             </Tab>
 
             {/* Account Tab */}
-            <Tab
-              key="account"
-              title={<TabTitle icon={Settings} label="Account" />}
-            >
+            <Tab key="account" title={<TabTitle icon={Sun} label="Account" />}>
               <div className="pt-6 flex flex-col gap-6">
                 <UserActions user={user} />
               </div>
@@ -328,12 +363,14 @@ export default function UserProfile({
                   accounts={trustedAccounts}
                   trustedAccountsState={trustedAccountsState}
                   currentUserId={userId}
+                  userProfiles={associatedUserProfiles}
                   isFirstInGroup
                 />
                 <TrustingAccountsTable
                   accounts={trustingAccounts}
                   trustingAccountsState={trustingAccountsState}
                   currentUserId={userId}
+                  userProfiles={associatedUserProfiles}
                 />
                 <SentInvitesTable
                   invites={sentInvites}
@@ -373,10 +410,7 @@ export default function UserProfile({
           </Tab> */}
 
           {/* Account Tab */}
-          <Tab
-            key="account"
-            title={<TabTitle icon={Settings} label="Account" />}
-          >
+          <Tab key="account" title={<TabTitle icon={Sun} label="Account" />}>
             <div className="pt-6 flex flex-col gap-6">
               <UserActions user={user} />
             </div>

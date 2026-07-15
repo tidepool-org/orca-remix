@@ -8,6 +8,7 @@ import {
   formatRoleLabel,
   type ChipColor,
 } from '~/utils/statusColors';
+import { getChipClassNames } from '~/utils/chipStyles';
 
 type StatusType = 'prescription' | 'invite' | 'dataSource' | 'role';
 
@@ -88,8 +89,14 @@ export default function StatusChip({
 }: StatusChipProps) {
   // Get color from custom map or default based on type
   const getColor = (): ChipColor => {
-    if (colorMap && status?.toLowerCase() in colorMap) {
-      return colorMap[status.toLowerCase()];
+    const normalizedStatus = status.toLowerCase();
+    // Normalize colorMap keys too, so callers passing non-lowercase keys still
+    // match (status is already lowercased above).
+    if (colorMap) {
+      const match = Object.entries(colorMap).find(
+        ([key]) => key.toLowerCase() === normalizedStatus,
+      );
+      if (match) return match[1];
     }
 
     switch (type) {
@@ -118,6 +125,8 @@ export default function StatusChip({
       color={getColor()}
       variant={variant}
       size={size}
+      radius="sm"
+      classNames={getChipClassNames(getColor())}
       className={`${capitalize ? 'capitalize' : ''} ${className ?? ''}`}
     >
       {getLabel()}

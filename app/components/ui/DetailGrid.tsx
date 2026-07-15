@@ -71,7 +71,8 @@ export default function DetailGrid({
     return null;
   }
 
-  // Build responsive grid column classes
+  // Build responsive grid column classes.
+  // These dynamic classes are safelisted in tailwind.config.ts.
   const getColumnClass = (count: number | undefined, prefix: string = '') => {
     if (!count) return '';
     const colClass = `grid-cols-${count}`;
@@ -94,10 +95,14 @@ export default function DetailGrid({
 
   return (
     <div className={gridClasses}>
-      {visibleFields.map((field, index) => (
-        <div key={index}>
-          <span className="text-default-400 block text-xs">{field.label}</span>
-          <span className="text-default-600">{field.value}</span>
+      {visibleFields.map((field) => (
+        <div key={field.label} className="flex flex-col gap-1">
+          <span className="text-[10.5px] font-semibold uppercase tracking-[0.07em] text-[color:var(--text-faint)]">
+            {field.label}
+          </span>
+          <span className="text-[13px] text-[color:var(--text)] flex items-center gap-2 flex-wrap">
+            {field.value}
+          </span>
         </div>
       ))}
     </div>

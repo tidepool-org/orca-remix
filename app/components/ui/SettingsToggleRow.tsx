@@ -54,7 +54,7 @@ export default function SettingsToggleRow({
 }: SettingsToggleRowProps) {
   const variantClasses = {
     default: 'flex items-center justify-between',
-    card: 'flex items-center justify-between p-4 bg-content2 rounded-lg',
+    card: 'flex items-center justify-between p-4 bg-[color:var(--surface-2)] rounded-lg',
   };
 
   return (
@@ -66,7 +66,9 @@ export default function SettingsToggleRow({
           {label}
         </span>
         {description && (
-          <span className="text-xs text-default-500">{description}</span>
+          <span className="text-xs text-[color:var(--text-muted)]">
+            {description}
+          </span>
         )}
       </div>
       <Switch

@@ -24,7 +24,7 @@ export async function action({ request }: ActionFunctionArgs) {
       headers: {
         'Content-Type':
           'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        'Content-Disposition': `attachment; filename="merge-${sourceClinicId}-to-${targetClinicId}-${new Date().toISOString()}.xlsx"`,
+        'Content-Disposition': `attachment; filename="merge-${sourceClinicId}-to-${targetClinicId}-${new Date().toISOString().replace(/:/g, '-')}.xlsx"`,
         'Cache-Control': 'no-store',
       },
     });

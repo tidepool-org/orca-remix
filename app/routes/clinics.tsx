@@ -1,5 +1,9 @@
 import { Outlet } from 'react-router';
-import ErrorStack from '~/components/ErrorStack';
+import ErrorStack from '~/components/ui/ErrorStack';
+
+export const handle = {
+  breadcrumb: { href: '/clinics', label: 'Clinic Management' },
+};
 
 export async function loader() {
   return null;
@@ -8,10 +12,6 @@ export async function loader() {
 export default function Clinics() {
   return <Outlet />;
 }
-
-export const handle = {
-  breadcrumb: { href: '/clinics', label: 'Clinic Management' },
-};
 
 export function ErrorBoundary() {
   return <ErrorStack />;

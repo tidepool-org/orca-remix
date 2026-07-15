@@ -10,7 +10,7 @@ import {
 import { FileText } from 'lucide-react';
 import { useNavigate, useParams, useSearchParams, useHref } from 'react-router';
 import useLocale from '~/hooks/useLocale';
-import CollapsibleTableWrapper from '../CollapsibleTableWrapper';
+import CollapsibleTableWrapper from '../ui/CollapsibleTableWrapper';
 import { collapsibleTableClasses, columnClass } from '~/utils/tableStyles';
 import type { Prescription } from './types';
 import type { ResourceState } from '~/api.types';
@@ -21,6 +21,7 @@ import StatusChip from '~/components/ui/StatusChip';
 import ResourceError from '~/components/ui/ResourceError';
 import CopyableIdentifier from '~/components/ui/CopyableIdentifier';
 import { formatDateTime } from '~/utils/dateFormatters';
+import { getPatientName } from '~/utils/prescriptions';
 
 /**
  * Context determines how navigation works when selecting a prescription:
@@ -110,16 +111,6 @@ export default function PrescriptionsTable({
     },
   ];
 
-  const getPatientName = (prescription: Prescription): string => {
-    const attrs = prescription.latestRevision?.attributes;
-    if (attrs?.firstName && attrs?.lastName) {
-      return `${attrs.firstName} ${attrs.lastName}`;
-    }
-    if (attrs?.firstName) return attrs.firstName;
-    if (attrs?.lastName) return attrs.lastName;
-    return 'N/A';
-  };
-
   const renderCell = React.useCallback(
     (item: Prescription, columnKey: string) => {
       switch (columnKey) {
@@ -127,7 +118,9 @@ export default function PrescriptionsTable({
           const patientName = getPatientName(item);
           return (
             <div className="flex flex-col">
-              <p className="text-bold text-sm">{patientName}</p>
+              <p className="font-semibold text-[color:var(--text-heading)]">
+                {patientName}
+              </p>
               <CopyableIdentifier label="ID:" value={item.id} size="sm" />
             </div>
           );
@@ -172,7 +165,7 @@ export default function PrescriptionsTable({
 
   return (
     <CollapsibleTableWrapper
-      icon={<FileText className="h-5 w-5" />}
+      icon={<FileText className="h-5 w-5" aria-hidden="true" />}
       title="Prescriptions"
       totalItems={totalPrescriptions}
       isFirstInGroup={isFirstInGroup}
@@ -202,7 +195,7 @@ export default function PrescriptionsTable({
                   targetClinicId = prescription?.clinicId;
                 } else {
                   // In clinic context, use prop or route params, preserve search params
-                  targetClinicId = clinicId || params.clinicId;
+                  targetClinicId = effectiveClinicId;
                 }
 
                 if (targetClinicId) {

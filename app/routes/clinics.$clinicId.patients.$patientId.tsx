@@ -70,6 +70,10 @@ export const meta: MetaFunction = () => {
   ];
 };
 
+export const handle = {
+  breadcrumb: { href: '#', label: 'Patient Profile' },
+};
+
 /**
  * Skip loader revalidation when only the 'tab' search param changed.
  */
@@ -118,102 +122,6 @@ function flattenConnectionRequests(
   return result;
 }
 
-export async function action({ request, params }: ActionFunctionArgs) {
-  const formData = await request.formData();
-  const intent = formData.get('intent') as string;
-  const clinicId = params.clinicId as string;
-  const patientId = params.patientId as string;
-
-  try {
-    switch (intent) {
-      case 'send-connect-request': {
-        const providerName = formData.get('providerName') as string;
-        const isResend = formData.get('isResend') === 'true';
-
-        if (!providerName) {
-          return Response.json(
-            { success: false, error: 'Provider name is required' },
-            { status: 400 },
-          );
-        }
-
-        // Step 1: For new invites, ensure a pending data source entry exists
-        // The backend requires a dataSources entry with the provider before
-        // a connection request can be created.
-        if (!isResend) {
-          const patient = await apiRequest({
-            ...apiRoutes.clinic.getPatient(clinicId, patientId),
-            schema: PatientSchema,
-          });
-          const hasProviderDataSource = patient.dataSources?.some(
-            (ds) => ds.providerName === providerName,
-          );
-
-          if (!hasProviderDataSource) {
-            const updatedDataSources = [
-              ...(patient.dataSources || []),
-              { providerName, state: 'pending' },
-            ];
-
-            // Omit read-only fields that the backend rejects on update
-            const patientUpdate = omit(patient, [
-              'id',
-              'clinicId',
-              'userId',
-              'createdTime',
-              'updatedTime',
-              'permissions',
-              'summary',
-              'reviews',
-              'connectionRequests',
-              'isMigrated',
-              'legacyClinicianIds',
-              'invitedBy',
-              'lastUploadReminderTime',
-              'ehrSubscriptions',
-            ]);
-
-            await apiRequest({
-              ...apiRoutes.clinic.updatePatient(clinicId, patientId),
-              body: {
-                ...patientUpdate,
-                dataSources: updatedDataSources,
-              } as Record<string, unknown>,
-            });
-          }
-        }
-
-        // Step 2: Send the connection request
-        await apiRequest(
-          apiRoutes.clinic.sendConnectRequest(
-            clinicId,
-            patientId,
-            providerName,
-          ),
-        );
-        return Response.json({
-          success: true,
-          action: 'send-connect-request',
-          message: `Connection invite sent for ${providerName}`,
-        });
-      }
-
-      default:
-        return Response.json(
-          { success: false, error: `Unknown action: ${intent}` },
-          { status: 400 },
-        );
-    }
-  } catch (error) {
-    const message =
-      error instanceof APIError
-        ? error.message
-        : 'An unexpected error occurred';
-
-    return Response.json({ success: false, error: message }, { status: 500 });
-  }
-}
-
 export async function loader({ request, params }: LoaderFunctionArgs) {
   const { getSession, commitSession } = patientsSession;
   const recentlyViewed = await getSession(request.headers.get('Cookie'));
@@ -229,10 +137,20 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     : [];
 
   // Get the specific patient (critical) - this must succeed
-  const patient = await apiRequest({
-    ...apiRoutes.clinic.getPatient(clinicId, patientId),
-    schema: PatientSchema,
-  });
+  let patient: Patient;
+  try {
+    patient = await apiRequest({
+      ...apiRoutes.clinic.getPatient(clinicId, patientId),
+      schema: PatientSchema,
+    });
+  } catch (error) {
+    if (error instanceof Response) throw error;
+    if (error instanceof APIError && error.status === 404) {
+      throw new Response('Patient not found', { status: 404 });
+    }
+    console.error('Error loading patient:', error);
+    throw new Response('Failed to load patient', { status: 500 });
+  }
 
   // Type for clinics response that can be array or object with data
   type ClinicsResponse =
@@ -520,7 +438,103 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   };
 }
 
-export default function PatientDetails() {
+export async function action({ request, params }: ActionFunctionArgs) {
+  const formData = await request.formData();
+  const intent = formData.get('intent') as string;
+  const clinicId = params.clinicId as string;
+  const patientId = params.patientId as string;
+
+  try {
+    switch (intent) {
+      case 'send-connect-request': {
+        const providerName = formData.get('providerName') as string;
+        const isResend = formData.get('isResend') === 'true';
+
+        if (!providerName) {
+          return Response.json(
+            { success: false, error: 'Provider name is required' },
+            { status: 400 },
+          );
+        }
+
+        // Step 1: For new invites, ensure a pending data source entry exists
+        // The backend requires a dataSources entry with the provider before
+        // a connection request can be created.
+        if (!isResend) {
+          const patient = await apiRequest({
+            ...apiRoutes.clinic.getPatient(clinicId, patientId),
+            schema: PatientSchema,
+          });
+          const hasProviderDataSource = patient.dataSources?.some(
+            (ds) => ds.providerName === providerName,
+          );
+
+          if (!hasProviderDataSource) {
+            const updatedDataSources = [
+              ...(patient.dataSources || []),
+              { providerName, state: 'pending' },
+            ];
+
+            // Omit read-only fields that the backend rejects on update
+            const patientUpdate = omit(patient, [
+              'id',
+              'clinicId',
+              'userId',
+              'createdTime',
+              'updatedTime',
+              'permissions',
+              'summary',
+              'reviews',
+              'connectionRequests',
+              'isMigrated',
+              'legacyClinicianIds',
+              'invitedBy',
+              'lastUploadReminderTime',
+              'ehrSubscriptions',
+            ]);
+
+            await apiRequest({
+              ...apiRoutes.clinic.updatePatient(clinicId, patientId),
+              body: {
+                ...patientUpdate,
+                dataSources: updatedDataSources,
+              } as Record<string, unknown>,
+            });
+          }
+        }
+
+        // Step 2: Send the connection request
+        await apiRequest(
+          apiRoutes.clinic.sendConnectRequest(
+            clinicId,
+            patientId,
+            providerName,
+          ),
+        );
+        return Response.json({
+          success: true,
+          action: 'send-connect-request',
+          message: `Connection invite sent for ${providerName}`,
+        });
+      }
+
+      default:
+        return Response.json(
+          { success: false, error: `Unknown action: ${intent}` },
+          { status: 400 },
+        );
+    }
+  } catch (error) {
+    const message =
+      error instanceof APIError
+        ? error.message
+        : 'An unexpected error occurred';
+
+    return Response.json({ success: false, error: message }, { status: 500 });
+  }
+}
+
+export default function Patient() {
   const {
     patient,
     prescriptions,
@@ -575,7 +589,3 @@ export default function PatientDetails() {
     />
   ) : null;
 }
-
-export const handle = {
-  breadcrumb: { href: '#', label: 'Patient Profile' },
-};

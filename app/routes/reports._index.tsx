@@ -55,7 +55,7 @@ export default function ReportsIndex() {
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `merge-${sourceClinicId}-to-${targetClinicId}-${new Date().toISOString()}.xlsx`;
+      link.download = `merge-${sourceClinicId}-to-${targetClinicId}-${new Date().toISOString().replace(/:/g, '-')}.xlsx`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);

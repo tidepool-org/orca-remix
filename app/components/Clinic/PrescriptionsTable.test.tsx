@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, within } from '~/test-utils';
 import userEvent from '@testing-library/user-event';
 import PrescriptionsTable from './PrescriptionsTable';
-import { CollapsibleGroup } from '~/components/CollapsibleGroup';
+import { CollapsibleGroup } from '~/components/ui/CollapsibleGroup';
 import type { Prescription } from './types';
 import type { ResourceState } from '~/api.types';
 
@@ -95,7 +95,7 @@ describe('PrescriptionsTable', () => {
       render(<PrescriptionsTable {...defaultProps} />);
 
       // Header shows combined title and count
-      expect(screen.getByText('Prescriptions (3)')).toBeInTheDocument();
+      expect(screen.getByText('Prescriptions')).toBeInTheDocument();
     });
 
     it('renders column headers', () => {
@@ -169,7 +169,7 @@ describe('PrescriptionsTable', () => {
       const naElement = within(table).getByText('N/A');
       expect(naElement).toBeInTheDocument();
       expect(naElement.tagName).toBe('P');
-      expect(naElement).toHaveClass('text-bold');
+      expect(naElement).toHaveClass('font-semibold');
     });
   });
 
@@ -290,9 +290,8 @@ describe('PrescriptionsTable', () => {
       });
 
       const row = screen.getByText('John Doe').closest('tr');
-      if (row) {
-        await user.click(row);
-      }
+      expect(row).not.toBeNull();
+      await user.click(row!);
 
       expect(mockNavigate).toHaveBeenCalledWith(
         '/clinics/clinic-prop/prescriptions/rx-1?tab=prescriptions',
@@ -307,9 +306,8 @@ describe('PrescriptionsTable', () => {
       });
 
       const row = screen.getByText('John Doe').closest('tr');
-      if (row) {
-        await user.click(row);
-      }
+      expect(row).not.toBeNull();
+      await user.click(row!);
 
       expect(mockNavigate).toHaveBeenCalledWith(
         '/clinics/clinic-123/prescriptions/rx-1?tab=prescriptions',
@@ -324,9 +322,8 @@ describe('PrescriptionsTable', () => {
       });
 
       const row = screen.getByText('Jane Smith').closest('tr');
-      if (row) {
-        await user.click(row);
-      }
+      expect(row).not.toBeNull();
+      await user.click(row!);
 
       // Should preserve the "tab=prescriptions" search param
       expect(mockNavigate).toHaveBeenCalledWith(
@@ -341,9 +338,8 @@ describe('PrescriptionsTable', () => {
       renderExpanded({ ...defaultProps, context: 'user' });
 
       const row = screen.getByText('Jane Smith').closest('tr');
-      if (row) {
-        await user.click(row);
-      }
+      expect(row).not.toBeNull();
+      await user.click(row!);
 
       // Should use clinic-456 from the prescription, not clinic-123 from route params
       expect(mockNavigate).toHaveBeenCalledWith(
@@ -356,9 +352,8 @@ describe('PrescriptionsTable', () => {
       renderExpanded({ ...defaultProps, context: 'user' });
 
       const row = screen.getByText('John Doe').closest('tr');
-      if (row) {
-        await user.click(row);
-      }
+      expect(row).not.toBeNull();
+      await user.click(row!);
 
       // Should NOT have query params
       expect(mockNavigate).toHaveBeenCalledWith(
@@ -391,9 +386,8 @@ describe('PrescriptionsTable', () => {
       });
 
       const row = screen.getByText('No Clinic').closest('tr');
-      if (row) {
-        await user.click(row);
-      }
+      expect(row).not.toBeNull();
+      await user.click(row!);
 
       expect(mockNavigate).not.toHaveBeenCalled();
     });
@@ -405,9 +399,8 @@ describe('PrescriptionsTable', () => {
       renderExpanded(defaultProps);
 
       const row = screen.getByText('John Doe').closest('tr');
-      if (row) {
-        await user.click(row);
-      }
+      expect(row).not.toBeNull();
+      await user.click(row!);
 
       // Should use clinic context behavior (route params + search params)
       expect(mockNavigate).toHaveBeenCalledWith(

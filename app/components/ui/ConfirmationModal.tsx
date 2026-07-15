@@ -52,8 +52,13 @@ export default function ConfirmationModal({
     }
   }, [isOpen]);
 
+  // When input confirmation is required, fail safe: keep the button disabled
+  // unless a non-empty expectedInput has been matched exactly. This prevents a
+  // misconfiguration (requiresInput with an empty/omitted expectedInput) from
+  // silently enabling the confirm button without any typed confirmation.
   const isConfirmDisabled =
-    isLoading || (requiresInput && inputValue !== expectedInput);
+    isLoading ||
+    (requiresInput && (expectedInput === '' || inputValue !== expectedInput));
 
   const handleConfirm = () => {
     if (!isConfirmDisabled) {
@@ -62,17 +67,30 @@ export default function ConfirmationModal({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size="md">
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      size="md"
+      backdrop="blur"
+      aria-label={title}
+      classNames={{ base: 'border border-[color:var(--border)]' }}
+    >
       <ModalContent>
-        <ModalHeader className="flex items-center gap-2">
-          {icon ||
-            (confirmVariant === 'danger' && (
-              <AlertTriangle className="text-danger" size={20} />
-            ))}
-          <span>{title}</span>
+        <ModalHeader className="flex items-center gap-3">
+          <span
+            className={`grid place-items-center w-8 h-8 rounded-lg border ${
+              confirmVariant === 'danger'
+                ? 'bg-[color:var(--danger-soft)] border-[color:var(--danger-border)] text-[color:var(--danger)]'
+                : 'bg-[color:var(--primary-soft)] border-[color:var(--primary-soft)] text-[color:var(--primary)]'
+            }`}
+            aria-hidden="true"
+          >
+            {icon || <AlertTriangle size={18} />}
+          </span>
+          <span className="text-base font-bold">{title}</span>
         </ModalHeader>
         <ModalBody>
-          <p className="text-default-600">{description}</p>
+          <p className="text-[color:var(--text-muted)]">{description}</p>
           {requiresInput && (
             <div className="mt-4">
               <Input
@@ -82,6 +100,8 @@ export default function ConfirmationModal({
                 onValueChange={setInputValue}
                 isDisabled={isLoading}
                 variant="bordered"
+                classNames={{ input: 'font-mono text-sm' }}
+                color={inputValue === expectedInput ? 'success' : 'default'}
                 description={`Type "${expectedInput}" to confirm`}
               />
             </div>

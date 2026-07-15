@@ -62,7 +62,7 @@ export type DataSource = {
 
 // Flattened connection request for display in DataSourcesTable
 export type ConnectionRequest = {
-  providerName: 'dexcom' | 'twiist' | 'abbott';
+  providerName: 'dexcom' | 'twiist' | 'abbott' | 'oura';
   createdTime: string;
 };
 
@@ -86,6 +86,20 @@ export type Permissions = {
 // Response from GET /access/groups/{userId} - accounts that share with user
 // Response from GET /access/{userId} - users who have access to this user's data
 export type AccessPermissionsMap = Record<string, Permissions>;
+
+// Response from GET /metadata/users/{userId}/users - all associated users with profiles.
+// The endpoint returns an array of user objects, each with its own userid field.
+export type AssociatedUser = {
+  userid: string;
+  profile?: {
+    fullName?: string;
+    patient?: Record<string, unknown>;
+    clinic?: Record<string, unknown>;
+  };
+  trustorPermissions?: Permissions;
+  trusteePermissions?: Permissions;
+};
+export type AssociatedUsersResponse = AssociatedUser[];
 
 // Care team invite (confirmation)
 export type ShareInvite = {

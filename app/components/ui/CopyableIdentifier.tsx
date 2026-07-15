@@ -1,5 +1,5 @@
 import { ReactNode } from 'react';
-import ClipboardButton from '../ClipboardButton';
+import ClipboardButton from './ClipboardButton';
 
 export type CopyableIdentifierProps = {
   /** Optional label displayed before the value (e.g., "ID:", "Email:") */
@@ -62,23 +62,39 @@ export default function CopyableIdentifier({
   // Default monospace to true if a label is provided (follows existing ProfileHeader pattern)
   const useMonospace = monospace ?? !!label;
 
+  // Reference design renders labels without a trailing colon ("ID 624..." not "ID: 624...").
+  // Strip any trailing colon defensively so callers can keep grammatical label props.
+  const displayLabel = label?.replace(/:\s*$/, '');
+
+  // `md` inherits the surrounding text size (no explicit class). Previously
+  // this used `text-md`, which isn't a defined Tailwind/theme token and so was
+  // a silent no-op; the empty string keeps the same rendering while removing
+  // the misleading dead class.
   const sizeClasses = {
-    sm: 'text-xs',
-    md: 'text-sm',
+    sm: 'text-base',
+    md: '',
   };
 
   const valueClasses = [
     useMonospace ? `font-mono ${sizeClasses[size]}` : sizeClasses[size],
-    truncate ? 'truncate' : '',
+    // In truncate mode the value shrinks (min-w-0) and ellipsizes inside a
+    // fixed-layout cell, but does NOT grow to fill it — so the copy icon stays
+    // flush against the text (matching non-truncated cells) rather than being
+    // pushed to the cell's right edge.
+    truncate ? 'truncate min-w-0' : '',
   ]
     .filter(Boolean)
     .join(' ');
 
   return (
     <span
-      className={`flex items-center gap-1 text-default-500 ${className}`.trim()}
+      className={`${truncate ? 'flex w-full min-w-0' : 'inline-flex'} items-center gap-1.5 group text-[color:var(--text-muted)] ${className}`.trim()}
     >
-      {label && <span className="text-default-400">{label}</span>}
+      {displayLabel && (
+        <span className="text-[color:var(--text-faint)] uppercase tracking-wide text-[10.5px] font-semibold">
+          {displayLabel}
+        </span>
+      )}
       {children ? (
         children
       ) : (
@@ -90,7 +106,7 @@ export default function CopyableIdentifier({
           {value}
         </span>
       )}
-      <ClipboardButton clipboardText={value} />
+      <ClipboardButton clipboardText={value} size={size} />
     </span>
   );
 }

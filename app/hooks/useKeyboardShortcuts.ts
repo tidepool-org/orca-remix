@@ -14,7 +14,8 @@ function isEditableElement(target: EventTarget | null): boolean {
     tagName === 'INPUT' ||
     tagName === 'TEXTAREA' ||
     tagName === 'SELECT' ||
-    target.isContentEditable
+    target.isContentEditable ||
+    target.contentEditable === 'true'
   );
 }
 
@@ -108,6 +109,7 @@ const VIM_TO_ARROW: Record<string, string> = {
 };
 
 function dispatchArrowKey(e: KeyboardEvent) {
+  e.preventDefault();
   const target = e.target as HTMLElement;
   target.dispatchEvent(
     new KeyboardEvent('keydown', { key: VIM_TO_ARROW[e.key], bubbles: true }),
