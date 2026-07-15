@@ -70,16 +70,27 @@ export default function CollapsibleTableWrapper({
 
   return (
     <div className="w-full rounded-[8px] border border-[color:var(--border)] bg-[color:var(--surface)] overflow-hidden shadow-token">
-      <button
-        className={`flex justify-between items-center w-full px-4 min-h-[43px] bg-[color:var(--surface-2)] hover:bg-[color:var(--surface-3)] transition-colors cursor-pointer ${
+      {/*
+        The toggle is a full-row button rendered behind the header content, so
+        the whole row remains clickable. The visible content is click-through
+        (pointer-events-none) so clicks fall through to the button, and the
+        export link opts back into pointer events as a sibling (not a nested
+        interactive element, which is invalid HTML inside a <button>).
+      */}
+      <div
+        className={`relative flex justify-between items-center w-full px-4 min-h-[43px] bg-[color:var(--surface-2)] transition-colors ${
           isExpanded ? 'border-b border-[color:var(--border)]' : ''
         }`}
-        onClick={handleToggle}
-        aria-expanded={isExpanded}
-        aria-controls={panelId}
-        aria-labelledby={headingId}
       >
-        <div className="flex gap-2 items-center">
+        <button
+          type="button"
+          className="absolute inset-0 w-full cursor-pointer hover:bg-[color:var(--surface-3)] transition-colors"
+          onClick={handleToggle}
+          aria-expanded={isExpanded}
+          aria-controls={panelId}
+          aria-labelledby={headingId}
+        />
+        <div className="relative pointer-events-none flex gap-2 items-center">
           <span
             className="inline-grid place-items-center w-[22px] h-[22px] flex-none [&_svg]:w-4 [&_svg]:h-4 text-[color:var(--primary)]"
             aria-hidden="true"
@@ -95,7 +106,7 @@ export default function CollapsibleTableWrapper({
             {title}
           </span>
         </div>
-        <div className="flex items-center gap-3 ml-auto">
+        <div className="relative pointer-events-none flex items-center gap-3 ml-auto">
           {showingText && (
             <span className="text-[12px] text-[color:var(--text-faint)] font-medium hidden sm:inline">
               {showingText}
@@ -107,8 +118,7 @@ export default function CollapsibleTableWrapper({
                 href={exportHref}
                 download
                 aria-label={`Export ${title} as CSV`}
-                className="p-1 rounded-md text-[color:var(--text-faint)] hover:bg-[color:var(--surface-3)] hover:text-[color:var(--text)] transition-colors"
-                onClick={(e) => e.stopPropagation()}
+                className="pointer-events-auto p-1 rounded-md text-[color:var(--text-faint)] hover:bg-[color:var(--surface-3)] hover:text-[color:var(--text)] transition-colors"
               >
                 <Download className="w-4 h-4" aria-hidden="true" />
               </a>
@@ -121,7 +131,7 @@ export default function CollapsibleTableWrapper({
             aria-hidden="true"
           />
         </div>
-      </button>
+      </div>
 
       {isExpanded && (
         <div id={panelId} className="p-4 transition-all duration-300">

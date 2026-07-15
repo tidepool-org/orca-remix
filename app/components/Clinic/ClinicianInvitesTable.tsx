@@ -139,7 +139,7 @@ export default function ClinicianInvitesTable({
   return (
     <>
       <CollapsibleTableWrapper
-        icon={<UserPlus className="h-5 w-5" />}
+        icon={<UserPlus className="h-5 w-5" aria-hidden="true" />}
         title="Pending Clinician Invites"
         totalItems={pendingInvites.length}
         isFirstInGroup={isFirstInGroup}

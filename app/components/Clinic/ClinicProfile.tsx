@@ -211,11 +211,17 @@ export default function ClinicProfile({
     setSelectedTimezone(timezone || '');
   }, [timezone]);
 
-  // Reset MRN settings when they change
+  // Reset each MRN toggle independently when its own server value changes.
+  // Keying both off the whole mrnSettings object would reset an unrelated,
+  // still-unsaved toggle whenever the other was saved — silently discarding
+  // the user's pending edit.
   useEffect(() => {
     setMrnRequired(mrnSettings?.required ?? false);
+  }, [mrnSettings?.required]);
+
+  useEffect(() => {
     setMrnUnique(mrnSettings?.unique ?? false);
-  }, [mrnSettings]);
+  }, [mrnSettings?.unique]);
 
   // Reset patient limit when it changes from server
   useEffect(() => {

@@ -2,7 +2,7 @@ import { useParams, useRouteLoaderData } from 'react-router';
 import { Chip, Tab } from '@heroui/react';
 import { Database, Smartphone /* FileText */ } from 'lucide-react';
 
-import type { Patient, Prescription } from './types';
+import type { ClinicSummary, Patient, Prescription } from './types';
 import type {
   DataSet,
   DataSource,
@@ -32,17 +32,7 @@ export type PatientProfileProps = {
   prescriptions?: Prescription[];
   totalPrescriptions?: number;
   prescriptionsLoading?: boolean;
-  clinic?: {
-    patientTags?: {
-      id: string;
-      name: string;
-    }[];
-    sites?: {
-      id: string;
-      name: string;
-    }[];
-    preferredBgUnits?: 'mg/dL' | 'mmol/L';
-  };
+  clinic?: ClinicSummary;
   // Data tab props
   dataSets?: DataSet[];
   totalDataSets?: number;
@@ -106,13 +96,7 @@ export default function PatientProfile({
 
   // Try to get clinic data from parent route if not provided as prop
   const parentRouteData = useRouteLoaderData('routes/clinics.$clinicId') as
-    | {
-        clinic?: {
-          patientTags?: { id: string; name: string }[];
-          sites?: { id: string; name: string }[];
-          preferredBgUnits?: 'mg/dL' | 'mmol/L';
-        };
-      }
+    | { clinic?: ClinicSummary }
     | undefined;
   const clinicData = clinic || parentRouteData?.clinic;
   const { getTagName, getSiteName } = useClinicResolvers(clinicData);

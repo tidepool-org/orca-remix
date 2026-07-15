@@ -165,7 +165,7 @@ export default function PrescriptionsTable({
 
   return (
     <CollapsibleTableWrapper
-      icon={<FileText className="h-5 w-5" />}
+      icon={<FileText className="h-5 w-5" aria-hidden="true" />}
       title="Prescriptions"
       totalItems={totalPrescriptions}
       isFirstInGroup={isFirstInGroup}

@@ -1,4 +1,10 @@
-import { createContext, useContext, useState, useMemo } from 'react';
+import {
+  createContext,
+  useContext,
+  useState,
+  useMemo,
+  useCallback,
+} from 'react';
 import { useFetcher } from 'react-router';
 
 type SidebarExpandedContextType = {
@@ -20,17 +26,20 @@ export function SidebarExpandedProvider({
   const [sidebarExpanded, setSidebarExpandedState] = useState(initialExpanded);
   const fetcher = useFetcher();
 
-  const setSidebarExpanded = (expanded: boolean) => {
-    setSidebarExpandedState(expanded);
-    fetcher.submit(
-      { expanded: expanded.toString() },
-      { method: 'post', action: '/action/set-sidebar' },
-    );
-  };
+  const setSidebarExpanded = useCallback(
+    (expanded: boolean) => {
+      setSidebarExpandedState(expanded);
+      fetcher.submit(
+        { expanded: expanded.toString() },
+        { method: 'post', action: '/action/set-sidebar' },
+      );
+    },
+    [fetcher],
+  );
 
   const value = useMemo(
     () => ({ sidebarExpanded, setSidebarExpanded }),
-    [sidebarExpanded],
+    [sidebarExpanded, setSidebarExpanded],
   );
 
   return (

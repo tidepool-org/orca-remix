@@ -537,6 +537,47 @@ export const apiRequestFile = async ({
 };
 
 /**
+ * Redact PII/PHI from an API path before logging.
+ *
+ * Several routes embed concrete emails and user/patient/clinic identifiers
+ * directly in the path (e.g. `/auth/user/{email}`,
+ * `/v1/clinics/{id}/patients/{id}`). Emitting the raw path to server logs
+ * would leak that data, so query strings are dropped and identifier-looking
+ * segments are replaced with placeholders, leaving the route template intact
+ * for debugging.
+ */
+const redactPath = (path: string): string => {
+  const [pathname] = path.split('?');
+  return pathname
+    .split('/')
+    .map((segment) => {
+      if (!segment) return segment;
+      let decoded = segment;
+      try {
+        decoded = decodeURIComponent(segment);
+      } catch {
+        // Malformed encoding — fall back to the raw segment.
+      }
+      if (decoded.includes('@')) return ':email';
+      const isUuid =
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+          decoded,
+        );
+      const isHexId = /^[0-9a-f]{8,}$/i.test(decoded);
+      const isNumericId = /^\d+$/.test(decoded);
+      // Mixed-case tokens containing a digit (Tidepool share codes, opaque
+      // ids). Route keywords are letters-only, so they're left untouched.
+      const isMixedToken =
+        decoded.length >= 6 &&
+        /\d/.test(decoded) &&
+        /^[A-Za-z0-9._-]+$/.test(decoded);
+      if (isUuid || isHexId || isNumericId || isMixedToken) return ':id';
+      return segment;
+    })
+    .join('/');
+};
+
+/**
  * Wraps an API request and returns a ResourceState instead of throwing.
  * Use this for non-critical data fetches where you want to show an inline
  * error state rather than failing the entire page.
@@ -564,12 +605,18 @@ export const apiRequestSafe = async <T = unknown>(
           : 'An unknown error occurred';
     const code = err instanceof APIError ? err.status : undefined;
 
-    // Log to console for server-side debugging
+    // Log to console for server-side debugging. The path is redacted and the
+    // raw backend message is intentionally omitted, since both can carry
+    // PII/PHI (concrete emails/ids in the path; echoed response body in the
+    // message). The unredacted message is still returned to the caller below
+    // for UI-level handling.
     // Use warn for auth errors (403) since they're expected for optional data fetches
     if (code === 403) {
-      console.warn(`API request not authorized: ${request.path}`);
+      console.warn(`API request not authorized: ${redactPath(request.path)}`);
     } else {
-      console.error(`API request failed: ${request.path}`, { message, code });
+      console.error(`API request failed: ${redactPath(request.path)}`, {
+        code,
+      });
     }
 
     return {

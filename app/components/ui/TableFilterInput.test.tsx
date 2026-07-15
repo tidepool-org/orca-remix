@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent } from '~/test-utils';
+import userEvent from '@testing-library/user-event';
+import { render, screen } from '~/test-utils';
 import TableFilterInput from './TableFilterInput';
 
 describe('TableFilterInput', () => {
@@ -73,25 +74,29 @@ describe('TableFilterInput', () => {
   });
 
   describe('onChange callback', () => {
-    it('calls onChange when typing', () => {
+    it('calls onChange when typing', async () => {
+      const user = userEvent.setup();
       const handleChange = vi.fn();
       render(<TableFilterInput value="" onChange={handleChange} />);
 
       const input = screen.getByRole('textbox');
-      fireEvent.change(input, { target: { value: 'new value' } });
+      // Controlled input pinned to value="" — each keystroke fires onChange with
+      // the single typed character, so assert on the character we typed.
+      await user.type(input, 'a');
 
-      expect(handleChange).toHaveBeenCalledWith('new value');
+      expect(handleChange).toHaveBeenCalledWith('a');
     });
   });
 
   describe('clear functionality', () => {
-    it('calls onChange with empty string when cleared', () => {
+    it('calls onChange with empty string when cleared', async () => {
+      const user = userEvent.setup();
       const handleChange = vi.fn();
       render(<TableFilterInput value="some text" onChange={handleChange} />);
 
       // HeroUI clearable input has a clear button
       const clearButton = screen.getByRole('button', { name: /clear/i });
-      fireEvent.click(clearButton);
+      await user.click(clearButton);
 
       expect(handleChange).toHaveBeenCalledWith('');
     });

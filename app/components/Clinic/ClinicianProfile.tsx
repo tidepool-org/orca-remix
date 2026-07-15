@@ -79,12 +79,20 @@ export default function ClinicianProfile({
   const [stagedAdmin, setStagedAdmin] = useState(serverIsAdmin);
   const [stagedPrescriber, setStagedPrescriber] = useState(serverIsPrescriber);
 
-  // Reset staged state when server roles change (after successful save)
-  const rolesKey = clinician?.roles?.join(',');
-  const [prevRolesKey, setPrevRolesKey] = useState(rolesKey);
-  if (rolesKey !== prevRolesKey) {
-    setPrevRolesKey(rolesKey);
+  // Reset each staged toggle independently when its own server-derived value
+  // changes (after a successful save). Keying both off the combined roles
+  // string would reset an unrelated, still-unsaved toggle whenever the other
+  // role was saved — silently discarding the user's pending edit.
+  const [prevServerIsAdmin, setPrevServerIsAdmin] = useState(serverIsAdmin);
+  if (serverIsAdmin !== prevServerIsAdmin) {
+    setPrevServerIsAdmin(serverIsAdmin);
     setStagedAdmin(serverIsAdmin);
+  }
+
+  const [prevServerIsPrescriber, setPrevServerIsPrescriber] =
+    useState(serverIsPrescriber);
+  if (serverIsPrescriber !== prevServerIsPrescriber) {
+    setPrevServerIsPrescriber(serverIsPrescriber);
     setStagedPrescriber(serverIsPrescriber);
   }
 

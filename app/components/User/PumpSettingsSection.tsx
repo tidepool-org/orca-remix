@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import {
   Select,
   SelectItem,
@@ -46,32 +46,37 @@ export default function PumpSettingsSection({
   const { locale } = useLocale();
   const [selectedSettingIndex, setSelectedSettingIndex] = useState<number>(0);
 
-  // Determine initial BG unit: prefer clinic's preferredBgUnits, then device setting, then mg/dL
-  const initialUseMgdl =
-    preferredBgUnits !== undefined
-      ? preferredBgUnits === 'mg/dL'
-      : pumpSettings[0]?.units?.bg === 'mg/dL';
-  const [useMgdl, setUseMgdl] = useState(initialUseMgdl);
+  // Get selected pump settings
+  const selectedSettings = useMemo(() => {
+    if (pumpSettings.length === 0) return null;
+    return pumpSettings[selectedSettingIndex] || pumpSettings[0];
+  }, [pumpSettings, selectedSettingIndex]);
+
+  // Determine BG unit: prefer the clinic's preferredBgUnits, then the selected
+  // device's native setting, then default to mg/dL. Derives from the selected
+  // device (not always device 0) so switching devices reflects that device's
+  // unit when no clinic preference is set.
+  const getDefaultUseMgdl = useCallback(
+    (settings: PumpSettings | null) =>
+      preferredBgUnits !== undefined
+        ? preferredBgUnits === 'mg/dL'
+        : settings?.units?.bg === 'mg/dL',
+    [preferredBgUnits],
+  );
+
+  const [useMgdl, setUseMgdl] = useState(() =>
+    getDefaultUseMgdl(pumpSettings[selectedSettingIndex] ?? null),
+  );
 
   // Reset selection index when pumpSettings array changes
   useEffect(() => {
     setSelectedSettingIndex(0);
   }, [pumpSettings]);
 
-  // Sync BG unit toggle when preferredBgUnits or pumpSettings changes
+  // Sync BG unit toggle when the clinic preference or selected device changes
   useEffect(() => {
-    const synced =
-      preferredBgUnits !== undefined
-        ? preferredBgUnits === 'mg/dL'
-        : pumpSettings[0]?.units?.bg === 'mg/dL';
-    setUseMgdl(synced);
-  }, [preferredBgUnits, pumpSettings]);
-
-  // Get selected pump settings
-  const selectedSettings = useMemo(() => {
-    if (pumpSettings.length === 0) return null;
-    return pumpSettings[selectedSettingIndex] || pumpSettings[0];
-  }, [pumpSettings, selectedSettingIndex]);
+    setUseMgdl(getDefaultUseMgdl(selectedSettings));
+  }, [getDefaultUseMgdl, selectedSettings]);
 
   // Format date for display
   const formatDate = (dateStr: string) => {

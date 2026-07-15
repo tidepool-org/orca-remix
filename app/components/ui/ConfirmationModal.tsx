@@ -52,8 +52,13 @@ export default function ConfirmationModal({
     }
   }, [isOpen]);
 
+  // When input confirmation is required, fail safe: keep the button disabled
+  // unless a non-empty expectedInput has been matched exactly. This prevents a
+  // misconfiguration (requiresInput with an empty/omitted expectedInput) from
+  // silently enabling the confirm button without any typed confirmation.
   const isConfirmDisabled =
-    isLoading || (requiresInput && inputValue !== expectedInput);
+    isLoading ||
+    (requiresInput && (expectedInput === '' || inputValue !== expectedInput));
 
   const handleConfirm = () => {
     if (!isConfirmDisabled) {
