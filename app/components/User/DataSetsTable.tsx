@@ -35,6 +35,10 @@ import TableLoadingState from '~/components/ui/TableLoadingState';
 import TableFilterInput from '~/components/ui/TableFilterInput';
 import ResourceError from '~/components/ui/ResourceError';
 import { formatDateWithTime } from '~/utils/dateFormatters';
+import {
+  getFriendlyDeviceName,
+  getPlatformDeviceLabel,
+} from '~/utils/deviceNames';
 
 export type DataSetsTableProps = {
   dataSets: DataSet[];
@@ -83,7 +87,8 @@ export default function DataSetsTable({
       (ds) =>
         ds.uploadId?.toLowerCase().includes(searchTerm) ||
         ds.deviceModel?.toLowerCase().includes(searchTerm) ||
-        ds.deviceSerialNumber?.toLowerCase().includes(searchTerm),
+        ds.deviceSerialNumber?.toLowerCase().includes(searchTerm) ||
+        getFriendlyDeviceName(ds)?.toLowerCase().includes(searchTerm),
     );
   }, [dataSets, filterValue]);
 
@@ -186,19 +191,28 @@ export default function DataSetsTable({
           ) : (
             <span className="text-xs text-[color:var(--text-muted)]">N/A</span>
           );
-        case 'deviceModel':
+        case 'deviceModel': {
+          const friendlyName = getFriendlyDeviceName(item);
+          // Keep the raw model discoverable when the friendly name masks it.
+          const showRawModel =
+            !!item.deviceModel && friendlyName !== item.deviceModel;
           return (
             <div className="flex flex-col">
               <p className="font-semibold text-[color:var(--text-heading)]">
-                {item.deviceModel || 'N/A'}
+                {friendlyName || 'N/A'}
               </p>
+              {showRawModel && (
+                <p className="text-xs text-[color:var(--text-faint)]">
+                  {item.deviceModel}
+                </p>
+              )}
               {item.deviceSerialNumber && (
                 <p className="text-xs text-[color:var(--text-faint)] font-mono">
                   SN: {item.deviceSerialNumber}
                 </p>
               )}
               {item.deviceTags && item.deviceTags.length > 0 && (
-                <div className="flex gap-1 mt-1">
+                <div className="flex gap-1 mt-1 mb-1">
                   {item.deviceTags.map((tag) => (
                     <Chip
                       key={tag}
@@ -215,12 +229,14 @@ export default function DataSetsTable({
               )}
             </div>
           );
-        case 'deviceManufacturers':
-          return (
-            <span className="text-sm">
-              {item.deviceManufacturers?.join(', ') || 'N/A'}
-            </span>
-          );
+        }
+        case 'deviceManufacturers': {
+          // Loop/twiist/Trio carry no manufacturer; show their service label.
+          const manufacturer =
+            getPlatformDeviceLabel(item) ||
+            item.deviceManufacturers?.join(', ');
+          return <span className="text-sm">{manufacturer || 'N/A'}</span>;
+        }
         case 'dataSetType': {
           const type = item.dataSetType || 'normal';
           const isContinuous = type === 'continuous';

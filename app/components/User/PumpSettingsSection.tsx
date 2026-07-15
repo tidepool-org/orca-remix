@@ -18,6 +18,10 @@ import { Settings, Clock, Target, Utensils, Zap } from 'lucide-react';
 import { formatDateWithTime } from '~/utils/dateFormatters';
 import { msToTime } from '~/utils/timeConversion';
 import { formatBgValue, formatInsulinSensitivity } from '~/utils/bgUnits';
+import {
+  getFriendlyDeviceName,
+  getPlatformDeviceLabel,
+} from '~/utils/deviceNames';
 import useLocale from '~/hooks/useLocale';
 import SectionPanel from '~/components/ui/SectionPanel';
 import ResourceError from '~/components/ui/ResourceError';
@@ -361,6 +365,14 @@ export default function PumpSettingsSection({
     );
   };
 
+  // Loop/twiist/Trio devices show their service as the manufacturer.
+  const manufacturerDisplay = selectedSettings
+    ? getPlatformDeviceLabel(selectedSettings) ||
+      (selectedSettings.manufacturers?.length
+        ? selectedSettings.manufacturers.join(', ')
+        : null)
+    : null;
+
   return (
     <SectionPanel
       icon={<Settings className="w-5 h-5" />}
@@ -373,19 +385,27 @@ export default function PumpSettingsSection({
         {/* Device info row */}
         {selectedSettings && (
           <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
-            {selectedSettings.manufacturers &&
-              selectedSettings.manufacturers.length > 0 && (
-                <div>
-                  <span className="text-[color:var(--text-faint)]">
-                    Manufacturer:
-                  </span>{' '}
-                  <span>{selectedSettings.manufacturers.join(', ')}</span>
-                </div>
-              )}
+            {manufacturerDisplay && (
+              <div>
+                <span className="text-[color:var(--text-faint)]">
+                  Manufacturer:
+                </span>{' '}
+                <span>{manufacturerDisplay}</span>
+              </div>
+            )}
             {selectedSettings.model && (
               <div>
                 <span className="text-[color:var(--text-faint)]">Model:</span>{' '}
-                <span>{selectedSettings.model}</span>
+                <span>
+                  {getFriendlyDeviceName({
+                    deviceName: selectedSettings.name,
+                    deviceModel: selectedSettings.model,
+                    deviceManufacturers: selectedSettings.manufacturers,
+                    deviceId: selectedSettings.deviceId,
+                    origin: selectedSettings.origin,
+                    client: selectedSettings.client,
+                  }) || selectedSettings.model}
+                </span>
               </div>
             )}
             {selectedSettings.serialNumber && (

@@ -35,6 +35,7 @@ import isArray from 'lodash/isArray';
 import pick from 'lodash/pick';
 import uniqBy from 'lodash/uniqBy';
 import { APIError } from '~/utils/errors';
+import { backfillPumpSettingsDeviceInfo } from '~/utils/deviceNames';
 import { usePersistedTab } from '~/hooks/usePersistedTab';
 
 export const meta: MetaFunction = () => {
@@ -198,7 +199,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
         receivedInvitesRawState,
       ] = await Promise.all([
         apiRequestSafe<DataSetsResponse>(
-          apiRoutes.data.getDataSets(user.userid),
+          apiRoutes.data.getData(user.userid, { type: 'upload' }),
         ),
         apiRequestSafe<DataSourcesResponse>(
           apiRoutes.data.getDataSources(user.userid),
@@ -255,6 +256,21 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
         };
       } else {
         pumpSettingsState = pumpSettingsRawState;
+      }
+
+      // Some pump-settings records omit manufacturer/model/serial; backfill
+      // from the matching upload so the device-info row renders fully.
+      if (
+        pumpSettingsState.status === 'success' &&
+        dataSetsState.status === 'success'
+      ) {
+        pumpSettingsState = {
+          ...pumpSettingsState,
+          data: backfillPumpSettingsDeviceInfo(
+            pumpSettingsState.data,
+            dataSetsState.data,
+          ),
+        };
       }
 
       // Normalize prescriptions (404 = empty array)

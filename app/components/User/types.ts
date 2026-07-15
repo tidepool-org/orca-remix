@@ -37,12 +37,15 @@ export type DataSet = {
   deviceId?: string;
   deviceManufacturers?: string[];
   deviceModel?: string;
+  deviceName?: string;
   deviceSerialNumber?: string;
   deviceTags?: string[];
   deviceTime?: string;
   time: string;
   timezoneOffset?: number;
   version?: string;
+  client?: { name?: string; version?: string };
+  origin?: { name?: string };
 };
 
 export type DataSource = {
@@ -188,4 +191,6 @@ export type PumpSettings = {
   firmwareVersion?: string;
   softwareVersion?: string;
   name?: string;
+  origin?: { name?: string };
+  client?: { name?: string; version?: string };
 };
