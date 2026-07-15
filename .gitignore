@@ -10,6 +10,7 @@ node_modules
 .pi
 .pi-lens
 .aider*
+handoff
 
 # ApoVault — ignore all local state; commit only team-owned knowledge + shared templates.
 # Allowlist approach: everything under .apo/ is ignored except 01_Knowledge/ (minus _pending/)
