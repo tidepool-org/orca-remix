@@ -69,6 +69,18 @@ export function formatInsulinSensitivity(
 }
 
 /**
+ * Format a blood glucose value as numeric text only (no unit suffix), using the
+ * same conversion + rounding as formatBgValue. For callers that render the unit
+ * label separately and must avoid a doubled suffix.
+ * @param value - Blood glucose value in mg/dL
+ * @param useMgdl - Whether to display in mmol/L (false) or mg/dL (true)
+ * @returns Numeric string (no units)
+ */
+export function formatBgNumber(value: number, useMgdl: boolean): string {
+  return useMgdl ? String(mmolToMgdl(value)) : String(roundMmol(value));
+}
+
+/**
  * Get the unit label for blood glucose
  * @param useMgdl - Whether to use mmol/L (false) or mg/dL (true)
  * @returns Unit label string

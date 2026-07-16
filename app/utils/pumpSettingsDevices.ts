@@ -12,8 +12,15 @@ export type DeviceGroup = {
   versions: PumpSettings[]; // newest first (sorted by time descending)
 };
 
+// Include platform service ids (origin/client name) before the final fallback
+// so two identifier-less app devices (e.g. Loop vs Trio) don't collapse into a
+// single 'unknown' group and get diffed against each other.
 const deviceKey = (settings: PumpSettings): string =>
-  settings.deviceId ?? settings.serialNumber ?? 'unknown';
+  settings.deviceId ??
+  settings.serialNumber ??
+  settings.origin?.name ??
+  settings.client?.name ??
+  'unknown';
 
 const toMillis = (time: string): number => new Date(time).getTime();
 

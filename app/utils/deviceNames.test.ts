@@ -172,14 +172,14 @@ describe('deviceNames', () => {
       expect(result.name).toBe('Insulet Omnipod');
     });
 
-    it('clears a raw name when the matching upload has no deviceName', () => {
+    it('keeps the existing name when the matching upload has no deviceName', () => {
       const rows: PsRow[] = [
         { uploadId: 'upid_2', name: 'InsulinDeliveryDemo' },
       ];
       const [result] = backfillPumpSettingsDeviceInfo(rows, [
         { uploadId: 'upid_2', deviceManufacturers: ['Tidepool'] },
       ]);
-      expect(result.name).toBeUndefined();
+      expect(result.name).toBe('InsulinDeliveryDemo');
     });
 
     it('leaves records that already carry device info untouched', () => {

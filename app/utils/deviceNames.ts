@@ -118,8 +118,9 @@ export function backfillPumpSettingsDeviceInfo<
         : upload.deviceManufacturers,
       model: settings.model ?? upload.deviceModel,
       serialNumber: settings.serialNumber ?? upload.deviceSerialNumber,
-      // Prefer the upload's curated deviceName over the raw pump-settings `name`.
-      name: upload.deviceName,
+      // Prefer the upload's curated deviceName, but keep the existing `name`
+      // when the upload has none rather than clearing it.
+      name: upload.deviceName ?? settings.name,
     };
   });
 }

@@ -36,15 +36,16 @@ describe('PumpSettingsSection', () => {
 
       // Manufacturer is shown as-is (not remapped to a product brand).
       expect(screen.getByText('Tandem')).toBeInTheDocument();
-      // Friendly platform name wins for the Model field.
-      expect(screen.getByText('ReliOn Platinum')).toBeInTheDocument();
+      // Friendly platform name wins for the Model field (shown in both the
+      // device selector title and the meta strip).
+      expect(screen.getAllByText('ReliOn Platinum').length).toBeGreaterThan(0);
     });
 
     it('derives a manufacturer + model label for the Model when no name is present', () => {
       render(<PumpSettingsSection pumpSettings={[baseSettings]} />);
 
       expect(screen.getByText('Tandem')).toBeInTheDocument();
-      expect(screen.getByText('Tandem 982')).toBeInTheDocument();
+      expect(screen.getAllByText('Tandem 982').length).toBeGreaterThan(0);
     });
 
     it('labels the manufacturer from the app service for Loop devices', () => {

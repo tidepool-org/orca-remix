@@ -116,7 +116,9 @@ const BG_TARGET_COLUMNS: { key: keyof BGTargetEntry; header: string }[] = [
 // to Target so an unexpected empty schedule still renders a value column).
 const presentBgColumns = (rows: EntryDiff<BGTargetEntry>[]) => {
   const present = BG_TARGET_COLUMNS.filter((col) =>
-    rows.some((row) => row.entry[col.key] != null),
+    rows.some(
+      (row) => row.entry[col.key] != null || row.changes[col.key] !== undefined,
+    ),
   );
   return present.length > 0 ? present : [BG_TARGET_COLUMNS[0]];
 };
@@ -152,7 +154,7 @@ const toDiffRows = <T extends { start: number }>(
   keys: (keyof T)[],
   comparing: boolean,
 ): EntryDiff<T>[] => {
-  if (!comparing || !prev) {
+  if (!comparing) {
     return [...(curr ?? [])]
       .sort((a, b) => a.start - b.start)
       .map((entry) => ({
@@ -162,7 +164,9 @@ const toDiffRows = <T extends { start: number }>(
         changes: {},
       }));
   }
-  return diffEntries(curr, prev, keys);
+  // Comparing: normalize both sides to arrays so a schedule present on only one
+  // snapshot still diffs as wholly added or removed.
+  return diffEntries(curr ?? [], prev ?? [], keys);
 };
 
 export default function PumpSettingsSection({
@@ -319,7 +323,7 @@ export default function PumpSettingsSection({
       null
     : null;
   const firmwareDisplay =
-    representative?.firmwareVersion ?? representative?.softwareVersion ?? null;
+    version?.firmwareVersion ?? version?.softwareVersion ?? null;
 
   // BG units toggle component for header
   const bgUnitsToggle = (
@@ -425,10 +429,20 @@ export default function PumpSettingsSection({
       >)
     : undefined;
 
-  const basalScheduleNames = Object.keys(basalCurr);
-  const bgTargetScheduleNames = Object.keys(bgCurr);
-  const carbRatioScheduleNames = Object.keys(carbCurr);
-  const insulinSensitivityScheduleNames = Object.keys(isfCurr);
+  // When comparing, union schedule names from both snapshots so a schedule that
+  // exists on only one side (wholly added or removed) still renders its table.
+  const unionScheduleNames = (
+    curr: Record<string, unknown>,
+    prev: Record<string, unknown> | undefined,
+  ): string[] =>
+    isComparing && prev
+      ? [...new Set([...Object.keys(curr), ...Object.keys(prev)])]
+      : Object.keys(curr);
+
+  const basalScheduleNames = unionScheduleNames(basalCurr, basalPrev);
+  const bgTargetScheduleNames = unionScheduleNames(bgCurr, bgPrev);
+  const carbRatioScheduleNames = unionScheduleNames(carbCurr, carbPrev);
+  const insulinSensitivityScheduleNames = unionScheduleNames(isfCurr, isfPrev);
 
   const renderBasalScheduleTable = (scheduleName: string) => {
     const rows = toDiffRows<BasalScheduleEntry>(

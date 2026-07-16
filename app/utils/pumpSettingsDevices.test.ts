@@ -34,6 +34,17 @@ describe('pumpSettingsDevices', () => {
       expect(groups.map((g) => g.key).sort()).toEqual(['SN-1', 'unknown']);
     });
 
+    it('keys identifier-less devices by service id so they do not collide', () => {
+      const groups = groupPumpSettingsByDevice([
+        ps({ id: 'loop', origin: { name: 'org.tidepool.Loop' } }),
+        ps({ id: 'trio', client: { name: 'org.nightscout.Trio' } }),
+      ]);
+      expect(groups.map((g) => g.key).sort()).toEqual([
+        'org.nightscout.Trio',
+        'org.tidepool.Loop',
+      ]);
+    });
+
     it('collapses same-UTC-day snapshots to the latest, per device', () => {
       const groups = groupPumpSettingsByDevice([
         ps({ id: 'early', deviceId: 'A', time: '2026-03-01T02:00:00Z' }),

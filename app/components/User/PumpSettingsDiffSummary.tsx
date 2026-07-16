@@ -1,6 +1,6 @@
 import { ArrowLeftRight, Check, Info } from 'lucide-react';
 import { msToTime } from '~/utils/timeConversion';
-import { formatBgValue, formatInsulinSensitivity } from '~/utils/bgUnits';
+import { formatBgNumber } from '~/utils/bgUnits';
 import {
   CATEGORY_KEYS,
   type SettingsCategory,
@@ -52,10 +52,11 @@ const formatValue = (
       return (value as number).toFixed(3);
     case 'carbRatios':
       return String(value);
+    // Numeric only — the unit is rendered separately via unitFor(), so a
+    // unit-bearing string here would double the suffix (e.g. "100 mg/dL mg/dL").
     case 'bgTargets':
-      return formatBgValue(value as number, useMgdl) || '—';
     case 'insulinSensitivity':
-      return formatInsulinSensitivity(value as number, useMgdl);
+      return formatBgNumber(value as number, useMgdl);
   }
 };
 

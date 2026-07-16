@@ -27,8 +27,10 @@ export type DeviceSelectorProps = {
   onSelect: (key: string) => void;
 };
 
-const deviceTitle = (d: DeviceDisplay) =>
-  [d.manufacturer, d.model].filter(Boolean).join(' ') || d.key;
+// `model` already carries the full friendly label (getFriendlyDeviceName
+// resolves manufacturer + model, e.g. "Roche 982" / "Tidepool Loop"), so it is
+// the primary title; manufacturer is only a fallback when no model resolved.
+const deviceTitle = (d: DeviceDisplay) => d.model || d.manufacturer || d.key;
 
 export default function DeviceSelector({
   devices,
