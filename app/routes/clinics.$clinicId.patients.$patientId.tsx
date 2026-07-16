@@ -195,7 +195,6 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     apiRequestSafe<PumpSettings[]>(
       apiRoutes.data.getData(patientId, {
         type: 'pumpSettings',
-        latest: true,
       }),
     ),
   ]);
@@ -326,7 +325,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     pumpSettingsState = {
       status: 'success',
       data: Array.isArray(pumpSettingsRawState.data)
-        ? pumpSettingsRawState.data.slice(0, 10)
+        ? pumpSettingsRawState.data
         : [],
     };
   } else {

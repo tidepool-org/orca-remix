@@ -89,3 +89,11 @@ export const profileExpandedSession = createCookieSessionStorage({
     ...prefCookieOptions,
   },
 });
+
+// Store the pump-settings "Compare to previous" toggle preference
+export const pumpSettingsCompareSession = createCookieSessionStorage({
+  cookie: {
+    name: '__pump-settings-compare',
+    ...prefCookieOptions,
+  },
+});

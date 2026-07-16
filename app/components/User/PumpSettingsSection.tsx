@@ -1,7 +1,5 @@
 import { useState, useMemo, useEffect, useCallback } from 'react';
 import {
-  Select,
-  SelectItem,
   Chip,
   Spinner,
   Switch,
@@ -15,16 +13,33 @@ import {
   TableCell,
 } from '@heroui/react';
 import { Settings, Clock, Target, Utensils, Zap } from 'lucide-react';
-import { formatDateWithTime } from '~/utils/dateFormatters';
+import { formatDateWithTime, formatShortDate } from '~/utils/dateFormatters';
 import { msToTime } from '~/utils/timeConversion';
 import { formatBgValue, formatInsulinSensitivity } from '~/utils/bgUnits';
 import {
   getFriendlyDeviceName,
   getPlatformDeviceLabel,
 } from '~/utils/deviceNames';
+import {
+  groupPumpSettingsByDevice,
+  getVersionRange,
+} from '~/utils/pumpSettingsDevices';
+import {
+  diffEntries,
+  getCategorySchedules,
+  buildSettingsChanges,
+  type RowStatus,
+  type EntryDiff,
+} from '~/utils/pumpSettingsDiff';
 import useLocale from '~/hooks/useLocale';
+import { usePumpSettingsCompare } from '~/contexts/PumpSettingsCompareContext';
 import SectionPanel from '~/components/ui/SectionPanel';
 import ResourceError from '~/components/ui/ResourceError';
+import DeviceSelector, { type DeviceDisplay } from './DeviceSelector';
+import SettingsVersionSelector, {
+  type VersionDisplay,
+} from './SettingsVersionSelector';
+import PumpSettingsDiffSummary from './PumpSettingsDiffSummary';
 import type {
   PumpSettings,
   BasalScheduleEntry,
@@ -41,6 +56,115 @@ export type PumpSettingsSectionProps = {
   preferredBgUnits?: 'mg/dL' | 'mmol/L';
 };
 
+// Per-row diff accents mapped to ORCA's theme tokens (warning / success /
+// danger) so they track light and dark automatically.
+const cellBgClass = (status: RowStatus): string => {
+  switch (status) {
+    case 'changed':
+      return 'bg-[color-mix(in_srgb,var(--warn-bg)_60%,transparent)]';
+    case 'added':
+      return 'bg-[color-mix(in_srgb,var(--ok)_9%,transparent)]';
+    case 'removed':
+      return 'bg-[color-mix(in_srgb,var(--danger-soft)_55%,transparent)] text-[color:var(--text-faint)] line-through';
+    default:
+      return '';
+  }
+};
+
+const cellAccentClass = (status: RowStatus): string => {
+  switch (status) {
+    case 'changed':
+      return 'shadow-[inset_3px_0_var(--warn)]';
+    case 'added':
+      return 'shadow-[inset_3px_0_var(--ok)]';
+    case 'removed':
+      return 'shadow-[inset_3px_0_var(--danger)]';
+    default:
+      return '';
+  }
+};
+
+const RowTag = ({ status }: { status: RowStatus }) => {
+  if (status === 'added') {
+    return (
+      <span className="ml-2 align-middle text-[9px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded bg-[color-mix(in_srgb,var(--ok)_16%,transparent)] text-[color:var(--ok)]">
+        Added
+      </span>
+    );
+  }
+  if (status === 'removed') {
+    return (
+      <span className="ml-2 align-middle text-[9px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded bg-[color:var(--danger-soft)] text-[color:var(--danger-soft-fg)]">
+        Removed
+      </span>
+    );
+  }
+  return null;
+};
+
+// BG-target fields in display order. Devices use a subset (see viz pump
+// schemas: target; target+range; target+high; low+high) — only the fields
+// present in the data are rendered.
+const BG_TARGET_COLUMNS: { key: keyof BGTargetEntry; header: string }[] = [
+  { key: 'target', header: 'Target' },
+  { key: 'low', header: 'Low' },
+  { key: 'high', header: 'High' },
+  { key: 'range', header: 'Range' },
+];
+
+// The BG-target columns actually present across a schedule's rows (falls back
+// to Target so an unexpected empty schedule still renders a value column).
+const presentBgColumns = (rows: EntryDiff<BGTargetEntry>[]) => {
+  const present = BG_TARGET_COLUMNS.filter((col) =>
+    rows.some((row) => row.entry[col.key] != null),
+  );
+  return present.length > 0 ? present : [BG_TARGET_COLUMNS[0]];
+};
+
+// Render one value cell — an `old → new` pair for a changed key, else the
+// plain formatted value.
+function renderValueCell<T extends { start: number }>(
+  row: EntryDiff<T>,
+  key: keyof T & string,
+  fmt: (v: number | undefined) => string,
+) {
+  const change = row.changes[key];
+  if (change) {
+    return (
+      <span className="inline-flex items-center gap-1.5">
+        <span className="text-[color:var(--text-faint)] line-through">
+          {fmt(change.from as number | undefined)}
+        </span>
+        <span className="text-[color:var(--text-faint)]">→</span>
+        <span className="font-semibold">
+          {fmt(change.to as number | undefined)}
+        </span>
+      </span>
+    );
+  }
+  return fmt(row.entry[key] as number | undefined);
+}
+
+// Build diff rows for a schedule, or plain same-rows when not comparing.
+const toDiffRows = <T extends { start: number }>(
+  curr: T[] | undefined,
+  prev: T[] | undefined,
+  keys: (keyof T)[],
+  comparing: boolean,
+): EntryDiff<T>[] => {
+  if (!comparing || !prev) {
+    return [...(curr ?? [])]
+      .sort((a, b) => a.start - b.start)
+      .map((entry) => ({
+        start: entry.start,
+        status: 'same',
+        entry,
+        changes: {},
+      }));
+  }
+  return diffEntries(curr, prev, keys);
+};
+
 export default function PumpSettingsSection({
   pumpSettings = [],
   pumpSettingsState,
@@ -48,18 +172,46 @@ export default function PumpSettingsSection({
   preferredBgUnits,
 }: PumpSettingsSectionProps) {
   const { locale } = useLocale();
-  const [selectedSettingIndex, setSelectedSettingIndex] = useState<number>(0);
 
-  // Get selected pump settings
-  const selectedSettings = useMemo(() => {
-    if (pumpSettings.length === 0) return null;
-    return pumpSettings[selectedSettingIndex] || pumpSettings[0];
-  }, [pumpSettings, selectedSettingIndex]);
+  const groups = useMemo(
+    () => groupPumpSettingsByDevice(pumpSettings),
+    [pumpSettings],
+  );
+
+  const [deviceKey, setDeviceKey] = useState<string>(() => {
+    const initial = groupPumpSettingsByDevice(pumpSettings);
+    return (initial.find((g) => g.active) ?? initial[0])?.key ?? '';
+  });
+  const [versionIndex, setVersionIndex] = useState<number>(0);
+  const { compareToPrevious: compare, setCompareToPrevious: setCompare } =
+    usePumpSettingsCompare();
+
+  const selectedGroup = useMemo(
+    () => groups.find((g) => g.key === deviceKey) ?? groups[0] ?? null,
+    [groups, deviceKey],
+  );
+  const version = useMemo(
+    () =>
+      selectedGroup
+        ? (selectedGroup.versions[versionIndex] ??
+          selectedGroup.versions[0] ??
+          null)
+        : null,
+    [selectedGroup, versionIndex],
+  );
+  const previousVersion = useMemo(
+    () =>
+      compare && selectedGroup
+        ? (selectedGroup.versions[versionIndex + 1] ?? null)
+        : null,
+    [compare, selectedGroup, versionIndex],
+  );
+  const isComparing = compare && !!previousVersion;
+  const isEarliest =
+    !!selectedGroup && versionIndex >= selectedGroup.versions.length - 1;
 
   // Determine BG unit: prefer the clinic's preferredBgUnits, then the selected
-  // device's native setting, then default to mg/dL. Derives from the selected
-  // device (not always device 0) so switching devices reflects that device's
-  // unit when no clinic preference is set.
+  // version's native setting, then default to mg/dL.
   const getDefaultUseMgdl = useCallback(
     (settings: PumpSettings | null) =>
       preferredBgUnits !== undefined
@@ -69,62 +221,105 @@ export default function PumpSettingsSection({
   );
 
   const [useMgdl, setUseMgdl] = useState(() =>
-    getDefaultUseMgdl(pumpSettings[selectedSettingIndex] ?? null),
+    getDefaultUseMgdl(version ?? null),
   );
 
-  // Reset selection index when pumpSettings array changes
+  // Reset device + version selection when the pumpSettings array changes.
   useEffect(() => {
-    setSelectedSettingIndex(0);
-  }, [pumpSettings]);
+    setDeviceKey((current) => {
+      if (groups.some((g) => g.key === current)) return current;
+      return (groups.find((g) => g.active) ?? groups[0])?.key ?? '';
+    });
+    setVersionIndex(0);
+  }, [groups]);
 
-  // Sync BG unit toggle when the clinic preference or selected device changes
+  // Sync BG unit toggle when the clinic preference or selected version changes.
   useEffect(() => {
-    setUseMgdl(getDefaultUseMgdl(selectedSettings));
-  }, [getDefaultUseMgdl, selectedSettings]);
+    setUseMgdl(getDefaultUseMgdl(version));
+  }, [getDefaultUseMgdl, version]);
 
-  // Format date for display
-  const formatDate = (dateStr: string) => {
-    return formatDateWithTime(dateStr, locale);
+  const formatDate = (dateStr: string) => formatDateWithTime(dateStr, locale);
+  const formatDay = (dateStr: string) =>
+    formatShortDate(dateStr, locale) ?? dateStr;
+
+  const handleSelectDevice = (key: string) => {
+    setDeviceKey(key);
+    setVersionIndex(0);
   };
 
-  // Get all basal schedule names
-  const basalScheduleNames = useMemo(() => {
-    if (!selectedSettings?.basalSchedules) return [];
-    return Object.keys(selectedSettings.basalSchedules);
-  }, [selectedSettings]);
+  // Device dropdown rows — friendly names resolved here
+  const deviceDisplays: DeviceDisplay[] = useMemo(
+    () =>
+      groups.map((g) => {
+        const rep = g.versions[0];
+        return {
+          key: g.key,
+          manufacturer:
+            getPlatformDeviceLabel(rep) ||
+            (rep.manufacturers?.length ? rep.manufacturers.join(', ') : null),
+          model:
+            getFriendlyDeviceName({
+              deviceName: rep.name,
+              deviceModel: rep.model,
+              deviceManufacturers: rep.manufacturers,
+              deviceId: rep.deviceId,
+              origin: rep.origin,
+              client: rep.client,
+            }) ||
+            rep.model ||
+            null,
+          serial: rep.serialNumber,
+          lastUpload: formatDay(rep.time),
+          versionCount: g.versions.length,
+          active: g.active,
+        };
+      }),
+    // formatDay depends only on locale
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [groups, locale],
+  );
 
-  // Get all BG target schedule names
-  const bgTargetScheduleNames = useMemo(() => {
-    if (selectedSettings?.bgTargets) {
-      return Object.keys(selectedSettings.bgTargets);
-    }
-    if (selectedSettings?.bgTarget) {
-      return ['Default'];
-    }
-    return [];
-  }, [selectedSettings]);
+  const versionDisplays: VersionDisplay[] = useMemo(() => {
+    if (!selectedGroup) return [];
+    const { versions } = selectedGroup;
+    return versions.map((v, i) => {
+      const range = getVersionRange(versions, i);
+      const older = versions[i + 1];
+      return {
+        index: i,
+        rangeLabel: `${formatDay(range.start)} – ${
+          range.end ? formatDay(range.end) : 'present'
+        }`,
+        isCurrent: i === 0,
+        isInitial: i === versions.length - 1,
+        changeCount: older ? buildSettingsChanges(v, older).length : 0,
+      };
+    });
+    // formatDay depends only on locale
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedGroup, locale]);
 
-  // Get all carb ratio schedule names
-  const carbRatioScheduleNames = useMemo(() => {
-    if (selectedSettings?.carbRatios) {
-      return Object.keys(selectedSettings.carbRatios);
-    }
-    if (selectedSettings?.carbRatio) {
-      return ['Default'];
-    }
-    return [];
-  }, [selectedSettings]);
-
-  // Get all insulin sensitivity schedule names
-  const insulinSensitivityScheduleNames = useMemo(() => {
-    if (selectedSettings?.insulinSensitivities) {
-      return Object.keys(selectedSettings.insulinSensitivities);
-    }
-    if (selectedSettings?.insulinSensitivity) {
-      return ['Default'];
-    }
-    return [];
-  }, [selectedSettings]);
+  const representative = selectedGroup?.versions[0] ?? null;
+  const manufacturerDisplay = representative
+    ? getPlatformDeviceLabel(representative) ||
+      (representative.manufacturers?.length
+        ? representative.manufacturers.join(', ')
+        : null)
+    : null;
+  const modelDisplay = representative
+    ? getFriendlyDeviceName({
+        deviceName: representative.name,
+        deviceModel: representative.model,
+        deviceManufacturers: representative.manufacturers,
+        deviceId: representative.deviceId,
+        origin: representative.origin,
+        client: representative.client,
+      }) ||
+      representative.model ||
+      null
+    : null;
+  const firmwareDisplay =
+    representative?.firmwareVersion ?? representative?.softwareVersion ?? null;
 
   // BG units toggle component for header
   const bgUnitsToggle = (
@@ -175,7 +370,7 @@ export default function PumpSettingsSection({
     );
   }
 
-  if (pumpSettings.length === 0) {
+  if (pumpSettings.length === 0 || !version || !selectedGroup) {
     return (
       <SectionPanel
         icon={<Settings className="w-5 h-5" />}
@@ -196,28 +391,71 @@ export default function PumpSettingsSection({
     );
   }
 
-  const renderBasalScheduleTable = (
-    scheduleName: string,
-    entries: BasalScheduleEntry[],
-  ) => {
-    // Calculate total daily insulin
-    const sortedEntries = [...entries].sort((a, b) => a.start - b.start);
+  // Typed schedule maps for the selected version and its comparison base.
+  const basalCurr = version.basalSchedules ?? {};
+  const basalPrev = previousVersion?.basalSchedules;
+  const bgCurr = getCategorySchedules(version, 'bgTargets') as Record<
+    string,
+    BGTargetEntry[]
+  >;
+  const bgPrev = previousVersion
+    ? (getCategorySchedules(previousVersion, 'bgTargets') as Record<
+        string,
+        BGTargetEntry[]
+      >)
+    : undefined;
+  const carbCurr = getCategorySchedules(version, 'carbRatios') as Record<
+    string,
+    CarbRatioEntry[]
+  >;
+  const carbPrev = previousVersion
+    ? (getCategorySchedules(previousVersion, 'carbRatios') as Record<
+        string,
+        CarbRatioEntry[]
+      >)
+    : undefined;
+  const isfCurr = getCategorySchedules(version, 'insulinSensitivity') as Record<
+    string,
+    InsulinSensitivityEntry[]
+  >;
+  const isfPrev = previousVersion
+    ? (getCategorySchedules(previousVersion, 'insulinSensitivity') as Record<
+        string,
+        InsulinSensitivityEntry[]
+      >)
+    : undefined;
+
+  const basalScheduleNames = Object.keys(basalCurr);
+  const bgTargetScheduleNames = Object.keys(bgCurr);
+  const carbRatioScheduleNames = Object.keys(carbCurr);
+  const insulinSensitivityScheduleNames = Object.keys(isfCurr);
+
+  const renderBasalScheduleTable = (scheduleName: string) => {
+    const rows = toDiffRows<BasalScheduleEntry>(
+      basalCurr[scheduleName],
+      basalPrev?.[scheduleName],
+      ['rate'],
+      isComparing,
+    );
+    const currentEntries = rows
+      .filter((r) => r.status !== 'removed')
+      .map((r) => r.entry)
+      .sort((a, b) => a.start - b.start);
     let totalDaily = 0;
-    for (let i = 0; i < sortedEntries.length; i++) {
-      const entry = sortedEntries[i];
+    for (let i = 0; i < currentEntries.length; i++) {
+      const entry = currentEntries[i];
       const nextStart =
-        i < sortedEntries.length - 1
-          ? sortedEntries[i + 1].start
+        i < currentEntries.length - 1
+          ? currentEntries[i + 1].start
           : 24 * 60 * 60 * 1000;
-      const durationHours = (nextStart - entry.start) / (1000 * 60 * 60);
-      totalDaily += entry.rate * durationHours;
+      totalDaily += entry.rate * ((nextStart - entry.start) / (1000 * 60 * 60));
     }
 
     return (
       <div key={scheduleName} className="mb-4">
         <div className="flex items-center gap-2 mb-2">
           <span className="font-medium text-sm">{scheduleName}</span>
-          {selectedSettings?.activeSchedule === scheduleName && (
+          {version.activeSchedule === scheduleName && (
             <Chip
               size="sm"
               color="primary"
@@ -242,10 +480,19 @@ export default function PumpSettingsSection({
             <TableColumn>Rate (U/hr)</TableColumn>
           </TableHeader>
           <TableBody>
-            {sortedEntries.map((entry, idx) => (
-              <TableRow key={`${scheduleName}-${idx}`}>
-                <TableCell>{msToTime(entry.start)}</TableCell>
-                <TableCell>{entry.rate.toFixed(3)}</TableCell>
+            {rows.map((row) => (
+              <TableRow key={`${scheduleName}-${row.start}`}>
+                <TableCell
+                  className={`${cellBgClass(row.status)} ${cellAccentClass(row.status)}`}
+                >
+                  {msToTime(row.entry.start)}
+                  <RowTag status={row.status} />
+                </TableCell>
+                <TableCell className={cellBgClass(row.status)}>
+                  {renderValueCell(row, 'rate', (v) =>
+                    v === undefined ? '-' : v.toFixed(3),
+                  )}
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>
@@ -254,11 +501,14 @@ export default function PumpSettingsSection({
     );
   };
 
-  const renderBgTargetTable = (
-    scheduleName: string,
-    entries: BGTargetEntry[],
-  ) => {
-    const sortedEntries = [...entries].sort((a, b) => a.start - b.start);
+  const renderBgTargetTable = (scheduleName: string) => {
+    const rows = toDiffRows<BGTargetEntry>(
+      bgCurr[scheduleName],
+      bgPrev?.[scheduleName],
+      ['target', 'low', 'high', 'range'],
+      isComparing,
+    );
+    const columns = presentBgColumns(rows);
 
     return (
       <div key={scheduleName} className="mb-4">
@@ -271,24 +521,37 @@ export default function PumpSettingsSection({
           isCompact
         >
           <TableHeader>
-            <TableColumn>Time</TableColumn>
-            <TableColumn>Target</TableColumn>
-            <TableColumn>Low</TableColumn>
-            <TableColumn>High</TableColumn>
+            {[
+              <TableColumn key="time">Time</TableColumn>,
+              ...columns.map((col) => (
+                <TableColumn key={col.key}>{col.header}</TableColumn>
+              )),
+            ]}
           </TableHeader>
           <TableBody>
-            {sortedEntries.map((entry, idx) => (
-              <TableRow key={`${scheduleName}-${idx}`}>
-                <TableCell>{msToTime(entry.start)}</TableCell>
-                <TableCell>
-                  {formatBgValue(entry.target, useMgdl) || '-'}
-                </TableCell>
-                <TableCell>
-                  {formatBgValue(entry.low, useMgdl) || '-'}
-                </TableCell>
-                <TableCell>
-                  {formatBgValue(entry.high, useMgdl) || '-'}
-                </TableCell>
+            {rows.map((row) => (
+              <TableRow key={`${scheduleName}-${row.start}`}>
+                {[
+                  <TableCell
+                    key="time"
+                    className={`${cellBgClass(row.status)} ${cellAccentClass(row.status)}`}
+                  >
+                    {msToTime(row.entry.start)}
+                    <RowTag status={row.status} />
+                  </TableCell>,
+                  ...columns.map((col) => (
+                    <TableCell
+                      key={col.key}
+                      className={cellBgClass(row.status)}
+                    >
+                      {renderValueCell(
+                        row,
+                        col.key,
+                        (v) => formatBgValue(v, useMgdl) || '-',
+                      )}
+                    </TableCell>
+                  )),
+                ]}
               </TableRow>
             ))}
           </TableBody>
@@ -297,11 +560,13 @@ export default function PumpSettingsSection({
     );
   };
 
-  const renderCarbRatioTable = (
-    scheduleName: string,
-    entries: CarbRatioEntry[],
-  ) => {
-    const sortedEntries = [...entries].sort((a, b) => a.start - b.start);
+  const renderCarbRatioTable = (scheduleName: string) => {
+    const rows = toDiffRows<CarbRatioEntry>(
+      carbCurr[scheduleName],
+      carbPrev?.[scheduleName],
+      ['amount'],
+      isComparing,
+    );
 
     return (
       <div key={scheduleName} className="mb-4">
@@ -318,10 +583,19 @@ export default function PumpSettingsSection({
             <TableColumn>Carb Ratio (g/U)</TableColumn>
           </TableHeader>
           <TableBody>
-            {sortedEntries.map((entry, idx) => (
-              <TableRow key={`${scheduleName}-${idx}`}>
-                <TableCell>{msToTime(entry.start)}</TableCell>
-                <TableCell>{entry.amount}</TableCell>
+            {rows.map((row) => (
+              <TableRow key={`${scheduleName}-${row.start}`}>
+                <TableCell
+                  className={`${cellBgClass(row.status)} ${cellAccentClass(row.status)}`}
+                >
+                  {msToTime(row.entry.start)}
+                  <RowTag status={row.status} />
+                </TableCell>
+                <TableCell className={cellBgClass(row.status)}>
+                  {renderValueCell(row, 'amount', (v) =>
+                    v === undefined ? '-' : String(v),
+                  )}
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>
@@ -330,11 +604,13 @@ export default function PumpSettingsSection({
     );
   };
 
-  const renderInsulinSensitivityTable = (
-    scheduleName: string,
-    entries: InsulinSensitivityEntry[],
-  ) => {
-    const sortedEntries = [...entries].sort((a, b) => a.start - b.start);
+  const renderInsulinSensitivityTable = (scheduleName: string) => {
+    const rows = toDiffRows<InsulinSensitivityEntry>(
+      isfCurr[scheduleName],
+      isfPrev?.[scheduleName],
+      ['amount'],
+      isComparing,
+    );
 
     return (
       <div key={scheduleName} className="mb-4">
@@ -351,11 +627,18 @@ export default function PumpSettingsSection({
             <TableColumn>Sensitivity (per U)</TableColumn>
           </TableHeader>
           <TableBody>
-            {sortedEntries.map((entry, idx) => (
-              <TableRow key={`${scheduleName}-${idx}`}>
-                <TableCell>{msToTime(entry.start)}</TableCell>
-                <TableCell>
-                  {formatInsulinSensitivity(entry.amount, useMgdl)}
+            {rows.map((row) => (
+              <TableRow key={`${scheduleName}-${row.start}`}>
+                <TableCell
+                  className={`${cellBgClass(row.status)} ${cellAccentClass(row.status)}`}
+                >
+                  {msToTime(row.entry.start)}
+                  <RowTag status={row.status} />
+                </TableCell>
+                <TableCell className={cellBgClass(row.status)}>
+                  {renderValueCell(row, 'amount', (v) =>
+                    formatInsulinSensitivity(v ?? 0, useMgdl),
+                  )}
                 </TableCell>
               </TableRow>
             ))}
@@ -364,14 +647,6 @@ export default function PumpSettingsSection({
       </div>
     );
   };
-
-  // Loop/twiist/Trio devices show their service as the manufacturer.
-  const manufacturerDisplay = selectedSettings
-    ? getPlatformDeviceLabel(selectedSettings) ||
-      (selectedSettings.manufacturers?.length
-        ? selectedSettings.manufacturers.join(', ')
-        : null)
-    : null;
 
   return (
     <SectionPanel
@@ -382,84 +657,118 @@ export default function PumpSettingsSection({
       aria-label="Pump settings section"
     >
       <div className="flex flex-col gap-4">
-        {/* Device info row */}
-        {selectedSettings && (
-          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
-            {manufacturerDisplay && (
-              <div>
-                <span className="text-[color:var(--text-faint)]">
-                  Manufacturer:
-                </span>{' '}
-                <span>{manufacturerDisplay}</span>
-              </div>
-            )}
-            {selectedSettings.model && (
-              <div>
-                <span className="text-[color:var(--text-faint)]">Model:</span>{' '}
-                <span>
-                  {getFriendlyDeviceName({
-                    deviceName: selectedSettings.name,
-                    deviceModel: selectedSettings.model,
-                    deviceManufacturers: selectedSettings.manufacturers,
-                    deviceId: selectedSettings.deviceId,
-                    origin: selectedSettings.origin,
-                    client: selectedSettings.client,
-                  }) || selectedSettings.model}
-                </span>
-              </div>
-            )}
-            {selectedSettings.serialNumber && (
-              <div>
-                <span className="text-[color:var(--text-faint)]">Serial:</span>{' '}
-                <span className="font-mono">
-                  {selectedSettings.serialNumber}
-                </span>
-              </div>
-            )}
-            <div>
-              <span className="text-[color:var(--text-faint)]">Time:</span>{' '}
-              <span>{formatDate(selectedSettings.time)}</span>
-            </div>
-            {selectedSettings.activeSchedule && (
-              <div className="flex items-center gap-1">
-                <span className="text-[color:var(--text-faint)]">
-                  Active Schedule:
-                </span>{' '}
-                <Chip
-                  size="sm"
-                  color="primary"
-                  variant="flat"
-                  radius="sm"
-                  classNames={{ content: 'font-mono' }}
-                >
-                  {selectedSettings.activeSchedule}
-                </Chip>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Settings selector (only if multiple) */}
-        {pumpSettings.length > 1 && (
-          <Select
-            label="Settings from"
-            selectedKeys={[selectedSettingIndex.toString()]}
-            onSelectionChange={(keys) => {
-              const selected = Array.from(keys)[0];
-              if (selected !== undefined) {
-                setSelectedSettingIndex(parseInt(selected as string, 10));
-              }
-            }}
+        {/* Device + version controls */}
+        <div className="flex flex-wrap items-center gap-3">
+          <DeviceSelector
+            devices={deviceDisplays}
+            selectedKey={deviceKey}
+            onSelect={handleSelectDevice}
+          />
+          <span className="text-sm text-[color:var(--text-faint)]">
+            View settings from
+          </span>
+          <SettingsVersionSelector
+            versions={versionDisplays}
+            selectedIndex={versionIndex}
+            onSelect={setVersionIndex}
+          />
+          <Switch
+            className="ml-auto"
             size="sm"
-            className="max-w-xs"
+            isSelected={compare}
+            isDisabled={isEarliest}
+            onValueChange={setCompare}
+            classNames={{
+              label: 'text-[13px] text-[color:var(--text-muted)]',
+            }}
           >
-            {pumpSettings.map((settings, index) => (
-              <SelectItem key={index.toString()}>
-                {formatDate(settings.time)}
-                {settings.model ? ` - ${settings.model}` : ''}
-              </SelectItem>
-            ))}
-          </Select>
+            Compare to previous
+          </Switch>
+        </div>
+
+        {/* Device meta strip */}
+        <div className="flex flex-wrap items-center gap-x-6 gap-y-2 rounded-[6px] border border-[color:var(--border)] bg-[color:var(--surface-2)] px-3.5 py-2.5 text-sm">
+          {manufacturerDisplay && (
+            <div>
+              <span className="text-[color:var(--text-faint)]">
+                Manufacturer:
+              </span>{' '}
+              <span>{manufacturerDisplay}</span>
+            </div>
+          )}
+          {modelDisplay && (
+            <div>
+              <span className="text-[color:var(--text-faint)]">Model:</span>{' '}
+              <span>{modelDisplay}</span>
+            </div>
+          )}
+          {representative?.serialNumber && (
+            <div>
+              <span className="text-[color:var(--text-faint)]">Serial:</span>{' '}
+              <span className="font-mono">{representative.serialNumber}</span>
+            </div>
+          )}
+          {firmwareDisplay && (
+            <div>
+              <span className="text-[color:var(--text-faint)]">Firmware:</span>{' '}
+              <span className="font-mono">{firmwareDisplay}</span>
+            </div>
+          )}
+          {representative && (
+            <div>
+              <span className="text-[color:var(--text-faint)]">
+                Last upload:
+              </span>{' '}
+              <span>{formatDate(representative.time)}</span>
+            </div>
+          )}
+          {selectedGroup.active ? (
+            <Chip
+              size="sm"
+              color="success"
+              variant="flat"
+              radius="full"
+              classNames={{ content: 'font-medium' }}
+            >
+              Active device
+            </Chip>
+          ) : (
+            <div>
+              <span className="text-[color:var(--text-faint)]">Status:</span>{' '}
+              <span>Inactive</span>
+            </div>
+          )}
+          {version.activeSchedule && (
+            <div className="flex items-center gap-1">
+              <span className="text-[color:var(--text-faint)]">
+                Active Schedule:
+              </span>{' '}
+              <Chip
+                size="sm"
+                color="primary"
+                variant="flat"
+                radius="sm"
+                classNames={{ content: 'font-mono' }}
+              >
+                {version.activeSchedule}
+              </Chip>
+            </div>
+          )}
+        </div>
+
+        {/* Change summary */}
+        {compare && (
+          <PumpSettingsDiffSummary
+            changes={
+              previousVersion
+                ? buildSettingsChanges(version, previousVersion)
+                : []
+            }
+            prevDateLabel={
+              previousVersion ? formatDay(previousVersion.time) : null
+            }
+            useMgdl={useMgdl}
+          />
         )}
 
         {/* Settings tabs */}
@@ -476,12 +785,7 @@ export default function PumpSettingsSection({
           >
             <div className="py-4">
               {basalScheduleNames.length > 0 ? (
-                basalScheduleNames.map((name) =>
-                  renderBasalScheduleTable(
-                    name,
-                    selectedSettings?.basalSchedules?.[name] || [],
-                  ),
-                )
+                basalScheduleNames.map((name) => renderBasalScheduleTable(name))
               ) : (
                 <div className="text-center text-[color:var(--text-faint)] py-4">
                   No basal schedules available
@@ -502,12 +806,7 @@ export default function PumpSettingsSection({
           >
             <div className="py-4">
               {bgTargetScheduleNames.length > 0 ? (
-                bgTargetScheduleNames.map((name) => {
-                  const entries = selectedSettings?.bgTargets
-                    ? selectedSettings.bgTargets[name]
-                    : selectedSettings?.bgTarget;
-                  return entries ? renderBgTargetTable(name, entries) : null;
-                })
+                bgTargetScheduleNames.map((name) => renderBgTargetTable(name))
               ) : (
                 <div className="text-center text-[color:var(--text-faint)] py-4">
                   No BG targets available
@@ -528,12 +827,7 @@ export default function PumpSettingsSection({
           >
             <div className="py-4">
               {carbRatioScheduleNames.length > 0 ? (
-                carbRatioScheduleNames.map((name) => {
-                  const entries = selectedSettings?.carbRatios
-                    ? selectedSettings.carbRatios[name]
-                    : selectedSettings?.carbRatio;
-                  return entries ? renderCarbRatioTable(name, entries) : null;
-                })
+                carbRatioScheduleNames.map((name) => renderCarbRatioTable(name))
               ) : (
                 <div className="text-center text-[color:var(--text-faint)] py-4">
                   No carb ratios available
@@ -554,14 +848,9 @@ export default function PumpSettingsSection({
           >
             <div className="py-4">
               {insulinSensitivityScheduleNames.length > 0 ? (
-                insulinSensitivityScheduleNames.map((name) => {
-                  const entries = selectedSettings?.insulinSensitivities
-                    ? selectedSettings.insulinSensitivities[name]
-                    : selectedSettings?.insulinSensitivity;
-                  return entries
-                    ? renderInsulinSensitivityTable(name, entries)
-                    : null;
-                })
+                insulinSensitivityScheduleNames.map((name) =>
+                  renderInsulinSensitivityTable(name),
+                )
               ) : (
                 <div className="text-center text-[color:var(--text-faint)] py-4">
                   No insulin sensitivity factors available

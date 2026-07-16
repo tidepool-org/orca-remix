@@ -207,7 +207,6 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
         apiRequestSafe<PumpSettings[]>(
           apiRoutes.data.getData(user.userid, {
             type: 'pumpSettings',
-            latest: true,
           }),
         ),
         apiRequestSafe<Prescription[]>(
@@ -251,7 +250,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
         pumpSettingsState = {
           status: 'success',
           data: Array.isArray(pumpSettingsRawState.data)
-            ? pumpSettingsRawState.data.slice(0, 10)
+            ? pumpSettingsRawState.data
             : [],
         };
       } else {

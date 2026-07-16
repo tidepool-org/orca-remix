@@ -7,6 +7,15 @@
 const CONVERSION_FACTOR = 18.01559;
 
 /**
+ * Round an mmol/L value to one decimal place (the conventional precision).
+ * Values are stored in mmol/L as full-precision floats, so they must be
+ * rounded before display.
+ */
+function roundMmol(value: number): number {
+  return Math.round(value * 10) / 10;
+}
+
+/**
  * Convert mg/dL to mmol/L
  * @param mgdl - Blood glucose value in mg/dL
  * @returns Blood glucose value in mmol/L (rounded to 1 decimal place)
@@ -39,7 +48,7 @@ export function formatBgValue(
   if (useMgdl) {
     return `${mmolToMgdl(value)} mg/dL`;
   }
-  return `${value} mmol/L`;
+  return `${roundMmol(value)} mmol/L`;
 }
 
 /**
@@ -56,7 +65,7 @@ export function formatInsulinSensitivity(
   if (useMgdl) {
     return `${mmolToMgdl(value)} mg/dL`;
   }
-  return `${value} mmol/L`;
+  return `${roundMmol(value)} mmol/L`;
 }
 
 /**
