@@ -51,6 +51,11 @@ import SectionPanel from '~/components/ui/SectionPanel';
 import SettingRow from '~/components/ui/SettingRow';
 import { CollapsibleGroup } from '~/components/ui/CollapsibleGroup';
 import { timezoneNames } from '~/utils/timezoneNames';
+import { fieldSurfaceClasses, fieldMenuItemClasses } from '~/utils/fieldStyles';
+import {
+  dangerRowButtonClassName,
+  tertiaryButtonClassName,
+} from '~/utils/buttonStyles';
 
 const tierOptions = [
   { key: 'tier0100', label: 'Tier 0100' },
@@ -481,7 +486,8 @@ export default function ClinicProfile({
                           }
                         }}
                         className="w-[230px]"
-                        classNames={{ trigger: 'h-10 min-h-10' }}
+                        classNames={{ trigger: fieldSurfaceClasses }}
+                        listboxProps={{ itemClasses: fieldMenuItemClasses }}
                         isDisabled={isSubmitting}
                         aria-label="Select clinic tier"
                       >
@@ -509,6 +515,7 @@ export default function ClinicProfile({
                         <Button
                           size="sm"
                           variant="flat"
+                          className={`h-10 min-h-10 ${tertiaryButtonClassName}`}
                           onPress={() =>
                             setPatientLimitValue(String(DEFAULT_PATIENT_LIMIT))
                           }
@@ -530,6 +537,7 @@ export default function ClinicProfile({
                           value={patientLimitValue}
                           onValueChange={setPatientLimitValue}
                           className="w-[150px]"
+                          classNames={{ inputWrapper: fieldSurfaceClasses }}
                           min={0}
                           step={1}
                           isDisabled={isSubmitting || !isPatientLimitApplicable}
@@ -553,6 +561,10 @@ export default function ClinicProfile({
                           }
                         }}
                         className="w-[230px]"
+                        inputProps={{
+                          classNames: { inputWrapper: fieldSurfaceClasses },
+                        }}
+                        listboxProps={{ itemClasses: fieldMenuItemClasses }}
                         isDisabled={isSubmitting}
                         placeholder="Select timezone..."
                         aria-label="Select timezone"
@@ -597,6 +609,8 @@ export default function ClinicProfile({
                 <div className="flex justify-end gap-2 pt-4 mt-1 border-t border-[color:var(--border)]">
                   <Button
                     variant="flat"
+                    size="md"
+                    className={tertiaryButtonClassName}
                     onPress={handleReset}
                     isDisabled={!isDirty || isSubmitting}
                   >
@@ -604,6 +618,7 @@ export default function ClinicProfile({
                   </Button>
                   <Button
                     color="primary"
+                    className="font-semibold"
                     startContent={<Check size={16} aria-hidden="true" />}
                     onPress={handleSaveClinicSettings}
                     isDisabled={
@@ -632,6 +647,7 @@ export default function ClinicProfile({
                       color="danger"
                       variant="flat"
                       size="sm"
+                      className={dangerRowButtonClassName}
                       startContent={<Trash2 size={14} aria-hidden="true" />}
                       onPress={() => setIsDeleteModalOpen(true)}
                     >
