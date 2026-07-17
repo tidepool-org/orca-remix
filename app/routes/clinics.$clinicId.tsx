@@ -15,6 +15,7 @@ import {
 } from 'react-router';
 
 import ClinicProfile from '~/components/Clinic/ClinicProfile';
+import type { ClinicSettingsPayload } from '~/components/Clinic/ClinicProfile';
 import type {
   Clinic,
   RecentClinic,
@@ -50,7 +51,7 @@ import {
   PatientCountSettingsSchema,
   UpdateTimezoneSchema,
 } from '~/schemas';
-import { errorResponse, APIError } from '~/utils/errors';
+import { errorResponse, getErrorMessage, APIError } from '~/utils/errors';
 import { useToast } from '~/contexts/ToastContext';
 import { usePersistedTab } from '~/hooks/usePersistedTab';
 
@@ -224,8 +225,10 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
           .then(
             (data) =>
               data as {
-                hardLimit?: { plan?: number };
-                softLimit?: { plan?: number };
+                // `patientCount` is the legacy name for `plan`; read as a
+                // fallback for clinics/backends that predate the rename.
+                hardLimit?: { plan?: number; patientCount?: number };
+                softLimit?: { plan?: number; patientCount?: number };
               },
           )
           .catch((err) => {
@@ -386,119 +389,100 @@ export async function action({ request, params }: ActionFunctionArgs) {
   const actionType = formData.get('actionType');
   const clinicId = params.clinicId as string;
 
-  if (actionType === 'updateTier') {
-    const tier = formData.get('tier');
+  if (actionType === 'updateClinicSettings') {
+    // Combined save: the client sends only the fields it detected as dirty
+    // (an absent field means unchanged), so each present field maps to exactly
+    // one existing endpoint and unchanged settings trigger no API call.
+    // Results are aggregated per field so a partial failure is reported rather
+    // than reported as blanket success.
+    const results: { field: string; ok: boolean; error?: string }[] = [];
 
-    try {
-      // Validate input
-      const validated = UpdateTierSchema.parse({ tier });
-
-      // Make API request (no schema validation - tier update returns empty response)
-      await apiRequest({
-        ...apiRoutes.clinic.updateTier(clinicId),
-        body: { tier: validated.tier },
-      });
-
-      return Response.json({
-        success: true,
-        message: 'Clinic tier updated successfully',
-      });
-    } catch (error) {
-      return errorResponse(error, 500);
-    }
-  }
-
-  if (actionType === 'updateTimezone') {
-    const timezone = formData.get('timezone');
-
-    try {
-      // Validate input
-      const validated = UpdateTimezoneSchema.parse({ timezone });
-
-      // First fetch the current clinic data to get required fields
-      const clinic = (await apiRequest(apiRoutes.clinic.get(clinicId))) as {
-        name: string;
-        preferredBgUnits: string;
-      };
-
-      // Make API request to update clinic with new timezone
-      // Include required fields (name, preferredBgUnits) from current clinic data
-      await apiRequest({
-        ...apiRoutes.clinic.update(clinicId),
-        body: {
-          name: clinic.name,
-          preferredBgUnits: clinic.preferredBgUnits,
-          timezone: validated.timezone,
-        },
-      });
-
-      return Response.json({
-        success: true,
-        message: 'Clinic timezone updated successfully',
-      });
-    } catch (error) {
-      return errorResponse(error, 500);
-    }
-  }
-
-  if (actionType === 'updateMrnSettings') {
-    const required = formData.get('mrnRequired') === 'true';
-    const unique = formData.get('mrnUnique') === 'true';
-
-    try {
-      // Validate input
-      const validated = MrnSettingsSchema.parse({ required, unique });
-
-      // Make API request
-      await apiRequest({
-        ...apiRoutes.clinic.updateMrnSettings(clinicId),
-        body: validated,
-      });
-
-      return Response.json({
-        success: true,
-        message: 'MRN settings updated successfully',
-      });
-    } catch (error) {
-      return errorResponse(error, 500);
-    }
-  }
-
-  if (actionType === 'updatePatientCountSettings') {
-    const hardLimitPlan = formData.get('hardLimitPlan');
-
-    try {
-      // Build patient count settings - omit hardLimit entirely to remove the limit
-      // The API requires `plan` if `hardLimit` is present, so we can't send { hardLimit: {} }
-      const settings: {
-        hardLimit?: { plan: number };
-      } = {};
-
-      if (hardLimitPlan !== '' && hardLimitPlan !== null) {
-        const planValue = parseInt(hardLimitPlan as string, 10);
-        if (!isNaN(planValue) && planValue >= 0) {
-          settings.hardLimit = { plan: planValue };
-        }
+    const record = async (field: string, run: () => Promise<void>) => {
+      try {
+        await run();
+        results.push({ field, ok: true });
+      } catch (error) {
+        results.push({ field, ok: false, error: getErrorMessage(error) });
       }
-      // When hardLimitPlan is empty/null, settings remains {} (no hardLimit property)
-      // which tells the API to remove any existing limit
+    };
 
-      // Validate input
-      PatientCountSettingsSchema.parse(settings);
-
-      // Make API request
-      await apiRequest({
-        ...apiRoutes.clinic.updatePatientCountSettings(clinicId),
-        body: settings,
+    if (formData.has('tier')) {
+      await record('tier', async () => {
+        const validated = UpdateTierSchema.parse({
+          tier: formData.get('tier'),
+        });
+        await apiRequest({
+          ...apiRoutes.clinic.updateTier(clinicId),
+          body: { tier: validated.tier },
+        });
       });
-
-      return Response.json({
-        success: true,
-        message: 'Patient limit updated successfully',
-      });
-    } catch (error) {
-      return errorResponse(error, 500);
     }
+
+    if (formData.has('timezone')) {
+      await record('timezone', async () => {
+        const validated = UpdateTimezoneSchema.parse({
+          timezone: formData.get('timezone'),
+        });
+        // The clinic update endpoint requires name + preferredBgUnits, so fetch
+        // the current clinic first to supply them alongside the new timezone.
+        const clinic = (await apiRequest(apiRoutes.clinic.get(clinicId))) as {
+          name: string;
+          preferredBgUnits: string;
+        };
+        await apiRequest({
+          ...apiRoutes.clinic.update(clinicId),
+          body: {
+            name: clinic.name,
+            preferredBgUnits: clinic.preferredBgUnits,
+            timezone: validated.timezone,
+          },
+        });
+      });
+    }
+
+    if (formData.has('mrnRequired') || formData.has('mrnUnique')) {
+      await record('MRN settings', async () => {
+        const validated = MrnSettingsSchema.parse({
+          required: formData.get('mrnRequired') === 'true',
+          unique: formData.get('mrnUnique') === 'true',
+        });
+        await apiRequest({
+          ...apiRoutes.clinic.updateMrnSettings(clinicId),
+          body: validated,
+        });
+      });
+    }
+
+    if (formData.has('hardLimitPlan')) {
+      await record('patient limit', async () => {
+        const hardLimitPlan = formData.get('hardLimitPlan');
+        // Omit hardLimit entirely to remove the limit — the API requires `plan`
+        // if `hardLimit` is present, so an empty value must produce settings {}.
+        const settings: { hardLimit?: { plan: number } } = {};
+        if (hardLimitPlan !== '' && hardLimitPlan !== null) {
+          const planValue = parseInt(hardLimitPlan as string, 10);
+          if (!isNaN(planValue) && planValue >= 0) {
+            settings.hardLimit = { plan: planValue };
+          }
+        }
+        PatientCountSettingsSchema.parse(settings);
+        await apiRequest({
+          ...apiRoutes.clinic.updatePatientCountSettings(clinicId),
+          body: settings,
+        });
+      });
+    }
+
+    const failed = results.filter((result) => !result.ok);
+    if (failed.length > 0) {
+      const failedFields = failed.map((result) => result.field).join(', ');
+      return errorResponse(`Failed to update: ${failedFields}`, 500);
+    }
+
+    return Response.json({
+      success: true,
+      message: 'Clinic settings updated successfully',
+    });
   }
 
   if (actionType === 'deleteClinic') {
@@ -708,48 +692,32 @@ export default function Clinic() {
     [searchParams, submit],
   );
 
-  const handleTierUpdate = useCallback(
-    (_clinicId: string, newTier: string) => {
+  const handleSaveClinicSettings = useCallback(
+    (_clinicId: string, payload: ClinicSettingsPayload) => {
       const formData = new FormData();
-      formData.append('actionType', 'updateTier');
-      formData.append('tier', newTier);
-
-      submit(formData, { method: 'post' });
-    },
-    [submit],
-  );
-
-  const handleTimezoneUpdate = useCallback(
-    (_clinicId: string, newTimezone: string) => {
-      const formData = new FormData();
-      formData.append('actionType', 'updateTimezone');
-      formData.append('timezone', newTimezone);
-
-      submit(formData, { method: 'post' });
-    },
-    [submit],
-  );
-
-  const handleMrnSettingsUpdate = useCallback(
-    (_clinicId: string, mrnRequired: boolean, mrnUnique: boolean) => {
-      const formData = new FormData();
-      formData.append('actionType', 'updateMrnSettings');
-      formData.append('mrnRequired', mrnRequired.toString());
-      formData.append('mrnUnique', mrnUnique.toString());
-
-      submit(formData, { method: 'post' });
-    },
-    [submit],
-  );
-
-  const handlePatientLimitUpdate = useCallback(
-    (_clinicId: string, hardLimitPlan: number | null) => {
-      const formData = new FormData();
-      formData.append('actionType', 'updatePatientCountSettings');
-      formData.append(
-        'hardLimitPlan',
-        hardLimitPlan === null ? '' : hardLimitPlan.toString(),
-      );
+      formData.append('actionType', 'updateClinicSettings');
+      // Only the fields the user changed are appended, so the action calls
+      // only the endpoints whose value actually changed.
+      if (payload.tier !== undefined) {
+        formData.append('tier', payload.tier);
+      }
+      if (payload.timezone !== undefined) {
+        formData.append('timezone', payload.timezone);
+      }
+      if (payload.mrnRequired !== undefined) {
+        formData.append('mrnRequired', payload.mrnRequired.toString());
+      }
+      if (payload.mrnUnique !== undefined) {
+        formData.append('mrnUnique', payload.mrnUnique.toString());
+      }
+      if (payload.hardLimitPlan !== undefined) {
+        formData.append(
+          'hardLimitPlan',
+          payload.hardLimitPlan === null
+            ? ''
+            : payload.hardLimitPlan.toString(),
+        );
+      }
 
       submit(formData, { method: 'post' });
     },
@@ -854,10 +822,7 @@ export default function Clinic() {
             onCliniciansPageChange={handleCliniciansPageChange}
             onCliniciansSearch={handleCliniciansSearch}
             currentCliniciansSearch={sorting.cliniciansSearch}
-            onTierUpdate={handleTierUpdate}
-            onTimezoneUpdate={handleTimezoneUpdate}
-            onMrnSettingsUpdate={handleMrnSettingsUpdate}
-            onPatientLimitUpdate={handlePatientLimitUpdate}
+            onSaveClinicSettings={handleSaveClinicSettings}
             onDeleteClinic={handleDeleteClinic}
             onRevokeClinicianInvite={handleRevokeClinicianInvite}
             onRemoveClinician={handleRemoveClinician}
