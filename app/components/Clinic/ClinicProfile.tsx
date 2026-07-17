@@ -278,6 +278,16 @@ export default function ClinicProfile({
   const isPatientLimitDirty =
     isPatientLimitApplicable && patientLimitValue.trim() !== serverLimitValue;
 
+  // A non-empty patient limit must be an exact non-negative integer; blank
+  // means "no limit". Anything else (decimal, negative, exponent notation,
+  // letters) is invalid and must block the save rather than be coerced to a
+  // truncated value or silently interpreted as a removal.
+  const trimmedPatientLimit = patientLimitValue.trim();
+  const isPatientLimitInvalid =
+    isPatientLimitDirty &&
+    trimmedPatientLimit !== '' &&
+    !/^\d+$/.test(trimmedPatientLimit);
+
   const isDirty =
     isTierDirty ||
     isTimezoneDirty ||
@@ -298,7 +308,7 @@ export default function ClinicProfile({
   // so the combined action calls only the endpoints that need it. MRN required
   // and unique share one endpoint, so both are sent whenever either changed.
   const handleSaveClinicSettings = () => {
-    if (!onSaveClinicSettings || !isDirty) return;
+    if (!onSaveClinicSettings || !isDirty || isPatientLimitInvalid) return;
 
     const payload: ClinicSettingsPayload = {};
     if (isTierDirty) payload.tier = stagedTier;
@@ -308,10 +318,10 @@ export default function ClinicProfile({
       payload.mrnUnique = mrnUnique;
     }
     if (isPatientLimitDirty) {
-      const trimmed = patientLimitValue.trim();
-      const value = parseInt(trimmed, 10);
+      // Only a blank value is a removal; a valid non-blank value is an exact
+      // integer (invalid input is blocked above, so no coercion happens here).
       payload.hardLimitPlan =
-        trimmed === '' || isNaN(value) || value < 0 ? null : value;
+        trimmedPatientLimit === '' ? null : parseInt(trimmedPatientLimit, 10);
     }
 
     onSaveClinicSettings(id, payload);
@@ -523,6 +533,8 @@ export default function ClinicProfile({
                           min={0}
                           step={1}
                           isDisabled={isSubmitting || !isPatientLimitApplicable}
+                          isInvalid={isPatientLimitInvalid}
+                          errorMessage="Enter a whole number of 0 or more, or leave empty for no limit."
                         />
                       </div>
                     }
@@ -594,7 +606,9 @@ export default function ClinicProfile({
                     color="primary"
                     startContent={<Check size={16} aria-hidden="true" />}
                     onPress={handleSaveClinicSettings}
-                    isDisabled={!isDirty || isSubmitting}
+                    isDisabled={
+                      !isDirty || isSubmitting || isPatientLimitInvalid
+                    }
                     isLoading={isSubmitting}
                   >
                     Save Changes

@@ -179,6 +179,68 @@ describe('ClinicProfile — Settings tab', () => {
     });
   });
 
+  describe('Patient limit validation', () => {
+    it('clearing the limit submits null to remove it', async () => {
+      const user = userEvent.setup();
+      const { onSaveClinicSettings } = renderSettings({
+        patientCountSettings: { hardLimit: { plan: 250 } },
+      });
+
+      const limit = screen.getByRole('spinbutton', {
+        name: 'Maximum patients',
+      });
+      expect(limit).toHaveValue(250);
+
+      await user.clear(limit);
+      await user.click(screen.getByRole('button', { name: /save changes/i }));
+
+      expect(onSaveClinicSettings).toHaveBeenCalledOnce();
+      expect(onSaveClinicSettings).toHaveBeenCalledWith('clinic-1', {
+        hardLimitPlan: null,
+      });
+    });
+
+    it('submits a valid integer limit as a number', async () => {
+      const user = userEvent.setup();
+      const { onSaveClinicSettings } = renderSettings();
+
+      const limit = screen.getByRole('spinbutton', {
+        name: 'Maximum patients',
+      });
+      await user.type(limit, '100');
+      await user.click(screen.getByRole('button', { name: /save changes/i }));
+
+      expect(onSaveClinicSettings).toHaveBeenCalledWith('clinic-1', {
+        hardLimitPlan: 100,
+      });
+    });
+
+    // Exponent notation ('2e3') is also rejected by the same integer check, but
+    // jsdom's number input normalizes it away, so it can't be exercised here —
+    // the server action test boundary covers that malformed shape instead.
+    it.each([
+      ['a decimal', '2.5'],
+      ['a negative number', '-5'],
+    ])(
+      'blocks saving %s instead of truncating or removing the limit',
+      async (_label, input) => {
+        const user = userEvent.setup();
+        const { onSaveClinicSettings } = renderSettings();
+
+        const limit = screen.getByRole('spinbutton', {
+          name: 'Maximum patients',
+        });
+        await user.type(limit, input);
+
+        // Save stays disabled and no coerced/removal payload is dispatched.
+        expect(
+          screen.getByRole('button', { name: /save changes/i }),
+        ).toBeDisabled();
+        expect(onSaveClinicSettings).not.toHaveBeenCalled();
+      },
+    );
+  });
+
   describe('Danger Zone', () => {
     it('opens the Delete Clinic confirmation modal', async () => {
       const user = userEvent.setup();

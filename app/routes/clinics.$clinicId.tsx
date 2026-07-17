@@ -51,7 +51,12 @@ import {
   PatientCountSettingsSchema,
   UpdateTimezoneSchema,
 } from '~/schemas';
-import { errorResponse, getErrorMessage, APIError } from '~/utils/errors';
+import {
+  errorResponse,
+  getErrorMessage,
+  APIError,
+  ValidationError,
+} from '~/utils/errors';
 import { useToast } from '~/contexts/ToastContext';
 import { usePersistedTab } from '~/hooks/usePersistedTab';
 
@@ -442,9 +447,18 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
     if (formData.has('mrnRequired') || formData.has('mrnUnique')) {
       await record('MRN settings', async () => {
+        // The update endpoint replaces the whole MRN settings object, so a
+        // partial submit would silently clear the omitted field. Require both
+        // fields and accept only the literal strings 'true'/'false' — an absent
+        // or malformed value must be rejected, not coerced to false.
+        const toBool = (value: FormDataEntryValue | null, name: string) => {
+          if (value === 'true') return true;
+          if (value === 'false') return false;
+          throw new ValidationError(`Missing or invalid ${name}`);
+        };
         const validated = MrnSettingsSchema.parse({
-          required: formData.get('mrnRequired') === 'true',
-          unique: formData.get('mrnUnique') === 'true',
+          required: toBool(formData.get('mrnRequired'), 'mrnRequired'),
+          unique: toBool(formData.get('mrnUnique'), 'mrnUnique'),
         });
         await apiRequest({
           ...apiRoutes.clinic.updateMrnSettings(clinicId),
@@ -455,15 +469,33 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
     if (formData.has('hardLimitPlan')) {
       await record('patient limit', async () => {
-        const hardLimitPlan = formData.get('hardLimitPlan');
+        // Never apply a limit on the back of a tier change that failed: the
+        // clinic would keep its old (possibly ineligible) tier while gaining a
+        // limit that only tier0100 clinics may have.
+        const tierResult = results.find((result) => result.field === 'tier');
+        if (tierResult && !tierResult.ok) {
+          throw new ValidationError('Skipped because the tier update failed');
+        }
+
+        const raw = formData.get('hardLimitPlan');
+        const value = typeof raw === 'string' ? raw.trim() : '';
+        const isRemoval = value === '';
+
+        // A blank value intentionally removes the limit; any non-blank value
+        // must be an exact non-negative integer. Reject decimals, exponent
+        // notation, signs and other malformed input rather than silently
+        // truncating them (parseInt('2.5') === 2) or dropping them to a removal.
+        if (!isRemoval && !/^\d+$/.test(value)) {
+          throw new ValidationError(
+            'Patient limit must be a whole number of 0 or more',
+          );
+        }
+
         // Omit hardLimit entirely to remove the limit — the API requires `plan`
         // if `hardLimit` is present, so an empty value must produce settings {}.
         const settings: { hardLimit?: { plan: number } } = {};
-        if (hardLimitPlan !== '' && hardLimitPlan !== null) {
-          const planValue = parseInt(hardLimitPlan as string, 10);
-          if (!isNaN(planValue) && planValue >= 0) {
-            settings.hardLimit = { plan: planValue };
-          }
+        if (!isRemoval) {
+          settings.hardLimit = { plan: parseInt(value, 10) };
         }
         PatientCountSettingsSchema.parse(settings);
         await apiRequest({
