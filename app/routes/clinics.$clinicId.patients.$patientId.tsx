@@ -35,6 +35,7 @@ import uniqBy from 'lodash/uniqBy';
 import { PatientSchema } from '~/schemas';
 import { usePersistedTab } from '~/hooks/usePersistedTab';
 import { APIError } from '~/utils/errors';
+import { backfillPumpSettingsDeviceInfo } from '~/utils/deviceNames';
 
 type PatientLoaderData = {
   patient: Patient | null;
@@ -175,7 +176,9 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     apiRequestSafe<Prescription[]>(
       apiRoutes.prescription.getPatientPrescriptions(patientId),
     ),
-    apiRequestSafe<DataSetsResponse>(apiRoutes.data.getDataSets(patientId)),
+    apiRequestSafe<DataSetsResponse>(
+      apiRoutes.data.getData(patientId, { type: 'upload' }),
+    ),
     apiRequestSafe<DataSourcesResponse>(
       apiRoutes.data.getDataSources(patientId),
     ),
@@ -192,7 +195,6 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     apiRequestSafe<PumpSettings[]>(
       apiRoutes.data.getData(patientId, {
         type: 'pumpSettings',
-        latest: true,
       }),
     ),
   ]);
@@ -323,11 +325,26 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     pumpSettingsState = {
       status: 'success',
       data: Array.isArray(pumpSettingsRawState.data)
-        ? pumpSettingsRawState.data.slice(0, 10)
+        ? pumpSettingsRawState.data
         : [],
     };
   } else {
     pumpSettingsState = pumpSettingsRawState;
+  }
+
+  // Some pump-settings records omit manufacturer/model/serial; backfill from
+  // the matching upload so the device-info row renders fully.
+  if (
+    pumpSettingsState.status === 'success' &&
+    dataSetsState.status === 'success'
+  ) {
+    pumpSettingsState = {
+      ...pumpSettingsState,
+      data: backfillPumpSettingsDeviceInfo(
+        pumpSettingsState.data,
+        dataSetsState.data,
+      ),
+    };
   }
 
   // Extract data for backward compatibility

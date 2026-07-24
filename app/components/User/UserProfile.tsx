@@ -42,6 +42,7 @@ import useLocale from '~/hooks/useLocale';
 import useProfileExpanded from '~/hooks/useProfileExpanded';
 import { formatShortDate } from '~/utils/dateFormatters';
 import { getChipClassNames } from '~/utils/chipStyles';
+import { countDistinctDevices } from '~/utils/pumpSettingsDevices';
 import {
   getRoleColor,
   getAccountStatusColor,
@@ -312,7 +313,7 @@ export default function UserProfile({
               <TabTitle
                 icon={Smartphone}
                 label="Device"
-                count={pumpSettings.length}
+                count={countDistinctDevices(pumpSettings)}
               />
             }
           >

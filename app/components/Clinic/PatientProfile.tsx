@@ -26,6 +26,7 @@ import RollbarLink from '~/components/ui/RollbarLink';
 import { CollapsibleGroup } from '~/components/ui/CollapsibleGroup';
 import { formatShortDate } from '~/utils/dateFormatters';
 import { getChipClassNames } from '~/utils/chipStyles';
+import { countDistinctDevices } from '~/utils/pumpSettingsDevices';
 
 export type PatientProfileProps = {
   patient: Patient;
@@ -276,7 +277,7 @@ export default function PatientProfile({
               <TabTitle
                 icon={Smartphone}
                 label="Device"
-                count={pumpSettings.length}
+                count={countDistinctDevices(pumpSettings)}
               />
             }
           >

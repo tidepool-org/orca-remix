@@ -244,6 +244,84 @@ describe('DataSetsTable', () => {
     });
   });
 
+  describe('Friendly device names', () => {
+    const friendlyDataSet: DataSet = {
+      uploadId: 'upload-friendly-001',
+      deviceName: 'ReliOn Platinum',
+      deviceModel: '982',
+      deviceManufacturers: ['Roche'],
+      dataSetType: 'normal',
+      time: '2024-04-01T10:00:00Z',
+    };
+
+    it('renders the platform deviceName as the heading while keeping the raw model visible', () => {
+      renderExpanded({
+        dataSets: [friendlyDataSet],
+        totalDataSets: 1,
+      });
+
+      expect(screen.getByText('ReliOn Platinum')).toBeInTheDocument();
+      // Raw model stays discoverable as subtext.
+      expect(screen.getByText('982')).toBeInTheDocument();
+    });
+
+    it('labels an app-sourced (Loop) upload from client.name', () => {
+      renderExpanded({
+        dataSets: [
+          {
+            uploadId: 'upload-loop-001',
+            dataSetType: 'continuous',
+            time: '2024-04-01T10:00:00Z',
+            deviceTags: ['insulin-pump'],
+            client: { name: 'org.tidepool.Loop' },
+          },
+        ],
+        totalDataSets: 1,
+      });
+
+      // Both the device heading and the manufacturer cell surface the service.
+      expect(screen.getAllByText('Tidepool Loop').length).toBeGreaterThan(0);
+    });
+
+    it('renders the derived manufacturer + model label when no deviceName', () => {
+      renderExpanded({
+        dataSets: [
+          {
+            uploadId: 'upload-derived-001',
+            deviceModel: '982',
+            deviceManufacturers: ['Roche'],
+            dataSetType: 'normal',
+            time: '2024-04-01T10:00:00Z',
+          },
+        ],
+        totalDataSets: 1,
+      });
+
+      expect(screen.getByText('Roche 982')).toBeInTheDocument();
+    });
+
+    it('filters by the friendly name and by the raw model', async () => {
+      const user = userEvent.setup();
+      renderExpanded({
+        dataSets: [friendlyDataSet, continuousDataSet],
+        totalDataSets: 2,
+      });
+
+      const filterInput = screen.getByPlaceholderText(
+        'Filter by Upload ID, Device, or Serial...',
+      );
+
+      await user.type(filterInput, 'ReliOn');
+      expect(screen.getByText('ReliOn Platinum')).toBeInTheDocument();
+      expect(screen.queryByText('Dexcom G7')).not.toBeInTheDocument();
+
+      await user.clear(filterInput);
+      await user.type(filterInput, '982');
+      expect(screen.getByText('ReliOn Platinum')).toBeInTheDocument();
+      expect(screen.queryByText('Dexcom G7')).not.toBeInTheDocument();
+    });
+  });
+
   describe('Collapsible behavior', () => {
     it('is collapsed by default when not in a CollapsibleGroup', () => {
       render(<DataSetsTable {...defaultProps} />);

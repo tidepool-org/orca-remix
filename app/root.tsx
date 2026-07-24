@@ -23,6 +23,7 @@ import {
   themeSessionResolver,
   sidebarSession,
   profileExpandedSession,
+  pumpSettingsCompareSession,
 } from './sessions.server';
 import { authorizeServer } from './auth.server';
 import { default as useLocale, LocaleProvider } from './hooks/useLocale';
@@ -38,6 +39,7 @@ import {
   useSidebarExpanded,
 } from './contexts/SidebarExpandedContext';
 import { ProfileExpandedProvider } from './contexts/ProfileExpandedContext';
+import { PumpSettingsCompareProvider } from './contexts/PumpSettingsCompareContext';
 
 type Agent = {
   name?: string | undefined;
@@ -68,6 +70,12 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const profileExpandedMap: Record<string, boolean> =
     profileExpandedCookie.get('expanded') || {};
 
+  const pumpSettingsCompareCookie = await pumpSettingsCompareSession.getSession(
+    request.headers.get('Cookie'),
+  );
+  const pumpSettingsCompareToPrevious: boolean =
+    pumpSettingsCompareCookie.get('compareToPrevious') !== false;
+
   // Agent data comes from the already-verified Pomerium JWT payload
   // (or the dev mock payload when auth is bypassed).
   const agent: Agent = {
@@ -81,6 +89,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     theme: (getTheme() || 'light') as Theme, // Default to light theme if no cookie is set
     sidebarExpanded,
     profileExpandedMap,
+    pumpSettingsCompareToPrevious,
     agent,
   };
 };
@@ -129,15 +138,24 @@ function App() {
 // `specifiedTheme` is the stored theme in the session storage.
 // `themeAction` is the action name that's used to change the theme in the session storage.
 export default function AppWithProviders() {
-  const { theme, locale, sidebarExpanded, profileExpandedMap } =
-    useLoaderData<typeof loader>();
+  const {
+    theme,
+    locale,
+    sidebarExpanded,
+    profileExpandedMap,
+    pumpSettingsCompareToPrevious,
+  } = useLoaderData<typeof loader>();
 
   return (
     <ThemeProvider specifiedTheme={theme} themeAction="/action/set-theme">
       <LocaleProvider locale={locale}>
         <SidebarExpandedProvider initialExpanded={sidebarExpanded}>
           <ProfileExpandedProvider initialExpandedMap={profileExpandedMap}>
-            <App />
+            <PumpSettingsCompareProvider
+              initialCompareToPrevious={pumpSettingsCompareToPrevious}
+            >
+              <App />
+            </PumpSettingsCompareProvider>
           </ProfileExpandedProvider>
         </SidebarExpandedProvider>
       </LocaleProvider>

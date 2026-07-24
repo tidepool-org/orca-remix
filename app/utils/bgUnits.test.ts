@@ -38,6 +38,10 @@ describe('bgUnits', () => {
       [180, false, '180 mmol/L'],
       [0, true, '0 mg/dL'],
       [0, false, '0 mmol/L'],
+      // mmol/L values are stored as full-precision floats and must round to
+      // one decimal place for display.
+      [7.2159723883591935, false, '7.2 mmol/L'],
+      [8.881196785672854, false, '8.9 mmol/L'],
     ])('formats %d with useMgdl=%s as %s', (value, useMgdl, expected) => {
       expect(formatBgValue(value, useMgdl)).toBe(expected);
     });
@@ -54,6 +58,8 @@ describe('bgUnits', () => {
       [36, false, '36 mmol/L'],
       [100, true, '1802 mg/dL'],
       [100, false, '100 mmol/L'],
+      // Float mmol/L sensitivity rounds to one decimal place.
+      [2.7756, false, '2.8 mmol/L'],
     ])(
       'formats sensitivity %d with useMgdl=%s as %s',
       (value, useMgdl, expected) => {
