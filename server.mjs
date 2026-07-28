@@ -1,3 +1,4 @@
+import { createServer } from 'node:http';
 import { createRequestHandler } from '@react-router/express';
 import express from 'express';
 
@@ -45,4 +46,13 @@ const port = 3000;
 const host =
   process.env.NODE_ENV === 'production' ? 'http://0.0.0.0' : 'http://localhost';
 
-app.listen(port, () => console.log(host + ':' + port));
+// Node's 16 KB default request-header limit is rejected with a bodyless 431
+// before the request reaches any route, so it can't be handled or logged in
+// app code. Browser extensions and the identity proxy both inject headers on
+// top of our own cookies, and users running many extensions have exceeded it.
+// Override with MAX_HTTP_HEADER_SIZE to adjust without a rebuild.
+const maxHeaderSize = Number(process.env.MAX_HTTP_HEADER_SIZE) || 32768;
+
+createServer({ maxHeaderSize }, app).listen(port, () =>
+  console.log(host + ':' + port),
+);
