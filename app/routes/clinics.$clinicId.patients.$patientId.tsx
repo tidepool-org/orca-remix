@@ -36,6 +36,11 @@ import { PatientSchema } from '~/schemas';
 import { usePersistedTab } from '~/hooks/usePersistedTab';
 import { APIError } from '~/utils/errors';
 import { backfillPumpSettingsDeviceInfo } from '~/utils/deviceNames';
+import {
+  clinicScopedPrefixes,
+  getKeepClinicIds,
+  pruneClinicScopedKeys,
+} from '~/utils/recentEntities.server';
 
 type PatientLoaderData = {
   patient: Patient | null;
@@ -128,6 +133,15 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   const recentlyViewed = await getSession(request.headers.get('Cookie'));
 
   const clinicId = params.clinicId as string;
+
+  // This loader owns the `patients-*` keys, so it prunes them: bound the key
+  // count to the clinics still tracked in the `__clinics` cookie.
+  pruneClinicScopedKeys(
+    recentlyViewed,
+    clinicScopedPrefixes.patients,
+    await getKeepClinicIds(clinicId, request.headers.get('Cookie')),
+  );
+
   const patientId = params.patientId as string;
 
   // We store recently viewed patients in session storage for persistence across browser sessions

@@ -6,6 +6,11 @@ import { prescriptionsSession } from '~/sessions.server';
 import { useRecentItems } from '~/components/Clinic/RecentItemsContext';
 import PrescriptionProfile from '~/components/Clinic/PrescriptionProfile';
 import { getPatientName } from '~/utils/prescriptions';
+import {
+  clinicScopedPrefixes,
+  getKeepClinicIds,
+  pruneClinicScopedKeys,
+} from '~/utils/recentEntities.server';
 import type {
   Prescription,
   Clinician,
@@ -41,6 +46,14 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
 
   const { getSession, commitSession } = prescriptionsSession;
   const sessionData = await getSession(request.headers.get('Cookie'));
+
+  // This loader owns the `recentPrescriptions-*` keys, so it prunes them: bound
+  // the key count to the clinics still tracked in the `__clinics` cookie.
+  pruneClinicScopedKeys(
+    sessionData,
+    clinicScopedPrefixes.prescriptions,
+    await getKeepClinicIds(clinicId, request.headers.get('Cookie')),
+  );
 
   let recentPrescriptions: RecentPrescription[] = [];
   try {

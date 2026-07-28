@@ -51,6 +51,7 @@ import {
   UpdateTimezoneSchema,
 } from '~/schemas';
 import { errorResponse, APIError } from '~/utils/errors';
+import { recentClinicsMax } from '~/utils/recentEntities.server';
 import { useToast } from '~/contexts/ToastContext';
 import { usePersistedTab } from '~/hooks/usePersistedTab';
 
@@ -93,7 +94,6 @@ export function shouldRevalidate({
   return defaultShouldRevalidate;
 }
 
-const recentClinicsMax = 10;
 const defaultPageSize = 10;
 const cliniciansFetchLimit = 1000;
 
@@ -319,6 +319,10 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
         uniqBy(recentClinics, 'id').slice(0, recentClinicsMax),
       );
 
+      // The clinic-scoped caches are pruned by the child loaders that own them
+      // (see pruneClinicScopedKeys) rather than here: their keys are only ever
+      // created by those loaders, so pruning there is sufficient and avoids two
+      // loaders writing the same cookie in one request.
       return data(
         {
           clinic,

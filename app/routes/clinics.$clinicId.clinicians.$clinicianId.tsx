@@ -18,6 +18,11 @@ import { APIError } from '~/utils/errors';
 import { z } from 'zod';
 import { ClinicianSchema } from '~/schemas';
 import { usePersistedTab } from '~/hooks/usePersistedTab';
+import {
+  clinicScopedPrefixes,
+  getKeepClinicIds,
+  pruneClinicScopedKeys,
+} from '~/utils/recentEntities.server';
 
 type ClinicianLoaderData = {
   clinician: Clinician;
@@ -99,6 +104,15 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
     const cliniciansSessionData = await getSession(
       request.headers.get('Cookie'),
     );
+
+    // This loader owns the `recentClinicians-*` keys, so it prunes them: bound
+    // the key count to the clinics still tracked in the `__clinics` cookie.
+    pruneClinicScopedKeys(
+      cliniciansSessionData,
+      clinicScopedPrefixes.clinicians,
+      await getKeepClinicIds(clinicId, request.headers.get('Cookie')),
+    );
+
     const recentCliniciansData = cliniciansSessionData.get(
       `recentClinicians-${clinicId}`,
     );
