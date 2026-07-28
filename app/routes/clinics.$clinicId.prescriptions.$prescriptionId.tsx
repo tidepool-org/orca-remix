@@ -2,7 +2,7 @@ import type { LoaderFunctionArgs, MetaFunction } from 'react-router';
 import { useLoaderData } from 'react-router';
 import { useEffect } from 'react';
 import { apiRequest, apiRoutes } from '~/api.server';
-import { prescriptionsSession } from '~/sessions.server';
+import { prescriptionsCookie, prescriptionsSession } from '~/sessions.server';
 import { useRecentItems } from '~/components/Clinic/RecentItemsContext';
 import PrescriptionProfile from '~/components/Clinic/PrescriptionProfile';
 import { getPatientName } from '~/utils/prescriptions';
@@ -45,7 +45,7 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
     throw new Response('Not found', { status: 404 });
   }
 
-  const { getSession, commitSession } = prescriptionsSession;
+  const { getSession } = prescriptionsSession;
   const sessionData = await getSession(request.headers.get('Cookie'));
 
   let recentPrescriptions = readClinicScopedList<RecentPrescription>(
@@ -116,7 +116,7 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
             clinicScopedPrefixes.prescriptions,
             clinicId,
             request.headers.get('Cookie'),
-            commitSession,
+            prescriptionsCookie,
           ),
         },
       },

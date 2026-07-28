@@ -6,7 +6,7 @@ import type {
 import { useLoaderData, useParams } from 'react-router';
 import { useRecentItems } from '~/components/Clinic/RecentItemsContext';
 import { apiRequest, apiRoutes } from '~/api.server';
-import { cliniciansSession } from '~/sessions.server';
+import { cliniciansCookie, cliniciansSession } from '~/sessions.server';
 import ClinicianProfile from '~/components/Clinic/ClinicianProfile';
 import type {
   RecentClinician,
@@ -103,7 +103,7 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
         clinics.length;
 
     // Update recent clinicians session
-    const { getSession, commitSession } = cliniciansSession;
+    const { getSession } = cliniciansSession;
     const cliniciansSessionData = await getSession(
       request.headers.get('Cookie'),
     );
@@ -148,7 +148,7 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
             clinicScopedPrefixes.clinicians,
             clinicId,
             request.headers.get('Cookie'),
-            commitSession,
+            cliniciansCookie,
           ),
         },
       },

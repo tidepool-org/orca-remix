@@ -1,5 +1,6 @@
 import { beforeAll, describe, expect, it } from 'vitest';
 import { createSession } from 'react-router';
+import type { Cookie } from 'react-router';
 
 type RecentEntitiesModule = typeof import('~/utils/recentEntities.server');
 type SessionsModule = typeof import('~/sessions.server');
@@ -175,7 +176,7 @@ describe('commitClinicScopedSession', () => {
       'patients',
       'clinic-0',
       await clinicsCookie([{ id: 'clinic-0' }, { id: 'clinic-1' }]),
-      sessions.patientsSession.commitSession,
+      sessions.patientsCookie,
     );
 
     // clinic-1 is retained but not the clinic being viewed, so this fails if the
@@ -207,26 +208,30 @@ describe('commitClinicScopedSession', () => {
       'patients',
       'clinic-0',
       await clinicsCookie(tracked),
-      sessions.patientsSession.commitSession,
+      sessions.patientsCookie,
     );
 
     expect(Object.keys(session.data)).toEqual(['patients-clinic-0']);
     expect(setCookie.split(';')[0].length).toBeLessThanOrEqual(4096);
   });
 
-  // A signing or configuration failure is not fixed by shedding history, and
-  // swallowing it would discard every other clinic's recents on the way to
-  // rethrowing the same error anyway.
-  it('rethrows a non-size failure on the first attempt, keeping history', async () => {
+  // Shedding cannot fix a signing or config failure, so it must not read as an
+  // overflow.
+  it('propagates a serialization failure on the first pass, keeping history', async () => {
     const session = await sessions.patientsSession.getSession();
     session.set('patients-clinic-0', [{ id: 'p0' }]);
     session.set('patients-clinic-1', [{ id: 'p1' }]);
 
     let attempts = 0;
-    const commit = async () => {
-      attempts++;
-      throw new Error('Failed to sign cookie value');
-    };
+    const failingCookie = {
+      name: '__patients_session',
+      isSigned: true,
+      parse: async () => null,
+      serialize: async () => {
+        attempts++;
+        throw new Error('Failed to sign cookie value');
+      },
+    } as unknown as Cookie;
 
     await expect(
       recentEntities.commitClinicScopedSession(
@@ -234,7 +239,7 @@ describe('commitClinicScopedSession', () => {
         'patients',
         'clinic-0',
         await clinicsCookie([{ id: 'clinic-0' }, { id: 'clinic-1' }]),
-        commit,
+        failingCookie,
       ),
     ).rejects.toThrow('Failed to sign cookie value');
 
@@ -243,6 +248,29 @@ describe('commitClinicScopedSession', () => {
       'patients-clinic-0',
       'patients-clinic-1',
     ]);
+  });
+
+  // Serializing ourselves skips `commitSession`, so pin the equivalence: if it
+  // ever does more than serialize-and-check, this fails.
+  it('returns exactly what commitSession would for a session that fits', async () => {
+    const data = { 'patients-clinic-0': patientsFor(0) };
+    const session = await sessions.patientsSession.getSession();
+    for (const [key, value] of Object.entries(data)) session.set(key, value);
+
+    const ours = await recentEntities.commitClinicScopedSession(
+      session,
+      'patients',
+      'clinic-0',
+      await clinicsCookie([{ id: 'clinic-0' }]),
+      sessions.patientsCookie,
+    );
+
+    const theirs = await sessions.patientsSession.commitSession(
+      createSession(data),
+    );
+
+    expect(ours).toBe(theirs);
+    expect(ours.length).toBeLessThanOrEqual(recentEntities.maxCookieBytes);
   });
 });
 
@@ -268,7 +296,7 @@ describe('commitClinicScopedSession with the clinicians cookie', () => {
       recentEntities.clinicScopedPrefixes.clinicians,
       'clinic-1',
       await clinicsCookie([{ id: 'clinic-1' }, { id: 'clinic-0' }]),
-      sessions.cliniciansSession.commitSession,
+      sessions.cliniciansCookie,
     );
 
     // Both clinics keep their history: the entry size leaves enough room that

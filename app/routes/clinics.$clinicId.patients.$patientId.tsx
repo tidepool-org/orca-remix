@@ -25,7 +25,7 @@ import type {
 import type { ResourceState } from '~/api.types';
 import { useRecentItems } from '~/components/Clinic/RecentItemsContext';
 import { apiRequest, apiRequestSafe, apiRoutes } from '~/api.server';
-import { patientsSession } from '~/sessions.server';
+import { patientsCookie, patientsSession } from '~/sessions.server';
 import { useLoaderData } from 'react-router';
 import { useEffect } from 'react';
 import omit from 'lodash/omit';
@@ -129,7 +129,7 @@ function flattenConnectionRequests(
 }
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
-  const { getSession, commitSession } = patientsSession;
+  const { getSession } = patientsSession;
   const recentlyViewed = await getSession(request.headers.get('Cookie'));
 
   const clinicId = params.clinicId as string;
@@ -432,7 +432,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
             clinicScopedPrefixes.patients,
             clinicId,
             request.headers.get('Cookie'),
-            commitSession,
+            patientsCookie,
           ),
         },
       },

@@ -1,4 +1,4 @@
-import type { Session } from 'react-router';
+import type { Cookie, Session } from 'react-router';
 import isArray from 'lodash/isArray';
 import uniq from 'lodash/uniq';
 import { clinicsSession } from '~/sessions.server';
@@ -17,7 +17,7 @@ export const clinicScopedPrefixes = {
 export type ClinicScopedPrefix =
   (typeof clinicScopedPrefixes)[keyof typeof clinicScopedPrefixes];
 
-/** The one place the `${prefix}-${clinicId}` key shape is spelled out. */
+/** Utility to spell out the key shape for consistent reuse throughout the application. */
 function clinicScopedKey(prefix: ClinicScopedPrefix, clinicId: string): string {
   return `${prefix}-${clinicId}`;
 }
@@ -81,7 +81,7 @@ export function readClinicScopedList<T>(
   return isArray(raw) ? (raw as T[]) : [];
 }
 
-/** Write one clinic's recents list, keyed the same way the reader reads it. */
+/** Write one clinic's recents list. */
 export function writeClinicScopedList<T>(
   session: Session,
   prefix: ClinicScopedPrefix,
@@ -91,52 +91,37 @@ export function writeClinicScopedList<T>(
   session.set(clinicScopedKey(prefix, clinicId), entries);
 }
 
-/**
- * The message React Router's cookie session storage throws past 4096 bytes.
- *
- * Matched rather than typed because the storage throws a plain `Error`, so this
- * is the only signal distinguishing an oversized cookie from a signing or
- * configuration failure.
- */
-const cookieTooLargePattern = /Cookie length will exceed browser maximum/;
+/** Browsers reject cookies past this; React Router throws rather than truncate. */
+export const maxCookieBytes = 4096;
 
 /**
- * Prune untracked clinics, then commit, shedding more if it still won't fit.
+ * Shed clinic-scoped history — untracked clinics, then all but the viewed one,
+ * then all of it — until the cookie fits, rather than 500ing the route.
  *
- * React Router throws rather than truncating past 4096 bytes, which 500s the
- * route until the user clears cookies; two clinics' worth of clinicians reaches
- * it. Fall back to the viewed clinic alone, then to no recents, rather than
- * failing the page.
+ * Serializes rather than committing and catching: `commitSession` is this same
+ * call plus the length check, so measuring directly keeps a signing or config
+ * error from reading as an overflow.
  *
- * Pruning at commit time is safe because each loader reads only its own clinic's
- * key, which is never pruned.
- *
- * Only size failures shed history; a signing or configuration error propagates
- * on the first attempt rather than being mistaken for an oversized cookie.
+ * Safe at commit time because each loader reads only its own clinic's key, which
+ * is never pruned.
  */
 export async function commitClinicScopedSession(
   session: Session,
   prefix: ClinicScopedPrefix,
   clinicId: string,
   cookieHeader: string | null,
-  commit: (session: Session) => Promise<string>,
+  cookie: Cookie,
 ): Promise<string> {
   const keepClinicIds = await getKeepClinicIds(clinicId, cookieHeader);
 
+  let serialized = '';
   for (const keep of [keepClinicIds, [clinicId], []]) {
     pruneClinicScopedKeys(session, prefix, keep);
-    try {
-      return await commit(session);
-    } catch (error) {
-      // Too large — fall through to a narrower keep set. Anything else is a
-      // real failure and shedding more history would not fix it.
-      if (
-        !(error instanceof Error) ||
-        !cookieTooLargePattern.test(error.message)
-      ) {
-        throw error;
-      }
-    }
+    serialized = await cookie.serialize(session.data);
+    if (serialized.length <= maxCookieBytes) return serialized;
   }
-  return commit(session);
+
+  // Unreachable unless non-clinic-scoped data fills the cookie alone. Returning
+  // it oversized lets the browser drop the cookie; throwing would 500.
+  return serialized;
 }
