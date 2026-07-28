@@ -132,6 +132,29 @@ describe('readClinicScopedList', () => {
   });
 });
 
+describe('writeClinicScopedList', () => {
+  it('writes under the key the reader reads', () => {
+    const session = createSession();
+    const entries = [{ id: 'c1' }];
+
+    recentEntities.writeClinicScopedList(
+      session,
+      'recentClinicians',
+      'clinic-a',
+      entries,
+    );
+
+    expect(
+      recentEntities.readClinicScopedList(
+        session,
+        'recentClinicians',
+        'clinic-a',
+      ),
+    ).toEqual(entries);
+    expect(Object.keys(session.data)).toEqual(['recentClinicians-clinic-a']);
+  });
+});
+
 describe('commitClinicScopedSession', () => {
   /** Ten realistic `patients-*` entries, as the patient loader stores them. */
   const patientsFor = (clinic: number) =>
@@ -189,6 +212,37 @@ describe('commitClinicScopedSession', () => {
 
     expect(Object.keys(session.data)).toEqual(['patients-clinic-0']);
     expect(setCookie.split(';')[0].length).toBeLessThanOrEqual(4096);
+  });
+
+  // A signing or configuration failure is not fixed by shedding history, and
+  // swallowing it would discard every other clinic's recents on the way to
+  // rethrowing the same error anyway.
+  it('rethrows a non-size failure on the first attempt, keeping history', async () => {
+    const session = await sessions.patientsSession.getSession();
+    session.set('patients-clinic-0', [{ id: 'p0' }]);
+    session.set('patients-clinic-1', [{ id: 'p1' }]);
+
+    let attempts = 0;
+    const commit = async () => {
+      attempts++;
+      throw new Error('Failed to sign cookie value');
+    };
+
+    await expect(
+      recentEntities.commitClinicScopedSession(
+        session,
+        'patients',
+        'clinic-0',
+        await clinicsCookie([{ id: 'clinic-0' }, { id: 'clinic-1' }]),
+        commit,
+      ),
+    ).rejects.toThrow('Failed to sign cookie value');
+
+    expect(attempts).toBe(1);
+    expect(Object.keys(session.data).sort()).toEqual([
+      'patients-clinic-0',
+      'patients-clinic-1',
+    ]);
   });
 });
 

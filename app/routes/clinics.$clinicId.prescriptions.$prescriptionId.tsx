@@ -10,6 +10,7 @@ import {
   clinicScopedPrefixes,
   commitClinicScopedSession,
   readClinicScopedList,
+  writeClinicScopedList,
 } from '~/utils/recentEntities.server';
 import type {
   Prescription,
@@ -94,7 +95,12 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
     recentPrescriptions.unshift(recentPrescription);
     recentPrescriptions = recentPrescriptions.slice(0, recentPrescriptionsMax);
 
-    sessionData.set(`recentPrescriptions-${clinicId}`, recentPrescriptions);
+    writeClinicScopedList(
+      sessionData,
+      clinicScopedPrefixes.prescriptions,
+      clinicId,
+      recentPrescriptions,
+    );
 
     return Response.json(
       {

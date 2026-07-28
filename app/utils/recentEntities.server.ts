@@ -17,6 +17,11 @@ export const clinicScopedPrefixes = {
 export type ClinicScopedPrefix =
   (typeof clinicScopedPrefixes)[keyof typeof clinicScopedPrefixes];
 
+/** The one place the `${prefix}-${clinicId}` key shape is spelled out. */
+function clinicScopedKey(prefix: ClinicScopedPrefix, clinicId: string): string {
+  return `${prefix}-${clinicId}`;
+}
+
 /** Clinic ids tracked in `__clinics`, most recent first. */
 export async function getRecentClinicIds(
   cookieHeader: string | null,
@@ -72,9 +77,28 @@ export function readClinicScopedList<T>(
   prefix: ClinicScopedPrefix,
   clinicId: string,
 ): T[] {
-  const raw = session.get(`${prefix}-${clinicId}`);
+  const raw = session.get(clinicScopedKey(prefix, clinicId));
   return isArray(raw) ? (raw as T[]) : [];
 }
+
+/** Write one clinic's recents list, keyed the same way the reader reads it. */
+export function writeClinicScopedList<T>(
+  session: Session,
+  prefix: ClinicScopedPrefix,
+  clinicId: string,
+  entries: T[],
+): void {
+  session.set(clinicScopedKey(prefix, clinicId), entries);
+}
+
+/**
+ * The message React Router's cookie session storage throws past 4096 bytes.
+ *
+ * Matched rather than typed because the storage throws a plain `Error`, so this
+ * is the only signal distinguishing an oversized cookie from a signing or
+ * configuration failure.
+ */
+const cookieTooLargePattern = /Cookie length will exceed browser maximum/;
 
 /**
  * Prune untracked clinics, then commit, shedding more if it still won't fit.
@@ -86,6 +110,9 @@ export function readClinicScopedList<T>(
  *
  * Pruning at commit time is safe because each loader reads only its own clinic's
  * key, which is never pruned.
+ *
+ * Only size failures shed history; a signing or configuration error propagates
+ * on the first attempt rather than being mistaken for an oversized cookie.
  */
 export async function commitClinicScopedSession(
   session: Session,
@@ -100,8 +127,15 @@ export async function commitClinicScopedSession(
     pruneClinicScopedKeys(session, prefix, keep);
     try {
       return await commit(session);
-    } catch {
-      // Too large — fall through to a narrower keep set.
+    } catch (error) {
+      // Too large — fall through to a narrower keep set. Anything else is a
+      // real failure and shedding more history would not fix it.
+      if (
+        !(error instanceof Error) ||
+        !cookieTooLargePattern.test(error.message)
+      ) {
+        throw error;
+      }
     }
   }
   return commit(session);

@@ -39,6 +39,7 @@ import {
   clinicScopedPrefixes,
   commitClinicScopedSession,
   readClinicScopedList,
+  writeClinicScopedList,
 } from '~/utils/recentEntities.server';
 
 type PatientLoaderData = {
@@ -389,7 +390,12 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
       0,
       recentPatientsMax,
     );
-    recentlyViewed.set(`patients-${clinicId}`, updatedRecentPatients);
+    writeClinicScopedList(
+      recentlyViewed,
+      clinicScopedPrefixes.patients,
+      clinicId,
+      updatedRecentPatients,
+    );
 
     return Response.json(
       {

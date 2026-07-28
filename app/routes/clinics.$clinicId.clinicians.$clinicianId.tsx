@@ -22,6 +22,7 @@ import {
   clinicScopedPrefixes,
   commitClinicScopedSession,
   readClinicScopedList,
+  writeClinicScopedList,
 } from '~/utils/recentEntities.server';
 
 type ClinicianLoaderData = {
@@ -131,7 +132,12 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
     recentClinicians = recentClinicians.slice(0, recentCliniciansMax);
 
     // Update session
-    cliniciansSessionData.set(`recentClinicians-${clinicId}`, recentClinicians);
+    writeClinicScopedList(
+      cliniciansSessionData,
+      clinicScopedPrefixes.clinicians,
+      clinicId,
+      recentClinicians,
+    );
 
     return Response.json(
       { clinician, recentClinicians, clinics, totalClinics },
