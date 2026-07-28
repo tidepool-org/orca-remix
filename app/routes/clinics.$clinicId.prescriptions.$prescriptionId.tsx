@@ -8,8 +8,8 @@ import PrescriptionProfile from '~/components/Clinic/PrescriptionProfile';
 import { getPatientName } from '~/utils/prescriptions';
 import {
   clinicScopedPrefixes,
-  getKeepClinicIds,
-  pruneClinicScopedKeys,
+  commitClinicScopedSession,
+  readClinicScopedList,
 } from '~/utils/recentEntities.server';
 import type {
   Prescription,
@@ -47,23 +47,11 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
   const { getSession, commitSession } = prescriptionsSession;
   const sessionData = await getSession(request.headers.get('Cookie'));
 
-  // This loader owns the `recentPrescriptions-*` keys, so it prunes them: bound
-  // the key count to the clinics still tracked in the `__clinics` cookie.
-  pruneClinicScopedKeys(
+  let recentPrescriptions = readClinicScopedList<RecentPrescription>(
     sessionData,
     clinicScopedPrefixes.prescriptions,
-    await getKeepClinicIds(clinicId, request.headers.get('Cookie')),
+    clinicId,
   );
-
-  let recentPrescriptions: RecentPrescription[] = [];
-  try {
-    const raw = sessionData.get(`recentPrescriptions-${clinicId}`);
-    if (raw && typeof raw === 'string') {
-      recentPrescriptions = JSON.parse(raw);
-    }
-  } catch {
-    recentPrescriptions = [];
-  }
 
   try {
     // Get the prescription
@@ -106,10 +94,7 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
     recentPrescriptions.unshift(recentPrescription);
     recentPrescriptions = recentPrescriptions.slice(0, recentPrescriptionsMax);
 
-    sessionData.set(
-      `recentPrescriptions-${clinicId}`,
-      JSON.stringify(recentPrescriptions),
-    );
+    sessionData.set(`recentPrescriptions-${clinicId}`, recentPrescriptions);
 
     return Response.json(
       {
@@ -120,7 +105,13 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
       },
       {
         headers: {
-          'Set-Cookie': await commitSession(sessionData),
+          'Set-Cookie': await commitClinicScopedSession(
+            sessionData,
+            clinicScopedPrefixes.prescriptions,
+            clinicId,
+            request.headers.get('Cookie'),
+            commitSession,
+          ),
         },
       },
     );

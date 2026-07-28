@@ -20,8 +20,8 @@ import { ClinicianSchema } from '~/schemas';
 import { usePersistedTab } from '~/hooks/usePersistedTab';
 import {
   clinicScopedPrefixes,
-  getKeepClinicIds,
-  pruneClinicScopedKeys,
+  commitClinicScopedSession,
+  readClinicScopedList,
 } from '~/utils/recentEntities.server';
 
 type ClinicianLoaderData = {
@@ -34,6 +34,8 @@ type ClinicianLoaderData = {
 export const handle = {
   breadcrumb: { href: '#', label: 'Clinician Profile' },
 };
+
+const recentCliniciansMax = 10;
 
 /**
  * Skip loader revalidation when only the 'tab' search param changed.
@@ -105,26 +107,11 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
       request.headers.get('Cookie'),
     );
 
-    // This loader owns the `recentClinicians-*` keys, so it prunes them: bound
-    // the key count to the clinics still tracked in the `__clinics` cookie.
-    pruneClinicScopedKeys(
+    let recentClinicians = readClinicScopedList<RecentClinician>(
       cliniciansSessionData,
       clinicScopedPrefixes.clinicians,
-      await getKeepClinicIds(clinicId, request.headers.get('Cookie')),
+      clinicId,
     );
-
-    const recentCliniciansData = cliniciansSessionData.get(
-      `recentClinicians-${clinicId}`,
-    );
-    let recentClinicians: RecentClinician[] = [];
-
-    if (recentCliniciansData && typeof recentCliniciansData === 'string') {
-      try {
-        recentClinicians = JSON.parse(recentCliniciansData);
-      } catch {
-        recentClinicians = [];
-      }
-    }
 
     // Add current clinician to recent list
     const clinicianTyped = clinician as Clinician;
@@ -132,8 +119,6 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
       id: clinicianTyped.id,
       name: clinicianTyped.name,
       email: clinicianTyped.email,
-      roles: clinicianTyped.roles,
-      lastViewedAt: new Date().toISOString(),
     };
 
     // Remove existing entry if present
@@ -143,19 +128,22 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
     // Add to beginning of array
     recentClinicians.unshift(recentClinician);
     // Keep only last 10
-    recentClinicians = recentClinicians.slice(0, 10);
+    recentClinicians = recentClinicians.slice(0, recentCliniciansMax);
 
     // Update session
-    cliniciansSessionData.set(
-      `recentClinicians-${clinicId}`,
-      JSON.stringify(recentClinicians),
-    );
+    cliniciansSessionData.set(`recentClinicians-${clinicId}`, recentClinicians);
 
     return Response.json(
       { clinician, recentClinicians, clinics, totalClinics },
       {
         headers: {
-          'Set-Cookie': await commitSession(cliniciansSessionData),
+          'Set-Cookie': await commitClinicScopedSession(
+            cliniciansSessionData,
+            clinicScopedPrefixes.clinicians,
+            clinicId,
+            request.headers.get('Cookie'),
+            commitSession,
+          ),
         },
       },
     );
@@ -282,8 +270,6 @@ export default function Clinician() {
         id: clinician.id,
         name: clinician.name,
         email: clinician.email,
-        roles: clinician.roles,
-        lastViewedAt: new Date().toISOString(),
       };
       addRecentClinician(recentClinician);
     }

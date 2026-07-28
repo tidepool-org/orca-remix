@@ -28,7 +28,6 @@ import { apiRequest, apiRequestSafe, apiRoutes } from '~/api.server';
 import { patientsSession } from '~/sessions.server';
 import { useLoaderData } from 'react-router';
 import { useEffect } from 'react';
-import isArray from 'lodash/isArray';
 import omit from 'lodash/omit';
 import pick from 'lodash/pick';
 import uniqBy from 'lodash/uniqBy';
@@ -38,8 +37,8 @@ import { APIError } from '~/utils/errors';
 import { backfillPumpSettingsDeviceInfo } from '~/utils/deviceNames';
 import {
   clinicScopedPrefixes,
-  getKeepClinicIds,
-  pruneClinicScopedKeys,
+  commitClinicScopedSession,
+  readClinicScopedList,
 } from '~/utils/recentEntities.server';
 
 type PatientLoaderData = {
@@ -134,22 +133,14 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 
   const clinicId = params.clinicId as string;
 
-  // This loader owns the `patients-*` keys, so it prunes them: bound the key
-  // count to the clinics still tracked in the `__clinics` cookie.
-  pruneClinicScopedKeys(
-    recentlyViewed,
-    clinicScopedPrefixes.patients,
-    await getKeepClinicIds(clinicId, request.headers.get('Cookie')),
-  );
-
   const patientId = params.patientId as string;
 
   // We store recently viewed patients in session storage for persistence across browser sessions
-  const recentPatients: RecentPatient[] = isArray(
-    recentlyViewed.get(`patients-${clinicId}`),
-  )
-    ? recentlyViewed.get(`patients-${clinicId}`)
-    : [];
+  const recentPatients = readClinicScopedList<RecentPatient>(
+    recentlyViewed,
+    clinicScopedPrefixes.patients,
+    clinicId,
+  );
 
   // Get the specific patient (critical) - this must succeed
   let patient: Patient;
@@ -394,17 +385,18 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
       'email',
     ]);
     recentPatients.unshift(recentPatient);
-    recentlyViewed.set(
-      `patients-${clinicId}`,
-      uniqBy(recentPatients, 'id').slice(0, recentPatientsMax),
+    const updatedRecentPatients = uniqBy(recentPatients, 'id').slice(
+      0,
+      recentPatientsMax,
     );
+    recentlyViewed.set(`patients-${clinicId}`, updatedRecentPatients);
 
     return Response.json(
       {
         patient,
         patientClinics,
         prescriptions,
-        recentPatients: recentlyViewed.get(`patients-${clinicId}`),
+        recentPatients: updatedRecentPatients,
         dataSets,
         totalDataSets,
         dataSources,
@@ -429,7 +421,13 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
       {
         headers: {
           'Cache-Control': 'private, max-age=60',
-          'Set-Cookie': await commitSession(recentlyViewed),
+          'Set-Cookie': await commitClinicScopedSession(
+            recentlyViewed,
+            clinicScopedPrefixes.patients,
+            clinicId,
+            request.headers.get('Cookie'),
+            commitSession,
+          ),
         },
       },
     );

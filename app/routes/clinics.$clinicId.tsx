@@ -51,7 +51,11 @@ import {
   UpdateTimezoneSchema,
 } from '~/schemas';
 import { errorResponse, APIError } from '~/utils/errors';
-import { recentClinicsMax } from '~/utils/recentEntities.server';
+import {
+  clinicScopedPrefixes,
+  readClinicScopedList,
+  recentClinicsMax,
+} from '~/utils/recentEntities.server';
 import { useToast } from '~/contexts/ToastContext';
 import { usePersistedTab } from '~/hooks/usePersistedTab';
 
@@ -154,38 +158,23 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     ? recentlyViewed.get('clinics')
     : [];
 
-  const recentPatients: RecentPatient[] = isArray(
-    recentPatientsData.get(`patients-${clinicId}`),
-  )
-    ? recentPatientsData.get(`patients-${clinicId}`)
-    : [];
+  const recentPatients = readClinicScopedList<RecentPatient>(
+    recentPatientsData,
+    clinicScopedPrefixes.patients,
+    clinicId,
+  );
 
-  let recentClinicians: RecentClinician[] = [];
-  try {
-    const recentCliniciansString = recentCliniciansData.get(
-      `recentClinicians-${clinicId}`,
-    );
-    if (recentCliniciansString && typeof recentCliniciansString === 'string') {
-      recentClinicians = JSON.parse(recentCliniciansString);
-    }
-  } catch {
-    recentClinicians = [];
-  }
+  const recentClinicians = readClinicScopedList<RecentClinician>(
+    recentCliniciansData,
+    clinicScopedPrefixes.clinicians,
+    clinicId,
+  );
 
-  let recentPrescriptions: RecentPrescription[] = [];
-  try {
-    const recentPrescriptionsString = recentPrescriptionsData.get(
-      `recentPrescriptions-${clinicId}`,
-    );
-    if (
-      recentPrescriptionsString &&
-      typeof recentPrescriptionsString === 'string'
-    ) {
-      recentPrescriptions = JSON.parse(recentPrescriptionsString);
-    }
-  } catch {
-    recentPrescriptions = [];
-  }
+  const recentPrescriptions = readClinicScopedList<RecentPrescription>(
+    recentPrescriptionsData,
+    clinicScopedPrefixes.prescriptions,
+    clinicId,
+  );
 
   try {
     // Fetch clinic data, patients, patient invites, and clinicians in parallel
@@ -319,10 +308,10 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
         uniqBy(recentClinics, 'id').slice(0, recentClinicsMax),
       );
 
-      // The clinic-scoped caches are pruned by the child loaders that own them
-      // (see pruneClinicScopedKeys) rather than here: their keys are only ever
-      // created by those loaders, so pruning there is sufficient and avoids two
-      // loaders writing the same cookie in one request.
+      // The clinic-scoped caches are left to the child loaders that own them
+      // (see commitClinicScopedSession): only those loaders create their keys,
+      // so pruning there covers every key and keeps one writer per cookie per
+      // request.
       return data(
         {
           clinic,
