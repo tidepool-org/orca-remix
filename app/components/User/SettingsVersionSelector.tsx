@@ -7,6 +7,7 @@ import {
   Chip,
 } from '@heroui/react';
 import { Calendar, ChevronDown } from 'lucide-react';
+import { fieldSurfaceClasses, fieldMenuItemClasses } from '~/utils/fieldStyles';
 
 export type VersionDisplay = {
   index: number;
@@ -35,7 +36,7 @@ export default function SettingsVersionSelector({
       <DropdownTrigger>
         <Button
           variant="bordered"
-          className="h-10 bg-[color:var(--surface)] border-[color:var(--border-strong)] data-[hover=true]:border-primary"
+          className={fieldSurfaceClasses}
           startContent={
             <Calendar className="w-4 h-4 text-primary" aria-hidden="true" />
           }
@@ -55,6 +56,7 @@ export default function SettingsVersionSelector({
       <DropdownMenu
         aria-label="Settings history"
         variant="flat"
+        itemClasses={fieldMenuItemClasses}
         selectionMode="single"
         selectedKeys={new Set([String(selectedIndex)])}
         onSelectionChange={(keys) => {
