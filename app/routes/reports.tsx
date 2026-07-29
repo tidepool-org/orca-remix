@@ -1,6 +1,5 @@
 import { type MetaFunction } from 'react-router';
 import { Outlet } from 'react-router';
-import SectionPanel from '~/components/ui/SectionPanel';
 
 export const meta: MetaFunction = () => {
   return [
@@ -16,10 +15,17 @@ export const handle = {
 export default function Reports() {
   return (
     <div className="flex flex-col gap-4 w-full">
-      <SectionPanel
-        title="Reports"
-        subtitle="Generate reports for clinic analysis and administration."
-      />
+      <div>
+        <p className="text-[10px] font-semibold uppercase tracking-[0.07em] text-[color:var(--text-faint)]">
+          Administration
+        </p>
+        <h1 className="text-2xl font-bold text-[color:var(--text-heading)]">
+          Reports
+        </h1>
+        <p className="text-sm text-[color:var(--text-muted)] mt-1">
+          Generate reports for clinic analysis and administration.
+        </p>
+      </div>
       <Outlet />
     </div>
   );

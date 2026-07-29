@@ -26,13 +26,6 @@ export const recentTableClasses = {
   tr: sharedTr,
 };
 
-export const searchInputClasses = {
-  base: 'max-w-xs',
-  inputWrapper:
-    'bg-[color:var(--field-bg)] border border-[color:var(--field-border)] shadow-none',
-  input: 'group-data-[has-value=true]:text-[color:var(--text)]',
-};
-
 /**
  * Standard table classes for collapsible tables
  */
