@@ -8,8 +8,17 @@ import {
   Button,
   Tab,
   Input,
+  Switch,
 } from '@heroui/react';
-import { Users, UserCog, FileText, Settings, Trash2 } from 'lucide-react';
+import {
+  Users,
+  UserCog,
+  FileText,
+  Settings,
+  Trash2,
+  Sun,
+  Check,
+} from 'lucide-react';
 import type { Key } from 'react';
 
 import type {
@@ -37,12 +46,16 @@ import ConfirmationModal from '../ui/ConfirmationModal';
 import ProfileHeader from '~/components/ui/ProfileHeader';
 import ProfileTabs from '~/components/ui/ProfileTabs';
 import TabTitle from '~/components/ui/TabTitle';
-import SettingsToggleRow from '~/components/ui/SettingsToggleRow';
 import { DangerZoneAction } from '~/components/ui/DangerZoneSection';
-import SaveCancelButtons from '~/components/ui/SaveCancelButtons';
 import SectionPanel from '~/components/ui/SectionPanel';
+import SettingRow from '~/components/ui/SettingRow';
 import { CollapsibleGroup } from '~/components/ui/CollapsibleGroup';
 import { timezoneNames } from '~/utils/timezoneNames';
+import { fieldSurfaceClasses, fieldMenuItemClasses } from '~/utils/fieldStyles';
+import {
+  dangerRowButtonClassName,
+  tertiaryButtonClassName,
+} from '~/utils/buttonStyles';
 
 const tierOptions = [
   { key: 'tier0100', label: 'Tier 0100' },
@@ -52,7 +65,28 @@ const tierOptions = [
 ];
 
 const DEFAULT_PATIENT_LIMIT = 250;
-const PATIENT_LIMIT_STEP = 25;
+
+/**
+ * The hard patient-count limit, tolerating the legacy `patientCount` field
+ * (since renamed to `plan`). Mirrors blip's read fallback so clinics whose
+ * limit was stored under the old key still display. We only ever write `plan`.
+ */
+function readHardLimitPlan(
+  settings?: ClinicPatientCountSettings | null,
+): number | undefined {
+  return settings?.hardLimit?.plan ?? settings?.hardLimit?.patientCount;
+}
+
+/** Only the settings the user changed are included, so the combined save
+ *  touches only the endpoints whose value actually changed. */
+export type ClinicSettingsPayload = {
+  tier?: string;
+  timezone?: string;
+  mrnRequired?: boolean;
+  mrnUnique?: boolean;
+  /** number = set the limit; null = remove the limit */
+  hardLimitPlan?: number | null;
+};
 
 export type ClinicProfileProps = {
   clinic: Clinic;
@@ -88,16 +122,9 @@ export type ClinicProfileProps = {
   onCliniciansPageChange?: (page: number) => void;
   onCliniciansSearch?: (search: string) => void;
   currentCliniciansSearch?: string;
-  onTierUpdate?: (clinicId: string, newTier: string) => void;
-  onTimezoneUpdate?: (clinicId: string, newTimezone: string) => void;
-  onMrnSettingsUpdate?: (
+  onSaveClinicSettings?: (
     clinicId: string,
-    mrnRequired: boolean,
-    mrnUnique: boolean,
-  ) => void;
-  onPatientLimitUpdate?: (
-    clinicId: string,
-    hardLimitPlan: number | null,
+    payload: ClinicSettingsPayload,
   ) => void;
   onDeleteClinic?: () => void;
   onRevokeClinicianInvite?: (inviteId: string) => void;
@@ -142,10 +169,7 @@ export default function ClinicProfile({
   onCliniciansPageChange,
   onCliniciansSearch,
   currentCliniciansSearch,
-  onTierUpdate,
-  onTimezoneUpdate,
-  onMrnSettingsUpdate,
-  onPatientLimitUpdate,
+  onSaveClinicSettings,
   onDeleteClinic,
   onRevokeClinicianInvite,
   onRemoveClinician,
@@ -154,7 +178,19 @@ export default function ClinicProfile({
   selectedTab,
   onTabChange,
 }: ClinicProfileProps) {
-  const { id, shareCode, name, createdTime, tier, timezone } = clinic;
+  const {
+    id,
+    shareCode,
+    name,
+    createdTime,
+    tier,
+    timezone,
+    address,
+    city,
+    state,
+    postalCode,
+    country,
+  } = clinic;
   const { locale } = useLocale();
   const profileExpandedProps = useProfileExpanded('clinic');
 
@@ -170,20 +206,21 @@ export default function ClinicProfile({
   );
   const [mrnUnique, setMrnUnique] = useState(mrnSettings?.unique ?? false);
 
-  // Patient limit state
-  const [isLimitEnabled, setIsLimitEnabled] = useState(
-    patientCountSettings?.hardLimit?.plan !== undefined,
-  );
+  // Patient limit state — an empty value means "no limit". The old separate
+  // "Limit Applied" toggle is collapsed into the empty/disabled input state.
   const [patientLimitValue, setPatientLimitValue] = useState(
-    patientCountSettings?.hardLimit?.plan?.toString() ??
-      DEFAULT_PATIENT_LIMIT.toString(),
+    readHardLimitPlan(patientCountSettings)?.toString() ?? '',
   );
 
   // Delete clinic modal state
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
-  // Check if patient limits are applicable (only for tier0100)
-  const isPatientLimitApplicable = tier === 'tier0100';
+  // Patient limits apply only to US-based tier0100 clinics — no other
+  // country or tier can have a limit. Gate on the *staged* tier (so the
+  // controls track the tier the user is choosing and no limit is sent for a
+  // non-tier0100 tier) and on the clinic's country.
+  const isUsBased = country === 'US';
+  const isPatientLimitApplicable = stagedTier === 'tier0100' && isUsBased;
 
   // ProfileHeader configuration
   const clinicIdentifiers = [
@@ -193,8 +230,14 @@ export default function ClinicProfile({
       : []),
   ];
 
+  const addressLine =
+    [address, [city, state].filter(Boolean).join(' '), postalCode, country]
+      .filter(Boolean)
+      .join(', ') || '—';
+
   const clinicDetailFields = [
     { label: 'Tier', value: tier || '—' },
+    { label: 'Address', value: addressLine },
     {
       label: 'Created',
       value: createdTime ? formatShortDate(createdTime, locale) : '—',
@@ -225,83 +268,68 @@ export default function ClinicProfile({
 
   // Reset patient limit when it changes from server
   useEffect(() => {
-    const hasLimit = patientCountSettings?.hardLimit?.plan !== undefined;
-    setIsLimitEnabled(hasLimit);
     setPatientLimitValue(
-      patientCountSettings?.hardLimit?.plan?.toString() ??
-        DEFAULT_PATIENT_LIMIT.toString(),
+      readHardLimitPlan(patientCountSettings)?.toString() ?? '',
     );
   }, [patientCountSettings]);
 
   // Dirty detection helpers
+  const serverLimitValue =
+    readHardLimitPlan(patientCountSettings)?.toString() ?? '';
   const isTierDirty = stagedTier !== tier;
   const isTimezoneDirty = selectedTimezone !== (timezone || '');
   const isMrnRequiredDirty = mrnRequired !== (mrnSettings?.required ?? false);
   const isMrnUniqueDirty = mrnUnique !== (mrnSettings?.unique ?? false);
-  const serverLimitEnabled =
-    patientCountSettings?.hardLimit?.plan !== undefined;
-  const serverLimitValue =
-    patientCountSettings?.hardLimit?.plan?.toString() ??
-    DEFAULT_PATIENT_LIMIT.toString();
   const isPatientLimitDirty =
-    isLimitEnabled !== serverLimitEnabled ||
-    (isLimitEnabled && patientLimitValue !== serverLimitValue);
+    isPatientLimitApplicable && patientLimitValue.trim() !== serverLimitValue;
 
-  // Save handlers — call the API callbacks
-  const handleTierSave = () => {
-    if (onTierUpdate && stagedTier !== tier) {
-      onTierUpdate(id, stagedTier);
-    }
-  };
+  // A non-empty patient limit must be an exact non-negative integer; blank
+  // means "no limit". Anything else (decimal, negative, exponent notation,
+  // letters) is invalid and must block the save rather than be coerced to a
+  // truncated value or silently interpreted as a removal.
+  const trimmedPatientLimit = patientLimitValue.trim();
+  const isPatientLimitInvalid =
+    isPatientLimitDirty &&
+    trimmedPatientLimit !== '' &&
+    !/^\d+$/.test(trimmedPatientLimit);
 
-  const handleTierCancel = () => {
+  const isDirty =
+    isTierDirty ||
+    isTimezoneDirty ||
+    isMrnRequiredDirty ||
+    isMrnUniqueDirty ||
+    isPatientLimitDirty;
+
+  // Reset every staged value back to its loader source.
+  const handleReset = () => {
     setStagedTier(tier);
-  };
-
-  const handleTimezoneSave = () => {
-    if (onTimezoneUpdate && selectedTimezone) {
-      onTimezoneUpdate(id, selectedTimezone);
-    }
-  };
-
-  const handleTimezoneCancel = () => {
     setSelectedTimezone(timezone || '');
-  };
-
-  const handleMrnRequiredSave = () => {
-    if (onMrnSettingsUpdate) {
-      onMrnSettingsUpdate(id, mrnRequired, mrnSettings?.unique ?? false);
-    }
-  };
-
-  const handleMrnRequiredCancel = () => {
     setMrnRequired(mrnSettings?.required ?? false);
-  };
-
-  const handleMrnUniqueSave = () => {
-    if (onMrnSettingsUpdate) {
-      onMrnSettingsUpdate(id, mrnSettings?.required ?? false, mrnUnique);
-    }
-  };
-
-  const handleMrnUniqueCancel = () => {
     setMrnUnique(mrnSettings?.unique ?? false);
-  };
-
-  const handlePatientLimitSave = () => {
-    if (onPatientLimitUpdate) {
-      if (isLimitEnabled) {
-        const value = parseInt(patientLimitValue, 10);
-        onPatientLimitUpdate(id, isNaN(value) ? DEFAULT_PATIENT_LIMIT : value);
-      } else {
-        onPatientLimitUpdate(id, null);
-      }
-    }
-  };
-
-  const handlePatientLimitCancel = () => {
-    setIsLimitEnabled(serverLimitEnabled);
     setPatientLimitValue(serverLimitValue);
+  };
+
+  // Save every changed setting in one submit. Only dirty fields are included
+  // so the combined action calls only the endpoints that need it. MRN required
+  // and unique share one endpoint, so both are sent whenever either changed.
+  const handleSaveClinicSettings = () => {
+    if (!onSaveClinicSettings || !isDirty || isPatientLimitInvalid) return;
+
+    const payload: ClinicSettingsPayload = {};
+    if (isTierDirty) payload.tier = stagedTier;
+    if (isTimezoneDirty) payload.timezone = selectedTimezone;
+    if (isMrnRequiredDirty || isMrnUniqueDirty) {
+      payload.mrnRequired = mrnRequired;
+      payload.mrnUnique = mrnUnique;
+    }
+    if (isPatientLimitDirty) {
+      // Only a blank value is a removal; a valid non-blank value is an exact
+      // integer (invalid input is blocked above, so no coercion happens here).
+      payload.hardLimitPlan =
+        trimmedPatientLimit === '' ? null : parseInt(trimmedPatientLimit, 10);
+    }
+
+    onSaveClinicSettings(id, payload);
   };
 
   const handleDeleteClinic = () => {
@@ -437,182 +465,169 @@ export default function ClinicProfile({
             title={<TabTitle icon={Settings} label="Settings" />}
           >
             <div className="pt-6 flex flex-col gap-6">
-              {/* Clinic Tier Settings */}
+              {/* Clinic Settings — one consolidated panel of hairline rows */}
               <SectionPanel
-                title="Clinic Tier"
-                subtitle="The clinic tier determines the features and limits available to this clinic."
+                icon={<Sun />}
+                title="Clinic Settings"
+                aria-label="Clinic Settings"
               >
-                <div className="flex items-center gap-4">
-                  <Select
-                    size="sm"
-                    selectedKeys={[stagedTier]}
-                    onSelectionChange={(keys) => {
-                      const key = Array.from(keys)[0] as string;
-                      if (key) {
-                        setStagedTier(key);
-                      }
-                    }}
-                    className="w-48"
-                    classNames={{
-                      trigger: 'h-10 min-h-10',
-                    }}
-                    isDisabled={isSubmitting}
-                    aria-label="Select clinic tier"
-                  >
-                    {tierOptions.map((option) => (
-                      <SelectItem key={option.key}>{option.label}</SelectItem>
-                    ))}
-                  </Select>
-                  {isTierDirty && (
-                    <SaveCancelButtons
-                      onSave={handleTierSave}
-                      onCancel={handleTierCancel}
-                      isDisabled={isSubmitting}
-                      saveAriaLabel="Save tier change"
-                      cancelAriaLabel="Cancel tier change"
-                    />
-                  )}
-                </div>
-              </SectionPanel>
-
-              {/* Patient Limit Settings */}
-              <SectionPanel
-                title="Patient Limit"
-                subtitle="Set a maximum number of patients for this clinic. Use the toggle to enable or disable the limit."
-              >
-                {!isPatientLimitApplicable && (
-                  <p className="text-xs text-[color:var(--text-muted)] mb-4 p-2 bg-[color:var(--surface-2)] rounded-md">
-                    Patient limits only apply to tier0100 clinics. Change the
-                    clinic tier to tier0100 to enable this setting.
-                  </p>
-                )}
-                <div className="flex flex-col gap-4">
-                  <div className="flex items-center gap-4">
-                    <div className="flex-1">
-                      <SettingsToggleRow
-                        label="Limit Applied"
-                        description="Enable patient count limit for this clinic"
-                        isSelected={isLimitEnabled}
-                        onValueChange={setIsLimitEnabled}
-                        isDisabled={isSubmitting || !isPatientLimitApplicable}
-                        ariaLabel="Enable patient count limit"
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium mb-2">Maximum Patients</p>
-                    <div className="flex items-center gap-2">
-                      <Input
-                        type="number"
+                <div className="flex flex-col">
+                  <SettingRow
+                    label="Tier"
+                    description="Subscription tier — controls feature access and limits."
+                    control={
+                      <Select
                         size="sm"
-                        placeholder="Enter limit"
-                        aria-label="Maximum patients"
-                        value={isLimitEnabled ? patientLimitValue : ''}
-                        onValueChange={setPatientLimitValue}
-                        className="w-40"
-                        min={0}
-                        step={PATIENT_LIMIT_STEP}
-                        isDisabled={
-                          isSubmitting ||
-                          !isPatientLimitApplicable ||
-                          !isLimitEnabled
-                        }
-                      />
-                      <span className="text-sm text-[color:var(--text-muted)]">
-                        patients
-                      </span>
-                      {isPatientLimitApplicable && isPatientLimitDirty && (
-                        <SaveCancelButtons
-                          onSave={handlePatientLimitSave}
-                          onCancel={handlePatientLimitCancel}
-                          isDisabled={isSubmitting}
-                          saveAriaLabel="Save patient limit changes"
-                          cancelAriaLabel="Cancel patient limit changes"
+                        selectedKeys={[stagedTier]}
+                        onSelectionChange={(keys) => {
+                          const key = Array.from(keys)[0] as string;
+                          if (key) {
+                            setStagedTier(key);
+                          }
+                        }}
+                        className="w-[230px]"
+                        classNames={{ trigger: fieldSurfaceClasses }}
+                        listboxProps={{ itemClasses: fieldMenuItemClasses }}
+                        isDisabled={isSubmitting}
+                        aria-label="Select clinic tier"
+                      >
+                        {tierOptions.map((option) => (
+                          <SelectItem key={option.key}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </Select>
+                    }
+                  />
+
+                  <SettingRow
+                    label="Patient Limit"
+                    description={
+                      <>
+                        Maximum number of patients this clinic may enroll. Leave
+                        empty for no limit.
+                        <br />
+                        Only applies to US-based tier 0100 clinics.
+                      </>
+                    }
+                    control={
+                      <div className="flex items-center gap-2">
+                        <Button
+                          size="sm"
+                          variant="flat"
+                          className={`h-10 min-h-10 ${tertiaryButtonClassName}`}
+                          onPress={() =>
+                            setPatientLimitValue(String(DEFAULT_PATIENT_LIMIT))
+                          }
+                          isDisabled={
+                            isSubmitting ||
+                            !isPatientLimitApplicable ||
+                            patientLimitValue.trim() ===
+                              String(DEFAULT_PATIENT_LIMIT)
+                          }
+                          aria-label={`Set patient limit to default of ${DEFAULT_PATIENT_LIMIT}`}
+                        >
+                          Set default ({DEFAULT_PATIENT_LIMIT})
+                        </Button>
+                        <Input
+                          type="number"
+                          size="sm"
+                          placeholder="No limit"
+                          aria-label="Maximum patients"
+                          value={patientLimitValue}
+                          onValueChange={setPatientLimitValue}
+                          className="w-[150px]"
+                          classNames={{ inputWrapper: fieldSurfaceClasses }}
+                          min={0}
+                          step={1}
+                          isDisabled={isSubmitting || !isPatientLimitApplicable}
+                          isInvalid={isPatientLimitInvalid}
+                          errorMessage="Enter a whole number of 0 or more, or leave empty for no limit."
                         />
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </SectionPanel>
+                      </div>
+                    }
+                  />
 
-              {/* Timezone Settings */}
-              <SectionPanel title="Timezone">
-                <div className="flex items-center gap-4">
-                  <Autocomplete
-                    size="sm"
-                    selectedKey={selectedTimezone || null}
-                    onSelectionChange={(key) => {
-                      if (key !== null) {
-                        setSelectedTimezone(key as string);
-                      }
-                    }}
-                    className="w-80"
-                    isDisabled={isSubmitting}
-                    placeholder="Select timezone..."
-                    aria-label="Select timezone"
-                    defaultInputValue={selectedTimezone}
-                  >
-                    {timezoneNames.map((tz) => (
-                      <AutocompleteItem key={tz}>{tz}</AutocompleteItem>
-                    ))}
-                  </Autocomplete>
-                  {isTimezoneDirty && (
-                    <SaveCancelButtons
-                      onSave={handleTimezoneSave}
-                      onCancel={handleTimezoneCancel}
-                      isDisabled={isSubmitting}
-                      saveAriaLabel="Save timezone change"
-                      cancelAriaLabel="Cancel timezone change"
-                    />
-                  )}
-                </div>
-              </SectionPanel>
+                  <SettingRow
+                    label="Timezone"
+                    description="Default timezone for reports and timestamps."
+                    control={
+                      <Autocomplete
+                        size="sm"
+                        selectedKey={selectedTimezone || null}
+                        onSelectionChange={(key) => {
+                          if (key !== null) {
+                            setSelectedTimezone(key as string);
+                          }
+                        }}
+                        className="w-[230px]"
+                        inputProps={{
+                          classNames: { inputWrapper: fieldSurfaceClasses },
+                        }}
+                        listboxProps={{ itemClasses: fieldMenuItemClasses }}
+                        isDisabled={isSubmitting}
+                        placeholder="Select timezone..."
+                        aria-label="Select timezone"
+                        defaultInputValue={selectedTimezone}
+                      >
+                        {timezoneNames.map((tz) => (
+                          <AutocompleteItem key={tz}>{tz}</AutocompleteItem>
+                        ))}
+                      </Autocomplete>
+                    }
+                  />
 
-              {/* MRN Settings */}
-              <SectionPanel title="MRN Settings">
-                <div className="flex flex-col gap-4">
-                  <div className="flex items-center gap-4">
-                    <div className="flex-1">
-                      <SettingsToggleRow
-                        label="MRN Required"
-                        description="Require MRN when creating or updating patients"
+                  <SettingRow
+                    label="Require MRN"
+                    description="Require a Medical Record Number when adding patients."
+                    control={
+                      <Switch
+                        size="sm"
                         isSelected={mrnRequired}
                         onValueChange={setMrnRequired}
                         isDisabled={isSubmitting}
-                        ariaLabel="MRN required"
+                        aria-label="Require MRN"
                       />
-                    </div>
-                    {isMrnRequiredDirty && (
-                      <SaveCancelButtons
-                        onSave={handleMrnRequiredSave}
-                        onCancel={handleMrnRequiredCancel}
-                        isDisabled={isSubmitting}
-                        saveAriaLabel="Save MRN required change"
-                        cancelAriaLabel="Cancel MRN required change"
-                      />
-                    )}
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <div className="flex-1">
-                      <SettingsToggleRow
-                        label="MRN Unique"
-                        description="Enforce MRN uniqueness constraint"
+                    }
+                  />
+
+                  <SettingRow
+                    label="Unique MRN"
+                    description="Enforce that each patient's MRN is unique."
+                    control={
+                      <Switch
+                        size="sm"
                         isSelected={mrnUnique}
                         onValueChange={setMrnUnique}
                         isDisabled={isSubmitting}
-                        ariaLabel="MRN unique"
+                        aria-label="Unique MRN"
                       />
-                    </div>
-                    {isMrnUniqueDirty && (
-                      <SaveCancelButtons
-                        onSave={handleMrnUniqueSave}
-                        onCancel={handleMrnUniqueCancel}
-                        isDisabled={isSubmitting}
-                        saveAriaLabel="Save MRN unique change"
-                        cancelAriaLabel="Cancel MRN unique change"
-                      />
-                    )}
-                  </div>
+                    }
+                  />
+                </div>
+
+                <div className="flex justify-end gap-2 pt-4 mt-1 border-t border-[color:var(--border)]">
+                  <Button
+                    variant="flat"
+                    size="md"
+                    className={tertiaryButtonClassName}
+                    onPress={handleReset}
+                    isDisabled={!isDirty || isSubmitting}
+                  >
+                    Reset
+                  </Button>
+                  <Button
+                    color="primary"
+                    className="font-semibold"
+                    startContent={<Check size={16} aria-hidden="true" />}
+                    onPress={handleSaveClinicSettings}
+                    isDisabled={
+                      !isDirty || isSubmitting || isPatientLimitInvalid
+                    }
+                    isLoading={isSubmitting}
+                  >
+                    Save Changes
+                  </Button>
                 </div>
               </SectionPanel>
 
@@ -632,6 +647,7 @@ export default function ClinicProfile({
                       color="danger"
                       variant="flat"
                       size="sm"
+                      className={dangerRowButtonClassName}
                       startContent={<Trash2 size={14} aria-hidden="true" />}
                       onPress={() => setIsDeleteModalOpen(true)}
                     >

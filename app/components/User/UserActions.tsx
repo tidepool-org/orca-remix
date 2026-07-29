@@ -17,6 +17,10 @@ import {
   DangerZoneAction,
   ActionCard,
 } from '~/components/ui/DangerZoneSection';
+import {
+  secondaryButtonClassName,
+  dangerRowButtonClassName,
+} from '~/utils/buttonStyles';
 import SectionPanel from '~/components/ui/SectionPanel';
 import { useToast } from '~/contexts/ToastContext';
 import type { User } from './types';
@@ -148,8 +152,10 @@ export default function UserActions({ user }: UserActionsProps) {
             description="Manually verify this user's email address, allowing them to log in immediately."
             actionButton={
               <Button
+                size="sm"
                 variant="flat"
                 color="primary"
+                className={secondaryButtonClassName}
                 startContent={<ShieldCheck size={16} />}
                 onPress={() => openModal('verify-email')}
                 isDisabled={user.emailVerified || isUnclaimedAccount}
@@ -163,8 +169,10 @@ export default function UserActions({ user }: UserActionsProps) {
             description="Send a password reset email with instructions to create a new password."
             actionButton={
               <Button
+                size="sm"
                 variant="flat"
                 color="primary"
+                className={secondaryButtonClassName}
                 startContent={<KeyRound size={16} />}
                 onPress={() => openModal('password-reset')}
                 isDisabled={isUnclaimedAccount}
@@ -178,8 +186,10 @@ export default function UserActions({ user }: UserActionsProps) {
             description="Send a new account confirmation email if the user never received their initial confirmation."
             actionButton={
               <Button
+                size="sm"
                 variant="flat"
                 color="primary"
+                className={secondaryButtonClassName}
                 startContent={<Send size={16} />}
                 onPress={() => openModal('send-confirmation')}
                 isDisabled={user.emailVerified || isUnclaimedAccount}
@@ -193,8 +203,10 @@ export default function UserActions({ user }: UserActionsProps) {
             description="Resend the account confirmation email if the previous one expired."
             actionButton={
               <Button
+                size="sm"
                 variant="flat"
                 color="primary"
+                className={secondaryButtonClassName}
                 startContent={<Mail size={16} />}
                 onPress={() => openModal('resend-confirmation')}
                 isDisabled={user.emailVerified || isUnclaimedAccount}
@@ -220,8 +232,10 @@ export default function UserActions({ user }: UserActionsProps) {
             description="Permanently delete all upload data for this user. The account will remain intact, but all diabetes data will be removed. This action cannot be undone."
             actionButton={
               <Button
+                size="sm"
                 variant="flat"
                 color="danger"
+                className={dangerRowButtonClassName}
                 startContent={<Trash2 size={16} />}
                 onPress={() => openModal('delete-data')}
               >
@@ -234,8 +248,10 @@ export default function UserActions({ user }: UserActionsProps) {
             description="Permanently delete this account and all associated data. This action cannot be undone."
             actionButton={
               <Button
+                size="sm"
                 variant="flat"
                 color="danger"
+                className={dangerRowButtonClassName}
                 startContent={<UserX size={16} />}
                 onPress={() => openModal('delete-account')}
               >
