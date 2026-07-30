@@ -187,7 +187,7 @@ describe('commitClinicScopedSession', () => {
     ]);
   });
 
-  it('sheds other clinics rather than throwing past the 4096-byte limit', async () => {
+  it('sheds other clinics rather than throwing past the byte limit', async () => {
     const session = await sessions.patientsSession.getSession();
     const tracked = Array.from({ length: 5 }, (_, c) => ({
       id: `clinic-${c}`,
@@ -212,7 +212,9 @@ describe('commitClinicScopedSession', () => {
     );
 
     expect(Object.keys(session.data)).toEqual(['patients-clinic-0']);
-    expect(setCookie.split(';')[0].length).toBeLessThanOrEqual(4096);
+    expect(setCookie.split(';')[0].length).toBeLessThanOrEqual(
+      recentEntities.maxCookieBytes,
+    );
   });
 
   // Shedding cannot fix a signing or config failure, so it must not read as an
@@ -293,7 +295,7 @@ describe('commitClinicScopedSession with the clinicians cookie', () => {
 
     const setCookie = await recentEntities.commitClinicScopedSession(
       session,
-      recentEntities.clinicScopedPrefixes.clinicians,
+      'recentClinicians',
       'clinic-1',
       await clinicsCookie([{ id: 'clinic-1' }, { id: 'clinic-0' }]),
       sessions.cliniciansCookie,
@@ -305,6 +307,8 @@ describe('commitClinicScopedSession with the clinicians cookie', () => {
       'recentClinicians-clinic-0',
       'recentClinicians-clinic-1',
     ]);
-    expect(setCookie.split(';')[0].length).toBeLessThanOrEqual(4096);
+    expect(setCookie.split(';')[0].length).toBeLessThanOrEqual(
+      recentEntities.maxCookieBytes,
+    );
   });
 });
