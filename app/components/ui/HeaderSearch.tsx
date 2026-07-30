@@ -75,6 +75,7 @@ const typeOrder: RecentEntity['type'][] = [
 
 export default function HeaderSearch() {
   const [inputValue, setInputValue] = useState('');
+  const [selectedKey, setSelectedKey] = useState<string | null>(null);
   const [isFocused, setIsFocused] = useState(false);
   const [entities, setEntities] = useState<RecentEntity[]>([]);
   const hasFetchedRef = useRef(false);
@@ -121,6 +122,8 @@ export default function HeaderSearch() {
   const navigateToEntity = useCallback(
     (key: React.Key | null) => {
       if (key === null) return;
+      // Never hold a selection: the search box is a launcher, not a select.
+      setSelectedKey(null);
       const entity = entities.find((e) => `${e.type}:${e.id}` === String(key));
       if (entity) {
         navigate(entity.href);
@@ -144,6 +147,7 @@ export default function HeaderSearch() {
       <Autocomplete
         ref={autocompleteRef}
         inputValue={inputValue}
+        selectedKey={selectedKey}
         onInputChange={(val) => {
           setInputValue(val);
           hasArrowNavigated.current = false;
@@ -180,6 +184,7 @@ export default function HeaderSearch() {
               const route = getSearchRoute(trimmed);
               navigate(`${route}?search=${encodeURIComponent(trimmed)}`);
               setInputValue('');
+              setSelectedKey(null);
               hasArrowNavigated.current = false;
             }
           }
@@ -212,7 +217,6 @@ export default function HeaderSearch() {
           placement: 'bottom-start',
         }}
         listboxProps={{
-          onAction: navigateToEntity,
           emptyContent: inputValue.trim()
             ? 'Press Enter to search'
             : 'Start typing to filter',
