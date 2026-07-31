@@ -169,12 +169,7 @@ export type ClinicianInvite = {
   status: 'pending' | 'accepted' | 'declined' | 'expired';
 };
 
-export type RecentClinician = Pick<
-  Clinician,
-  'id' | 'name' | 'email' | 'roles'
-> & {
-  lastViewedAt: string;
-};
+export type RecentClinician = Pick<Clinician, 'id' | 'name' | 'email'>;
 
 export type RecentPatient = Pick<Patient, 'id' | 'fullName' | 'email'>;
 

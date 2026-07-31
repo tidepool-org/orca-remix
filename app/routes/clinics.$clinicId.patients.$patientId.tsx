@@ -25,10 +25,9 @@ import type {
 import type { ResourceState } from '~/api.types';
 import { useRecentItems } from '~/components/Clinic/RecentItemsContext';
 import { apiRequest, apiRequestSafe, apiRoutes } from '~/api.server';
-import { patientsSession } from '~/sessions.server';
+import { patientsCookie, patientsSession } from '~/sessions.server';
 import { useLoaderData } from 'react-router';
 import { useEffect } from 'react';
-import isArray from 'lodash/isArray';
 import omit from 'lodash/omit';
 import pick from 'lodash/pick';
 import uniqBy from 'lodash/uniqBy';
@@ -37,6 +36,12 @@ import { usePersistedTab } from '~/hooks/usePersistedTab';
 import { APIError } from '~/utils/errors';
 import { backfillPumpSettingsDeviceInfo } from '~/utils/deviceNames';
 import { excludeSoftDeleted } from '~/utils/softDeleted';
+import {
+  clinicScopedPrefixes,
+  commitClinicScopedSession,
+  readClinicScopedList,
+  writeClinicScopedList,
+} from '~/utils/recentEntities.server';
 
 type PatientLoaderData = {
   patient: Patient | null;
@@ -125,18 +130,19 @@ function flattenConnectionRequests(
 }
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
-  const { getSession, commitSession } = patientsSession;
+  const { getSession } = patientsSession;
   const recentlyViewed = await getSession(request.headers.get('Cookie'));
 
   const clinicId = params.clinicId as string;
+
   const patientId = params.patientId as string;
 
   // We store recently viewed patients in session storage for persistence across browser sessions
-  const recentPatients: RecentPatient[] = isArray(
-    recentlyViewed.get(`patients-${clinicId}`),
-  )
-    ? recentlyViewed.get(`patients-${clinicId}`)
-    : [];
+  const recentPatients = readClinicScopedList<RecentPatient>(
+    recentlyViewed,
+    clinicScopedPrefixes.patients,
+    clinicId,
+  );
 
   // Get the specific patient (critical) - this must succeed
   let patient: Patient;
@@ -389,9 +395,15 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
       'email',
     ]);
     recentPatients.unshift(recentPatient);
-    recentlyViewed.set(
-      `patients-${clinicId}`,
-      uniqBy(recentPatients, 'id').slice(0, recentPatientsMax),
+    const updatedRecentPatients = uniqBy(recentPatients, 'id').slice(
+      0,
+      recentPatientsMax,
+    );
+    writeClinicScopedList(
+      recentlyViewed,
+      clinicScopedPrefixes.patients,
+      clinicId,
+      updatedRecentPatients,
     );
 
     return Response.json(
@@ -399,7 +411,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
         patient,
         patientClinics,
         prescriptions,
-        recentPatients: recentlyViewed.get(`patients-${clinicId}`),
+        recentPatients: updatedRecentPatients,
         dataSets,
         totalDataSets,
         dataSources,
@@ -424,7 +436,13 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
       {
         headers: {
           'Cache-Control': 'private, max-age=60',
-          'Set-Cookie': await commitSession(recentlyViewed),
+          'Set-Cookie': await commitClinicScopedSession(
+            recentlyViewed,
+            clinicScopedPrefixes.patients,
+            clinicId,
+            request.headers.get('Cookie'),
+            patientsCookie,
+          ),
         },
       },
     );

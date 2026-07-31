@@ -2,10 +2,16 @@ import type { LoaderFunctionArgs, MetaFunction } from 'react-router';
 import { useLoaderData } from 'react-router';
 import { useEffect } from 'react';
 import { apiRequest, apiRoutes } from '~/api.server';
-import { prescriptionsSession } from '~/sessions.server';
+import { prescriptionsCookie, prescriptionsSession } from '~/sessions.server';
 import { useRecentItems } from '~/components/Clinic/RecentItemsContext';
 import PrescriptionProfile from '~/components/Clinic/PrescriptionProfile';
 import { getPatientName } from '~/utils/prescriptions';
+import {
+  clinicScopedPrefixes,
+  commitClinicScopedSession,
+  readClinicScopedList,
+  writeClinicScopedList,
+} from '~/utils/recentEntities.server';
 import type {
   Prescription,
   Clinician,
@@ -39,18 +45,14 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
     throw new Response('Not found', { status: 404 });
   }
 
-  const { getSession, commitSession } = prescriptionsSession;
+  const { getSession } = prescriptionsSession;
   const sessionData = await getSession(request.headers.get('Cookie'));
 
-  let recentPrescriptions: RecentPrescription[] = [];
-  try {
-    const raw = sessionData.get(`recentPrescriptions-${clinicId}`);
-    if (raw && typeof raw === 'string') {
-      recentPrescriptions = JSON.parse(raw);
-    }
-  } catch {
-    recentPrescriptions = [];
-  }
+  let recentPrescriptions = readClinicScopedList<RecentPrescription>(
+    sessionData,
+    clinicScopedPrefixes.prescriptions,
+    clinicId,
+  );
 
   try {
     // Get the prescription
@@ -93,9 +95,11 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
     recentPrescriptions.unshift(recentPrescription);
     recentPrescriptions = recentPrescriptions.slice(0, recentPrescriptionsMax);
 
-    sessionData.set(
-      `recentPrescriptions-${clinicId}`,
-      JSON.stringify(recentPrescriptions),
+    writeClinicScopedList(
+      sessionData,
+      clinicScopedPrefixes.prescriptions,
+      clinicId,
+      recentPrescriptions,
     );
 
     return Response.json(
@@ -107,7 +111,13 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
       },
       {
         headers: {
-          'Set-Cookie': await commitSession(sessionData),
+          'Set-Cookie': await commitClinicScopedSession(
+            sessionData,
+            clinicScopedPrefixes.prescriptions,
+            clinicId,
+            request.headers.get('Cookie'),
+            prescriptionsCookie,
+          ),
         },
       },
     );

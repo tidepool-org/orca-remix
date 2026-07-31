@@ -509,6 +509,17 @@ export const apiRequest = async <T = unknown>({
       );
     }
 
+    // Outside production, log the request unredacted so a failing call can be
+    // replayed verbatim against the API. The redacted line above cannot
+    // distinguish a routing failure from a bad identifier, which is exactly
+    // what a 404 needs. Guarded so identifiers can never reach a deployed log.
+    if (process.env.NODE_ENV !== 'production') {
+      console.error(
+        `[dev] unredacted: ${method.toUpperCase()} ${serverAuth.apiHost}${path}`,
+        { status: error.status, message: error.message },
+      );
+    }
+
     throw error;
   }
 };
