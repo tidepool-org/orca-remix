@@ -535,6 +535,38 @@ export async function action({ request, params }: ActionFunctionArgs) {
         });
       }
 
+      case 'delete-dataset': {
+        const dataSetId = formData.get('dataSetId') as string;
+        if (!dataSetId) {
+          return Response.json(
+            { success: false, error: 'Dataset ID is required' },
+            { status: 400 },
+          );
+        }
+        await apiRequest(apiRoutes.data.deleteDataSet(dataSetId));
+        return Response.json({
+          success: true,
+          action: 'delete-dataset',
+          message: 'Dataset deleted successfully',
+        });
+      }
+
+      case 'delete-dataset-data': {
+        const dataSetId = formData.get('dataSetId') as string;
+        if (!dataSetId) {
+          return Response.json(
+            { success: false, error: 'Dataset ID is required' },
+            { status: 400 },
+          );
+        }
+        await apiRequest(apiRoutes.data.deleteDataFromDataSet(dataSetId));
+        return Response.json({
+          success: true,
+          action: 'delete-dataset-data',
+          message: 'Data deleted from dataset successfully',
+        });
+      }
+
       default:
         return Response.json(
           { success: false, error: `Unknown action: ${intent}` },
