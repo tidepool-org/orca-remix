@@ -36,6 +36,7 @@ import pick from 'lodash/pick';
 import uniqBy from 'lodash/uniqBy';
 import { APIError } from '~/utils/errors';
 import { backfillPumpSettingsDeviceInfo } from '~/utils/deviceNames';
+import { excludeSoftDeleted } from '~/utils/softDeleted';
 import { usePersistedTab } from '~/hooks/usePersistedTab';
 
 export const meta: MetaFunction = () => {
@@ -269,6 +270,14 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
             pumpSettingsState.data,
             dataSetsState.data,
           ),
+        };
+      }
+
+      // Drop soft-deleted uploads from what the table renders.
+      if (dataSetsState.status === 'success') {
+        dataSetsState = {
+          ...dataSetsState,
+          data: excludeSoftDeleted(dataSetsState.data),
         };
       }
 

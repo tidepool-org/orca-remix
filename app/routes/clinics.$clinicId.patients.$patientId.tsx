@@ -36,6 +36,7 @@ import { PatientSchema } from '~/schemas';
 import { usePersistedTab } from '~/hooks/usePersistedTab';
 import { APIError } from '~/utils/errors';
 import { backfillPumpSettingsDeviceInfo } from '~/utils/deviceNames';
+import { excludeSoftDeleted } from '~/utils/softDeleted';
 
 type PatientLoaderData = {
   patient: Patient | null;
@@ -344,6 +345,14 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
         pumpSettingsState.data,
         dataSetsState.data,
       ),
+    };
+  }
+
+  // Drop soft-deleted uploads from what the table renders.
+  if (dataSetsState.status === 'success') {
+    dataSetsState = {
+      ...dataSetsState,
+      data: excludeSoftDeleted(dataSetsState.data),
     };
   }
 
