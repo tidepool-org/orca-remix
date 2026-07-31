@@ -145,6 +145,8 @@ export default function HeaderSearch() {
       <Autocomplete
         ref={autocompleteRef}
         inputValue={inputValue}
+        // Never holds a selection: a launcher, not a select.
+        selectedKey={null}
         onInputChange={(val) => {
           setInputValue(val);
           hasArrowNavigated.current = false;
@@ -214,7 +216,6 @@ export default function HeaderSearch() {
           placement: 'bottom-start',
         }}
         listboxProps={{
-          onAction: navigateToEntity,
           emptyContent: inputValue.trim()
             ? 'Press Enter to search'
             : 'Start typing to filter',
