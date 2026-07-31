@@ -51,7 +51,12 @@ import {
   PatientCountSettingsSchema,
   UpdateTimezoneSchema,
 } from '~/schemas';
-import { errorResponse, APIError } from '~/utils/errors';
+import {
+  errorResponse,
+  APIError,
+  ValidationError,
+  getErrorMessage,
+} from '~/utils/errors';
 import {
   clinicScopedPrefixes,
   readClinicScopedList,
