@@ -1,0 +1,8 @@
+os: linux
+dist: jammy
+
+services:
+  - docker
+
+script:
+  - ./artifact.sh
