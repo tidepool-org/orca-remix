@@ -125,6 +125,7 @@ export default function HeaderSearch() {
       if (entity) {
         navigate(entity.href);
         setInputValue('');
+        autocompleteRef.current?.blur();
       }
     },
     [entities, navigate],
@@ -181,6 +182,7 @@ export default function HeaderSearch() {
               navigate(`${route}?search=${encodeURIComponent(trimmed)}`);
               setInputValue('');
               hasArrowNavigated.current = false;
+              autocompleteRef.current?.blur();
             }
           }
         }}
