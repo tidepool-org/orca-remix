@@ -125,7 +125,9 @@ export default function HeaderSearch() {
       if (entity) {
         navigate(entity.href);
         setInputValue('');
-        autocompleteRef.current?.blur();
+        // Deferred a frame on purpose: this runs inside onSelectionChange, and a
+        // synchronous blur there releases focus without closing the popover.
+        requestAnimationFrame(() => autocompleteRef.current?.blur());
       }
     },
     [entities, navigate],
