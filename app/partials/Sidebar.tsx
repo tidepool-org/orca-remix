@@ -11,7 +11,7 @@ import { Button } from '@heroui/react';
 import { NavLink } from 'react-router';
 
 import Logo from '~/components/Logo/Logo';
-import SmallLogo from '~/components/Logo/Tidepool_T_Icon_Dark.svg';
+import OrcaMark from '~/components/Logo/OrcaMark';
 import { type SidebarOpenProps } from '~/layouts/Dashboard';
 import { useSidebarExpanded } from '~/contexts/SidebarExpandedContext';
 
@@ -102,17 +102,20 @@ function Sidebar({ sidebarOpen, setSidebarOpen }: SidebarOpenProps) {
 
           <NavLink
             to="/"
-            className="block px-2 sidebar-expanded:px-0 py-1 sidebar-expanded:pt-0"
+            className="flex items-center gap-0 px-2 sidebar-expanded:px-1 py-1 sidebar-expanded:pt-0"
+            aria-label="Tidepool ORCA home"
           >
-            <Logo
-              className="hidden lg:block"
-              src={sidebarExpanded ? undefined : SmallLogo}
-              width={sidebarExpanded ? 172 : 22}
-              theme={Theme.DARK}
-            />
+            <OrcaMark width={28} alt="" theme={Theme.DARK} />
+            {sidebarExpanded && (
+              <Logo
+                className="hidden lg:block"
+                width={172}
+                theme={Theme.DARK}
+              />
+            )}
             <Logo
               className="lg:hidden right-2"
-              width={152}
+              width={172}
               theme={Theme.DARK}
             />
           </NavLink>
