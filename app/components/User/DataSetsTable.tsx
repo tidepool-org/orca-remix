@@ -40,6 +40,17 @@ import {
   getPlatformDeviceLabel,
 } from '~/utils/deviceNames';
 
+// The platform's delete-data-within-a-dataset endpoint takes a body of
+// per-datum selectors with no wildcard, so "delete all of it" — what this
+// control offers — has no request to make and always fails. Enumerating every
+// datum id is not the answer: it means downloading the whole dataset to build
+// the list, and the endpoint still rejects closed datasets and 500s when no
+// deduplicator resolves. Note the whole-dataset delete already removes every
+// datum; only the upload record differs. Hidden until the platform can express
+// "all data in this dataset", or the action is retired (ORCA-74). The handler
+// and its intent are left in place so re-enabling is a one-line change.
+const showDeleteDataFromDataSet = false;
+
 export type DataSetsTableProps = {
   dataSets: DataSet[];
   dataSetsState?: ResourceState<DataSet[]>;
@@ -299,7 +310,7 @@ export default function DataSetsTable({
             </DropdownItem>,
           ];
 
-          if (item.dataSetType === 'continuous') {
+          if (showDeleteDataFromDataSet && item.dataSetType === 'continuous') {
             menuItems.push(
               <DropdownItem
                 key="delete-data"

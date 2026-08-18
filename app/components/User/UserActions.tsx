@@ -25,6 +25,13 @@ import SectionPanel from '~/components/ui/SectionPanel';
 import { useToast } from '~/contexts/ToastContext';
 import type { User } from './types';
 
+// The platform route behind this control is unreachable — the request 404s
+// before it ever gets to the data service, in this app and in the admin tool it
+// replaced. Hidden until that routing is fixed platform-side (ORCA-74). The
+// modal config, handler, and intent are left in place so re-enabling is a
+// one-line change.
+const showDeleteUserData = false;
+
 type ActionType =
   | 'verify-email'
   | 'password-reset'
@@ -227,22 +234,24 @@ export default function UserActions({ user }: UserActionsProps) {
         defaultExpanded={false}
       >
         <div className="flex flex-col">
-          <DangerZoneAction
-            title="Delete User Data"
-            description="Permanently delete all upload data for this user. The account will remain intact, but all diabetes data will be removed. This action cannot be undone."
-            actionButton={
-              <Button
-                size="sm"
-                variant="flat"
-                color="danger"
-                className={dangerRowButtonClassName}
-                startContent={<Trash2 size={16} />}
-                onPress={() => openModal('delete-data')}
-              >
-                Delete Data
-              </Button>
-            }
-          />
+          {showDeleteUserData && (
+            <DangerZoneAction
+              title="Delete User Data"
+              description="Permanently delete all upload data for this user. The account will remain intact, but all diabetes data will be removed. This action cannot be undone."
+              actionButton={
+                <Button
+                  size="sm"
+                  variant="flat"
+                  color="danger"
+                  className={dangerRowButtonClassName}
+                  startContent={<Trash2 size={16} />}
+                  onPress={() => openModal('delete-data')}
+                >
+                  Delete Data
+                </Button>
+              }
+            />
+          )}
           <DangerZoneAction
             title="Delete User Account"
             description="Permanently delete this account and all associated data. This action cannot be undone."

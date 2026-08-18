@@ -100,11 +100,11 @@ describe('UserActions', () => {
       expect(screen.getByText('Danger Zone')).toBeInTheDocument();
       // But the delete buttons inside should not be visible by default
       expect(
-        screen.queryByRole('button', { name: /delete data/i }),
+        screen.queryByRole('button', { name: /delete account/i }),
       ).not.toBeInTheDocument();
     });
 
-    it('shows delete buttons when danger zone is expanded', async () => {
+    it('shows delete account when danger zone is expanded', async () => {
       const user = userEvent.setup();
       render(<UserActions user={claimedUser} />);
 
@@ -115,11 +115,21 @@ describe('UserActions', () => {
       await user.click(dangerZoneButton);
 
       expect(
-        screen.getByRole('button', { name: /delete data/i }),
-      ).toBeInTheDocument();
-      expect(
         screen.getByRole('button', { name: /delete account/i }),
       ).toBeInTheDocument();
+    });
+
+    it('does not offer the user-data delete', async () => {
+      const user = userEvent.setup();
+      render(<UserActions user={claimedUser} />);
+
+      await user.click(screen.getByRole('button', { name: /danger zone/i }));
+
+      // Its platform route is unreachable, so the control is deliberately not
+      // rendered even with the danger zone open.
+      expect(
+        screen.queryByRole('button', { name: /^delete data$/i }),
+      ).not.toBeInTheDocument();
     });
   });
 
@@ -182,8 +192,7 @@ describe('UserActions', () => {
 
       // Expand danger zone
       await user.click(screen.getByRole('button', { name: /danger zone/i }));
-      // Delete data is always available regardless of claim status
-      await user.click(screen.getByRole('button', { name: /delete data/i }));
+      await user.click(screen.getByRole('button', { name: /delete account/i }));
 
       // The expected input for unclaimed user should be the userid
       expect(
