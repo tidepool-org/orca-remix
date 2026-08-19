@@ -15,7 +15,6 @@ import type {
 import type {
   DataSet,
   DataSource,
-  DataSetsResponse,
   DataSourcesResponse,
   AccessPermissionsMap,
   ShareInvite,
@@ -26,8 +25,8 @@ import type { ResourceState } from '~/api.types';
 import { useRecentItems } from '~/components/Clinic/RecentItemsContext';
 import { apiRequest, apiRequestSafe, apiRoutes } from '~/api.server';
 import { patientsCookie, patientsSession } from '~/sessions.server';
-import { useLoaderData } from 'react-router';
-import { useEffect } from 'react';
+import { useLoaderData, useSearchParams, useSubmit } from 'react-router';
+import { useCallback, useEffect } from 'react';
 import omit from 'lodash/omit';
 import pick from 'lodash/pick';
 import uniqBy from 'lodash/uniqBy';
@@ -35,6 +34,13 @@ import { PatientSchema } from '~/schemas';
 import { usePersistedTab } from '~/hooks/usePersistedTab';
 import { APIError } from '~/utils/errors';
 import { backfillPumpSettingsDeviceInfo } from '~/utils/deviceNames';
+import { fetchBackfillUploads } from '~/utils/deviceNames.server';
+import { loadUploadsPage } from '~/utils/uploadsPaging.server';
+import {
+  knownUploadCount,
+  parseUploadsPage,
+  uploadsPageSize,
+} from '~/utils/uploadsPaging';
 import {
   clinicScopedPrefixes,
   commitClinicScopedSession,
@@ -49,6 +55,8 @@ type PatientLoaderData = {
   recentPatients: RecentPatient[];
   dataSets: DataSet[];
   totalDataSets: number;
+  uploadsPage: number;
+  hasMoreDataSets: boolean;
   dataSources: DataSource[];
   totalDataSources: number;
   connectionRequests: ConnectionRequest[];
@@ -131,6 +139,8 @@ function flattenConnectionRequests(
 export async function loader({ request, params }: LoaderFunctionArgs) {
   const { getSession } = patientsSession;
   const recentlyViewed = await getSession(request.headers.get('Cookie'));
+  const url = new URL(request.url);
+  const uploadsPage = parseUploadsPage(url.searchParams);
 
   const clinicId = params.clinicId as string;
 
@@ -168,7 +178,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   const [
     patientClinicsRawState,
     prescriptionsRawState,
-    dataSetsRawState,
+    uploadsPageResult,
     dataSourcesRawState,
     trustingAccountsRawState,
     trustedAccountsRawState,
@@ -182,9 +192,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     apiRequestSafe<Prescription[]>(
       apiRoutes.prescription.getPatientPrescriptions(patientId),
     ),
-    apiRequestSafe<DataSetsResponse>(
-      apiRoutes.data.getData(patientId, { type: 'upload' }),
-    ),
+    loadUploadsPage(patientId, uploadsPage),
     apiRequestSafe<DataSourcesResponse>(
       apiRoutes.data.getDataSources(patientId),
     ),
@@ -237,17 +245,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     prescriptionsState = prescriptionsRawState;
   }
 
-  // Normalize data sets response
-  let dataSetsState: ResourceState<DataSet[]>;
-  if (dataSetsRawState.status === 'success') {
-    const response = dataSetsRawState.data;
-    dataSetsState = {
-      status: 'success',
-      data: Array.isArray(response) ? response : response?.data || [],
-    };
-  } else {
-    dataSetsState = dataSetsRawState as ResourceState<DataSet[]>;
-  }
+  const { dataSetsState, hasMore: hasMoreDataSets } = uploadsPageResult;
 
   // Normalize data sources response
   let dataSourcesState: ResourceState<DataSource[]>;
@@ -339,18 +337,18 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   }
 
   // Some pump-settings records omit manufacturer/model/serial; backfill from
-  // the matching upload so the device-info row renders fully.
-  if (
-    pumpSettingsState.status === 'success' &&
-    dataSetsState.status === 'success'
-  ) {
-    pumpSettingsState = {
-      ...pumpSettingsState,
-      data: backfillPumpSettingsDeviceInfo(
-        pumpSettingsState.data,
-        dataSetsState.data,
-      ),
-    };
+  // each one's own upload so the device-info row renders fully.
+  if (pumpSettingsState.status === 'success') {
+    const uploads = await fetchBackfillUploads(
+      patientId,
+      pumpSettingsState.data,
+    );
+    if (uploads.length > 0) {
+      pumpSettingsState = {
+        ...pumpSettingsState,
+        data: backfillPumpSettingsDeviceInfo(pumpSettingsState.data, uploads),
+      };
+    }
   }
 
   // Extract data for backward compatibility
@@ -359,7 +357,11 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   const prescriptions =
     prescriptionsState.status === 'success' ? prescriptionsState.data : [];
   const dataSets = dataSetsState.status === 'success' ? dataSetsState.data : [];
-  const totalDataSets = dataSets.length;
+  const totalDataSets = knownUploadCount(
+    uploadsPage,
+    uploadsPageSize,
+    dataSets.length,
+  );
   const dataSources =
     dataSourcesState.status === 'success' ? dataSourcesState.data : [];
   const totalDataSources = dataSources.length;
@@ -405,6 +407,8 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
         recentPatients: updatedRecentPatients,
         dataSets,
         totalDataSets,
+        uploadsPage,
+        hasMoreDataSets,
         dataSources,
         totalDataSources,
         connectionRequests,
@@ -452,6 +456,8 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     recentPatients,
     dataSets: [],
     totalDataSets: 0,
+    uploadsPage: 1,
+    hasMoreDataSets: false,
     dataSources: [],
     totalDataSources: 0,
     connectionRequests: [],
@@ -575,6 +581,8 @@ export default function Patient() {
     prescriptions,
     dataSets,
     totalDataSets,
+    uploadsPage,
+    hasMoreDataSets,
     dataSources,
     totalDataSources,
     connectionRequests,
@@ -585,12 +593,25 @@ export default function Patient() {
     pumpSettingsState,
   } = useLoaderData<PatientLoaderData>();
   const { addRecentPatient } = useRecentItems();
+  const [searchParams] = useSearchParams();
+  const submit = useSubmit();
+
+  const handleUploadsPageChange = useCallback(
+    (page: number) => {
+      const newSearchParams = new URLSearchParams(searchParams);
+      newSearchParams.set('uploadsPage', page.toString());
+      submit(newSearchParams, { method: 'GET', replace: true });
+    },
+    [searchParams, submit],
+  );
 
   // Tab persistence with localStorage + URL sync
   const { currentTab, handleTabChange } = usePersistedTab(
     'patient',
     patient?.id,
     'data',
+    // The uploads page belongs to the Data tab; it should not outlive it.
+    { resetParamKeys: ['uploadsPage'] },
   );
 
   // Add patient to recent list immediately when component mounts
@@ -613,6 +634,10 @@ export default function Patient() {
       dataSets={dataSets}
       dataSetsState={dataSetsState}
       totalDataSets={totalDataSets}
+      uploadsPage={uploadsPage}
+      uploadsPageSize={uploadsPageSize}
+      hasMoreDataSets={hasMoreDataSets}
+      onUploadsPageChange={handleUploadsPageChange}
       dataSources={dataSources}
       dataSourcesState={dataSourcesState}
       totalDataSources={totalDataSources}

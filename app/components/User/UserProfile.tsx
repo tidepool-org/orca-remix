@@ -56,6 +56,10 @@ export type UserProfileProps = {
   totalClinics?: number;
   dataSets?: DataSet[];
   totalDataSets?: number;
+  uploadsPage?: number;
+  uploadsPageSize?: number;
+  hasMoreDataSets?: boolean;
+  onUploadsPageChange?: (page: number) => void;
   dataSources?: DataSource[];
   totalDataSources?: number;
   connectionRequests?: ConnectionRequest[];
@@ -91,6 +95,10 @@ export default function UserProfile({
   totalClinics = 0,
   dataSets = [],
   totalDataSets = 0,
+  uploadsPage = 1,
+  uploadsPageSize,
+  hasMoreDataSets = false,
+  onUploadsPageChange,
   dataSources = [],
   totalDataSources = 0,
   connectionRequests = [],
@@ -293,6 +301,10 @@ export default function UserProfile({
                   dataSets={dataSets}
                   dataSetsState={dataSetsState}
                   totalDataSets={totalDataSets}
+                  currentPage={uploadsPage}
+                  pageSize={uploadsPageSize}
+                  hasMore={hasMoreDataSets}
+                  onPageChange={onUploadsPageChange}
                   isFirstInGroup
                 />
                 <DataSourcesTable
