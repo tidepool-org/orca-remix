@@ -25,13 +25,14 @@ import type { ResourceState } from '~/api.types';
 import { useRecentItems } from '~/components/Clinic/RecentItemsContext';
 import { apiRequest, apiRequestSafe, apiRoutes } from '~/api.server';
 import { patientsCookie, patientsSession } from '~/sessions.server';
-import { useLoaderData, useSearchParams, useSubmit } from 'react-router';
+import { useLoaderData } from 'react-router';
 import { useCallback, useEffect } from 'react';
 import omit from 'lodash/omit';
 import pick from 'lodash/pick';
 import uniqBy from 'lodash/uniqBy';
 import { PatientSchema } from '~/schemas';
 import { usePersistedTab } from '~/hooks/usePersistedTab';
+import { useSearchParamUpdate } from '~/hooks/useSearchParamUpdate';
 import { APIError } from '~/utils/errors';
 import { backfillPumpSettingsDeviceInfo } from '~/utils/deviceNames';
 import { fetchBackfillUploads } from '~/utils/deviceNames.server';
@@ -593,16 +594,11 @@ export default function Patient() {
     pumpSettingsState,
   } = useLoaderData<PatientLoaderData>();
   const { addRecentPatient } = useRecentItems();
-  const [searchParams] = useSearchParams();
-  const submit = useSubmit();
+  const updateSearchParams = useSearchParamUpdate();
 
   const handleUploadsPageChange = useCallback(
-    (page: number) => {
-      const newSearchParams = new URLSearchParams(searchParams);
-      newSearchParams.set('uploadsPage', page.toString());
-      submit(newSearchParams, { method: 'GET', replace: true });
-    },
-    [searchParams, submit],
+    (page: number) => updateSearchParams({ uploadsPage: page }),
+    [updateSearchParams],
   );
 
   // Tab persistence with localStorage + URL sync

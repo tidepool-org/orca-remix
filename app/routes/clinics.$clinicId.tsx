@@ -6,7 +6,6 @@ import {
   redirect,
   data,
   useLoaderData,
-  useSearchParams,
   useSubmit,
   useNavigation,
   Outlet,
@@ -51,7 +50,12 @@ import {
   PatientCountSettingsSchema,
   UpdateTimezoneSchema,
 } from '~/schemas';
-import { errorResponse, APIError } from '~/utils/errors';
+import {
+  errorResponse,
+  getErrorMessage,
+  APIError,
+  ValidationError,
+} from '~/utils/errors';
 import {
   clinicScopedPrefixes,
   readClinicScopedList,
@@ -59,6 +63,7 @@ import {
 } from '~/utils/recentEntities.server';
 import { useToast } from '~/contexts/ToastContext';
 import { usePersistedTab } from '~/hooks/usePersistedTab';
+import { useSearchParamUpdate } from '~/hooks/useSearchParamUpdate';
 
 export const meta: MetaFunction = () => {
   return [
@@ -610,8 +615,8 @@ export default function Clinic() {
     error?: string;
     message?: string;
   }>();
-  const [searchParams] = useSearchParams();
   const submit = useSubmit();
+  const updateSearchParams = useSearchParamUpdate();
   const navigation = useNavigation();
   const location = useLocation();
   const { showToast } = useToast();
@@ -657,59 +662,31 @@ export default function Clinic() {
   }, [actionData, showToast]);
 
   const handlePageChange = useCallback(
-    (page: number) => {
-      const newSearchParams = new URLSearchParams(searchParams);
-      newSearchParams.set('patientsPage', page.toString());
-      submit(newSearchParams, { method: 'GET', replace: true });
-    },
-    [searchParams, submit],
+    (page: number) => updateSearchParams({ patientsPage: page }),
+    [updateSearchParams],
   );
 
   const handleCliniciansPageChange = useCallback(
-    (page: number) => {
-      const newSearchParams = new URLSearchParams(searchParams);
-      newSearchParams.set('cliniciansPage', page.toString());
-      submit(newSearchParams, { method: 'GET', replace: true });
-    },
-    [searchParams, submit],
+    (page: number) => updateSearchParams({ cliniciansPage: page }),
+    [updateSearchParams],
   );
 
+  // Sorting and searching re-page the list, so the page index goes back to 1.
   const handleSort = useCallback(
-    (sort: string) => {
-      const newSearchParams = new URLSearchParams(searchParams);
-      newSearchParams.set('sort', sort);
-      newSearchParams.set('patientsPage', '1'); // Reset to first page when sorting
-      submit(newSearchParams, { method: 'GET', replace: true });
-    },
-    [searchParams, submit],
+    (sort: string) => updateSearchParams({ sort, patientsPage: 1 }),
+    [updateSearchParams],
   );
 
   const handleSearch = useCallback(
-    (search: string) => {
-      const newSearchParams = new URLSearchParams(searchParams);
-      if (search) {
-        newSearchParams.set('patientsSearch', search);
-      } else {
-        newSearchParams.delete('patientsSearch');
-      }
-      newSearchParams.set('patientsPage', '1'); // Reset to first page when searching
-      submit(newSearchParams, { method: 'GET', replace: true });
-    },
-    [searchParams, submit],
+    (search: string) =>
+      updateSearchParams({ patientsSearch: search, patientsPage: 1 }),
+    [updateSearchParams],
   );
 
   const handleCliniciansSearch = useCallback(
-    (search: string) => {
-      const newSearchParams = new URLSearchParams(searchParams);
-      if (search) {
-        newSearchParams.set('cliniciansSearch', search);
-      } else {
-        newSearchParams.delete('cliniciansSearch');
-      }
-      newSearchParams.set('cliniciansPage', '1'); // Reset to first page when searching
-      submit(newSearchParams, { method: 'GET', replace: true });
-    },
-    [searchParams, submit],
+    (search: string) =>
+      updateSearchParams({ cliniciansSearch: search, cliniciansPage: 1 }),
+    [updateSearchParams],
   );
 
   const handleSaveClinicSettings = useCallback(

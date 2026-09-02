@@ -29,7 +29,7 @@ import type {
 import type { ResourceState } from '~/api.types';
 import { apiRequest, apiRoutes, apiRequestSafe } from '~/api.server';
 import { usersSession } from '~/sessions.server';
-import { useLoaderData, useSearchParams, useSubmit } from 'react-router';
+import { useLoaderData } from 'react-router';
 import { useCallback } from 'react';
 import isArray from 'lodash/isArray';
 import pick from 'lodash/pick';
@@ -44,6 +44,7 @@ import {
   uploadsPageSize,
 } from '~/utils/uploadsPaging';
 import { usePersistedTab } from '~/hooks/usePersistedTab';
+import { useSearchParamUpdate } from '~/hooks/useSearchParamUpdate';
 
 export const meta: MetaFunction = () => {
   return [
@@ -757,16 +758,11 @@ export default function User() {
     { resetParamKeys: ['uploadsPage'] },
   );
 
-  const [searchParams] = useSearchParams();
-  const submit = useSubmit();
+  const updateSearchParams = useSearchParamUpdate();
 
   const handleUploadsPageChange = useCallback(
-    (page: number) => {
-      const newSearchParams = new URLSearchParams(searchParams);
-      newSearchParams.set('uploadsPage', page.toString());
-      submit(newSearchParams, { method: 'GET', replace: true });
-    },
-    [searchParams, submit],
+    (page: number) => updateSearchParams({ uploadsPage: page }),
+    [updateSearchParams],
   );
 
   // Render profile if user exists (profile may be empty object for users without profile metadata)
