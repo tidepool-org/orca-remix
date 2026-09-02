@@ -34,7 +34,9 @@ import uniqBy from 'lodash/uniqBy';
 import { PatientSchema } from '~/schemas';
 import { usePersistedTab } from '~/hooks/usePersistedTab';
 import { APIError } from '~/utils/errors';
+import { intents, isIntent, patientRouteIntents } from '~/utils/intents';
 import { backfillPumpSettingsDeviceInfo } from '~/utils/deviceNames';
+import { excludeSoftDeleted } from '~/utils/softDeleted';
 import {
   clinicScopedPrefixes,
   commitClinicScopedSession,
@@ -353,6 +355,14 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     };
   }
 
+  // Drop soft-deleted uploads from what the table renders.
+  if (dataSetsState.status === 'success') {
+    dataSetsState = {
+      ...dataSetsState,
+      data: excludeSoftDeleted(dataSetsState.data),
+    };
+  }
+
   // Extract data for backward compatibility
   const patientClinics =
     patientClinicsState.status === 'success' ? patientClinicsState.data : [];
@@ -475,13 +485,20 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 
 export async function action({ request, params }: ActionFunctionArgs) {
   const formData = await request.formData();
-  const intent = formData.get('intent') as string;
+  const intent = formData.get('intent');
   const clinicId = params.clinicId as string;
   const patientId = params.patientId as string;
 
+  if (!isIntent(intent, patientRouteIntents)) {
+    return Response.json(
+      { success: false, error: `Unknown action: ${String(intent)}` },
+      { status: 400 },
+    );
+  }
+
   try {
     switch (intent) {
-      case 'send-connect-request': {
+      case intents.sendConnectRequest: {
         const providerName = formData.get('providerName') as string;
         const isResend = formData.get('isResend') === 'true';
 
@@ -548,16 +565,51 @@ export async function action({ request, params }: ActionFunctionArgs) {
         );
         return Response.json({
           success: true,
-          action: 'send-connect-request',
+          action: intents.sendConnectRequest,
           message: `Connection invite sent for ${providerName}`,
         });
       }
 
-      default:
+      case intents.deleteDataSet: {
+        const dataSetId = formData.get('dataSetId') as string;
+        if (!dataSetId) {
+          return Response.json(
+            { success: false, error: 'Dataset ID is required' },
+            { status: 400 },
+          );
+        }
+        await apiRequest(apiRoutes.data.deleteDataSet(dataSetId));
+        return Response.json({
+          success: true,
+          action: intents.deleteDataSet,
+          message: 'Dataset deleted successfully',
+        });
+      }
+
+      case intents.clearDataSetData: {
+        const dataSetId = formData.get('dataSetId') as string;
+        if (!dataSetId) {
+          return Response.json(
+            { success: false, error: 'Dataset ID is required' },
+            { status: 400 },
+          );
+        }
+        await apiRequest(apiRoutes.data.deleteDataFromDataSet(dataSetId));
+        return Response.json({
+          success: true,
+          action: intents.clearDataSetData,
+          message: 'Data deleted from dataset successfully',
+        });
+      }
+
+      default: {
+        // Fails typecheck if a listed intent has no case above.
+        const unhandled: never = intent;
         return Response.json(
-          { success: false, error: `Unknown action: ${intent}` },
+          { success: false, error: `Unhandled action: ${String(unhandled)}` },
           { status: 400 },
         );
+      }
     }
   } catch (error) {
     const message =

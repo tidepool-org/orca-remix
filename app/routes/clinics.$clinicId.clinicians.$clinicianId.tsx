@@ -15,6 +15,7 @@ import type {
 } from '~/components/Clinic/types';
 import { useEffect } from 'react';
 import { APIError } from '~/utils/errors';
+import { clinicianRouteIntents, isIntent } from '~/utils/intents';
 import { z } from 'zod';
 import { ClinicianSchema } from '~/schemas';
 import { usePersistedTab } from '~/hooks/usePersistedTab';
@@ -173,87 +174,84 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
   const formData = await request.formData();
   const intent = formData.get('intent');
 
-  if (intent === 'update-roles') {
-    const rolesJson = formData.get('roles');
-    const clinicianJson = formData.get('clinician');
+  if (!isIntent(intent, clinicianRouteIntents)) {
+    return Response.json({ error: 'Unknown action' }, { status: 400 });
+  }
 
-    if (!rolesJson || typeof rolesJson !== 'string') {
-      return Response.json({ error: 'Invalid roles data' }, { status: 400 });
+  const rolesJson = formData.get('roles');
+  const clinicianJson = formData.get('clinician');
+
+  if (!rolesJson || typeof rolesJson !== 'string') {
+    return Response.json({ error: 'Invalid roles data' }, { status: 400 });
+  }
+
+  if (!clinicianJson || typeof clinicianJson !== 'string') {
+    return Response.json({ error: 'Invalid clinician data' }, { status: 400 });
+  }
+
+  // Schema for validating roles array
+  const RolesSchema = z
+    .array(z.string())
+    .min(1, 'At least one role is required');
+
+  try {
+    // Parse and validate the JSON input
+    let parsedRoles: unknown;
+    let parsedClinician: Clinician;
+    try {
+      parsedRoles = JSON.parse(rolesJson);
+      parsedClinician = ClinicianSchema.parse(JSON.parse(clinicianJson));
+    } catch {
+      return Response.json({ error: 'Invalid JSON format' }, { status: 400 });
     }
 
-    if (!clinicianJson || typeof clinicianJson !== 'string') {
+    const roles = RolesSchema.parse(parsedRoles);
+
+    // Validate that we have at least one base role
+    const hasBaseRole = roles.some(
+      (r) => r === 'CLINIC_ADMIN' || r === 'CLINIC_MEMBER',
+    );
+    if (!hasBaseRole) {
       return Response.json(
-        { error: 'Invalid clinician data' },
+        {
+          error:
+            'Clinician must have either CLINIC_ADMIN or CLINIC_MEMBER role',
+        },
         { status: 400 },
       );
     }
 
-    // Schema for validating roles array
-    const RolesSchema = z
-      .array(z.string())
-      .min(1, 'At least one role is required');
+    // Update the clinician with the new roles
+    // Only pick the fields the API expects — don't spread raw client data
+    await apiRequest({
+      ...apiRoutes.clinic.updateClinician(clinicId, clinicianId),
+      body: {
+        name: parsedClinician.name,
+        email: parsedClinician.email,
+        roles,
+      },
+    });
 
-    try {
-      // Parse and validate the JSON input
-      let parsedRoles: unknown;
-      let parsedClinician: Clinician;
-      try {
-        parsedRoles = JSON.parse(rolesJson);
-        parsedClinician = ClinicianSchema.parse(JSON.parse(clinicianJson));
-      } catch {
-        return Response.json({ error: 'Invalid JSON format' }, { status: 400 });
-      }
-
-      const roles = RolesSchema.parse(parsedRoles);
-
-      // Validate that we have at least one base role
-      const hasBaseRole = roles.some(
-        (r) => r === 'CLINIC_ADMIN' || r === 'CLINIC_MEMBER',
-      );
-      if (!hasBaseRole) {
-        return Response.json(
-          {
-            error:
-              'Clinician must have either CLINIC_ADMIN or CLINIC_MEMBER role',
-          },
-          { status: 400 },
-        );
-      }
-
-      // Update the clinician with the new roles
-      // Only pick the fields the API expects — don't spread raw client data
-      await apiRequest({
-        ...apiRoutes.clinic.updateClinician(clinicId, clinicianId),
-        body: {
-          name: parsedClinician.name,
-          email: parsedClinician.email,
-          roles,
-        },
-      });
-
-      return Response.json({ success: true });
-    } catch (error) {
-      console.error('Error updating clinician roles:', error);
-      if (error instanceof z.ZodError) {
-        return Response.json(
-          { error: error.errors[0]?.message || 'Invalid roles data' },
-          { status: 400 },
-        );
-      }
-      if (error instanceof APIError) {
-        return Response.json(
-          { error: error.message },
-          { status: error.status || 500 },
-        );
-      }
+    return Response.json({ success: true });
+  } catch (error) {
+    console.error('Error updating clinician roles:', error);
+    if (error instanceof z.ZodError) {
       return Response.json(
-        { error: 'Failed to update clinician roles' },
-        { status: 500 },
+        { error: error.errors[0]?.message || 'Invalid roles data' },
+        { status: 400 },
       );
     }
+    if (error instanceof APIError) {
+      return Response.json(
+        { error: error.message },
+        { status: error.status || 500 },
+      );
+    }
+    return Response.json(
+      { error: 'Failed to update clinician roles' },
+      { status: 500 },
+    );
   }
-
-  return Response.json({ error: 'Unknown action' }, { status: 400 });
 };
 
 export default function Clinician() {
