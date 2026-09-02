@@ -125,8 +125,7 @@ describe('UserActions', () => {
 
       await user.click(screen.getByRole('button', { name: /danger zone/i }));
 
-      // Its platform route is unreachable, so the control is deliberately not
-      // rendered even with the danger zone open.
+      // Deliberately absent even with the danger zone open.
       expect(
         screen.queryByRole('button', { name: /^delete data$/i }),
       ).not.toBeInTheDocument();
