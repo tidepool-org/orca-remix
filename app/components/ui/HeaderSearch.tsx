@@ -125,6 +125,9 @@ export default function HeaderSearch() {
       if (entity) {
         navigate(entity.href);
         setInputValue('');
+        // Deferred a frame on purpose: this runs inside onSelectionChange, and a
+        // synchronous blur there releases focus without closing the popover.
+        requestAnimationFrame(() => autocompleteRef.current?.blur());
       }
     },
     [entities, navigate],
@@ -144,6 +147,8 @@ export default function HeaderSearch() {
       <Autocomplete
         ref={autocompleteRef}
         inputValue={inputValue}
+        // Never holds a selection: a launcher, not a select.
+        selectedKey={null}
         onInputChange={(val) => {
           setInputValue(val);
           hasArrowNavigated.current = false;
@@ -181,6 +186,7 @@ export default function HeaderSearch() {
               navigate(`${route}?search=${encodeURIComponent(trimmed)}`);
               setInputValue('');
               hasArrowNavigated.current = false;
+              autocompleteRef.current?.blur();
             }
           }
         }}
@@ -212,7 +218,6 @@ export default function HeaderSearch() {
           placement: 'bottom-start',
         }}
         listboxProps={{
-          onAction: navigateToEntity,
           emptyContent: inputValue.trim()
             ? 'Press Enter to search'
             : 'Start typing to filter',

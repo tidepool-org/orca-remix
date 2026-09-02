@@ -7,6 +7,7 @@ import {
   Chip,
 } from '@heroui/react';
 import { Smartphone, ChevronDown } from 'lucide-react';
+import { fieldSurfaceClasses, fieldMenuItemClasses } from '~/utils/fieldStyles';
 
 // Presentational device picker. The section resolves friendly names / upload
 // dates and passes ready-to-render display rows; this component owns only the
@@ -45,7 +46,7 @@ export default function DeviceSelector({
       <DropdownTrigger>
         <Button
           variant="bordered"
-          className="h-10 border-[color:var(--border-strong)] data-[hover=true]:border-primary"
+          className={fieldSurfaceClasses}
           startContent={
             <Smartphone
               className="w-[18px] h-[18px] text-primary"
@@ -73,6 +74,7 @@ export default function DeviceSelector({
       <DropdownMenu
         aria-label="Devices"
         variant="flat"
+        itemClasses={fieldMenuItemClasses}
         selectionMode="single"
         selectedKeys={new Set([selectedKey])}
         onSelectionChange={(keys) => {
