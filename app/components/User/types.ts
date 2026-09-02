@@ -33,7 +33,10 @@ export type DataSet = {
   byUser?: string;
   computerTime?: string;
   conversionOffset?: number;
-  dataSetType: string;
+  // Omitted by platform on data sets the legacy uploader created, which read as
+  // 'normal' — the same default platform itself applies.
+  dataSetType?: string;
+  createdTime?: string;
   deviceId?: string;
   deviceManufacturers?: string[];
   deviceModel?: string;

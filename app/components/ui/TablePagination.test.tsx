@@ -43,6 +43,13 @@ describe('TablePagination', () => {
       expect(screen.getByLabelText('Jump to page')).toBeInTheDocument();
     });
 
+    it('renders the page count beside the jump input', () => {
+      render(
+        <TablePagination currentPage={1} totalPages={5} totalItems={100} />,
+      );
+      expect(screen.getByText('of 5')).toBeInTheDocument();
+    });
+
     it('renders range text when showRange and totalItems > 0', () => {
       render(
         <TablePagination
@@ -218,6 +225,68 @@ describe('TablePagination', () => {
       await user.type(input, '7');
       await user.tab();
       expect(onPageChange).toHaveBeenCalledWith(7);
+    });
+  });
+
+  // Sources that report no total (platform's data-set endpoint) omit
+  // `totalPages` and pass `hasMore` instead.
+  describe('Unknown total', () => {
+    it('renders with Next enabled and no page count', () => {
+      render(<TablePagination currentPage={1} hasMore totalItems={100} />);
+      expect(screen.getByRole('button', { name: /next page/i })).toBeEnabled();
+      expect(
+        screen.getByRole('button', { name: /previous page/i }),
+      ).toBeDisabled();
+      expect(screen.queryByText(/^of /)).not.toBeInTheDocument();
+    });
+
+    it('renders nothing on a first page with nothing after it', () => {
+      render(<TablePagination currentPage={1} totalItems={10} />);
+      expect(
+        screen.queryByRole('button', { name: /next page/i }),
+      ).not.toBeInTheDocument();
+    });
+
+    it('still renders Previous on a later page once Next runs out', () => {
+      render(<TablePagination currentPage={3} totalItems={60} />);
+      expect(screen.getByRole('button', { name: /next page/i })).toBeDisabled();
+      expect(
+        screen.getByRole('button', { name: /previous page/i }),
+      ).toBeEnabled();
+    });
+
+    it('passes a jump beyond the loaded range through unclamped', async () => {
+      const user = userEvent.setup();
+      const onPageChange = vi.fn();
+      render(
+        <TablePagination
+          currentPage={1}
+          hasMore
+          totalItems={25}
+          onPageChange={onPageChange}
+        />,
+      );
+      const input = screen.getByLabelText('Jump to page');
+      await user.clear(input);
+      await user.type(input, '999{Enter}');
+      expect(onPageChange).toHaveBeenCalledWith(999);
+    });
+
+    it('still clamps a jump below page 1', async () => {
+      const user = userEvent.setup();
+      const onPageChange = vi.fn();
+      render(
+        <TablePagination
+          currentPage={5}
+          hasMore
+          totalItems={125}
+          onPageChange={onPageChange}
+        />,
+      );
+      const input = screen.getByLabelText('Jump to page');
+      await user.clear(input);
+      await user.type(input, '-5{Enter}');
+      expect(onPageChange).toHaveBeenCalledWith(1);
     });
   });
 });

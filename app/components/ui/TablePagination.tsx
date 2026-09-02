@@ -4,9 +4,16 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 export type TablePaginationProps = {
   /** Current page number (1-indexed) */
   currentPage: number;
-  /** Total number of pages */
-  totalPages: number;
-  /** Total number of items */
+  /**
+   * Total number of pages. Omit when the source cannot report one — `hasMore`
+   * then drives the Next button and the `of N` suffix is not rendered.
+   */
+  totalPages?: number;
+  /**
+   * Whether a further page exists. Only consulted when `totalPages` is omitted.
+   */
+  hasMore?: boolean;
+  /** Total number of items. With `totalPages` omitted, a lower bound. */
   totalItems: number;
   /** Number of items per page */
   pageSize?: number;
@@ -58,21 +65,28 @@ const PG_BTN_CLASSNAME =
 export default function TablePagination({
   currentPage,
   totalPages,
+  hasMore = false,
   totalItems,
   pageSize = 25,
   onPageChange,
   showRange = false,
   className = '',
 }: TablePaginationProps) {
-  // Don't render if there's only one page or no items
-  if (totalPages <= 1) {
+  const knowsTotal = totalPages != null;
+
+  // Nothing to page through. With no total that means a first page with nothing
+  // after it — a later page still needs Previous once Next runs out.
+  if (knowsTotal ? totalPages <= 1 : !hasMore && currentPage <= 1) {
     return null;
   }
 
   const firstItem = getFirstItemOnPage(currentPage, pageSize, totalItems);
   const lastItem = getLastItemOnPage(currentPage, pageSize, totalItems);
 
-  const clampPage = (n: number) => Math.min(Math.max(n, 1), totalPages);
+  // With no total there is no upper bound to clamp to; a too-high jump goes
+  // through and the loader answers it with an empty page.
+  const clampPage = (n: number) =>
+    knowsTotal ? Math.min(Math.max(n, 1), totalPages) : Math.max(n, 1);
 
   const commitJump = (target: HTMLInputElement) => {
     const n = Number.parseInt(target.value, 10);
@@ -139,16 +153,18 @@ export default function TablePagination({
               commitJump(e.currentTarget);
             }}
           />
-          <span className="font-mono text-[color:var(--text-faint)]">
-            of {totalPages}
-          </span>
+          {knowsTotal && (
+            <span className="font-mono text-[color:var(--text-faint)]">
+              of {totalPages}
+            </span>
+          )}
         </span>
         <Button
           size="sm"
           variant="bordered"
           isIconOnly
           aria-label="Next page"
-          isDisabled={currentPage >= totalPages}
+          isDisabled={knowsTotal ? currentPage >= totalPages : !hasMore}
           onPress={() => onPageChange?.(clampPage(currentPage + 1))}
           className={PG_BTN_CLASSNAME}
         >
