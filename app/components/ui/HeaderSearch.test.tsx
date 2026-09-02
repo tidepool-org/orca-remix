@@ -72,6 +72,60 @@ describe('HeaderSearch', () => {
     vi.unstubAllGlobals();
   });
 
+  // Committing a search must close the suggestion popover. Left open with the
+  // filter cleared, it matches every recent entity and covers the page just
+  // navigated to. `aria-expanded` is the assertion that catches this — the
+  // option elements linger through an exit animation, so counting them is
+  // timing-sensitive rather than wrong-behavior-sensitive.
+  describe('Closing the dropdown on commit', () => {
+    it('closes the dropdown when a typed term is committed', async () => {
+      const { user, input } = await renderAndOpen();
+
+      await user.type(input, 'Example');
+      await user.keyboard('{Enter}');
+
+      await waitFor(() =>
+        expect(input).toHaveAttribute('aria-expanded', 'false'),
+      );
+      expect(input).not.toHaveFocus();
+    });
+
+    it('closes the dropdown when a recent entity is clicked', async () => {
+      const { user, input } = await renderAndOpen();
+
+      await user.click(optionFor(mockEntities[1])!);
+
+      await waitFor(() =>
+        expect(input).toHaveAttribute('aria-expanded', 'false'),
+      );
+      expect(input).not.toHaveFocus();
+    });
+
+    it('closes the dropdown when a recent entity is chosen by keyboard', async () => {
+      const { user, input } = await renderAndOpen();
+
+      await user.type(input, 'Alpha');
+      await waitFor(() => expect(getOptions()).toHaveLength(1));
+      await user.keyboard('{ArrowDown}');
+      await user.keyboard('{Enter}');
+
+      await waitFor(() =>
+        expect(input).toHaveAttribute('aria-expanded', 'false'),
+      );
+      expect(input).not.toHaveFocus();
+    });
+
+    it('keeps focus when there is nothing to commit', async () => {
+      const { user, input } = await renderAndOpen();
+
+      await user.type(input, '   ');
+      await user.keyboard('{Enter}');
+
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(input).toHaveFocus();
+    });
+  });
+
   describe('Selecting a recent entity', () => {
     it('leaves the input empty after a keyboard selection', async () => {
       const { user, input } = await renderAndOpen();

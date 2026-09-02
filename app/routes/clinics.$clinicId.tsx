@@ -52,9 +52,9 @@ import {
 } from '~/schemas';
 import {
   errorResponse,
-  getErrorMessage,
   APIError,
   ValidationError,
+  getErrorMessage,
 } from '~/utils/errors';
 import {
   clinicScopedPrefixes,
