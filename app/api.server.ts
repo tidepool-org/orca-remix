@@ -469,23 +469,47 @@ export const apiRequest = async <T = unknown>({
   try {
     return await execute();
   } catch (e) {
+    let failure: unknown = e;
+
     // On 401, re-authenticate once and retry the request
     if (e instanceof APIError && e.status === 401) {
       invalidateServerToken();
       await authorizeServer();
-      return await execute();
+      try {
+        return await execute();
+      } catch (retryError) {
+        failure = retryError;
+      }
     }
+
+    let error: APIError;
     // Surface timeout as a descriptive APIError
-    if (e instanceof DOMException && e.name === 'TimeoutError') {
-      throw new APIError(`Request to ${path} timed out after 30s`, 504);
+    if (failure instanceof DOMException && failure.name === 'TimeoutError') {
+      error = new APIError(`Request to ${path} timed out after 30s`, 504);
+    } else if (failure instanceof APIError) {
+      // Wrap unknown errors in APIError for consistent error typing
+      error = failure;
+    } else {
+      error = new APIError(
+        failure instanceof Error
+          ? failure.message
+          : `Unknown error requesting ${path}`,
+      );
     }
-    // Wrap unknown errors in APIError for consistent error typing
-    if (e instanceof APIError) {
-      throw e;
+
+    // Log mutating failures for server-side debugging, since every
+    // destructive admin action uses this throwing variant and would otherwise
+    // leave no server-side trace. GETs are excluded to keep the noise down.
+    // The path is redacted and the backend message omitted because both can
+    // carry PII/PHI — same treatment as apiRequestSafe below.
+    if (method.toLowerCase() !== 'get') {
+      console.error(
+        `API request failed: ${method.toUpperCase()} ${redactPath(path)}`,
+        { code: error.status },
+      );
     }
-    throw new APIError(
-      e instanceof Error ? e.message : `Unknown error requesting ${path}`,
-    );
+
+    throw error;
   }
 };
 

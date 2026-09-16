@@ -35,7 +35,9 @@ import isArray from 'lodash/isArray';
 import pick from 'lodash/pick';
 import uniqBy from 'lodash/uniqBy';
 import { APIError } from '~/utils/errors';
+import { intents, isIntent, userRouteIntents } from '~/utils/intents';
 import { backfillPumpSettingsDeviceInfo } from '~/utils/deviceNames';
+import { excludeSoftDeleted } from '~/utils/softDeleted';
 import { usePersistedTab } from '~/hooks/usePersistedTab';
 
 export const meta: MetaFunction = () => {
@@ -269,6 +271,14 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
             pumpSettingsState.data,
             dataSetsState.data,
           ),
+        };
+      }
+
+      // Drop soft-deleted uploads from what the table renders.
+      if (dataSetsState.status === 'success') {
+        dataSetsState = {
+          ...dataSetsState,
+          data: excludeSoftDeleted(dataSetsState.data),
         };
       }
 
@@ -525,8 +535,15 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 
 export async function action({ request, params }: ActionFunctionArgs) {
   const formData = await request.formData();
-  const intent = formData.get('intent') as string;
+  const intent = formData.get('intent');
   const userId = params.userId as string;
+
+  if (!isIntent(intent, userRouteIntents)) {
+    return Response.json(
+      { success: false, error: `Unknown action: ${String(intent)}` },
+      { status: 400 },
+    );
+  }
 
   // First, fetch the user to get their email for certain operations
   let user: User | null = null;
@@ -548,7 +565,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
   try {
     switch (intent) {
-      case 'verify-email': {
+      case intents.verifyEmail: {
         // Step 1: Get the signup key for the user
         const signupKeyResponse = (await apiRequest(
           apiRoutes.user.getSignupKey(userId),
@@ -571,12 +588,12 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
         return Response.json({
           success: true,
-          action: 'verify-email',
+          action: intents.verifyEmail,
           message: 'User email verified successfully',
         });
       }
 
-      case 'password-reset': {
+      case intents.passwordReset: {
         if (!user.username) {
           return Response.json(
             {
@@ -590,21 +607,21 @@ export async function action({ request, params }: ActionFunctionArgs) {
         await apiRequest(apiRoutes.user.sendPasswordReset(user.username));
         return Response.json({
           success: true,
-          action: 'password-reset',
+          action: intents.passwordReset,
           message: 'Password reset email sent successfully',
         });
       }
 
-      case 'send-confirmation': {
+      case intents.sendConfirmation: {
         await apiRequest(apiRoutes.user.sendConfirmation(userId));
         return Response.json({
           success: true,
-          action: 'send-confirmation',
+          action: intents.sendConfirmation,
           message: 'Confirmation email sent successfully',
         });
       }
 
-      case 'resend-confirmation': {
+      case intents.resendConfirmation: {
         if (!user.username) {
           return Response.json(
             {
@@ -618,27 +635,27 @@ export async function action({ request, params }: ActionFunctionArgs) {
         await apiRequest(apiRoutes.user.resendConfirmation(user.username));
         return Response.json({
           success: true,
-          action: 'resend-confirmation',
+          action: intents.resendConfirmation,
           message: 'Confirmation email resent successfully',
         });
       }
 
-      case 'delete-data': {
+      case intents.deleteUserData: {
         await apiRequest(apiRoutes.user.deleteData(userId));
         return Response.json({
           success: true,
-          action: 'delete-data',
+          action: intents.deleteUserData,
           message: 'User data deleted successfully',
         });
       }
 
-      case 'delete-account': {
+      case intents.deleteAccount: {
         await apiRequest(apiRoutes.user.delete(userId));
         // Redirect to users index after account deletion
         return redirect('/users');
       }
 
-      case 'delete-dataset': {
+      case intents.deleteDataSet: {
         const dataSetId = formData.get('dataSetId') as string;
         if (!dataSetId) {
           return Response.json(
@@ -649,12 +666,12 @@ export async function action({ request, params }: ActionFunctionArgs) {
         await apiRequest(apiRoutes.data.deleteDataSet(dataSetId));
         return Response.json({
           success: true,
-          action: 'delete-dataset',
+          action: intents.deleteDataSet,
           message: 'Dataset deleted successfully',
         });
       }
 
-      case 'delete-dataset-data': {
+      case intents.clearDataSetData: {
         const dataSetId = formData.get('dataSetId') as string;
         if (!dataSetId) {
           return Response.json(
@@ -665,12 +682,12 @@ export async function action({ request, params }: ActionFunctionArgs) {
         await apiRequest(apiRoutes.data.deleteDataFromDataSet(dataSetId));
         return Response.json({
           success: true,
-          action: 'delete-dataset-data',
+          action: intents.clearDataSetData,
           message: 'Data deleted from dataset successfully',
         });
       }
 
-      case 'disconnect-data-source': {
+      case intents.disconnectDataSource: {
         const providerName = formData.get('providerName') as string;
         if (!providerName) {
           return Response.json(
@@ -683,16 +700,19 @@ export async function action({ request, params }: ActionFunctionArgs) {
         );
         return Response.json({
           success: true,
-          action: 'disconnect-data-source',
+          action: intents.disconnectDataSource,
           message: 'Data source disconnected successfully',
         });
       }
 
-      default:
+      default: {
+        // Fails typecheck if a listed intent has no case above.
+        const unhandled: never = intent;
         return Response.json(
-          { success: false, error: `Unknown action: ${intent}` },
+          { success: false, error: `Unhandled action: ${String(unhandled)}` },
           { status: 400 },
         );
+      }
     }
   } catch (error) {
     const message =

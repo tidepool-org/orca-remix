@@ -44,6 +44,7 @@ export type DataSet = {
   time: string;
   timezoneOffset?: number;
   version?: string;
+  deletedTime?: string;
   client?: { name?: string; version?: string };
   origin?: { name?: string };
 };
