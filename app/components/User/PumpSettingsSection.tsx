@@ -3,7 +3,6 @@ import {
   Chip,
   Spinner,
   Switch,
-  Tabs,
   Tab,
   Table,
   TableHeader,
@@ -34,6 +33,7 @@ import {
 import useLocale from '~/hooks/useLocale';
 import { usePumpSettingsCompare } from '~/contexts/PumpSettingsCompareContext';
 import SectionPanel from '~/components/ui/SectionPanel';
+import ProfileTabs from '~/components/ui/ProfileTabs';
 import ResourceError from '~/components/ui/ResourceError';
 import DeviceSelector, { type DeviceDisplay } from './DeviceSelector';
 import SettingsVersionSelector, {
@@ -786,7 +786,7 @@ export default function PumpSettingsSection({
         )}
 
         {/* Settings tabs */}
-        <Tabs aria-label="Pump settings tabs" variant="underlined">
+        <ProfileTabs aria-label="Pump settings tabs">
           {/* Basal Schedules */}
           <Tab
             key="basal"
@@ -872,7 +872,7 @@ export default function PumpSettingsSection({
               )}
             </div>
           </Tab>
-        </Tabs>
+        </ProfileTabs>
       </div>
     </SectionPanel>
   );

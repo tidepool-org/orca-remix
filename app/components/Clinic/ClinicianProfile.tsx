@@ -18,6 +18,7 @@ import { CollapsibleGroup } from '~/components/ui/CollapsibleGroup';
 import { useToast } from '~/contexts/ToastContext';
 import type { Clinician, ClinicianClinicMembership } from './types';
 import { formatShortDate } from '~/utils/dateFormatters';
+import { intents } from '~/utils/intents';
 
 export type ClinicianProfileProps = {
   clinician: Clinician | null;
@@ -125,7 +126,7 @@ export default function ClinicianProfile({
 
     fetcher.submit(
       {
-        intent: 'update-roles',
+        intent: intents.updateRoles,
         roles: JSON.stringify(newRoles),
         clinician: JSON.stringify(clinician),
       },

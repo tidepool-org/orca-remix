@@ -1,4 +1,5 @@
 import {
+  type LinksFunction,
   type LoaderFunctionArgs,
   Links,
   Meta,
@@ -46,6 +47,13 @@ type Agent = {
   picture?: string | undefined;
   email?: string | undefined;
 };
+
+// Modern browsers take the SVG; older ones fall back to the .ico.
+export const links: LinksFunction = () => [
+  { rel: 'icon', href: '/orca-favicon.svg', type: 'image/svg+xml' },
+  { rel: 'alternate icon', href: '/favicon.ico', sizes: '48x48' },
+  { rel: 'apple-touch-icon', href: '/apple-touch-icon.png' },
+];
 
 // Return the theme from the session storage using the loader
 export const loader = async ({ request }: LoaderFunctionArgs) => {

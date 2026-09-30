@@ -6,6 +6,12 @@ export type Clinic = {
   canMigrate: boolean;
   tier: string;
   timezone?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  postalCode?: string;
+  /** ISO 3166-1 alpha-2 country code (e.g. 'US', 'CA'). */
+  country?: string;
   preferredBgUnits?: 'mg/dL' | 'mmol/L';
   patientTags?: {
     id: string;
@@ -34,6 +40,10 @@ export type ClinicMrnSettings = {
 // Patient count limit configuration
 export type PatientCountLimit = {
   plan?: number;
+  /** Legacy field name for `plan`, kept for backward compatibility with
+   *  clinics/backends that predate the rename. Read as a fallback; never
+   *  written. */
+  patientCount?: number;
   startDate?: string;
   endDate?: string;
 };
@@ -159,12 +169,7 @@ export type ClinicianInvite = {
   status: 'pending' | 'accepted' | 'declined' | 'expired';
 };
 
-export type RecentClinician = Pick<
-  Clinician,
-  'id' | 'name' | 'email' | 'roles'
-> & {
-  lastViewedAt: string;
-};
+export type RecentClinician = Pick<Clinician, 'id' | 'name' | 'email'>;
 
 export type RecentPatient = Pick<Patient, 'id' | 'fullName' | 'email'>;
 

@@ -5,7 +5,7 @@ import type { LucideIcon } from 'lucide-react';
 import React from 'react';
 import { useToast } from '~/contexts/ToastContext';
 import SectionPanel from '~/components/ui/SectionPanel';
-import { searchInputClasses } from '~/utils/tableStyles';
+import { searchInputClasses } from '~/utils/fieldStyles';
 
 type LookupFormProps = {
   /**
@@ -142,7 +142,7 @@ export default function LookupForm({
           <Button
             type="submit"
             color="primary"
-            className="font-semibold text-[13px] h-[38px] px-4 gap-[7px] shadow-[0_1px_2px_rgba(70,79,194,0.3)] data-[hover=true]:!bg-[color:var(--primary-strong)] data-[disabled=true]:opacity-[0.45] data-[disabled=true]:shadow-none"
+            className="font-semibold"
             startContent={
               !isSearching ? (
                 <SearchIcon className="w-4 h-4" aria-hidden="true" />

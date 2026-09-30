@@ -14,7 +14,6 @@ import type {
   RecentUser,
   DataSet,
   DataSource,
-  DataSetsResponse,
   DataSourcesResponse,
   AccessPermissionsMap,
   AssociatedUsersResponse,
@@ -31,12 +30,22 @@ import type { ResourceState } from '~/api.types';
 import { apiRequest, apiRoutes, apiRequestSafe } from '~/api.server';
 import { usersSession } from '~/sessions.server';
 import { useLoaderData } from 'react-router';
+import { useCallback } from 'react';
 import isArray from 'lodash/isArray';
 import pick from 'lodash/pick';
 import uniqBy from 'lodash/uniqBy';
 import { APIError } from '~/utils/errors';
+import { intents, isIntent, userRouteIntents } from '~/utils/intents';
 import { backfillPumpSettingsDeviceInfo } from '~/utils/deviceNames';
+import { fetchBackfillUploads } from '~/utils/deviceNames.server';
+import { loadUploadsPage } from '~/utils/uploadsPaging.server';
+import {
+  knownUploadCount,
+  parseUploadsPage,
+  uploadsPageSize,
+} from '~/utils/uploadsPaging';
 import { usePersistedTab } from '~/hooks/usePersistedTab';
+import { useSearchParamUpdate } from '~/hooks/useSearchParamUpdate';
 
 export const meta: MetaFunction = () => {
   return [
@@ -81,6 +90,8 @@ export function shouldRevalidate({
 export async function loader({ request, params }: LoaderFunctionArgs) {
   const { getSession, commitSession } = usersSession;
   const recentlyViewed = await getSession(request.headers.get('Cookie'));
+  const url = new URL(request.url);
+  const uploadsPage = parseUploadsPage(url.searchParams);
 
   // We store recently viewed users in session storage for easy retrieval
   const recentUsers: RecentUser[] = isArray(recentlyViewed.get('users'))
@@ -129,6 +140,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     data: [],
   };
   let dataSetsState: ResourceState<DataSet[]> = { status: 'success', data: [] };
+  let hasMoreDataSets = false;
   let dataSourcesState: ResourceState<DataSource[]> = {
     status: 'success',
     data: [],
@@ -190,7 +202,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     if (!profile?.clinic) {
       // All these fetches are independent — run them in parallel
       const [
-        dataSetsRawState,
+        uploadsPageResult,
         dataSourcesRawState,
         pumpSettingsRawState,
         prescriptionsRawState,
@@ -198,9 +210,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
         sentInvitesRawState,
         receivedInvitesRawState,
       ] = await Promise.all([
-        apiRequestSafe<DataSetsResponse>(
-          apiRoutes.data.getData(user.userid, { type: 'upload' }),
-        ),
+        loadUploadsPage(user.userid, uploadsPage),
         apiRequestSafe<DataSourcesResponse>(
           apiRoutes.data.getDataSources(user.userid),
         ),
@@ -223,16 +233,8 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
         ),
       ]);
 
-      // Normalize data sets
-      if (dataSetsRawState.status === 'success') {
-        const response = dataSetsRawState.data;
-        dataSetsState = {
-          status: 'success',
-          data: Array.isArray(response) ? response : response?.data || [],
-        };
-      } else {
-        dataSetsState = dataSetsRawState as ResourceState<DataSet[]>;
-      }
+      dataSetsState = uploadsPageResult.dataSetsState;
+      hasMoreDataSets = uploadsPageResult.hasMore;
 
       // Normalize data sources
       if (dataSourcesRawState.status === 'success') {
@@ -258,18 +260,21 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
       }
 
       // Some pump-settings records omit manufacturer/model/serial; backfill
-      // from the matching upload so the device-info row renders fully.
-      if (
-        pumpSettingsState.status === 'success' &&
-        dataSetsState.status === 'success'
-      ) {
-        pumpSettingsState = {
-          ...pumpSettingsState,
-          data: backfillPumpSettingsDeviceInfo(
-            pumpSettingsState.data,
-            dataSetsState.data,
-          ),
-        };
+      // from each one's own upload so the device-info row renders fully.
+      if (pumpSettingsState.status === 'success') {
+        const uploads = await fetchBackfillUploads(
+          user.userid,
+          pumpSettingsState.data,
+        );
+        if (uploads.length > 0) {
+          pumpSettingsState = {
+            ...pumpSettingsState,
+            data: backfillPumpSettingsDeviceInfo(
+              pumpSettingsState.data,
+              uploads,
+            ),
+          };
+        }
       }
 
       // Normalize prescriptions (404 = empty array)
@@ -407,7 +412,11 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   const clinics = clinicsState.status === 'success' ? clinicsState.data : [];
   const totalClinics = clinics.length;
   const dataSets = dataSetsState.status === 'success' ? dataSetsState.data : [];
-  const totalDataSets = dataSets.length;
+  const totalDataSets = knownUploadCount(
+    uploadsPage,
+    uploadsPageSize,
+    dataSets.length,
+  );
   const dataSources =
     dataSourcesState.status === 'success' ? dataSourcesState.data : [];
   const totalDataSources = dataSources.length;
@@ -445,6 +454,8 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
         totalClinics,
         dataSets,
         totalDataSets,
+        uploadsPage,
+        hasMoreDataSets,
         dataSources,
         totalDataSources,
         connectionRequests,
@@ -482,6 +493,8 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     totalClinics: 0,
     dataSets: [],
     totalDataSets: 0,
+    uploadsPage: 1,
+    hasMoreDataSets: false,
     dataSources: [],
     totalDataSources: 0,
     connectionRequests: [],
@@ -525,8 +538,15 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 
 export async function action({ request, params }: ActionFunctionArgs) {
   const formData = await request.formData();
-  const intent = formData.get('intent') as string;
+  const intent = formData.get('intent');
   const userId = params.userId as string;
+
+  if (!isIntent(intent, userRouteIntents)) {
+    return Response.json(
+      { success: false, error: `Unknown action: ${String(intent)}` },
+      { status: 400 },
+    );
+  }
 
   // First, fetch the user to get their email for certain operations
   let user: User | null = null;
@@ -548,7 +568,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
   try {
     switch (intent) {
-      case 'verify-email': {
+      case intents.verifyEmail: {
         // Step 1: Get the signup key for the user
         const signupKeyResponse = (await apiRequest(
           apiRoutes.user.getSignupKey(userId),
@@ -571,12 +591,12 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
         return Response.json({
           success: true,
-          action: 'verify-email',
+          action: intents.verifyEmail,
           message: 'User email verified successfully',
         });
       }
 
-      case 'password-reset': {
+      case intents.passwordReset: {
         if (!user.username) {
           return Response.json(
             {
@@ -590,21 +610,21 @@ export async function action({ request, params }: ActionFunctionArgs) {
         await apiRequest(apiRoutes.user.sendPasswordReset(user.username));
         return Response.json({
           success: true,
-          action: 'password-reset',
+          action: intents.passwordReset,
           message: 'Password reset email sent successfully',
         });
       }
 
-      case 'send-confirmation': {
+      case intents.sendConfirmation: {
         await apiRequest(apiRoutes.user.sendConfirmation(userId));
         return Response.json({
           success: true,
-          action: 'send-confirmation',
+          action: intents.sendConfirmation,
           message: 'Confirmation email sent successfully',
         });
       }
 
-      case 'resend-confirmation': {
+      case intents.resendConfirmation: {
         if (!user.username) {
           return Response.json(
             {
@@ -618,27 +638,27 @@ export async function action({ request, params }: ActionFunctionArgs) {
         await apiRequest(apiRoutes.user.resendConfirmation(user.username));
         return Response.json({
           success: true,
-          action: 'resend-confirmation',
+          action: intents.resendConfirmation,
           message: 'Confirmation email resent successfully',
         });
       }
 
-      case 'delete-data': {
+      case intents.deleteUserData: {
         await apiRequest(apiRoutes.user.deleteData(userId));
         return Response.json({
           success: true,
-          action: 'delete-data',
+          action: intents.deleteUserData,
           message: 'User data deleted successfully',
         });
       }
 
-      case 'delete-account': {
+      case intents.deleteAccount: {
         await apiRequest(apiRoutes.user.delete(userId));
         // Redirect to users index after account deletion
         return redirect('/users');
       }
 
-      case 'delete-dataset': {
+      case intents.deleteDataSet: {
         const dataSetId = formData.get('dataSetId') as string;
         if (!dataSetId) {
           return Response.json(
@@ -649,12 +669,12 @@ export async function action({ request, params }: ActionFunctionArgs) {
         await apiRequest(apiRoutes.data.deleteDataSet(dataSetId));
         return Response.json({
           success: true,
-          action: 'delete-dataset',
+          action: intents.deleteDataSet,
           message: 'Dataset deleted successfully',
         });
       }
 
-      case 'delete-dataset-data': {
+      case intents.clearDataSetData: {
         const dataSetId = formData.get('dataSetId') as string;
         if (!dataSetId) {
           return Response.json(
@@ -665,12 +685,12 @@ export async function action({ request, params }: ActionFunctionArgs) {
         await apiRequest(apiRoutes.data.deleteDataFromDataSet(dataSetId));
         return Response.json({
           success: true,
-          action: 'delete-dataset-data',
+          action: intents.clearDataSetData,
           message: 'Data deleted from dataset successfully',
         });
       }
 
-      case 'disconnect-data-source': {
+      case intents.disconnectDataSource: {
         const providerName = formData.get('providerName') as string;
         if (!providerName) {
           return Response.json(
@@ -683,16 +703,19 @@ export async function action({ request, params }: ActionFunctionArgs) {
         );
         return Response.json({
           success: true,
-          action: 'disconnect-data-source',
+          action: intents.disconnectDataSource,
           message: 'Data source disconnected successfully',
         });
       }
 
-      default:
+      default: {
+        // Fails typecheck if a listed intent has no case above.
+        const unhandled: never = intent;
         return Response.json(
-          { success: false, error: `Unknown action: ${intent}` },
+          { success: false, error: `Unhandled action: ${String(unhandled)}` },
           { status: 400 },
         );
+      }
     }
   } catch (error) {
     const message =
@@ -712,6 +735,8 @@ export default function User() {
     totalClinics,
     dataSets,
     totalDataSets,
+    uploadsPage,
+    hasMoreDataSets,
     dataSources,
     totalDataSources,
     connectionRequests,
@@ -740,6 +765,15 @@ export default function User() {
     'user',
     user?.userid,
     defaultTab,
+    // The uploads page belongs to the Data tab; it should not outlive it.
+    { resetParamKeys: ['uploadsPage'] },
+  );
+
+  const updateSearchParams = useSearchParamUpdate();
+
+  const handleUploadsPageChange = useCallback(
+    (page: number) => updateSearchParams({ uploadsPage: page }),
+    [updateSearchParams],
   );
 
   // Render profile if user exists (profile may be empty object for users without profile metadata)
@@ -751,6 +785,10 @@ export default function User() {
       totalClinics={totalClinics}
       dataSets={dataSets}
       totalDataSets={totalDataSets}
+      uploadsPage={uploadsPage}
+      uploadsPageSize={uploadsPageSize}
+      hasMoreDataSets={hasMoreDataSets}
+      onUploadsPageChange={handleUploadsPageChange}
       dataSources={dataSources}
       totalDataSources={totalDataSources}
       connectionRequests={connectionRequests}

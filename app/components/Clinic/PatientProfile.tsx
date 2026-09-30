@@ -37,6 +37,10 @@ export type PatientProfileProps = {
   // Data tab props
   dataSets?: DataSet[];
   totalDataSets?: number;
+  uploadsPage?: number;
+  uploadsPageSize?: number;
+  hasMoreDataSets?: boolean;
+  onUploadsPageChange?: (page: number) => void;
   dataSources?: DataSource[];
   totalDataSources?: number;
   connectionRequests?: ConnectionRequest[];
@@ -65,6 +69,10 @@ export default function PatientProfile({
   clinic,
   dataSets = [],
   totalDataSets = 0,
+  uploadsPage = 1,
+  uploadsPageSize,
+  hasMoreDataSets = false,
+  onUploadsPageChange,
   dataSources = [],
   totalDataSources = 0,
   connectionRequests = [],
@@ -252,6 +260,10 @@ export default function PatientProfile({
                   dataSets={dataSets}
                   totalDataSets={totalDataSets}
                   dataSetsState={dataSetsState}
+                  currentPage={uploadsPage}
+                  pageSize={uploadsPageSize}
+                  hasMore={hasMoreDataSets}
+                  onPageChange={onUploadsPageChange}
                   isFirstInGroup
                 />
                 <DataSourcesTable

@@ -185,6 +185,8 @@ pre {
 #header-search [data-slot='input-wrapper'] {
   background-color: var(--field-bg) !important;
   border-color: var(--field-border) !important;
+  border-width: 1px !important;
+  border-style: solid !important;
   box-shadow: none !important;
 }
 

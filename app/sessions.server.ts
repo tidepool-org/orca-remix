@@ -1,4 +1,4 @@
-import { createCookieSessionStorage } from 'react-router';
+import { createCookie, createCookieSessionStorage } from 'react-router';
 import { createThemeSessionResolver } from 'remix-themes';
 
 const SESSION_SECRET = process.env.SESSION_SECRET;
@@ -52,26 +52,31 @@ export const clinicsSession = createCookieSessionStorage({
   },
 });
 
-// Store recent patients and clinicians with explicit session management
+// Store recent patients and clinicians with explicit session management. The
+// cookies are built separately and exported because `commitClinicScopedSession`
+// serializes a candidate to measure it before sending.
+export const patientsCookie = createCookie(
+  '__patients_session',
+  dataCookieOptions,
+);
 export const patientsSession = createCookieSessionStorage({
-  cookie: {
-    name: '__patients_session',
-    ...dataCookieOptions,
-  },
+  cookie: patientsCookie,
 });
 
+export const cliniciansCookie = createCookie(
+  '__clinicians_session',
+  dataCookieOptions,
+);
 export const cliniciansSession = createCookieSessionStorage({
-  cookie: {
-    name: '__clinicians_session',
-    ...dataCookieOptions,
-  },
+  cookie: cliniciansCookie,
 });
 
+export const prescriptionsCookie = createCookie(
+  '__prescriptions_session',
+  dataCookieOptions,
+);
 export const prescriptionsSession = createCookieSessionStorage({
-  cookie: {
-    name: '__prescriptions_session',
-    ...dataCookieOptions,
-  },
+  cookie: prescriptionsCookie,
 });
 
 // Store sidebar expanded/collapsed preference

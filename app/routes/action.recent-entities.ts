@@ -14,6 +14,10 @@ import type {
   RecentPrescription,
 } from '~/components/Clinic/types';
 import type { RecentUser } from '~/components/User/types';
+import {
+  clinicScopedPrefixes,
+  readClinicScopedList,
+} from '~/utils/recentEntities.server';
 
 export type RecentEntity = {
   id: string;
@@ -72,11 +76,11 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   // Recent patients and clinicians (stored per-clinic)
   for (const clinic of recentClinics) {
-    const patients: RecentPatient[] = isArray(
-      patientsData.get(`patients-${clinic.id}`),
-    )
-      ? patientsData.get(`patients-${clinic.id}`)
-      : [];
+    const patients = readClinicScopedList<RecentPatient>(
+      patientsData,
+      clinicScopedPrefixes.patients,
+      clinic.id,
+    );
     for (const patient of patients) {
       // Avoid duplicates (a patient could appear in multiple clinics)
       if (!entities.some((e) => e.id === patient.id && e.type === 'patient')) {
@@ -90,15 +94,11 @@ export async function loader({ request }: LoaderFunctionArgs) {
       }
     }
 
-    let clinicians: RecentClinician[] = [];
-    try {
-      const raw = cliniciansData.get(`recentClinicians-${clinic.id}`);
-      if (raw && typeof raw === 'string') {
-        clinicians = JSON.parse(raw);
-      }
-    } catch {
-      // ignore
-    }
+    const clinicians = readClinicScopedList<RecentClinician>(
+      cliniciansData,
+      clinicScopedPrefixes.clinicians,
+      clinic.id,
+    );
     for (const clinician of clinicians) {
       if (
         !entities.some((e) => e.id === clinician.id && e.type === 'clinician')
@@ -113,15 +113,11 @@ export async function loader({ request }: LoaderFunctionArgs) {
       }
     }
 
-    let prescriptions: RecentPrescription[] = [];
-    try {
-      const raw = prescriptionsData.get(`recentPrescriptions-${clinic.id}`);
-      if (raw && typeof raw === 'string') {
-        prescriptions = JSON.parse(raw);
-      }
-    } catch {
-      // ignore
-    }
+    const prescriptions = readClinicScopedList<RecentPrescription>(
+      prescriptionsData,
+      clinicScopedPrefixes.prescriptions,
+      clinic.id,
+    );
     for (const prescription of prescriptions) {
       if (
         !entities.some(

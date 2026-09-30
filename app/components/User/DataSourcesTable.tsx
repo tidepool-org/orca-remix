@@ -18,9 +18,14 @@ import {
   columnClass,
   actionsColumnClass,
 } from '~/utils/tableStyles';
+import {
+  secondaryButtonClassName,
+  dangerRowButtonClassName,
+} from '~/utils/buttonStyles';
 import type { DataSource, ConnectionRequest } from './types';
 import type { ResourceState } from '~/api.types';
 import { useToast } from '~/contexts/ToastContext';
+import { intents } from '~/utils/intents';
 import TableEmptyState from '~/components/ui/TableEmptyState';
 import TableLoadingState from '~/components/ui/TableLoadingState';
 
@@ -213,7 +218,7 @@ export default function DataSourcesTable({
 
     const targetUserId = userId || patientId;
     const formData = new FormData();
-    formData.append('intent', 'disconnect-data-source');
+    formData.append('intent', intents.disconnectDataSource);
     formData.append('providerName', disconnectModal.dataSource.providerName);
 
     disconnectFetcher.submit(formData, {
@@ -240,7 +245,7 @@ export default function DataSourcesTable({
 
     const targetPatientId = patientId || userId;
     const formData = new FormData();
-    formData.append('intent', 'send-connect-request');
+    formData.append('intent', intents.sendConnectRequest);
     formData.append('providerName', inviteModal.providerName);
     formData.append('isResend', inviteModal.isResend ? 'true' : 'false');
 
@@ -268,6 +273,7 @@ export default function DataSourcesTable({
               size="sm"
               variant="flat"
               color="danger"
+              className={dangerRowButtonClassName}
               startContent={
                 <Unplug className="w-3.5 h-3.5" aria-hidden="true" />
               }
@@ -289,6 +295,7 @@ export default function DataSourcesTable({
               size="sm"
               variant="flat"
               color="primary"
+              className={secondaryButtonClassName}
               startContent={<Send className="w-3.5 h-3.5" aria-hidden="true" />}
               onPress={() => handleSendInvite(item.providerName || '', false)}
               aria-label={`Send invite for ${item.providerName || 'data source'}`}
@@ -308,6 +315,7 @@ export default function DataSourcesTable({
               size="sm"
               variant="flat"
               color="primary"
+              className={secondaryButtonClassName}
               startContent={<Send className="w-3.5 h-3.5" aria-hidden="true" />}
               onPress={() => handleSendInvite(item.providerName || '', true)}
               aria-label={`Resend invite for ${item.providerName || 'data source'}`}
@@ -448,7 +456,7 @@ export default function DataSourcesTable({
                     }
                     onPress={() => handleSendInvite(provider, false)}
                     aria-label={`Send connection invite for ${provider}`}
-                    className="capitalize"
+                    className={`capitalize ${secondaryButtonClassName}`}
                   >
                     {provider}
                   </Button>

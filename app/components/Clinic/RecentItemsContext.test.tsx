@@ -13,8 +13,6 @@ const createMockClinician = (id: string): RecentClinician => ({
   id,
   name: `Clinician ${id}`,
   email: `clinician${id}@example.com`,
-  roles: ['CLINIC_MEMBER'],
-  lastViewedAt: new Date().toISOString(),
 });
 
 describe('RecentItemsContext', () => {

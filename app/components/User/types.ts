@@ -33,7 +33,10 @@ export type DataSet = {
   byUser?: string;
   computerTime?: string;
   conversionOffset?: number;
-  dataSetType: string;
+  // Omitted by platform on data sets the legacy uploader created, which read as
+  // 'normal' — the same default platform itself applies.
+  dataSetType?: string;
+  createdTime?: string;
   deviceId?: string;
   deviceManufacturers?: string[];
   deviceModel?: string;
@@ -44,6 +47,7 @@ export type DataSet = {
   time: string;
   timezoneOffset?: number;
   version?: string;
+  deletedTime?: string;
   client?: { name?: string; version?: string };
   origin?: { name?: string };
 };

@@ -10,6 +10,12 @@ import {
 type UsePersistedTabOptions = {
   /** Search param keys to persist alongside the tab (e.g., search, page, limit, sort) */
   paramKeys?: string[];
+  /**
+   * Search param keys to drop when the tab changes, for state only one tab owns.
+   * A tab-only change skips revalidation, so a stale key left behind would be
+   * rendered from under a URL that no longer agrees with it.
+   */
+  resetParamKeys?: string[];
   /** Whether the hook should actively persist and restore state. Defaults to true.
    *  Set to false when a parent route is rendering a child (nested) route,
    *  so the parent's hook doesn't overwrite its persisted state with the child's search params. */
@@ -26,7 +32,7 @@ type UsePersistedTabResult = {
  *
  * - Resolves the active tab from: URL ?tab= > localStorage > defaultTab
  * - On mount, restores persisted tab and params to the URL if missing
- * - On tab change, updates both localStorage and the URL
+ * - On tab change, updates both localStorage and the URL, dropping resetParamKeys
  * - Auto-persists tracked search params (paramKeys) to localStorage on change
  * - Uses setSearchParams (not submit) so tab-only changes skip loader revalidation
  */
@@ -37,7 +43,7 @@ export function usePersistedTab(
   options?: UsePersistedTabOptions,
 ): UsePersistedTabResult {
   const [searchParams, setSearchParams] = useSearchParams();
-  const { paramKeys = [], enabled = true } = options ?? {};
+  const { paramKeys = [], resetParamKeys = [], enabled = true } = options ?? {};
   const initialized = useRef(false);
 
   // Defer localStorage read to after hydration to avoid SSR mismatch
@@ -124,12 +130,23 @@ export function usePersistedTab(
       setSearchParams(
         (prev) => {
           prev.set('tab', newTab);
+          for (const paramKey of resetParamKeys) {
+            prev.delete(paramKey);
+          }
           return prev;
         },
         { replace: true, preventScrollReset: true },
       );
     },
-    [enabled, entityType, entityId, paramKeys, searchParams, setSearchParams],
+    [
+      enabled,
+      entityType,
+      entityId,
+      paramKeys,
+      resetParamKeys,
+      searchParams,
+      setSearchParams,
+    ],
   );
 
   return { currentTab, handleTabChange };

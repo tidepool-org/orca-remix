@@ -3,6 +3,7 @@ import { Button, Select, SelectItem, RadioGroup, Radio } from '@heroui/react';
 import { Download, Calendar, FileSpreadsheet, FileJson } from 'lucide-react';
 import { subDays } from 'date-fns';
 import SectionPanel from '~/components/ui/SectionPanel';
+import { fieldSurfaceClasses, fieldMenuItemClasses } from '~/utils/fieldStyles';
 
 export type DataExportSectionProps = {
   userId: string;
@@ -104,6 +105,8 @@ export default function DataExportSection({
                 if (selected) setDateRange(selected);
               }}
               size="sm"
+              classNames={{ trigger: fieldSurfaceClasses }}
+              listboxProps={{ itemClasses: fieldMenuItemClasses }}
               aria-label="Select date range"
               description="Date range is calculated from the current date"
             >

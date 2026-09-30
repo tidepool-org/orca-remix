@@ -1,7 +1,14 @@
 import { useState } from 'react';
 import { Button, Spinner, Autocomplete, AutocompleteItem } from '@heroui/react';
-import { Merge, Download, AlertTriangle, Building2 } from 'lucide-react';
+import {
+  Merge,
+  Download,
+  AlertTriangle,
+  Building2,
+  BarChart3,
+} from 'lucide-react';
 import SectionPanel from '~/components/ui/SectionPanel';
+import { fieldSurfaceClasses, fieldMenuItemClasses } from '~/utils/fieldStyles';
 import type { RecentClinic } from '~/components/Clinic/types';
 
 export type ClinicMergeReportSectionProps = {
@@ -64,21 +71,33 @@ export default function ClinicMergeReportSection({
         {/* Clinic IDs Section */}
         <div className="space-y-4">
           <div className="flex items-center gap-2">
-            <Building2
-              className="w-4 h-4 text-[color:var(--text-muted)]"
-              aria-hidden="true"
-            />
-            <span className="text-sm font-medium">Clinic IDs</span>
+            <Building2 className="w-4 h-4 text-primary" aria-hidden="true" />
+            <span className="text-sm font-semibold uppercase tracking-wider text-foreground/80">
+              Clinic IDs
+            </span>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Autocomplete
               label="Source Clinic ID"
               placeholder="Search or enter clinic ID"
-              description="The clinic that will be merged FROM (will be empty after merge)"
+              description={
+                <>
+                  The clinic that will be merged <strong>FROM</strong> (will be
+                  empty after merge)
+                </>
+              }
+              labelPlacement="outside"
               size="sm"
               isRequired
               allowsCustomValue
+              inputProps={{
+                classNames: {
+                  inputWrapper: fieldSurfaceClasses,
+                  label: 'pb-1.5',
+                },
+              }}
+              listboxProps={{ itemClasses: fieldMenuItemClasses }}
               selectedKey={
                 clinicItems.some((c) => c.key === sourceClinicId)
                   ? sourceClinicId
@@ -99,9 +118,17 @@ export default function ClinicMergeReportSection({
               label="Target Clinic ID"
               placeholder="Search or enter clinic ID"
               description="The clinic that will receive all data"
+              labelPlacement="outside"
               size="sm"
               isRequired
               allowsCustomValue
+              inputProps={{
+                classNames: {
+                  inputWrapper: fieldSurfaceClasses,
+                  label: 'pb-1.5',
+                },
+              }}
+              listboxProps={{ itemClasses: fieldMenuItemClasses }}
               selectedKey={
                 clinicItems.some((c) => c.key === targetClinicId)
                   ? targetClinicId
@@ -122,12 +149,17 @@ export default function ClinicMergeReportSection({
         </div>
 
         {/* Report Contents Info */}
-        <div className="border border-default-200 rounded-lg p-4">
-          <p className="text-sm font-medium mb-2">Report Contents</p>
-          <p className="text-xs text-[color:var(--text-muted)] mb-3">
+        <div className="bg-[color:var(--surface-2)] border border-[color:var(--border)] rounded-lg p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <BarChart3 className="w-4 h-4 text-primary" aria-hidden="true" />
+            <span className="text-sm font-semibold uppercase tracking-wider text-foreground/80">
+              Report Contents
+            </span>
+          </div>
+          <p className="text-sm text-[color:var(--text-muted)] mb-3">
             The merge analysis report includes:
           </p>
-          <ul className="text-xs text-[color:var(--text-muted)] space-y-1 list-disc list-inside">
+          <ul className="text-sm text-[color:var(--text-muted)] space-y-1 list-disc list-inside marker:text-primary">
             <li>Source clinic details (name, ID, patient count)</li>
             <li>Target clinic details (name, ID, patient count)</li>
             <li>Patients that will be transferred</li>

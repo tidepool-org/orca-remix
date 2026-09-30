@@ -15,7 +15,6 @@ import type {
 import type {
   DataSet,
   DataSource,
-  DataSetsResponse,
   DataSourcesResponse,
   AccessPermissionsMap,
   ShareInvite,
@@ -25,17 +24,31 @@ import type {
 import type { ResourceState } from '~/api.types';
 import { useRecentItems } from '~/components/Clinic/RecentItemsContext';
 import { apiRequest, apiRequestSafe, apiRoutes } from '~/api.server';
-import { patientsSession } from '~/sessions.server';
+import { patientsCookie, patientsSession } from '~/sessions.server';
 import { useLoaderData } from 'react-router';
-import { useEffect } from 'react';
-import isArray from 'lodash/isArray';
+import { useCallback, useEffect } from 'react';
 import omit from 'lodash/omit';
 import pick from 'lodash/pick';
 import uniqBy from 'lodash/uniqBy';
 import { PatientSchema } from '~/schemas';
 import { usePersistedTab } from '~/hooks/usePersistedTab';
+import { useSearchParamUpdate } from '~/hooks/useSearchParamUpdate';
 import { APIError } from '~/utils/errors';
+import { intents, isIntent, patientRouteIntents } from '~/utils/intents';
 import { backfillPumpSettingsDeviceInfo } from '~/utils/deviceNames';
+import { fetchBackfillUploads } from '~/utils/deviceNames.server';
+import { loadUploadsPage } from '~/utils/uploadsPaging.server';
+import {
+  knownUploadCount,
+  parseUploadsPage,
+  uploadsPageSize,
+} from '~/utils/uploadsPaging';
+import {
+  clinicScopedPrefixes,
+  commitClinicScopedSession,
+  readClinicScopedList,
+  writeClinicScopedList,
+} from '~/utils/recentEntities.server';
 
 type PatientLoaderData = {
   patient: Patient | null;
@@ -44,6 +57,8 @@ type PatientLoaderData = {
   recentPatients: RecentPatient[];
   dataSets: DataSet[];
   totalDataSets: number;
+  uploadsPage: number;
+  hasMoreDataSets: boolean;
   dataSources: DataSource[];
   totalDataSources: number;
   connectionRequests: ConnectionRequest[];
@@ -124,18 +139,21 @@ function flattenConnectionRequests(
 }
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
-  const { getSession, commitSession } = patientsSession;
+  const { getSession } = patientsSession;
   const recentlyViewed = await getSession(request.headers.get('Cookie'));
+  const url = new URL(request.url);
+  const uploadsPage = parseUploadsPage(url.searchParams);
 
   const clinicId = params.clinicId as string;
+
   const patientId = params.patientId as string;
 
   // We store recently viewed patients in session storage for persistence across browser sessions
-  const recentPatients: RecentPatient[] = isArray(
-    recentlyViewed.get(`patients-${clinicId}`),
-  )
-    ? recentlyViewed.get(`patients-${clinicId}`)
-    : [];
+  const recentPatients = readClinicScopedList<RecentPatient>(
+    recentlyViewed,
+    clinicScopedPrefixes.patients,
+    clinicId,
+  );
 
   // Get the specific patient (critical) - this must succeed
   let patient: Patient;
@@ -162,7 +180,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   const [
     patientClinicsRawState,
     prescriptionsRawState,
-    dataSetsRawState,
+    uploadsPageResult,
     dataSourcesRawState,
     trustingAccountsRawState,
     trustedAccountsRawState,
@@ -176,9 +194,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     apiRequestSafe<Prescription[]>(
       apiRoutes.prescription.getPatientPrescriptions(patientId),
     ),
-    apiRequestSafe<DataSetsResponse>(
-      apiRoutes.data.getData(patientId, { type: 'upload' }),
-    ),
+    loadUploadsPage(patientId, uploadsPage),
     apiRequestSafe<DataSourcesResponse>(
       apiRoutes.data.getDataSources(patientId),
     ),
@@ -231,17 +247,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     prescriptionsState = prescriptionsRawState;
   }
 
-  // Normalize data sets response
-  let dataSetsState: ResourceState<DataSet[]>;
-  if (dataSetsRawState.status === 'success') {
-    const response = dataSetsRawState.data;
-    dataSetsState = {
-      status: 'success',
-      data: Array.isArray(response) ? response : response?.data || [],
-    };
-  } else {
-    dataSetsState = dataSetsRawState as ResourceState<DataSet[]>;
-  }
+  const { dataSetsState, hasMore: hasMoreDataSets } = uploadsPageResult;
 
   // Normalize data sources response
   let dataSourcesState: ResourceState<DataSource[]>;
@@ -333,18 +339,18 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   }
 
   // Some pump-settings records omit manufacturer/model/serial; backfill from
-  // the matching upload so the device-info row renders fully.
-  if (
-    pumpSettingsState.status === 'success' &&
-    dataSetsState.status === 'success'
-  ) {
-    pumpSettingsState = {
-      ...pumpSettingsState,
-      data: backfillPumpSettingsDeviceInfo(
-        pumpSettingsState.data,
-        dataSetsState.data,
-      ),
-    };
+  // each one's own upload so the device-info row renders fully.
+  if (pumpSettingsState.status === 'success') {
+    const uploads = await fetchBackfillUploads(
+      patientId,
+      pumpSettingsState.data,
+    );
+    if (uploads.length > 0) {
+      pumpSettingsState = {
+        ...pumpSettingsState,
+        data: backfillPumpSettingsDeviceInfo(pumpSettingsState.data, uploads),
+      };
+    }
   }
 
   // Extract data for backward compatibility
@@ -353,7 +359,11 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   const prescriptions =
     prescriptionsState.status === 'success' ? prescriptionsState.data : [];
   const dataSets = dataSetsState.status === 'success' ? dataSetsState.data : [];
-  const totalDataSets = dataSets.length;
+  const totalDataSets = knownUploadCount(
+    uploadsPage,
+    uploadsPageSize,
+    dataSets.length,
+  );
   const dataSources =
     dataSourcesState.status === 'success' ? dataSourcesState.data : [];
   const totalDataSources = dataSources.length;
@@ -380,9 +390,15 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
       'email',
     ]);
     recentPatients.unshift(recentPatient);
-    recentlyViewed.set(
-      `patients-${clinicId}`,
-      uniqBy(recentPatients, 'id').slice(0, recentPatientsMax),
+    const updatedRecentPatients = uniqBy(recentPatients, 'id').slice(
+      0,
+      recentPatientsMax,
+    );
+    writeClinicScopedList(
+      recentlyViewed,
+      clinicScopedPrefixes.patients,
+      clinicId,
+      updatedRecentPatients,
     );
 
     return Response.json(
@@ -390,9 +406,11 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
         patient,
         patientClinics,
         prescriptions,
-        recentPatients: recentlyViewed.get(`patients-${clinicId}`),
+        recentPatients: updatedRecentPatients,
         dataSets,
         totalDataSets,
+        uploadsPage,
+        hasMoreDataSets,
         dataSources,
         totalDataSources,
         connectionRequests,
@@ -415,7 +433,13 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
       {
         headers: {
           'Cache-Control': 'private, max-age=60',
-          'Set-Cookie': await commitSession(recentlyViewed),
+          'Set-Cookie': await commitClinicScopedSession(
+            recentlyViewed,
+            clinicScopedPrefixes.patients,
+            clinicId,
+            request.headers.get('Cookie'),
+            patientsCookie,
+          ),
         },
       },
     );
@@ -434,6 +458,8 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     recentPatients,
     dataSets: [],
     totalDataSets: 0,
+    uploadsPage: 1,
+    hasMoreDataSets: false,
     dataSources: [],
     totalDataSources: 0,
     connectionRequests: [],
@@ -457,13 +483,20 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 
 export async function action({ request, params }: ActionFunctionArgs) {
   const formData = await request.formData();
-  const intent = formData.get('intent') as string;
+  const intent = formData.get('intent');
   const clinicId = params.clinicId as string;
   const patientId = params.patientId as string;
 
+  if (!isIntent(intent, patientRouteIntents)) {
+    return Response.json(
+      { success: false, error: `Unknown action: ${String(intent)}` },
+      { status: 400 },
+    );
+  }
+
   try {
     switch (intent) {
-      case 'send-connect-request': {
+      case intents.sendConnectRequest: {
         const providerName = formData.get('providerName') as string;
         const isResend = formData.get('isResend') === 'true';
 
@@ -530,16 +563,51 @@ export async function action({ request, params }: ActionFunctionArgs) {
         );
         return Response.json({
           success: true,
-          action: 'send-connect-request',
+          action: intents.sendConnectRequest,
           message: `Connection invite sent for ${providerName}`,
         });
       }
 
-      default:
+      case intents.deleteDataSet: {
+        const dataSetId = formData.get('dataSetId') as string;
+        if (!dataSetId) {
+          return Response.json(
+            { success: false, error: 'Dataset ID is required' },
+            { status: 400 },
+          );
+        }
+        await apiRequest(apiRoutes.data.deleteDataSet(dataSetId));
+        return Response.json({
+          success: true,
+          action: intents.deleteDataSet,
+          message: 'Dataset deleted successfully',
+        });
+      }
+
+      case intents.clearDataSetData: {
+        const dataSetId = formData.get('dataSetId') as string;
+        if (!dataSetId) {
+          return Response.json(
+            { success: false, error: 'Dataset ID is required' },
+            { status: 400 },
+          );
+        }
+        await apiRequest(apiRoutes.data.deleteDataFromDataSet(dataSetId));
+        return Response.json({
+          success: true,
+          action: intents.clearDataSetData,
+          message: 'Data deleted from dataset successfully',
+        });
+      }
+
+      default: {
+        // Fails typecheck if a listed intent has no case above.
+        const unhandled: never = intent;
         return Response.json(
-          { success: false, error: `Unknown action: ${intent}` },
+          { success: false, error: `Unhandled action: ${String(unhandled)}` },
           { status: 400 },
         );
+      }
     }
   } catch (error) {
     const message =
@@ -557,6 +625,8 @@ export default function Patient() {
     prescriptions,
     dataSets,
     totalDataSets,
+    uploadsPage,
+    hasMoreDataSets,
     dataSources,
     totalDataSources,
     connectionRequests,
@@ -567,12 +637,20 @@ export default function Patient() {
     pumpSettingsState,
   } = useLoaderData<PatientLoaderData>();
   const { addRecentPatient } = useRecentItems();
+  const updateSearchParams = useSearchParamUpdate();
+
+  const handleUploadsPageChange = useCallback(
+    (page: number) => updateSearchParams({ uploadsPage: page }),
+    [updateSearchParams],
+  );
 
   // Tab persistence with localStorage + URL sync
   const { currentTab, handleTabChange } = usePersistedTab(
     'patient',
     patient?.id,
     'data',
+    // The uploads page belongs to the Data tab; it should not outlive it.
+    { resetParamKeys: ['uploadsPage'] },
   );
 
   // Add patient to recent list immediately when component mounts
@@ -595,6 +673,10 @@ export default function Patient() {
       dataSets={dataSets}
       dataSetsState={dataSetsState}
       totalDataSets={totalDataSets}
+      uploadsPage={uploadsPage}
+      uploadsPageSize={uploadsPageSize}
+      hasMoreDataSets={hasMoreDataSets}
+      onUploadsPageChange={handleUploadsPageChange}
       dataSources={dataSources}
       dataSourcesState={dataSourcesState}
       totalDataSources={totalDataSources}

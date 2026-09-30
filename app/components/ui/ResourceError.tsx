@@ -1,5 +1,6 @@
 import { AlertCircle, RefreshCw } from 'lucide-react';
 import { Button } from '@heroui/react';
+import { secondaryButtonClassName } from '~/utils/buttonStyles';
 
 type ResourceErrorProps = {
   /** The name of the resource that failed to load (e.g., "Prescriptions") */
@@ -41,7 +42,7 @@ export default function ResourceError({
           size="sm"
           variant="flat"
           color="primary"
-          className="mt-4"
+          className={`mt-4 ${secondaryButtonClassName}`}
           onPress={onRetry}
           isLoading={isRetrying}
           startContent={!isRetrying && <RefreshCw className="w-4 h-4" />}

@@ -30,9 +30,11 @@ import { iconButtonClassName } from '~/utils/iconButtonStyles';
 import type { DataSet } from './types';
 import type { ResourceState } from '~/api.types';
 import { useToast } from '~/contexts/ToastContext';
+import { intents, type DataSetIntent } from '~/utils/intents';
 import TableEmptyState from '~/components/ui/TableEmptyState';
 import TableLoadingState from '~/components/ui/TableLoadingState';
 import TableFilterInput from '~/components/ui/TableFilterInput';
+import TablePagination from '~/components/ui/TablePagination';
 import ResourceError from '~/components/ui/ResourceError';
 import { formatDateWithTime } from '~/utils/dateFormatters';
 import {
@@ -40,11 +42,21 @@ import {
   getPlatformDeviceLabel,
 } from '~/utils/deviceNames';
 
+// The platform endpoint can't express "all data in this dataset", so this
+// control always fails. Hidden until it can, or the action is retired
+// The handler is kept so re-enabling is a one-line change.
+const showClearDataSetData = false;
+
 export type DataSetsTableProps = {
+  /** One page of uploads. Paging is URL-driven, so this component holds no page state. */
   dataSets: DataSet[];
   dataSetsState?: ResourceState<DataSet[]>;
   totalDataSets: number;
   isLoading?: boolean;
+  currentPage?: number;
+  pageSize?: number;
+  hasMore?: boolean;
+  onPageChange?: (page: number) => void;
   /** Mark this as the first table in a CollapsibleGroup to auto-expand it */
   isFirstInGroup?: boolean;
 };
@@ -57,7 +69,7 @@ type Column = {
 type DeleteModalState = {
   isOpen: boolean;
   dataSet: DataSet | null;
-  type: 'dataset' | 'data' | null;
+  intent: DataSetIntent | null;
 };
 
 export default function DataSetsTable({
@@ -65,6 +77,10 @@ export default function DataSetsTable({
   dataSetsState,
   totalDataSets = 0,
   isLoading = false,
+  currentPage = 1,
+  pageSize,
+  hasMore = false,
+  onPageChange,
   isFirstInGroup = false,
 }: DataSetsTableProps) {
   const { locale } = useLocale();
@@ -73,7 +89,7 @@ export default function DataSetsTable({
   const [deleteModal, setDeleteModal] = useState<DeleteModalState>({
     isOpen: false,
     dataSet: null,
-    type: null,
+    intent: null,
   });
   const [filterValue, setFilterValue] = useState('');
 
@@ -107,7 +123,7 @@ export default function DataSetsTable({
           data.message || 'Operation completed successfully',
           'success',
         );
-        setDeleteModal({ isOpen: false, dataSet: null, type: null });
+        setDeleteModal({ isOpen: false, dataSet: null, intent: null });
       } else if (data.error) {
         showToast(data.error, 'error');
       }
@@ -146,21 +162,18 @@ export default function DataSetsTable({
   ];
 
   const handleDeleteDataSet = React.useCallback((dataSet: DataSet) => {
-    setDeleteModal({ isOpen: true, dataSet, type: 'dataset' });
+    setDeleteModal({ isOpen: true, dataSet, intent: intents.deleteDataSet });
   }, []);
 
-  const handleDeleteDataFromDataSet = React.useCallback((dataSet: DataSet) => {
-    setDeleteModal({ isOpen: true, dataSet, type: 'data' });
+  const handleClearDataSetData = React.useCallback((dataSet: DataSet) => {
+    setDeleteModal({ isOpen: true, dataSet, intent: intents.clearDataSetData });
   }, []);
 
   const handleConfirmDelete = () => {
-    if (!deleteModal.dataSet || !deleteModal.type) return;
+    if (!deleteModal.dataSet || !deleteModal.intent) return;
 
     const formData = new FormData();
-    formData.append(
-      'intent',
-      deleteModal.type === 'dataset' ? 'delete-dataset' : 'delete-dataset-data',
-    );
+    formData.append('intent', deleteModal.intent);
     formData.append('dataSetId', deleteModal.dataSet.uploadId);
 
     fetcher.submit(formData, { method: 'post' });
@@ -168,7 +181,7 @@ export default function DataSetsTable({
 
   const handleCloseModal = () => {
     if (!isDeleting) {
-      setDeleteModal({ isOpen: false, dataSet: null, type: null });
+      setDeleteModal({ isOpen: false, dataSet: null, intent: null });
     }
   };
 
@@ -288,7 +301,7 @@ export default function DataSetsTable({
         case 'actions': {
           const menuItems = [
             <DropdownItem
-              key="delete-dataset"
+              key={intents.deleteDataSet}
               className="text-[color:var(--danger)]"
               color="danger"
               startContent={<Trash2 className="w-4 h-4" aria-hidden="true" />}
@@ -299,17 +312,17 @@ export default function DataSetsTable({
             </DropdownItem>,
           ];
 
-          if (item.dataSetType === 'continuous') {
+          if (showClearDataSetData && item.dataSetType === 'continuous') {
             menuItems.push(
               <DropdownItem
-                key="delete-data"
+                key={intents.clearDataSetData}
                 className="text-[color:var(--danger)]"
                 color="danger"
                 startContent={
                   <Database className="w-4 h-4" aria-hidden="true" />
                 }
                 description="Delete data from continuous dataset"
-                onPress={() => handleDeleteDataFromDataSet(item)}
+                onPress={() => handleClearDataSetData(item)}
               >
                 Delete Data from Dataset
               </DropdownItem>,
@@ -345,24 +358,35 @@ export default function DataSetsTable({
           );
       }
     },
-    [locale, handleDeleteDataSet, handleDeleteDataFromDataSet],
+    [locale, handleDeleteDataSet, handleClearDataSetData],
   );
 
+  // An empty page above the first is past the end of the list, not an account
+  // with nothing in it. The pager stays rendered so the user can go back.
+  const isPastEnd = currentPage > 1 && dataSets.length === 0;
+
   const EmptyContent = (
-    <TableEmptyState icon={Upload} message="No data uploads found" />
+    <TableEmptyState
+      icon={Upload}
+      message={
+        isPastEnd
+          ? `Page ${currentPage} is past the end of this account's uploads`
+          : 'No data uploads found'
+      }
+    />
   );
 
   const LoadingContent = <TableLoadingState label="Loading data uploads..." />;
 
   const getModalContent = () => {
-    if (!deleteModal.dataSet || !deleteModal.type) {
+    if (!deleteModal.dataSet || !deleteModal.intent) {
       return { title: '', description: '', confirmText: '' };
     }
 
     const deviceInfo = deleteModal.dataSet.deviceModel || 'Unknown Device';
     const uploadId = deleteModal.dataSet.uploadId;
 
-    if (deleteModal.type === 'dataset') {
+    if (deleteModal.intent === intents.deleteDataSet) {
       return {
         title: 'Delete Dataset',
         description: `Are you sure you want to delete this dataset from ${deviceInfo}? This will permanently remove all data associated with upload ID: ${uploadId}. This action cannot be undone.`,
@@ -384,17 +408,17 @@ export default function DataSetsTable({
       <TableFilterInput
         value={filterValue}
         onChange={setFilterValue}
-        placeholder="Filter by Upload ID, Device, or Serial..."
-        aria-label="Filter uploads by Upload ID, Device, or Serial"
+        placeholder="Filter this page by Upload ID, Device, or Serial..."
+        aria-label="Filter this page of uploads by Upload ID, Device, or Serial"
         showResultCount={filterValue !== ''}
         filteredCount={filteredDataSets.length}
-        totalCount={totalDataSets}
-        itemLabel="uploads"
+        totalCount={dataSets.length}
+        itemLabel="uploads on this page"
         maxWidth="w-full sm:max-w-[300px]"
         className="mb-4"
       />
     );
-  }, [filterValue, filteredDataSets.length, totalDataSets]);
+  }, [filterValue, filteredDataSets.length, dataSets.length]);
 
   // Check if there's an error state to display
   const hasError = dataSetsState?.status === 'error';
@@ -405,6 +429,7 @@ export default function DataSetsTable({
         icon={<Upload className="h-5 w-5" />}
         title="Data Uploads"
         totalItems={totalDataSets}
+        isTotalLowerBound={hasMore}
         isFirstInGroup={isFirstInGroup}
       >
         {hasError ? (
@@ -451,6 +476,14 @@ export default function DataSetsTable({
                 ))}
               </TableBody>
             </Table>
+
+            <TablePagination
+              currentPage={currentPage}
+              hasMore={hasMore}
+              totalItems={totalDataSets}
+              pageSize={pageSize}
+              onPageChange={onPageChange}
+            />
           </>
         )}
       </CollapsibleTableWrapper>
