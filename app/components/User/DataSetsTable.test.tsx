@@ -112,8 +112,22 @@ describe('DataSetsTable', () => {
 
       expect(
         screen.getByPlaceholderText(
-          'Filter by Upload ID, Device, or Serial...',
+          'Filter this page by Upload ID, Device, or Serial...',
         ),
+      ).toBeInTheDocument();
+    });
+
+    it('states that the filter covers only the loaded page', async () => {
+      const user = userEvent.setup();
+      renderExpanded(defaultProps);
+
+      const filterInput = screen.getByPlaceholderText(
+        'Filter this page by Upload ID, Device, or Serial...',
+      );
+      await user.type(filterInput, 'Omnipod');
+
+      expect(
+        screen.getByText('Showing 1 of 2 uploads on this page'),
       ).toBeInTheDocument();
     });
 
@@ -122,7 +136,7 @@ describe('DataSetsTable', () => {
       renderExpanded(defaultProps);
 
       const filterInput = screen.getByPlaceholderText(
-        'Filter by Upload ID, Device, or Serial...',
+        'Filter this page by Upload ID, Device, or Serial...',
       );
       await user.type(filterInput, 'Omnipod');
 
@@ -135,7 +149,7 @@ describe('DataSetsTable', () => {
       renderExpanded(defaultProps);
 
       const filterInput = screen.getByPlaceholderText(
-        'Filter by Upload ID, Device, or Serial...',
+        'Filter this page by Upload ID, Device, or Serial...',
       );
       await user.type(filterInput, 'SN-12345');
 
@@ -148,7 +162,7 @@ describe('DataSetsTable', () => {
       renderExpanded(defaultProps);
 
       const filterInput = screen.getByPlaceholderText(
-        'Filter by Upload ID, Device, or Serial...',
+        'Filter this page by Upload ID, Device, or Serial...',
       );
       await user.type(filterInput, 'xyz789');
 
@@ -161,7 +175,7 @@ describe('DataSetsTable', () => {
       renderExpanded(defaultProps);
 
       const filterInput = screen.getByPlaceholderText(
-        'Filter by Upload ID, Device, or Serial...',
+        'Filter this page by Upload ID, Device, or Serial...',
       );
       await user.type(filterInput, 'Omnipod');
       await user.clear(filterInput);
@@ -239,7 +253,9 @@ describe('DataSetsTable', () => {
       renderExpanded(defaultProps);
 
       expect(
-        screen.getByLabelText('Filter uploads by Upload ID, Device, or Serial'),
+        screen.getByLabelText(
+          'Filter this page of uploads by Upload ID, Device, or Serial',
+        ),
       ).toBeInTheDocument();
     });
   });
@@ -308,7 +324,7 @@ describe('DataSetsTable', () => {
       });
 
       const filterInput = screen.getByPlaceholderText(
-        'Filter by Upload ID, Device, or Serial...',
+        'Filter this page by Upload ID, Device, or Serial...',
       );
 
       await user.type(filterInput, 'ReliOn');
@@ -319,6 +335,67 @@ describe('DataSetsTable', () => {
       await user.type(filterInput, '982');
       expect(screen.getByText('ReliOn Platinum')).toBeInTheDocument();
       expect(screen.queryByText('Dexcom G7')).not.toBeInTheDocument();
+    });
+  });
+
+  describe('Pagination', () => {
+    it('renders the pager when a further page exists', () => {
+      renderExpanded({ ...defaultProps, hasMore: true });
+
+      expect(screen.getByRole('button', { name: /next page/i })).toBeEnabled();
+    });
+
+    it('renders no pager for a single short page', () => {
+      renderExpanded(defaultProps);
+
+      expect(
+        screen.queryByRole('button', { name: /next page/i }),
+      ).not.toBeInTheDocument();
+    });
+
+    it('reports the requested page instead of holding one itself', async () => {
+      const user = userEvent.setup();
+      const onPageChange = vi.fn();
+      renderExpanded({
+        ...defaultProps,
+        currentPage: 2,
+        hasMore: true,
+        onPageChange,
+      });
+
+      await user.click(screen.getByRole('button', { name: /next page/i }));
+      expect(onPageChange).toHaveBeenCalledWith(3);
+
+      await user.click(screen.getByRole('button', { name: /previous page/i }));
+      expect(onPageChange).toHaveBeenCalledWith(1);
+    });
+
+    it('presents the header count as a floor while more pages exist', () => {
+      render(<DataSetsTable {...defaultProps} totalDataSets={25} hasMore />);
+      expect(screen.getByText('25+ total')).toBeInTheDocument();
+    });
+
+    it('presents the header count as exact on the last page', () => {
+      render(<DataSetsTable {...defaultProps} totalDataSets={25} />);
+      expect(screen.getByText('25 total')).toBeInTheDocument();
+    });
+
+    it('says an empty page above the first is past the end, and keeps the pager', () => {
+      renderExpanded({
+        dataSets: [],
+        totalDataSets: 50,
+        currentPage: 3,
+      });
+
+      expect(
+        screen.getByText("Page 3 is past the end of this account's uploads"),
+      ).toBeInTheDocument();
+      expect(
+        screen.queryByText('No data uploads found'),
+      ).not.toBeInTheDocument();
+      expect(
+        screen.getByRole('button', { name: /previous page/i }),
+      ).toBeEnabled();
     });
   });
 
