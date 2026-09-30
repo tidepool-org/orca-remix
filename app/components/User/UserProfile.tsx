@@ -132,7 +132,7 @@ export default function UserProfile({
   onTabChange,
 }: UserProfileProps) {
   const { emailVerified, userid: userId, username, termsAccepted } = user;
-  const { fullName, clinic } = profile;
+  const { fullName, clinic, patient } = profile;
   const { locale } = useLocale();
   const profileExpandedProps = useProfileExpanded('user');
 
@@ -195,6 +195,14 @@ export default function UserProfile({
         </Chip>
       ),
     },
+    ...(patient?.birthday
+      ? [
+          {
+            label: 'Birth Date',
+            value: formatShortDate(patient.birthday, locale),
+          },
+        ]
+      : []),
     ...(termsAccepted
       ? [
           {
