@@ -176,6 +176,7 @@ function patientsToCSV(
     'Tags',
     'Sites',
     'Added',
+    'Last Updated',
   ];
 
   const rows = patients.map((p) => [
@@ -192,13 +193,14 @@ function patientsToCSV(
       })
       .join('; '),
     p.createdTime || '',
+    p.updatedTime || '',
   ]);
 
   return toCSV(headers, rows);
 }
 
 function cliniciansToCSV(clinicians: Clinician[]): string {
-  const headers = ['ID', 'Name', 'Email', 'Roles', 'Added'];
+  const headers = ['ID', 'Name', 'Email', 'Roles', 'Added', 'Last Updated'];
 
   const rows = clinicians.map((c) => [
     c.id,
@@ -208,6 +210,7 @@ function cliniciansToCSV(clinicians: Clinician[]): string {
       .map((r) => r.replace('CLINIC_', '').toLowerCase())
       .join('; '),
     c.createdTime || '',
+    c.updatedTime || '',
   ]);
 
   return toCSV(headers, rows);
@@ -219,6 +222,7 @@ function prescriptionsToCSV(prescriptions: Prescription[]): string {
     'Patient Name',
     'State',
     'Created',
+    'Last Updated',
     'Expires',
     'Patient Email',
     'MRN',
@@ -232,6 +236,7 @@ function prescriptionsToCSV(prescriptions: Prescription[]): string {
       name || '',
       p.state || '',
       p.createdTime || '',
+      p.modifiedTime || '',
       p.expirationTime || '',
       attrs?.email || '',
       attrs?.mrn || '',
