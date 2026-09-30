@@ -25,6 +25,7 @@ import {
 import type { DataSource, ConnectionRequest } from './types';
 import type { ResourceState } from '~/api.types';
 import { useToast } from '~/contexts/ToastContext';
+import { intents } from '~/utils/intents';
 import TableEmptyState from '~/components/ui/TableEmptyState';
 import TableLoadingState from '~/components/ui/TableLoadingState';
 
@@ -217,7 +218,7 @@ export default function DataSourcesTable({
 
     const targetUserId = userId || patientId;
     const formData = new FormData();
-    formData.append('intent', 'disconnect-data-source');
+    formData.append('intent', intents.disconnectDataSource);
     formData.append('providerName', disconnectModal.dataSource.providerName);
 
     disconnectFetcher.submit(formData, {
@@ -244,7 +245,7 @@ export default function DataSourcesTable({
 
     const targetPatientId = patientId || userId;
     const formData = new FormData();
-    formData.append('intent', 'send-connect-request');
+    formData.append('intent', intents.sendConnectRequest);
     formData.append('providerName', inviteModal.providerName);
     formData.append('isResend', inviteModal.isResend ? 'true' : 'false');
 

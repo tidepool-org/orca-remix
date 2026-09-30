@@ -3,6 +3,7 @@ import type { DataSet, DataSetsResponse } from '~/components/User/types';
 import type { ResourceState } from '~/api.types';
 import { resolveDeviceNames } from '~/utils/deviceNames.server';
 import { uploadsPageSize } from '~/utils/uploadsPaging';
+import { excludeSoftDeleted } from '~/utils/softDeleted';
 
 /** The endpoint answers with a bare array; the envelope form is defensive. */
 function toRows(response: DataSetsResponse | undefined): DataSet[] {
@@ -53,7 +54,10 @@ export async function loadUploadsPage(
     listState.status === 'success'
       ? {
           status: 'success',
-          data: await resolveDeviceNames(userId, toRows(listState.data)),
+          data: await resolveDeviceNames(
+            userId,
+            excludeSoftDeleted(toRows(listState.data)),
+          ),
         }
       : (listState as ResourceState<DataSet[]>);
 

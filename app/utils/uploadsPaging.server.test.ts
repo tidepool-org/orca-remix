@@ -64,6 +64,25 @@ describe('loadUploadsPage', () => {
     expect(hasMore).toBe(true);
   });
 
+  it('drops soft-deleted uploads from the page', async () => {
+    const { loadUploadsPage } = await load();
+    apiRequestSafe
+      .mockResolvedValueOnce(
+        ok([
+          { uploadId: 'up-1' },
+          { uploadId: 'up-2', deletedTime: '2026-01-01T00:00:00Z' },
+        ]),
+      )
+      .mockResolvedValueOnce(ok([]));
+
+    const { dataSetsState } = await loadUploadsPage('user-1', 1);
+
+    expect(
+      dataSetsState.status === 'success' &&
+        dataSetsState.data.map((d) => d.uploadId),
+    ).toEqual(['up-1']);
+  });
+
   it('reports no further page when the probe comes back empty', async () => {
     const { loadUploadsPage } = await load();
     apiRequestSafe

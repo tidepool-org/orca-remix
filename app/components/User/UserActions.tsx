@@ -23,15 +23,13 @@ import {
 } from '~/utils/buttonStyles';
 import SectionPanel from '~/components/ui/SectionPanel';
 import { useToast } from '~/contexts/ToastContext';
+import { intents, type UserAccountIntent } from '~/utils/intents';
 import type { User } from './types';
 
-type ActionType =
-  | 'verify-email'
-  | 'password-reset'
-  | 'send-confirmation'
-  | 'resend-confirmation'
-  | 'delete-data'
-  | 'delete-account';
+// The platform route behind this control 404s before reaching the data
+// service. Hidden until that's fixed; The modal config and handler
+// are kept so re-enabling is a one-line change.
+const showDeleteUserData = false;
 
 type UserActionsProps = {
   user: User;
@@ -40,7 +38,9 @@ type UserActionsProps = {
 export default function UserActions({ user }: UserActionsProps) {
   const fetcher = useFetcher();
   const { showToast } = useToast();
-  const [activeModal, setActiveModal] = useState<ActionType | null>(null);
+  const [activeModal, setActiveModal] = useState<UserAccountIntent | null>(
+    null,
+  );
 
   const isSubmitting = fetcher.state !== 'idle';
 
@@ -68,11 +68,11 @@ export default function UserActions({ user }: UserActionsProps) {
     }
   }, [fetcher.state, fetcher.data, showToast]);
 
-  const handleAction = (action: ActionType) => {
+  const handleAction = (action: UserAccountIntent) => {
     fetcher.submit({ intent: action }, { method: 'post' });
   };
 
-  const openModal = (action: ActionType) => {
+  const openModal = (action: UserAccountIntent) => {
     setActiveModal(action);
   };
 
@@ -83,7 +83,7 @@ export default function UserActions({ user }: UserActionsProps) {
   };
 
   const actionConfigs = {
-    'verify-email': {
+    [intents.verifyEmail]: {
       title: 'Verify User Email',
       description: `This will manually verify the email address for ${displayName}. The user will be able to log in immediately after verification.`,
       confirmText: 'Verify Email',
@@ -91,7 +91,7 @@ export default function UserActions({ user }: UserActionsProps) {
       requiresInput: false,
       icon: <ShieldCheck className="text-primary" size={20} />,
     },
-    'password-reset': {
+    [intents.passwordReset]: {
       title: 'Send Password Reset',
       description: `This will send a password reset email to ${displayName}. The user will receive an email with instructions to reset their password.`,
       confirmText: 'Send Reset Email',
@@ -99,7 +99,7 @@ export default function UserActions({ user }: UserActionsProps) {
       requiresInput: false,
       icon: <KeyRound className="text-primary" size={20} />,
     },
-    'send-confirmation': {
+    [intents.sendConfirmation]: {
       title: 'Send Confirmation Email',
       description: `This will send a new account confirmation email to ${displayName}. Use this if the user never received their initial confirmation.`,
       confirmText: 'Send Confirmation',
@@ -107,7 +107,7 @@ export default function UserActions({ user }: UserActionsProps) {
       requiresInput: false,
       icon: <Send className="text-primary" size={20} />,
     },
-    'resend-confirmation': {
+    [intents.resendConfirmation]: {
       title: 'Resend Confirmation Email',
       description: `This will resend the account confirmation email to ${displayName}. Use this if the previous confirmation email expired.`,
       confirmText: 'Resend Confirmation',
@@ -115,7 +115,7 @@ export default function UserActions({ user }: UserActionsProps) {
       requiresInput: false,
       icon: <Mail className="text-primary" size={20} />,
     },
-    'delete-data': {
+    [intents.deleteUserData]: {
       title: 'Delete User Data',
       description: `This will permanently delete all upload data for ${displayName}. The user account will remain intact, but all diabetes data will be removed. This action cannot be undone.`,
       confirmText: 'Delete All Data',
@@ -126,7 +126,7 @@ export default function UserActions({ user }: UserActionsProps) {
       inputLabel: `Confirm by typing the user ${user.username ? 'email' : 'ID'}`,
       icon: <Trash2 className="text-[color:var(--danger)]" size={20} />,
     },
-    'delete-account': {
+    [intents.deleteAccount]: {
       title: 'Delete User Account',
       description: `This will permanently delete the account for ${displayName} and all associated data. This action cannot be undone.`,
       confirmText: 'Delete Account',
@@ -157,7 +157,7 @@ export default function UserActions({ user }: UserActionsProps) {
                 color="primary"
                 className={secondaryButtonClassName}
                 startContent={<ShieldCheck size={16} />}
-                onPress={() => openModal('verify-email')}
+                onPress={() => openModal(intents.verifyEmail)}
                 isDisabled={user.emailVerified || isUnclaimedAccount}
               >
                 Verify Email
@@ -174,7 +174,7 @@ export default function UserActions({ user }: UserActionsProps) {
                 color="primary"
                 className={secondaryButtonClassName}
                 startContent={<KeyRound size={16} />}
-                onPress={() => openModal('password-reset')}
+                onPress={() => openModal(intents.passwordReset)}
                 isDisabled={isUnclaimedAccount}
               >
                 Send Reset
@@ -191,7 +191,7 @@ export default function UserActions({ user }: UserActionsProps) {
                 color="primary"
                 className={secondaryButtonClassName}
                 startContent={<Send size={16} />}
-                onPress={() => openModal('send-confirmation')}
+                onPress={() => openModal(intents.sendConfirmation)}
                 isDisabled={user.emailVerified || isUnclaimedAccount}
               >
                 Send
@@ -208,7 +208,7 @@ export default function UserActions({ user }: UserActionsProps) {
                 color="primary"
                 className={secondaryButtonClassName}
                 startContent={<Mail size={16} />}
-                onPress={() => openModal('resend-confirmation')}
+                onPress={() => openModal(intents.resendConfirmation)}
                 isDisabled={user.emailVerified || isUnclaimedAccount}
               >
                 Resend
@@ -227,22 +227,24 @@ export default function UserActions({ user }: UserActionsProps) {
         defaultExpanded={false}
       >
         <div className="flex flex-col">
-          <DangerZoneAction
-            title="Delete User Data"
-            description="Permanently delete all upload data for this user. The account will remain intact, but all diabetes data will be removed. This action cannot be undone."
-            actionButton={
-              <Button
-                size="sm"
-                variant="flat"
-                color="danger"
-                className={dangerRowButtonClassName}
-                startContent={<Trash2 size={16} />}
-                onPress={() => openModal('delete-data')}
-              >
-                Delete Data
-              </Button>
-            }
-          />
+          {showDeleteUserData && (
+            <DangerZoneAction
+              title="Delete User Data"
+              description="Permanently delete all upload data for this user. The account will remain intact, but all diabetes data will be removed. This action cannot be undone."
+              actionButton={
+                <Button
+                  size="sm"
+                  variant="flat"
+                  color="danger"
+                  className={dangerRowButtonClassName}
+                  startContent={<Trash2 size={16} />}
+                  onPress={() => openModal(intents.deleteUserData)}
+                >
+                  Delete Data
+                </Button>
+              }
+            />
+          )}
           <DangerZoneAction
             title="Delete User Account"
             description="Permanently delete this account and all associated data. This action cannot be undone."
@@ -253,7 +255,7 @@ export default function UserActions({ user }: UserActionsProps) {
                 color="danger"
                 className={dangerRowButtonClassName}
                 startContent={<UserX size={16} />}
-                onPress={() => openModal('delete-account')}
+                onPress={() => openModal(intents.deleteAccount)}
               >
                 Delete Account
               </Button>

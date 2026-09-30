@@ -30,6 +30,7 @@ import { iconButtonClassName } from '~/utils/iconButtonStyles';
 import type { DataSet } from './types';
 import type { ResourceState } from '~/api.types';
 import { useToast } from '~/contexts/ToastContext';
+import { intents, type DataSetIntent } from '~/utils/intents';
 import TableEmptyState from '~/components/ui/TableEmptyState';
 import TableLoadingState from '~/components/ui/TableLoadingState';
 import TableFilterInput from '~/components/ui/TableFilterInput';
@@ -40,6 +41,11 @@ import {
   getFriendlyDeviceName,
   getPlatformDeviceLabel,
 } from '~/utils/deviceNames';
+
+// The platform endpoint can't express "all data in this dataset", so this
+// control always fails. Hidden until it can, or the action is retired
+// The handler is kept so re-enabling is a one-line change.
+const showClearDataSetData = false;
 
 export type DataSetsTableProps = {
   /** One page of uploads. Paging is URL-driven, so this component holds no page state. */
@@ -63,7 +69,7 @@ type Column = {
 type DeleteModalState = {
   isOpen: boolean;
   dataSet: DataSet | null;
-  type: 'dataset' | 'data' | null;
+  intent: DataSetIntent | null;
 };
 
 export default function DataSetsTable({
@@ -83,7 +89,7 @@ export default function DataSetsTable({
   const [deleteModal, setDeleteModal] = useState<DeleteModalState>({
     isOpen: false,
     dataSet: null,
-    type: null,
+    intent: null,
   });
   const [filterValue, setFilterValue] = useState('');
 
@@ -117,7 +123,7 @@ export default function DataSetsTable({
           data.message || 'Operation completed successfully',
           'success',
         );
-        setDeleteModal({ isOpen: false, dataSet: null, type: null });
+        setDeleteModal({ isOpen: false, dataSet: null, intent: null });
       } else if (data.error) {
         showToast(data.error, 'error');
       }
@@ -156,21 +162,18 @@ export default function DataSetsTable({
   ];
 
   const handleDeleteDataSet = React.useCallback((dataSet: DataSet) => {
-    setDeleteModal({ isOpen: true, dataSet, type: 'dataset' });
+    setDeleteModal({ isOpen: true, dataSet, intent: intents.deleteDataSet });
   }, []);
 
-  const handleDeleteDataFromDataSet = React.useCallback((dataSet: DataSet) => {
-    setDeleteModal({ isOpen: true, dataSet, type: 'data' });
+  const handleClearDataSetData = React.useCallback((dataSet: DataSet) => {
+    setDeleteModal({ isOpen: true, dataSet, intent: intents.clearDataSetData });
   }, []);
 
   const handleConfirmDelete = () => {
-    if (!deleteModal.dataSet || !deleteModal.type) return;
+    if (!deleteModal.dataSet || !deleteModal.intent) return;
 
     const formData = new FormData();
-    formData.append(
-      'intent',
-      deleteModal.type === 'dataset' ? 'delete-dataset' : 'delete-dataset-data',
-    );
+    formData.append('intent', deleteModal.intent);
     formData.append('dataSetId', deleteModal.dataSet.uploadId);
 
     fetcher.submit(formData, { method: 'post' });
@@ -178,7 +181,7 @@ export default function DataSetsTable({
 
   const handleCloseModal = () => {
     if (!isDeleting) {
-      setDeleteModal({ isOpen: false, dataSet: null, type: null });
+      setDeleteModal({ isOpen: false, dataSet: null, intent: null });
     }
   };
 
@@ -298,7 +301,7 @@ export default function DataSetsTable({
         case 'actions': {
           const menuItems = [
             <DropdownItem
-              key="delete-dataset"
+              key={intents.deleteDataSet}
               className="text-[color:var(--danger)]"
               color="danger"
               startContent={<Trash2 className="w-4 h-4" aria-hidden="true" />}
@@ -309,17 +312,17 @@ export default function DataSetsTable({
             </DropdownItem>,
           ];
 
-          if (item.dataSetType === 'continuous') {
+          if (showClearDataSetData && item.dataSetType === 'continuous') {
             menuItems.push(
               <DropdownItem
-                key="delete-data"
+                key={intents.clearDataSetData}
                 className="text-[color:var(--danger)]"
                 color="danger"
                 startContent={
                   <Database className="w-4 h-4" aria-hidden="true" />
                 }
                 description="Delete data from continuous dataset"
-                onPress={() => handleDeleteDataFromDataSet(item)}
+                onPress={() => handleClearDataSetData(item)}
               >
                 Delete Data from Dataset
               </DropdownItem>,
@@ -355,7 +358,7 @@ export default function DataSetsTable({
           );
       }
     },
-    [locale, handleDeleteDataSet, handleDeleteDataFromDataSet],
+    [locale, handleDeleteDataSet, handleClearDataSetData],
   );
 
   // An empty page above the first is past the end of the list, not an account
@@ -376,14 +379,14 @@ export default function DataSetsTable({
   const LoadingContent = <TableLoadingState label="Loading data uploads..." />;
 
   const getModalContent = () => {
-    if (!deleteModal.dataSet || !deleteModal.type) {
+    if (!deleteModal.dataSet || !deleteModal.intent) {
       return { title: '', description: '', confirmText: '' };
     }
 
     const deviceInfo = deleteModal.dataSet.deviceModel || 'Unknown Device';
     const uploadId = deleteModal.dataSet.uploadId;
 
-    if (deleteModal.type === 'dataset') {
+    if (deleteModal.intent === intents.deleteDataSet) {
       return {
         title: 'Delete Dataset',
         description: `Are you sure you want to delete this dataset from ${deviceInfo}? This will permanently remove all data associated with upload ID: ${uploadId}. This action cannot be undone.`,
