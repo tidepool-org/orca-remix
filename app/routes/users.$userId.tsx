@@ -14,7 +14,6 @@ import type {
   RecentUser,
   DataSet,
   DataSource,
-  DataSetsResponse,
   DataSourcesResponse,
   AccessPermissionsMap,
   AssociatedUsersResponse,
@@ -31,14 +30,22 @@ import type { ResourceState } from '~/api.types';
 import { apiRequest, apiRoutes, apiRequestSafe } from '~/api.server';
 import { usersSession } from '~/sessions.server';
 import { useLoaderData } from 'react-router';
+import { useCallback } from 'react';
 import isArray from 'lodash/isArray';
 import pick from 'lodash/pick';
 import uniqBy from 'lodash/uniqBy';
 import { APIError } from '~/utils/errors';
 import { intents, isIntent, userRouteIntents } from '~/utils/intents';
 import { backfillPumpSettingsDeviceInfo } from '~/utils/deviceNames';
-import { excludeSoftDeleted } from '~/utils/softDeleted';
+import { fetchBackfillUploads } from '~/utils/deviceNames.server';
+import { loadUploadsPage } from '~/utils/uploadsPaging.server';
+import {
+  knownUploadCount,
+  parseUploadsPage,
+  uploadsPageSize,
+} from '~/utils/uploadsPaging';
 import { usePersistedTab } from '~/hooks/usePersistedTab';
+import { useSearchParamUpdate } from '~/hooks/useSearchParamUpdate';
 
 export const meta: MetaFunction = () => {
   return [
@@ -83,6 +90,8 @@ export function shouldRevalidate({
 export async function loader({ request, params }: LoaderFunctionArgs) {
   const { getSession, commitSession } = usersSession;
   const recentlyViewed = await getSession(request.headers.get('Cookie'));
+  const url = new URL(request.url);
+  const uploadsPage = parseUploadsPage(url.searchParams);
 
   // We store recently viewed users in session storage for easy retrieval
   const recentUsers: RecentUser[] = isArray(recentlyViewed.get('users'))
@@ -131,6 +140,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     data: [],
   };
   let dataSetsState: ResourceState<DataSet[]> = { status: 'success', data: [] };
+  let hasMoreDataSets = false;
   let dataSourcesState: ResourceState<DataSource[]> = {
     status: 'success',
     data: [],
@@ -192,7 +202,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     if (!profile?.clinic) {
       // All these fetches are independent — run them in parallel
       const [
-        dataSetsRawState,
+        uploadsPageResult,
         dataSourcesRawState,
         pumpSettingsRawState,
         prescriptionsRawState,
@@ -200,9 +210,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
         sentInvitesRawState,
         receivedInvitesRawState,
       ] = await Promise.all([
-        apiRequestSafe<DataSetsResponse>(
-          apiRoutes.data.getData(user.userid, { type: 'upload' }),
-        ),
+        loadUploadsPage(user.userid, uploadsPage),
         apiRequestSafe<DataSourcesResponse>(
           apiRoutes.data.getDataSources(user.userid),
         ),
@@ -225,16 +233,8 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
         ),
       ]);
 
-      // Normalize data sets
-      if (dataSetsRawState.status === 'success') {
-        const response = dataSetsRawState.data;
-        dataSetsState = {
-          status: 'success',
-          data: Array.isArray(response) ? response : response?.data || [],
-        };
-      } else {
-        dataSetsState = dataSetsRawState as ResourceState<DataSet[]>;
-      }
+      dataSetsState = uploadsPageResult.dataSetsState;
+      hasMoreDataSets = uploadsPageResult.hasMore;
 
       // Normalize data sources
       if (dataSourcesRawState.status === 'success') {
@@ -260,26 +260,21 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
       }
 
       // Some pump-settings records omit manufacturer/model/serial; backfill
-      // from the matching upload so the device-info row renders fully.
-      if (
-        pumpSettingsState.status === 'success' &&
-        dataSetsState.status === 'success'
-      ) {
-        pumpSettingsState = {
-          ...pumpSettingsState,
-          data: backfillPumpSettingsDeviceInfo(
-            pumpSettingsState.data,
-            dataSetsState.data,
-          ),
-        };
-      }
-
-      // Drop soft-deleted uploads from what the table renders.
-      if (dataSetsState.status === 'success') {
-        dataSetsState = {
-          ...dataSetsState,
-          data: excludeSoftDeleted(dataSetsState.data),
-        };
+      // from each one's own upload so the device-info row renders fully.
+      if (pumpSettingsState.status === 'success') {
+        const uploads = await fetchBackfillUploads(
+          user.userid,
+          pumpSettingsState.data,
+        );
+        if (uploads.length > 0) {
+          pumpSettingsState = {
+            ...pumpSettingsState,
+            data: backfillPumpSettingsDeviceInfo(
+              pumpSettingsState.data,
+              uploads,
+            ),
+          };
+        }
       }
 
       // Normalize prescriptions (404 = empty array)
@@ -417,7 +412,11 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   const clinics = clinicsState.status === 'success' ? clinicsState.data : [];
   const totalClinics = clinics.length;
   const dataSets = dataSetsState.status === 'success' ? dataSetsState.data : [];
-  const totalDataSets = dataSets.length;
+  const totalDataSets = knownUploadCount(
+    uploadsPage,
+    uploadsPageSize,
+    dataSets.length,
+  );
   const dataSources =
     dataSourcesState.status === 'success' ? dataSourcesState.data : [];
   const totalDataSources = dataSources.length;
@@ -455,6 +454,8 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
         totalClinics,
         dataSets,
         totalDataSets,
+        uploadsPage,
+        hasMoreDataSets,
         dataSources,
         totalDataSources,
         connectionRequests,
@@ -492,6 +493,8 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     totalClinics: 0,
     dataSets: [],
     totalDataSets: 0,
+    uploadsPage: 1,
+    hasMoreDataSets: false,
     dataSources: [],
     totalDataSources: 0,
     connectionRequests: [],
@@ -732,6 +735,8 @@ export default function User() {
     totalClinics,
     dataSets,
     totalDataSets,
+    uploadsPage,
+    hasMoreDataSets,
     dataSources,
     totalDataSources,
     connectionRequests,
@@ -760,6 +765,15 @@ export default function User() {
     'user',
     user?.userid,
     defaultTab,
+    // The uploads page belongs to the Data tab; it should not outlive it.
+    { resetParamKeys: ['uploadsPage'] },
+  );
+
+  const updateSearchParams = useSearchParamUpdate();
+
+  const handleUploadsPageChange = useCallback(
+    (page: number) => updateSearchParams({ uploadsPage: page }),
+    [updateSearchParams],
   );
 
   // Render profile if user exists (profile may be empty object for users without profile metadata)
@@ -771,6 +785,10 @@ export default function User() {
       totalClinics={totalClinics}
       dataSets={dataSets}
       totalDataSets={totalDataSets}
+      uploadsPage={uploadsPage}
+      uploadsPageSize={uploadsPageSize}
+      hasMoreDataSets={hasMoreDataSets}
+      onUploadsPageChange={handleUploadsPageChange}
       dataSources={dataSources}
       totalDataSources={totalDataSources}
       connectionRequests={connectionRequests}

@@ -195,6 +195,52 @@ describe('usePersistedTab', () => {
     });
   });
 
+  describe('resetParamKeys option', () => {
+    /** Run handleTabChange and return the search params its updater produced. */
+    const paramsAfterTabChange = (
+      initial: string,
+      options?: Parameters<typeof usePersistedTab>[3],
+    ) => {
+      mockSearchParams = new URLSearchParams(initial);
+      const { result } = renderHook(() =>
+        usePersistedTab('user', 'abc123', 'data', options),
+      );
+      mockSetSearchParams.mockClear();
+
+      act(() => {
+        result.current.handleTabChange('account');
+      });
+
+      const updater = mockSetSearchParams.mock.calls[0][0];
+      const params = new URLSearchParams(initial);
+      updater(params);
+      return params;
+    };
+
+    it('drops the listed params when the tab changes', () => {
+      const params = paramsAfterTabChange('tab=data&uploadsPage=7', {
+        resetParamKeys: ['uploadsPage'],
+      });
+
+      expect(params.get('tab')).toBe('account');
+      expect(params.has('uploadsPage')).toBe(false);
+    });
+
+    it('leaves params it was not told to reset alone', () => {
+      const params = paramsAfterTabChange('tab=data&uploadsPage=7&keepMe=yes', {
+        resetParamKeys: ['uploadsPage'],
+      });
+
+      expect(params.get('keepMe')).toBe('yes');
+    });
+
+    it('keeps every param when no reset keys are given', () => {
+      const params = paramsAfterTabChange('tab=data&uploadsPage=7');
+
+      expect(params.get('uploadsPage')).toBe('7');
+    });
+  });
+
   describe('Auto-persist Params', () => {
     it('persists tracked params when searchParams change', () => {
       mockSearchParams = new URLSearchParams('tab=patients&search=john');
