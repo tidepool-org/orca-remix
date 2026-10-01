@@ -91,6 +91,69 @@ describe('ConfirmationModal', () => {
     expect(screen.getByRole('button', { name: 'Confirm' })).not.toBeDisabled();
   });
 
+  it('enables confirm button when input matches any of several expected inputs', async () => {
+    const user = userEvent.setup();
+    render(
+      <ConfirmationModal
+        {...defaultProps}
+        requiresInput={true}
+        expectedInput={['alpha', 'beta']}
+      />,
+    );
+
+    const input = screen.getByRole('textbox');
+    await user.type(input, 'beta');
+    expect(screen.getByRole('button', { name: 'Confirm' })).not.toBeDisabled();
+
+    await user.clear(input);
+    await user.type(input, 'alpha');
+    expect(screen.getByRole('button', { name: 'Confirm' })).not.toBeDisabled();
+  });
+
+  it('keeps confirm button disabled when input is only a prefix of an expected input', async () => {
+    const user = userEvent.setup();
+    render(
+      <ConfirmationModal
+        {...defaultProps}
+        requiresInput={true}
+        expectedInput={['alpha', 'beta']}
+      />,
+    );
+
+    await user.type(screen.getByRole('textbox'), 'alph');
+
+    expect(screen.getByRole('button', { name: 'Confirm' })).toBeDisabled();
+  });
+
+  it('names every accepted input in the helper text', () => {
+    render(
+      <ConfirmationModal
+        {...defaultProps}
+        requiresInput={true}
+        expectedInput={['alpha', 'beta']}
+      />,
+    );
+
+    expect(
+      screen.getByText('Type "alpha" or "beta" to confirm'),
+    ).toBeInTheDocument();
+  });
+
+  it('keeps confirm button disabled when the expected-input list is empty', async () => {
+    const user = userEvent.setup();
+    render(
+      <ConfirmationModal
+        {...defaultProps}
+        requiresInput={true}
+        expectedInput={[]}
+      />,
+    );
+
+    await user.type(screen.getByRole('textbox'), 'anything');
+
+    expect(screen.getByRole('button', { name: 'Confirm' })).toBeDisabled();
+  });
+
   it('shows danger icon when confirmVariant is danger', () => {
     render(<ConfirmationModal {...defaultProps} confirmVariant="danger" />);
 

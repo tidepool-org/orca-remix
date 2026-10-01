@@ -21,7 +21,7 @@ export type ConfirmationModalProps = {
   confirmVariant?: 'primary' | 'danger';
   requiresInput?: boolean;
   inputPlaceholder?: string;
-  expectedInput?: string;
+  expectedInput?: string | string[];
   inputLabel?: string;
   isLoading?: boolean;
   icon?: React.ReactNode;
@@ -52,13 +52,16 @@ export default function ConfirmationModal({
     }
   }, [isOpen]);
 
+  const acceptedInputs = (
+    Array.isArray(expectedInput) ? expectedInput : [expectedInput]
+  ).filter(Boolean);
+  const isInputMatched = acceptedInputs.includes(inputValue);
+
   // When input confirmation is required, fail safe: keep the button disabled
-  // unless a non-empty expectedInput has been matched exactly. This prevents a
-  // misconfiguration (requiresInput with an empty/omitted expectedInput) from
+  // unless a non-empty accepted input has been matched exactly. This prevents a
+  // misconfiguration (requiresInput with no non-empty expectedInput) from
   // silently enabling the confirm button without any typed confirmation.
-  const isConfirmDisabled =
-    isLoading ||
-    (requiresInput && (expectedInput === '' || inputValue !== expectedInput));
+  const isConfirmDisabled = isLoading || (requiresInput && !isInputMatched);
 
   const handleConfirm = () => {
     if (!isConfirmDisabled) {
@@ -101,8 +104,10 @@ export default function ConfirmationModal({
                 isDisabled={isLoading}
                 variant="bordered"
                 classNames={{ input: 'font-mono text-sm' }}
-                color={inputValue === expectedInput ? 'success' : 'default'}
-                description={`Type "${expectedInput}" to confirm`}
+                color={isInputMatched ? 'success' : 'default'}
+                description={`Type ${acceptedInputs
+                  .map((value) => `"${value}"`)
+                  .join(' or ')} to confirm`}
               />
             </div>
           )}
