@@ -17,7 +17,6 @@ import {
   ThemeProvider,
   useTheme,
   PreventFlashOnWrongTheme,
-  type Theme,
 } from 'remix-themes';
 
 import {
@@ -94,7 +93,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
   return {
     locale,
-    theme: (getTheme() || 'light') as Theme, // Default to light theme if no cookie is set
+    theme: getTheme(),
     sidebarExpanded,
     profileExpandedMap,
     pumpSettingsCompareToPrevious,
@@ -125,8 +124,8 @@ function App() {
         <Links />
       </head>
       <body
-        className={`${sidebarExpanded ? 'sidebar-expanded' : ''} ${
-          theme ?? ''
+        className={`${
+          sidebarExpanded ? 'sidebar-expanded' : ''
         } text-foreground bg-background`}
       >
         <ToastProvider>
@@ -173,16 +172,29 @@ export default function AppWithProviders() {
 
 export function ErrorBoundary() {
   const data = useRouteLoaderData<typeof loader>('root');
-  const theme = data?.theme || 'dark';
+
+  return (
+    <ThemeProvider
+      specifiedTheme={data?.theme ?? null}
+      themeAction="/action/set-theme"
+    >
+      <ErrorDocument ssrTheme={Boolean(data?.theme)} />
+    </ThemeProvider>
+  );
+}
+
+function ErrorDocument({ ssrTheme }: { ssrTheme: boolean }) {
+  const [theme] = useTheme();
 
   return (
     <html lang="en" data-theme={theme ?? ''}>
       <head>
         <title>Error | Tidepool ORCA</title>
         <Meta />
+        <PreventFlashOnWrongTheme ssrTheme={ssrTheme} />
         <Links />
       </head>
-      <body className={`${theme ?? ''} text-foreground bg-background`}>
+      <body className="text-foreground bg-background">
         <HeroUIProvider>
           <div className="p-4">
             <ErrorStack />

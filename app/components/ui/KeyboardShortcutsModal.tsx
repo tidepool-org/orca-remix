@@ -28,6 +28,7 @@ const SHORTCUT_GROUPS: ShortcutGroup[] = [
     shortcuts: [
       { keys: ['s'], description: 'Toggle sidebar' },
       { keys: ['/'], description: 'Focus global search' },
+      { keys: ['t'], description: 'Cycle theme (light, dark, system)' },
     ],
   },
   {

@@ -190,10 +190,10 @@ export default function HeaderSearch() {
             }
           }
         }}
-        className="w-80"
+        className="w-80 max-w-full"
         inputProps={{
           classNames: {
-            base: `transition-[width] duration-200 ease-in-out ${isFocused || inputValue ? 'w-80' : 'w-40'}`,
+            base: `max-w-full transition-[width] duration-200 ease-in-out ${isFocused || inputValue ? 'w-80' : 'w-40'}`,
             input: 'group-data-[has-value=true]:text-[color:var(--text)]',
           },
         }}

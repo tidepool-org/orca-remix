@@ -18,7 +18,12 @@ export type Toast = {
 
 type ToastContextType = {
   toasts: Toast[];
-  showToast: (message: string, type?: ToastType, duration?: number) => void;
+  showToast: (
+    message: string,
+    type?: ToastType,
+    duration?: number,
+    id?: string,
+  ) => void;
   hideToast: (id: string) => void;
 };
 
@@ -42,11 +47,22 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const showToast = useCallback(
-    (message: string, type: ToastType = 'info', duration: number = 5000) => {
-      const id = crypto.randomUUID();
+    (
+      message: string,
+      type: ToastType = 'info',
+      duration: number = 5000,
+      // Passing an id that is already showing replaces that toast in place.
+      id: string = crypto.randomUUID(),
+    ) => {
       const newToast: Toast = { id, message, type, duration };
 
-      setToasts((prev) => [...prev, newToast]);
+      clearTimeout(timeoutRefs.current.get(id));
+      timeoutRefs.current.delete(id);
+      setToasts((prev) =>
+        prev.some((t) => t.id === id)
+          ? prev.map((t) => (t.id === id ? newToast : t))
+          : [...prev, newToast],
+      );
 
       if (duration > 0) {
         const timeoutId = setTimeout(() => {

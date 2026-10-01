@@ -3,6 +3,7 @@ import { useCallback, useState } from 'react';
 import { Outlet, useMatches, useNavigate, useNavigation } from 'react-router';
 import { Breadcrumbs, BreadcrumbItem, Spinner } from '@heroui/react';
 import { Home } from 'lucide-react';
+import { Theme, useTheme } from 'remix-themes';
 import filter from 'lodash/filter';
 import map from 'lodash/map';
 
@@ -12,6 +13,7 @@ import KeyboardShortcutsModal from '~/components/ui/KeyboardShortcutsModal';
 import useKeyboardShortcuts from '~/hooks/useKeyboardShortcuts';
 import { getPersistedParamsString } from '~/utils/viewStatePersistence';
 import { useSidebarExpanded } from '~/contexts/SidebarExpandedContext';
+import { useToast } from '~/contexts/ToastContext';
 
 export type SidebarOpenProps = {
   sidebarOpen: boolean;
@@ -43,7 +45,21 @@ function Dashboard() {
     () => setSidebarExpanded(!sidebarExpanded),
     [sidebarExpanded, setSidebarExpanded],
   );
-  useKeyboardShortcuts({ navigate, openHelpModal, toggleSidebar });
+  const [theme, setTheme, { definedBy }] = useTheme();
+  const { showToast } = useToast();
+  const cycleTheme = useCallback(() => {
+    if (definedBy === 'SYSTEM') {
+      setTheme(Theme.LIGHT);
+      showToast('Theme: Light', 'info', 1000, 'theme');
+    } else if (theme === Theme.LIGHT) {
+      setTheme(Theme.DARK);
+      showToast('Theme: Dark', 'info', 1000, 'theme');
+    } else {
+      setTheme(null);
+      showToast('Theme: System', 'info', 1000, 'theme');
+    }
+  }, [theme, definedBy, setTheme, showToast]);
+  useKeyboardShortcuts({ navigate, openHelpModal, toggleSidebar, cycleTheme });
 
   const isLoading = navigation.state === 'loading';
 

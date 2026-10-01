@@ -1,5 +1,4 @@
 import { Button } from '@heroui/react';
-import ThemeSwitcher from './ThemeSwitcher';
 import UserMenu from './UserMenu';
 import HeaderSearch from '~/components/ui/HeaderSearch';
 import { Menu } from 'lucide-react';
@@ -16,7 +15,7 @@ function Header({ sidebarOpen, setSidebarOpen, onOpenShortcuts }: HeaderProps) {
       <div className="px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-[52px] -mb-px gap-4">
           {/* Header: Left side */}
-          <div className="flex items-center flex-1">
+          <div className="flex items-center flex-1 min-w-0">
             {/* Hamburger button */}
             <Button
               className="bg-transparent text-foreground lg:hidden mr-1"
@@ -29,18 +28,13 @@ function Header({ sidebarOpen, setSidebarOpen, onOpenShortcuts }: HeaderProps) {
               <span className="sr-only">Open sidebar</span>
               <Menu />
             </Button>
-            <div className="block flex-1 max-w-2xl">
+            <div className="block flex-1 min-w-0 max-w-2xl">
               <HeaderSearch />
             </div>
           </div>
 
           {/* Header: Right side */}
           <div className="flex items-center gap-2">
-            <ThemeSwitcher />
-            <div
-              className="w-px h-[22px] bg-[color:var(--border-strong)]"
-              aria-hidden="true"
-            />
             <UserMenu onOpenShortcuts={onOpenShortcuts} />
           </div>
         </div>

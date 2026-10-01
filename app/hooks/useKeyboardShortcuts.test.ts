@@ -6,11 +6,13 @@ describe('useKeyboardShortcuts', () => {
   const mockNavigate = vi.fn();
   const mockOpenHelpModal = vi.fn();
   const mockToggleSidebar = vi.fn();
+  const mockCycleTheme = vi.fn();
 
   const defaultOptions = {
     navigate: mockNavigate,
     openHelpModal: mockOpenHelpModal,
     toggleSidebar: mockToggleSidebar,
+    cycleTheme: mockCycleTheme,
   };
 
   function pressKey(key: string, target?: EventTarget) {
@@ -42,6 +44,12 @@ describe('useKeyboardShortcuts', () => {
       renderHook(() => useKeyboardShortcuts(defaultOptions));
       pressKey('s');
       expect(mockToggleSidebar).toHaveBeenCalledTimes(1);
+    });
+
+    it('calls cycleTheme once on "t"', () => {
+      renderHook(() => useKeyboardShortcuts(defaultOptions));
+      pressKey('t');
+      expect(mockCycleTheme).toHaveBeenCalledTimes(1);
     });
 
     it('focuses search input on "/"', () => {
@@ -114,6 +122,16 @@ describe('useKeyboardShortcuts', () => {
 
       pressKey('?', input);
       expect(mockOpenHelpModal).not.toHaveBeenCalled();
+      document.body.removeChild(input);
+    });
+
+    it('does not call cycleTheme when "t" is pressed inside an input', () => {
+      renderHook(() => useKeyboardShortcuts(defaultOptions));
+      const input = document.createElement('input');
+      document.body.appendChild(input);
+
+      pressKey('t', input);
+      expect(mockCycleTheme).not.toHaveBeenCalled();
       document.body.removeChild(input);
     });
 
