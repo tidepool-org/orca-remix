@@ -18,6 +18,7 @@ import { APIError } from '~/utils/errors';
 import { clinicianRouteIntents, isIntent } from '~/utils/intents';
 import { z } from 'zod';
 import { ClinicianSchema } from '~/schemas';
+import { highwaterHash } from '~/utils/highwaterHash.server';
 import { usePersistedTab } from '~/hooks/usePersistedTab';
 import {
   clinicScopedPrefixes,
@@ -28,6 +29,7 @@ import {
 
 type ClinicianLoaderData = {
   clinician: Clinician;
+  highwaterHash: string | null;
   recentClinicians: RecentClinician[];
   clinics: ClinicianClinicMembership[];
   totalClinics: number;
@@ -141,7 +143,13 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
     );
 
     return Response.json(
-      { clinician, recentClinicians, clinics, totalClinics },
+      {
+        clinician,
+        highwaterHash: highwaterHash(clinicianTyped.id),
+        recentClinicians,
+        clinics,
+        totalClinics,
+      },
       {
         headers: {
           'Set-Cookie': await commitClinicScopedSession(
@@ -255,7 +263,7 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
 };
 
 export default function Clinician() {
-  const { clinician, clinics, totalClinics } =
+  const { clinician, highwaterHash, clinics, totalClinics } =
     useLoaderData<ClinicianLoaderData>();
   const { clinicId } = useParams();
   const { addRecentClinician } = useRecentItems();
@@ -282,6 +290,7 @@ export default function Clinician() {
   return (
     <ClinicianProfile
       clinician={clinician}
+      highwaterHash={highwaterHash}
       clinics={clinics}
       totalClinics={totalClinics}
       clinicId={clinicId}

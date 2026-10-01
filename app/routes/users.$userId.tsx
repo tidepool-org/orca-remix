@@ -38,6 +38,7 @@ import { APIError } from '~/utils/errors';
 import { intents, isIntent, userRouteIntents } from '~/utils/intents';
 import { backfillPumpSettingsDeviceInfo } from '~/utils/deviceNames';
 import { excludeSoftDeleted } from '~/utils/softDeleted';
+import { highwaterHash } from '~/utils/highwaterHash.server';
 import { usePersistedTab } from '~/hooks/usePersistedTab';
 
 export const meta: MetaFunction = () => {
@@ -450,6 +451,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
       {
         user,
         profile,
+        highwaterHash: highwaterHash(user.userid),
         // Data with backward compatibility
         clinics,
         totalClinics,
@@ -488,6 +490,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   return {
     user: null,
     profile: null,
+    highwaterHash: null,
     clinics: [],
     totalClinics: 0,
     dataSets: [],
@@ -728,6 +731,7 @@ export default function User() {
   const {
     user,
     profile,
+    highwaterHash,
     clinics,
     totalClinics,
     dataSets,
@@ -767,6 +771,7 @@ export default function User() {
     <UserProfile
       user={user}
       profile={profile}
+      highwaterHash={highwaterHash}
       clinics={clinics}
       totalClinics={totalClinics}
       dataSets={dataSets}

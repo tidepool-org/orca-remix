@@ -26,6 +26,7 @@ export type ClinicianProfileProps = {
   totalClinics?: number;
   clinicsLoading?: boolean;
   clinicId?: string;
+  highwaterHash?: string | null;
   // Tab control props
   selectedTab?: string;
   onTabChange?: (key: React.Key) => void;
@@ -40,6 +41,7 @@ export default function ClinicianProfile({
   // Tab control props
   selectedTab,
   onTabChange,
+  highwaterHash,
 }: ClinicianProfileProps) {
   const { locale } = useLocale();
   const profileExpandedProps = useProfileExpanded('clinician');
@@ -155,6 +157,9 @@ export default function ClinicianProfile({
   const clinicianIdentifiers = [
     ...(clinician.email ? [{ value: clinician.email }] : []),
     { label: 'ID:', value: clinician.id, monospace: true },
+    ...(highwaterHash
+      ? [{ label: 'HASH:', value: highwaterHash, monospace: true }]
+      : []),
   ];
 
   const clinicianDetailFields = [

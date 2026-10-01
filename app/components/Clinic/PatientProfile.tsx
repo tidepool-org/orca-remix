@@ -48,6 +48,7 @@ export type PatientProfileProps = {
   dataSetsState?: ResourceState<DataSet[]>;
   dataSourcesState?: ResourceState<DataSource[]>;
   pumpSettingsState?: ResourceState<PumpSettings[]>;
+  highwaterHash?: string | null;
   // Tab control props
   selectedTab?: string;
   onTabChange?: (key: React.Key) => void;
@@ -76,6 +77,7 @@ export default function PatientProfile({
   dataSetsState,
   dataSourcesState,
   pumpSettingsState,
+  highwaterHash,
   // Tab control props
   selectedTab,
   onTabChange,
@@ -106,6 +108,9 @@ export default function PatientProfile({
   const patientIdentifiers = [
     ...(email ? [{ value: email }] : []),
     { label: 'ID:', value: id, monospace: true },
+    ...(highwaterHash
+      ? [{ label: 'HASH:', value: highwaterHash, monospace: true }]
+      : []),
     ...(mrn ? [{ label: 'MRN:', value: mrn, monospace: true }] : []),
   ];
 

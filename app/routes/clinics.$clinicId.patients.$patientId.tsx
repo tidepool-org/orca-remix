@@ -37,6 +37,7 @@ import { APIError } from '~/utils/errors';
 import { intents, isIntent, patientRouteIntents } from '~/utils/intents';
 import { backfillPumpSettingsDeviceInfo } from '~/utils/deviceNames';
 import { excludeSoftDeleted } from '~/utils/softDeleted';
+import { highwaterHash } from '~/utils/highwaterHash.server';
 import {
   clinicScopedPrefixes,
   commitClinicScopedSession,
@@ -46,6 +47,7 @@ import {
 
 type PatientLoaderData = {
   patient: Patient | null;
+  highwaterHash: string | null;
   patientClinics: PatientClinicMembership[];
   prescriptions: Prescription[];
   recentPatients: RecentPatient[];
@@ -410,6 +412,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     return Response.json(
       {
         patient,
+        highwaterHash: highwaterHash(patient.id),
         patientClinics,
         prescriptions,
         recentPatients: updatedRecentPatients,
@@ -457,6 +460,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 
   return {
     patient: null,
+    highwaterHash: null,
     patientClinics: [],
     prescriptions: [],
     recentPatients,
@@ -624,6 +628,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
 export default function Patient() {
   const {
     patient,
+    highwaterHash,
     prescriptions,
     dataSets,
     totalDataSets,
@@ -660,6 +665,7 @@ export default function Patient() {
   return patient ? (
     <PatientProfile
       patient={patient}
+      highwaterHash={highwaterHash}
       prescriptions={prescriptions}
       prescriptionsState={prescriptionsState}
       dataSets={dataSets}

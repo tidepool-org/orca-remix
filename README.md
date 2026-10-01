@@ -113,15 +113,16 @@ server.mjs               # Express server entry point
 
 ## Environment Variables
 
-| Variable          | Required | Description                                         |
-| ----------------- | -------- | --------------------------------------------------- |
-| `SESSION_SECRET`  | Yes      | Secret for signing session cookies                  |
-| `SERVER_SECRET`   | Yes      | Tidepool service account password                   |
-| `SERVER_NAME`     | Yes      | Tidepool service account username                   |
-| `API_HOST`        | Yes      | Base URL for the Tidepool API                       |
-| `DEV_AUTH_BYPASS` | Dev only | Set to `true` to skip Pomerium header check locally |
-| `DEV_AUTH_EMAIL`  | Dev only | Email to use when auth is bypassed                  |
-| `DEV_AUTH_NAME`   | Dev only | Display name to use when auth is bypassed           |
+| Variable          | Required | Description                                                                                                                                               |
+| ----------------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `SESSION_SECRET`  | Yes      | Secret for signing session cookies                                                                                                                        |
+| `SERVER_SECRET`   | Yes      | Tidepool service account password                                                                                                                         |
+| `SERVER_NAME`     | Yes      | Tidepool service account username                                                                                                                         |
+| `API_HOST`        | Yes      | Base URL for the Tidepool API                                                                                                                             |
+| `HIGHWATER_SALT`  | No       | Salt highwater uses to hash user ids for metrics; must equal highwater's `SALT_DEPLOY` for the environment. Unset hides the `HASH` identifier on profiles |
+| `DEV_AUTH_BYPASS` | Dev only | Set to `true` to skip Pomerium header check locally                                                                                                       |
+| `DEV_AUTH_EMAIL`  | Dev only | Email to use when auth is bypassed                                                                                                                        |
+| `DEV_AUTH_NAME`   | Dev only | Display name to use when auth is bypassed                                                                                                                 |
 
 ## Development
 

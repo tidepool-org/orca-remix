@@ -79,6 +79,7 @@ export type UserProfileProps = {
   trustedAccountsState?: ResourceState<AccessPermissionsMap>;
   sentInvitesState?: ResourceState<ShareInvite[]>;
   receivedInvitesState?: ResourceState<ShareInvite[]>;
+  highwaterHash?: string | null;
   // Tab control props
   selectedTab?: string;
   onTabChange?: (key: React.Key) => void;
@@ -119,6 +120,7 @@ export default function UserProfile({
   trustedAccountsState,
   sentInvitesState,
   receivedInvitesState,
+  highwaterHash,
   // Tab control props
   selectedTab,
   onTabChange,
@@ -153,6 +155,9 @@ export default function UserProfile({
   const userIdentifiers = [
     ...(username ? [{ value: username }] : []),
     { label: 'ID:', value: userId, monospace: true },
+    ...(highwaterHash
+      ? [{ label: 'HASH:', value: highwaterHash, monospace: true }]
+      : []),
   ];
 
   const userDetailFields = [
