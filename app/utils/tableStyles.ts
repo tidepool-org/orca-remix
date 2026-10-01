@@ -20,7 +20,6 @@ const sharedTr = [
 ].join(' ');
 
 export const recentTableClasses = {
-  base: 'flex flex-1 flex-col text-[color:var(--text)]',
   th: sharedTh,
   td: sharedTd,
   tr: sharedTr,
@@ -31,7 +30,7 @@ export const recentTableClasses = {
  */
 export const collapsibleTableClasses = {
   wrapper: 'shadow-none',
-  base: 'flex flex-1 flex-col text-[color:var(--text)]',
+  base: 'flex flex-1 flex-col overflow-x-auto text-[color:var(--text)]',
   th: sharedTh,
   td: sharedTd,
   tr: sharedTr,
