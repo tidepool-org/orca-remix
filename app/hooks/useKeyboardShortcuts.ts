@@ -5,6 +5,7 @@ type UseKeyboardShortcutsOptions = {
   navigate: NavigateFunction;
   openHelpModal: () => void;
   toggleSidebar: () => void;
+  cycleTheme: () => void;
 };
 
 function isEditableElement(target: EventTarget | null): boolean {
@@ -27,6 +28,7 @@ export default function useKeyboardShortcuts({
   navigate,
   openHelpModal,
   toggleSidebar,
+  cycleTheme,
 }: UseKeyboardShortcutsOptions) {
   const chordRef = useRef<string | null>(null);
   const chordTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -78,6 +80,10 @@ export default function useKeyboardShortcuts({
           e.preventDefault();
           toggleSidebar();
           break;
+        case 't':
+          e.preventDefault();
+          cycleTheme();
+          break;
         case '/':
           e.preventDefault();
           document
@@ -98,7 +104,7 @@ export default function useKeyboardShortcuts({
       document.removeEventListener('keydown', handler);
       clearChord();
     };
-  }, [navigate, openHelpModal, toggleSidebar, clearChord]);
+  }, [navigate, openHelpModal, toggleSidebar, cycleTheme, clearChord]);
 }
 
 const VIM_TO_ARROW: Record<string, string> = {

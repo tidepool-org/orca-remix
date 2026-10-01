@@ -168,6 +168,51 @@ describe('ToastContext', () => {
       });
     });
 
+    describe('showToast with an id', () => {
+      it('replaces a showing toast that has the same id', () => {
+        const { result } = renderHook(() => useToast(), {
+          wrapper: ToastProvider,
+        });
+
+        act(() => {
+          result.current.showToast('Other', 'info', 0);
+          result.current.showToast('First', 'info', 0, 'theme');
+          result.current.showToast('Second', 'success', 0, 'theme');
+        });
+
+        expect(result.current.toasts.map((t) => t.message)).toEqual([
+          'Other',
+          'Second',
+        ]);
+        expect(result.current.toasts[1].type).toBe('success');
+      });
+
+      it('restarts the dismiss timer when a toast is replaced', () => {
+        const { result } = renderHook(() => useToast(), {
+          wrapper: ToastProvider,
+        });
+
+        act(() => {
+          result.current.showToast('First', 'info', 2000, 'theme');
+        });
+        act(() => {
+          vi.advanceTimersByTime(1900);
+          result.current.showToast('Second', 'info', 2000, 'theme');
+        });
+        act(() => {
+          vi.advanceTimersByTime(1999);
+        });
+
+        expect(result.current.toasts.map((t) => t.message)).toEqual(['Second']);
+
+        act(() => {
+          vi.advanceTimersByTime(1);
+        });
+
+        expect(result.current.toasts).toHaveLength(0);
+      });
+    });
+
     describe('hideToast', () => {
       it('removes a specific toast by ID', () => {
         const { result } = renderHook(() => useToast(), {

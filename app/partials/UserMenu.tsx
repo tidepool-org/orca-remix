@@ -8,6 +8,8 @@ import {
   Kbd,
 } from '@heroui/react';
 import { useMemo } from 'react';
+import { Theme, useTheme } from 'remix-themes';
+import { Check, Monitor, MoonStar, Sun } from 'lucide-react';
 
 import { type RootLoaderType } from '~/root';
 import { useLoaderData } from 'react-router';
@@ -17,8 +19,16 @@ type UserMenuProps = {
   onOpenShortcuts: () => void;
 };
 
+const THEME_OPTIONS = [
+  { key: 'light', label: 'Light', Icon: Sun, value: Theme.LIGHT },
+  { key: 'dark', label: 'Dark', Icon: MoonStar, value: Theme.DARK },
+  { key: 'system', label: 'System', Icon: Monitor, value: null },
+];
+
 export default function UserMenu({ onOpenShortcuts }: UserMenuProps) {
   const { agent } = useLoaderData<RootLoaderType>();
+  const [theme, setTheme, { definedBy }] = useTheme();
+  const selected = definedBy === 'SYSTEM' ? 'system' : theme;
 
   // Memoize the avatar src to prevent unnecessary re-renders and refetches
   const avatarSrc = useMemo(() => {
@@ -38,6 +48,7 @@ export default function UserMenu({ onOpenShortcuts }: UserMenuProps) {
   const memoizedAvatar = useMemo(
     () => (
       <Avatar
+        isFocusable
         showFallback
         className="transition-transform w-[34px] h-[34px] text-tiny"
         classNames={{ icon: 'text-[color:var(--primary)]' }}
@@ -67,6 +78,24 @@ export default function UserMenu({ onOpenShortcuts }: UserMenuProps) {
             <p className="font-semibold">{agent?.name}</p>
             <em>{agent?.email}</em>
           </DropdownItem>
+        </DropdownSection>
+        <DropdownSection title="Theme" showDivider>
+          {THEME_OPTIONS.map(({ key, label, Icon, value }) => (
+            <DropdownItem
+              key={key}
+              textValue={label}
+              startContent={<Icon className="w-4 h-4" aria-hidden="true" />}
+              endContent={
+                selected === key ? (
+                  <Check className="w-4 h-4" aria-hidden="true" />
+                ) : null
+              }
+              onPress={() => setTheme(value)}
+            >
+              {label}
+              {selected === key && <span className="sr-only">, selected</span>}
+            </DropdownItem>
+          ))}
         </DropdownSection>
         <DropdownSection>
           <DropdownItem
