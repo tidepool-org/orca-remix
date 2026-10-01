@@ -9,7 +9,6 @@ import {
   TableRow,
   TableCell,
   Chip,
-  SortDescriptor,
   Tooltip,
 } from '@heroui/react';
 import { Users } from 'lucide-react';
@@ -19,6 +18,8 @@ import CollapsibleTableWrapper from '../ui/CollapsibleTableWrapper';
 import { collapsibleTableClasses, columnClass } from '~/utils/tableStyles';
 import { getChipClassNames } from '~/utils/chipStyles';
 import type { Patient } from './types';
+import type { ResourceState } from '~/api.types';
+import ResourceError from '~/components/ui/ResourceError';
 import DebouncedSearchInput from '../ui/DebouncedSearchInput';
 import TableEmptyState from '~/components/ui/TableEmptyState';
 import TableLoadingState from '~/components/ui/TableLoadingState';
@@ -28,9 +29,11 @@ import TablePagination, {
 } from '~/components/ui/TablePagination';
 import CopyableIdentifier from '~/components/ui/CopyableIdentifier';
 import { formatShortDate } from '~/utils/dateFormatters';
+import { getSortHeaderProps } from '~/utils/tableRows';
 
 export type PatientsTableProps = {
   patients: Patient[];
+  patientsState?: ResourceState<Patient[]>;
   totalPatients: number;
   isLoading?: boolean;
   totalPages?: number;
@@ -63,6 +66,7 @@ type Column = {
 
 export default function PatientsTable({
   patients,
+  patientsState,
   totalPatients = 0,
   isLoading = false,
   totalPages = 1,
@@ -83,28 +87,6 @@ export default function PatientsTable({
   const exportHref = useHref(
     `/clinics/${params.clinicId}/export?type=patients`,
   );
-
-  // Parse current sort to set initial sort descriptor
-  const parseSortString = React.useCallback((sortStr?: string) => {
-    if (!sortStr)
-      return { column: 'fullName', direction: 'ascending' as const };
-    const direction = sortStr.startsWith('-')
-      ? ('descending' as const)
-      : ('ascending' as const);
-    const column = sortStr.replace(/^[+-]/, '');
-    return { column, direction };
-  }, []);
-
-  const [sortDescriptor, setSortDescriptor] = React.useState<SortDescriptor>(
-    parseSortString(currentSort),
-  );
-
-  // Keep the header sort state aligned when currentSort changes after mount
-  // (e.g. back/forward navigation or a reset), since the state above only
-  // seeds from the prop once.
-  React.useEffect(() => {
-    setSortDescriptor(parseSortString(currentSort));
-  }, [currentSort, parseSortString]);
 
   // Calculate pagination details
   const effectivePageSize =
@@ -135,7 +117,7 @@ export default function PatientsTable({
     {
       key: 'birthDate',
       label: 'Birth Date',
-      sortable: false,
+      sortable: true,
     },
     {
       key: 'mrn',
@@ -159,14 +141,13 @@ export default function PatientsTable({
     },
   ];
 
-  const handleSortChange = (descriptor: SortDescriptor) => {
-    setSortDescriptor(descriptor);
-    if (onSort && descriptor.column) {
-      const direction = descriptor.direction === 'ascending' ? '+' : '-';
-      const sortString = `${direction}${descriptor.column}`;
-      onSort(sortString);
-    }
-  };
+  const sortHeaderProps = getSortHeaderProps({
+    currentSort,
+    columns: columns.filter((c) => c.sortable).map((c) => c.key),
+    onSort,
+    // The API orders by fullName ascending when no sort is sent
+    defaultSort: { column: 'fullName', direction: 'ascending' },
+  });
 
   const renderCell = React.useCallback(
     (patient: Patient, columnKey: keyof Patient) => {
@@ -354,68 +335,73 @@ export default function PatientsTable({
         lastItem: lastPatientOnPage,
       }}
     >
-      {/* Search Controls */}
-      <div className="flex justify-start mb-4">
-        <DebouncedSearchInput
-          placeholder="Search patients..."
-          value={currentSearch || ''}
-          onSearch={(value) => onSearch?.(value)}
-          debounceMs={1000}
-        />
-      </div>
+      {patientsState?.status === 'error' ? (
+        <ResourceError title="Patients" message={patientsState.error.message} />
+      ) : (
+        <>
+          {/* Search Controls */}
+          <div className="flex justify-start mb-4">
+            <DebouncedSearchInput
+              placeholder="Search patients..."
+              value={currentSearch || ''}
+              onSearch={(value) => onSearch?.(value)}
+              debounceMs={1000}
+            />
+          </div>
 
-      <Table
-        aria-label="Clinic patients table"
-        className="flex flex-1 flex-col text-[color:var(--text)]"
-        shadow="none"
-        removeWrapper
-        selectionMode="single"
-        onSelectionChange={(keys: 'all' | Set<React.Key>) => {
-          const key = keys instanceof Set ? Array.from(keys)[0] : keys;
-          if (key && key !== 'all') {
-            navigate(`/clinics/${params.clinicId}/patients/${key}`);
-          }
-        }}
-        sortDescriptor={sortDescriptor}
-        onSortChange={handleSortChange}
-        classNames={collapsibleTableClasses}
-      >
-        <TableHeader columns={columns}>
-          {(column) => (
-            <TableColumn
-              key={column.key}
-              allowsSorting={column.sortable}
-              className={columnClass}
-            >
-              {column.label}
-            </TableColumn>
-          )}
-        </TableHeader>
-        {/* eslint-disable-next-line react/prop-types */}
-        <TableBody
-          emptyContent={EmptyContent}
-          loadingContent={LoadingContent}
-          loadingState={isLoading ? 'loading' : 'idle'}
-        >
-          {patients.map((patient) => (
-            <TableRow key={patient.id}>
-              {(columnKey) => (
-                <TableCell>
-                  {renderCell(patient, columnKey as keyof Patient)}
-                </TableCell>
+          <Table
+            aria-label="Clinic patients table"
+            className="flex flex-1 flex-col text-[color:var(--text)]"
+            shadow="none"
+            removeWrapper
+            selectionMode="single"
+            onSelectionChange={(keys: 'all' | Set<React.Key>) => {
+              const key = keys instanceof Set ? Array.from(keys)[0] : keys;
+              if (key && key !== 'all') {
+                navigate(`/clinics/${params.clinicId}/patients/${key}`);
+              }
+            }}
+            {...sortHeaderProps}
+            classNames={collapsibleTableClasses}
+          >
+            <TableHeader columns={columns}>
+              {(column) => (
+                <TableColumn
+                  key={column.key}
+                  allowsSorting={column.sortable}
+                  className={columnClass}
+                >
+                  {column.label}
+                </TableColumn>
               )}
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+            </TableHeader>
+            {/* eslint-disable-next-line react/prop-types */}
+            <TableBody
+              emptyContent={EmptyContent}
+              loadingContent={LoadingContent}
+              loadingState={isLoading ? 'loading' : 'idle'}
+            >
+              {patients.map((patient) => (
+                <TableRow key={patient.id}>
+                  {(columnKey) => (
+                    <TableCell>
+                      {renderCell(patient, columnKey as keyof Patient)}
+                    </TableCell>
+                  )}
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
 
-      <TablePagination
-        currentPage={currentPage}
-        totalPages={totalPages}
-        totalItems={totalPatients}
-        pageSize={effectivePageSize}
-        onPageChange={onPageChange}
-      />
+          <TablePagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={totalPatients}
+            pageSize={effectivePageSize}
+            onPageChange={onPageChange}
+          />
+        </>
+      )}
     </CollapsibleTableWrapper>
   );
 }

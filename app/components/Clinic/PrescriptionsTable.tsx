@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React from 'react';
 import {
   Table,
   TableHeader,
@@ -16,12 +16,17 @@ import type { Prescription } from './types';
 import type { ResourceState } from '~/api.types';
 import TableEmptyState from '~/components/ui/TableEmptyState';
 import TableLoadingState from '~/components/ui/TableLoadingState';
-import TableFilterInput from '~/components/ui/TableFilterInput';
+import DebouncedSearchInput from '~/components/ui/DebouncedSearchInput';
+import TablePagination, {
+  getFirstItemOnPage,
+  getLastItemOnPage,
+} from '~/components/ui/TablePagination';
 import StatusChip from '~/components/ui/StatusChip';
 import ResourceError from '~/components/ui/ResourceError';
 import CopyableIdentifier from '~/components/ui/CopyableIdentifier';
 import { formatDateTime } from '~/utils/dateFormatters';
 import { getPatientName } from '~/utils/prescriptions';
+import { getSortHeaderProps } from '~/utils/tableRows';
 
 /**
  * Context determines how navigation works when selecting a prescription:
@@ -35,12 +40,20 @@ export type PrescriptionsTableProps = {
   prescriptionsState?: ResourceState<Prescription[]>;
   totalPrescriptions: number;
   isLoading?: boolean;
+  totalPages?: number;
+  currentPage?: number;
+  pageSize?: number;
+  onPageChange?: (page: number) => void;
   /** Clinic ID for navigation in 'clinic' context. Falls back to route params if not provided. */
   clinicId?: string;
   /** Mark this as the first table in a CollapsibleGroup to auto-expand it */
   isFirstInGroup?: boolean;
   /** Context determines navigation behavior. Defaults to 'clinic'. */
   context?: PrescriptionsTableContext;
+  onSearch?: (search: string) => void;
+  currentSearch?: string;
+  onSort?: (sort: string) => void;
+  currentSort?: string;
 };
 
 type Column = {
@@ -53,43 +66,42 @@ export default function PrescriptionsTable({
   prescriptionsState,
   totalPrescriptions = 0,
   isLoading = false,
+  totalPages = 1,
+  currentPage = 1,
+  pageSize,
+  onPageChange,
   clinicId,
   isFirstInGroup = false,
   context = 'clinic',
+  onSearch,
+  currentSearch = '',
+  onSort,
+  currentSort,
 }: PrescriptionsTableProps) {
   const { locale } = useLocale();
   const navigate = useNavigate();
   const params = useParams();
   const [searchParams] = useSearchParams();
-  const [filterValue, setFilterValue] = useState('');
   const effectiveClinicId = clinicId || params.clinicId;
   const exportHref = useHref(
     `/clinics/${effectiveClinicId}/export?type=prescriptions`,
   );
 
-  const filteredPrescriptions = useMemo(() => {
-    if (!filterValue.trim()) return prescriptions;
-    const searchTerm = filterValue.toLowerCase().trim();
-    return prescriptions.filter((prescription) => {
-      const attrs = prescription.latestRevision?.attributes;
-      const patientName =
-        `${attrs?.firstName || ''} ${attrs?.lastName || ''}`.toLowerCase();
-      const state = prescription.state?.toLowerCase() || '';
-      return patientName.includes(searchTerm) || state.includes(searchTerm);
-    });
-  }, [prescriptions, filterValue]);
-
-  const topContent = useMemo(
-    () => (
-      <TableFilterInput
-        value={filterValue}
-        onChange={setFilterValue}
-        placeholder="Filter by patient name or state..."
-        aria-label="Filter prescriptions by patient name or state"
-        className="mb-4"
-      />
-    ),
-    [filterValue],
+  // Calculate pagination details
+  const effectivePageSize =
+    pageSize ??
+    (prescriptions.length > 0
+      ? Math.ceil(totalPrescriptions / totalPages)
+      : 25);
+  const firstPrescriptionOnPage = getFirstItemOnPage(
+    currentPage,
+    effectivePageSize,
+    totalPrescriptions,
+  );
+  const lastPrescriptionOnPage = getLastItemOnPage(
+    currentPage,
+    effectivePageSize,
+    totalPrescriptions,
   );
 
   const columns: Column[] = [
@@ -110,6 +122,13 @@ export default function PrescriptionsTable({
       label: 'Expires',
     },
   ];
+
+  const sortHeaderProps = getSortHeaderProps({
+    currentSort,
+    columns: columns.map((c) => c.key),
+    onSort,
+    descendingFirst: ['createdTime', 'expirationTime'],
+  });
 
   const renderCell = React.useCallback(
     (item: Prescription, columnKey: string) => {
@@ -170,6 +189,10 @@ export default function PrescriptionsTable({
       totalItems={totalPrescriptions}
       isFirstInGroup={isFirstInGroup}
       exportHref={context === 'clinic' ? exportHref : undefined}
+      showRange={{
+        firstItem: firstPrescriptionOnPage,
+        lastItem: lastPrescriptionOnPage,
+      }}
     >
       {hasError ? (
         <ResourceError
@@ -178,7 +201,15 @@ export default function PrescriptionsTable({
         />
       ) : (
         <>
-          {topContent}
+          <div className="flex justify-start mb-4">
+            <DebouncedSearchInput
+              placeholder="Filter by patient name or state..."
+              aria-label="Filter prescriptions by patient name or state"
+              value={currentSearch}
+              onSearch={(value) => onSearch?.(value)}
+              debounceMs={1000}
+            />
+          </div>
           <Table
             aria-label="Prescriptions table"
             shadow="none"
@@ -209,10 +240,15 @@ export default function PrescriptionsTable({
               }
             }}
             classNames={collapsibleTableClasses}
+            {...sortHeaderProps}
           >
             <TableHeader columns={columns}>
               {(column) => (
-                <TableColumn key={column.key} className={columnClass}>
+                <TableColumn
+                  key={column.key}
+                  allowsSorting
+                  className={columnClass}
+                >
                   {column.label}
                 </TableColumn>
               )}
@@ -222,7 +258,7 @@ export default function PrescriptionsTable({
               loadingContent={LoadingContent}
               loadingState={isLoading ? 'loading' : 'idle'}
             >
-              {filteredPrescriptions.map((item) => (
+              {prescriptions.map((item) => (
                 <TableRow key={item.id}>
                   {(columnKey) => (
                     <TableCell>
@@ -233,6 +269,14 @@ export default function PrescriptionsTable({
               ))}
             </TableBody>
           </Table>
+
+          <TablePagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={totalPrescriptions}
+            pageSize={effectivePageSize}
+            onPageChange={onPageChange}
+          />
         </>
       )}
     </CollapsibleTableWrapper>

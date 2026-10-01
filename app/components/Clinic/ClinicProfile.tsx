@@ -93,10 +93,12 @@ export type ClinicProfileProps = {
   patients?: Patient[];
   totalPatients?: number;
   patientsLoading?: boolean;
+  patientsState?: ResourceState<Patient[]>;
   totalPages?: number;
   currentPage?: number;
   pageSize?: number;
   patientInvites?: PatientInvite[];
+  patientInvitesState?: ResourceState<PatientInvite[]>;
   totalInvites?: number;
   invitesLoading?: boolean;
   clinicians?: Clinician[];
@@ -108,10 +110,15 @@ export type ClinicProfileProps = {
   clinicianInvites?: ClinicianInvite[];
   totalClinicianInvites?: number;
   clinicianInvitesLoading?: boolean;
+  cliniciansState?: ResourceState<Clinician[]>;
+  clinicianInvitesState?: ResourceState<ClinicianInvite[]>;
   prescriptions?: Prescription[];
   prescriptionsState?: ResourceState<Prescription[]>;
   totalPrescriptions?: number;
   prescriptionsLoading?: boolean;
+  prescriptionsTotalPages?: number;
+  prescriptionsCurrentPage?: number;
+  prescriptionsPageSize?: number;
   mrnSettings?: ClinicMrnSettings | null;
   patientCountSettings?: ClinicPatientCountSettings | null;
   onPageChange?: (page: number) => void;
@@ -120,8 +127,15 @@ export type ClinicProfileProps = {
   currentSort?: string;
   currentSearch?: string;
   onCliniciansPageChange?: (page: number) => void;
+  onPrescriptionsPageChange?: (page: number) => void;
   onCliniciansSearch?: (search: string) => void;
   currentCliniciansSearch?: string;
+  onCliniciansSort?: (sort: string) => void;
+  currentCliniciansSort?: string;
+  onPrescriptionsSearch?: (search: string) => void;
+  currentPrescriptionsSearch?: string;
+  onPrescriptionsSort?: (sort: string) => void;
+  currentPrescriptionsSort?: string;
   onSaveClinicSettings?: (
     clinicId: string,
     payload: ClinicSettingsPayload,
@@ -140,10 +154,12 @@ export default function ClinicProfile({
   patients = [],
   totalPatients = 0,
   patientsLoading = false,
+  patientsState,
   totalPages = 1,
   currentPage = 1,
   pageSize,
   patientInvites = [],
+  patientInvitesState,
   totalInvites = 0,
   invitesLoading = false,
   clinicians = [],
@@ -155,10 +171,15 @@ export default function ClinicProfile({
   clinicianInvites = [],
   totalClinicianInvites = 0,
   clinicianInvitesLoading = false,
+  cliniciansState,
+  clinicianInvitesState,
   prescriptions = [],
   prescriptionsState,
   totalPrescriptions = 0,
   prescriptionsLoading = false,
+  prescriptionsTotalPages = 1,
+  prescriptionsCurrentPage = 1,
+  prescriptionsPageSize,
   mrnSettings,
   patientCountSettings,
   onPageChange,
@@ -167,8 +188,15 @@ export default function ClinicProfile({
   currentSort,
   currentSearch,
   onCliniciansPageChange,
+  onPrescriptionsPageChange,
   onCliniciansSearch,
   currentCliniciansSearch,
+  onCliniciansSort,
+  currentCliniciansSort,
+  onPrescriptionsSearch,
+  currentPrescriptionsSearch,
+  onPrescriptionsSort,
+  currentPrescriptionsSort,
   onSaveClinicSettings,
   onDeleteClinic,
   onRevokeClinicianInvite,
@@ -368,6 +396,7 @@ export default function ClinicProfile({
                 <PatientsTable
                   patients={patients}
                   isLoading={patientsLoading}
+                  patientsState={patientsState}
                   totalPages={totalPages}
                   totalPatients={totalPatients}
                   currentPage={currentPage}
@@ -384,6 +413,7 @@ export default function ClinicProfile({
                 <PatientInvitesTable
                   invites={patientInvites}
                   isLoading={invitesLoading}
+                  invitesState={patientInvitesState}
                   totalInvites={totalInvites}
                   onRevokeInvite={onRevokePatientInvite}
                 />
@@ -410,12 +440,15 @@ export default function ClinicProfile({
                   clinicians={clinicians}
                   totalClinicians={totalClinicians}
                   isLoading={cliniciansLoading}
+                  cliniciansState={cliniciansState}
                   totalPages={cliniciansTotalPages}
                   currentPage={cliniciansCurrentPage}
                   pageSize={cliniciansPageSize}
                   onPageChange={onCliniciansPageChange}
                   onSearch={onCliniciansSearch}
                   currentSearch={currentCliniciansSearch}
+                  onSort={onCliniciansSort}
+                  currentSort={currentCliniciansSort}
                   onRemoveClinician={onRemoveClinician}
                   isFirstInGroup
                 />
@@ -423,6 +456,7 @@ export default function ClinicProfile({
                 <ClinicianInvitesTable
                   invites={clinicianInvites}
                   isLoading={clinicianInvitesLoading}
+                  invitesState={clinicianInvitesState}
                   totalInvites={totalClinicianInvites}
                   onRevokeInvite={onRevokeClinicianInvite}
                 />
@@ -450,6 +484,14 @@ export default function ClinicProfile({
                   prescriptionsState={prescriptionsState}
                   totalPrescriptions={totalPrescriptions}
                   isLoading={prescriptionsLoading}
+                  totalPages={prescriptionsTotalPages}
+                  currentPage={prescriptionsCurrentPage}
+                  pageSize={prescriptionsPageSize}
+                  onPageChange={onPrescriptionsPageChange}
+                  onSearch={onPrescriptionsSearch}
+                  currentSearch={currentPrescriptionsSearch}
+                  onSort={onPrescriptionsSort}
+                  currentSort={currentPrescriptionsSort}
                   clinicId={id}
                   isFirstInGroup
                 />

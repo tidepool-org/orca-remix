@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event';
 import CliniciansTable from './CliniciansTable';
 import { CollapsibleGroup } from '~/components/ui/CollapsibleGroup';
 import type { Clinician } from './types';
+import type { ResourceState } from '~/api.types';
 
 // Helper to render CliniciansTable in expanded state
 const renderExpanded = (
@@ -157,6 +158,24 @@ describe('CliniciansTable', () => {
     });
   });
 
+  describe('Error state', () => {
+    it('shows the error instead of the table', () => {
+      const errorState: ResourceState<Clinician[]> = {
+        status: 'error',
+        error: { message: 'Failed to load' },
+      };
+
+      renderExpanded({
+        clinicians: [],
+        totalClinicians: 0,
+        cliniciansState: errorState,
+      });
+
+      expect(screen.getByText('Failed to load')).toBeInTheDocument();
+      expect(screen.queryByRole('grid')).not.toBeInTheDocument();
+    });
+  });
+
   describe('Empty and loading states', () => {
     it('shows empty message when no clinicians', () => {
       renderExpanded({
@@ -187,6 +206,79 @@ describe('CliniciansTable', () => {
       expect(
         screen.getByPlaceholderText('Search clinicians...'),
       ).toBeInTheDocument();
+    });
+  });
+
+  describe('Sorting', () => {
+    const sortStates = () =>
+      screen
+        .getAllByRole('columnheader')
+        .map((header) => header.getAttribute('aria-sort'));
+
+    it('reports +roles when the Role header is clicked', async () => {
+      const user = userEvent.setup();
+      const onSort = vi.fn();
+      renderExpanded({ ...defaultProps, onSort });
+
+      await user.click(screen.getByRole('columnheader', { name: /role/i }));
+
+      expect(onSort).toHaveBeenCalledWith('+roles');
+    });
+
+    it('reports -roles when Role is clicked while already ascending', async () => {
+      const user = userEvent.setup();
+      const onSort = vi.fn();
+      renderExpanded({ ...defaultProps, onSort, currentSort: '+roles' });
+
+      await user.click(screen.getByRole('columnheader', { name: /role/i }));
+
+      expect(onSort).toHaveBeenCalledWith('-roles');
+    });
+
+    it('reports -createdTime on the first Added click', async () => {
+      const user = userEvent.setup();
+      const onSort = vi.fn();
+      renderExpanded({ ...defaultProps, onSort, currentSort: '+roles' });
+
+      await user.click(screen.getByRole('columnheader', { name: /added/i }));
+
+      expect(onSort).toHaveBeenCalledWith('-createdTime');
+    });
+
+    it('reports +createdTime when Added is clicked while descending', async () => {
+      const user = userEvent.setup();
+      const onSort = vi.fn();
+      renderExpanded({ ...defaultProps, onSort, currentSort: '-createdTime' });
+
+      await user.click(screen.getByRole('columnheader', { name: /added/i }));
+
+      expect(onSort).toHaveBeenCalledWith('+createdTime');
+    });
+
+    it('marks the Added header descending for -createdTime', () => {
+      renderExpanded({ ...defaultProps, currentSort: '-createdTime' });
+
+      expect(
+        screen.getByRole('columnheader', { name: /added/i }),
+      ).toHaveAttribute('aria-sort', 'descending');
+      expect(
+        sortStates().filter((s) => s === 'ascending' || s === 'descending'),
+      ).toHaveLength(1);
+    });
+
+    it('marks no header sorted when no currentSort is given', () => {
+      renderExpanded(defaultProps);
+
+      expect(sortStates()).not.toContain('ascending');
+      expect(sortStates()).not.toContain('descending');
+    });
+
+    it('leaves the Actions header without a sort state', () => {
+      renderExpanded({ ...defaultProps, currentSort: '+roles' });
+
+      expect(
+        screen.getByRole('columnheader', { name: /actions/i }),
+      ).not.toHaveAttribute('aria-sort');
     });
   });
 

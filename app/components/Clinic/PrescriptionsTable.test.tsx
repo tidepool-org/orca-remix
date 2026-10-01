@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, within } from '~/test-utils';
+import { render, screen, waitFor, within } from '~/test-utils';
 import userEvent from '@testing-library/user-event';
 import PrescriptionsTable from './PrescriptionsTable';
 import { CollapsibleGroup } from '~/components/ui/CollapsibleGroup';
@@ -224,59 +224,68 @@ describe('PrescriptionsTable', () => {
       ).toBeInTheDocument();
     });
 
-    it('filters prescriptions by patient name', async () => {
+    it('reports the typed filter', async () => {
       const user = userEvent.setup();
+      const onSearch = vi.fn();
+      renderExpanded({ ...defaultProps, onSearch });
+
+      await user.type(
+        screen.getByPlaceholderText('Filter by patient name or state...'),
+        'John',
+      );
+
+      await waitFor(() => expect(onSearch).toHaveBeenCalledWith('John'), {
+        timeout: 2000,
+      });
+    });
+  });
+
+  describe('Sorting', () => {
+    const clickHeader = async (name: RegExp) => {
+      const user = userEvent.setup();
+      await user.click(screen.getByRole('columnheader', { name }));
+    };
+
+    it('marks no header sorted when no currentSort is given', () => {
       renderExpanded(defaultProps);
 
-      const filterInput = screen.getByPlaceholderText(
-        'Filter by patient name or state...',
-      );
-      await user.type(filterInput, 'John');
-
-      expect(screen.getByText('John Doe')).toBeInTheDocument();
-      expect(screen.queryByText('Jane Smith')).not.toBeInTheDocument();
-      expect(screen.queryByText('Bob')).not.toBeInTheDocument();
+      const sortStates = screen
+        .getAllByRole('columnheader')
+        .map((header) => header.getAttribute('aria-sort'));
+      expect(sortStates).not.toContain('ascending');
+      expect(sortStates).not.toContain('descending');
     });
 
-    it('filters prescriptions by state', async () => {
-      const user = userEvent.setup();
-      renderExpanded(defaultProps);
+    it('marks the Created header descending for -createdTime', () => {
+      renderExpanded({ ...defaultProps, currentSort: '-createdTime' });
 
-      const filterInput = screen.getByPlaceholderText(
-        'Filter by patient name or state...',
-      );
-      await user.type(filterInput, 'pending');
-
-      expect(screen.queryByText('John Doe')).not.toBeInTheDocument();
-      expect(screen.getByText('Jane Smith')).toBeInTheDocument();
-      expect(screen.queryByText('Bob')).not.toBeInTheDocument();
+      expect(
+        screen.getByRole('columnheader', { name: /created/i }),
+      ).toHaveAttribute('aria-sort', 'descending');
     });
 
-    it('is case insensitive when filtering', async () => {
-      const user = userEvent.setup();
-      renderExpanded(defaultProps);
-
-      const filterInput = screen.getByPlaceholderText(
-        'Filter by patient name or state...',
-      );
-      await user.type(filterInput, 'JANE');
-
-      expect(screen.getByText('Jane Smith')).toBeInTheDocument();
+    it('reports +patientName on the first Patient Name click', async () => {
+      const onSort = vi.fn();
+      renderExpanded({ ...defaultProps, onSort });
+      await clickHeader(/patient name/i);
+      expect(onSort).toHaveBeenCalledWith('+patientName');
     });
 
-    it('shows all prescriptions when filter is cleared', async () => {
-      const user = userEvent.setup();
-      renderExpanded(defaultProps);
+    it.each([
+      [/created/i, '-createdTime'],
+      [/expires/i, '-expirationTime'],
+    ])('reports newest-first on the first %s click', async (name, sort) => {
+      const onSort = vi.fn();
+      renderExpanded({ ...defaultProps, onSort, currentSort: '+state' });
+      await clickHeader(name);
+      expect(onSort).toHaveBeenCalledWith(sort);
+    });
 
-      const filterInput = screen.getByPlaceholderText(
-        'Filter by patient name or state...',
-      );
-      await user.type(filterInput, 'John');
-      await user.clear(filterInput);
-
-      expect(screen.getByText('John Doe')).toBeInTheDocument();
-      expect(screen.getByText('Jane Smith')).toBeInTheDocument();
-      expect(screen.getByText('Bob')).toBeInTheDocument();
+    it('reports +createdTime when Created is clicked while descending', async () => {
+      const onSort = vi.fn();
+      renderExpanded({ ...defaultProps, onSort, currentSort: '-createdTime' });
+      await clickHeader(/created/i);
+      expect(onSort).toHaveBeenCalledWith('+createdTime');
     });
   });
 

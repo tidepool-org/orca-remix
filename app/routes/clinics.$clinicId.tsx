@@ -29,12 +29,8 @@ import type {
   Prescription,
 } from '~/components/Clinic/types';
 import { RecentItemsProvider } from '~/components/Clinic/RecentItemsContext';
-import {
-  apiRequests,
-  apiRoutes,
-  apiRequest,
-  apiRequestSafe,
-} from '~/api.server';
+import { apiRoutes, apiRequest, apiRequestSafe } from '~/api.server';
+import type { ResourceState } from '~/api.types';
 import {
   clinicsSession,
   patientsSession,
@@ -64,6 +60,8 @@ import {
 } from '~/utils/recentEntities.server';
 import { useToast } from '~/contexts/ToastContext';
 import { usePersistedTab } from '~/hooks/usePersistedTab';
+import { filterClinicians, sortClinicians } from '~/utils/clinicians';
+import { filterPrescriptions, sortPrescriptions } from '~/utils/prescriptions';
 
 export const meta: MetaFunction = () => {
   return [
@@ -106,6 +104,27 @@ export function shouldRevalidate({
 
 const defaultPageSize = 10;
 const cliniciansFetchLimit = 1000;
+
+// The clinicians endpoint returns clinicians and pending invites together
+type ClinicianRecord = {
+  id?: string;
+  inviteId?: string;
+  email?: string;
+  name?: string;
+  roles?: string[];
+  createdTime?: string;
+  updatedTime?: string;
+};
+
+const dataOrEmpty = <T,>(state: ResourceState<T>, empty: T) =>
+  state.status === 'success' ? state.data : empty;
+
+// Carry only the rows the page shows, so a full list is not sent twice
+const withPageData = <T,>(
+  state: ResourceState<unknown>,
+  data: T,
+): ResourceState<T> =>
+  state.status === 'success' ? { status: 'success', data } : state;
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
   const { getSession, commitSession } = clinicsSession;
@@ -156,6 +175,27 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   );
   const cliniciansSearch =
     url.searchParams.get('cliniciansSearch') || undefined;
+  const cliniciansSort = url.searchParams.get('cliniciansSort') || undefined;
+
+  // Parse pagination parameters for prescriptions (frontend pagination only)
+  const prescriptionsPage = Math.max(
+    1,
+    parseInt(url.searchParams.get('prescriptionsPage') || '1'),
+  );
+  const prescriptionsLimit = Math.max(
+    1,
+    Math.min(
+      100,
+      parseInt(
+        url.searchParams.get('prescriptionsLimit') ||
+          defaultPageSize.toString(),
+      ),
+    ),
+  );
+  const prescriptionsSearch =
+    url.searchParams.get('prescriptionsSearch') || undefined;
+  const prescriptionsSort =
+    url.searchParams.get('prescriptionsSort') || undefined;
 
   const clinicId = params.clinicId as string;
 
@@ -183,89 +223,75 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   );
 
   try {
-    // Fetch clinic data, patients, patient invites, and clinicians in parallel
-    // Note: There is no API endpoint to list all clinician invites for a clinic
-    // (GET /v1/clinics/{clinicId}/invites/clinicians doesn't exist)
-    const results = await apiRequests([
-      apiRoutes.clinic.get(clinicId),
-      apiRoutes.clinic.getPatients(clinicId, {
-        limit,
-        offset,
-        search: patientsSearch,
-        sort,
-      }),
-      apiRoutes.clinic.getPatientInvites(clinicId),
-      apiRoutes.clinic.getClinicians(clinicId, { limit: cliniciansFetchLimit }),
+    // Only the clinic itself is required: each list loads on its own, so a
+    // failure shows inline in that list's table instead of breaking the page.
+    // There is no endpoint to list a clinic's clinician invites
+    // (GET /v1/clinics/{clinicId}/invites/clinicians doesn't exist); they
+    // arrive mixed into the clinicians list.
+    const [
+      clinic,
+      patientsResult,
+      patientInvitesResult,
+      cliniciansResult,
+      prescriptionsResult,
+      mrnSettings,
+      patientCountSettings,
+    ] = await Promise.all([
+      apiRequest<Clinic>(apiRoutes.clinic.get(clinicId)),
+      apiRequestSafe<{ data: Patient[]; meta?: { count: number } }>(
+        apiRoutes.clinic.getPatients(clinicId, {
+          limit,
+          offset,
+          search: patientsSearch,
+          sort,
+        }),
+      ),
+      apiRequestSafe<PatientInvite[]>(
+        apiRoutes.clinic.getPatientInvites(clinicId),
+      ),
+      apiRequestSafe<ClinicianRecord[]>(
+        apiRoutes.clinic.getClinicians(clinicId, {
+          limit: cliniciansFetchLimit,
+        }),
+      ),
+      apiRequestSafe<Prescription[]>(
+        apiRoutes.prescription.getClinicPrescriptions(clinicId),
+      ),
+      apiRequest(apiRoutes.clinic.getMrnSettings(clinicId))
+        .then((data) => data as { required: boolean; unique: boolean })
+        .catch((err) => {
+          console.error('Error fetching MRN settings:', err);
+          return null;
+        }),
+      apiRequest(apiRoutes.clinic.getPatientCountSettings(clinicId))
+        .then(
+          (data) =>
+            data as {
+              // `patientCount` is the legacy name for `plan`; read as a
+              // fallback for clinics/backends that predate the rename.
+              hardLimit?: { plan?: number; patientCount?: number };
+              softLimit?: { plan?: number; patientCount?: number };
+            },
+        )
+        .catch((err) => {
+          console.error('Error fetching patient count settings:', err);
+          return null;
+        }),
     ]);
-
-    // Fetch prescriptions and the optional clinic settings concurrently.
-    // These run outside the throwing `apiRequests` batch above because each is
-    // resilient: a failure degrades gracefully (inline error / null) rather
-    // than breaking the whole page.
-    const [prescriptionsState, mrnSettings, patientCountSettings] =
-      await Promise.all([
-        // Safe wrapper returns a ResourceState the frontend can render as an
-        // inline error.
-        apiRequestSafe<Prescription[]>(
-          apiRoutes.prescription.getClinicPrescriptions(clinicId),
-        ),
-        apiRequest(apiRoutes.clinic.getMrnSettings(clinicId))
-          .then((data) => data as { required: boolean; unique: boolean })
-          .catch((err) => {
-            console.error('Error fetching MRN settings:', err);
-            return null;
-          }),
-        apiRequest(apiRoutes.clinic.getPatientCountSettings(clinicId))
-          .then(
-            (data) =>
-              data as {
-                // `patientCount` is the legacy name for `plan`; read as a
-                // fallback for clinics/backends that predate the rename.
-                hardLimit?: { plan?: number; patientCount?: number };
-                softLimit?: { plan?: number; patientCount?: number };
-              },
-          )
-          .catch((err) => {
-            console.error('Error fetching patient count settings:', err);
-            return null;
-          }),
-      ]);
-
-    // Extract data for backward compatibility and compute total
-    const prescriptions =
-      prescriptionsState.status === 'success' ? prescriptionsState.data : [];
-    const totalPrescriptions = prescriptions.length;
-
-    const clinic: Clinic = results?.[0] as Clinic;
-    const patientsResponse = results?.[1] as
-      | { data: Patient[]; meta?: { count: number } }
-      | undefined;
-    const patientInvitesResponse = results?.[2] as unknown[] | undefined;
-    const cliniciansResponse = results?.[3] as
-      | { name?: string; email?: string }[]
-      | undefined;
 
     // Parse response data
     // The API structure may vary based on clinic configuration
-    const patients: Patient[] = patientsResponse?.data || [];
-    const totalPatients = patientsResponse?.meta?.count || 0;
+    const patientsResponse = dataOrEmpty(patientsResult, { data: [] });
+    const patients: Patient[] = patientsResponse.data || [];
+    const totalPatients = patientsResponse.meta?.count || 0;
     const totalPages = Math.ceil(totalPatients / limit);
 
-    // Process patient invites data
-    const patientInvites = (patientInvitesResponse || []) as PatientInvite[];
+    const patientInvites = dataOrEmpty(patientInvitesResult, []);
     const totalInvites = patientInvites.length;
 
-    // Process clinicians data - API returns both clinicians AND pending invites in the same list
-    // Clinicians have 'id' (no 'inviteId'), invites have 'inviteId' (no 'id')
-    const allRecords = (cliniciansResponse || []) as Array<{
-      id?: string;
-      inviteId?: string;
-      email?: string;
-      name?: string;
-      roles?: string[];
-      createdTime?: string;
-      updatedTime?: string;
-    }>;
+    // The clinicians list holds both clinicians and pending invites:
+    // clinicians have 'id' (no 'inviteId'), invites have 'inviteId' (no 'id')
+    const allRecords = dataOrEmpty(cliniciansResult, []);
 
     // Separate actual clinicians from pending invites
     const allClinicians = allRecords.filter(
@@ -286,29 +312,38 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 
     const totalClinicianInvites = clinicianInvites.length;
 
-    // Filter clinicians by search term (frontend search)
-    const filteredClinicians = cliniciansSearch
-      ? allClinicians.filter(
-          (clinician) =>
-            clinician.name
-              ?.toLowerCase()
-              .includes(cliniciansSearch.toLowerCase()) ||
-            clinician.email
-              ?.toLowerCase()
-              .includes(cliniciansSearch.toLowerCase()),
-        )
-      : allClinicians;
-
-    const totalClinicians = filteredClinicians.length;
+    const sortedClinicians = sortClinicians(
+      filterClinicians(allClinicians as Clinician[], cliniciansSearch),
+      cliniciansSort,
+    );
+    const totalClinicians = sortedClinicians.length;
     const cliniciansTotalPages = Math.ceil(totalClinicians / cliniciansLimit);
 
     // Slice clinicians for current page (frontend pagination)
-    const startIndex = (cliniciansPage - 1) * cliniciansLimit;
-    const endIndex = startIndex + cliniciansLimit;
-    const clinicians = filteredClinicians.slice(
-      startIndex,
-      endIndex,
-    ) as Clinician[];
+    const cliniciansStart = (cliniciansPage - 1) * cliniciansLimit;
+    const clinicians = sortedClinicians.slice(
+      cliniciansStart,
+      cliniciansStart + cliniciansLimit,
+    );
+
+    const sortedPrescriptions = sortPrescriptions(
+      filterPrescriptions(
+        dataOrEmpty(prescriptionsResult, []),
+        prescriptionsSearch,
+      ),
+      prescriptionsSort,
+    );
+    const totalPrescriptions = sortedPrescriptions.length;
+    const prescriptionsTotalPages = Math.ceil(
+      totalPrescriptions / prescriptionsLimit,
+    );
+
+    // Slice prescriptions for current page (frontend pagination)
+    const prescriptionsStart = (prescriptionsPage - 1) * prescriptionsLimit;
+    const prescriptions = sortedPrescriptions.slice(
+      prescriptionsStart,
+      prescriptionsStart + prescriptionsLimit,
+    );
     if (clinic?.id) {
       recentClinics.unshift(pick(clinic, ['id', 'shareCode', 'name']));
       recentlyViewed.set(
@@ -324,12 +359,21 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
         {
           clinic,
           patients,
+          patientsState: withPageData(patientsResult, patients),
           patientInvites,
+          patientInvitesState: withPageData(
+            patientInvitesResult,
+            patientInvites,
+          ),
           clinicians,
+          cliniciansState: withPageData(cliniciansResult, clinicians),
           clinicianInvites,
+          clinicianInvitesState: withPageData(
+            cliniciansResult,
+            clinicianInvites,
+          ),
           prescriptions,
-          prescriptionsState,
-          totalPrescriptions,
+          prescriptionsState: withPageData(prescriptionsResult, prescriptions),
           mrnSettings,
           patientCountSettings,
           recentPatients,
@@ -347,6 +391,12 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
             totalClinicians,
             pageSize: cliniciansLimit,
           },
+          prescriptionsPagination: {
+            currentPage: prescriptionsPage,
+            totalPages: prescriptionsTotalPages,
+            totalPrescriptions,
+            pageSize: prescriptionsLimit,
+          },
           invitesPagination: {
             totalInvites,
             totalClinicianInvites,
@@ -355,6 +405,9 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
             sort,
             patientsSearch,
             cliniciansSearch,
+            cliniciansSort,
+            prescriptionsSearch,
+            prescriptionsSort,
           },
         },
         {
@@ -594,12 +647,15 @@ export default function Clinic() {
   const {
     clinic,
     patients,
+    patientsState,
     patientInvites,
+    patientInvitesState,
     clinicians,
+    cliniciansState,
     clinicianInvites,
+    clinicianInvitesState,
     prescriptions,
     prescriptionsState,
-    totalPrescriptions,
     mrnSettings,
     patientCountSettings,
     recentPatients,
@@ -607,6 +663,7 @@ export default function Clinic() {
     recentPrescriptions,
     pagination,
     cliniciansPagination,
+    prescriptionsPagination,
     invitesPagination,
     sorting,
   } = useLoaderData<typeof loader>();
@@ -642,6 +699,11 @@ export default function Clinic() {
         'cliniciansSearch',
         'cliniciansPage',
         'cliniciansLimit',
+        'cliniciansSort',
+        'prescriptionsSearch',
+        'prescriptionsPage',
+        'prescriptionsLimit',
+        'prescriptionsSort',
       ],
       enabled: !isNestedRoute,
     },
@@ -661,61 +723,39 @@ export default function Clinic() {
     }
   }, [actionData, showToast]);
 
-  const handlePageChange = useCallback(
-    (page: number) => {
-      const newSearchParams = new URLSearchParams(searchParams);
-      newSearchParams.set('patientsPage', page.toString());
-      submit(newSearchParams, { method: 'GET', replace: true });
-    },
-    [searchParams, submit],
-  );
-
-  const handleCliniciansPageChange = useCallback(
-    (page: number) => {
-      const newSearchParams = new URLSearchParams(searchParams);
-      newSearchParams.set('cliniciansPage', page.toString());
-      submit(newSearchParams, { method: 'GET', replace: true });
-    },
-    [searchParams, submit],
-  );
-
-  const handleSort = useCallback(
-    (sort: string) => {
-      const newSearchParams = new URLSearchParams(searchParams);
-      newSearchParams.set('sort', sort);
-      newSearchParams.set('patientsPage', '1'); // Reset to first page when sorting
-      submit(newSearchParams, { method: 'GET', replace: true });
-    },
-    [searchParams, submit],
-  );
-
-  const handleSearch = useCallback(
-    (search: string) => {
-      const newSearchParams = new URLSearchParams(searchParams);
-      if (search) {
-        newSearchParams.set('patientsSearch', search);
+  // Empty values remove the param
+  const updateParams = (updates: Record<string, string>) => {
+    const newSearchParams = new URLSearchParams(searchParams);
+    for (const [key, value] of Object.entries(updates)) {
+      if (value) {
+        newSearchParams.set(key, value);
       } else {
-        newSearchParams.delete('patientsSearch');
+        newSearchParams.delete(key);
       }
-      newSearchParams.set('patientsPage', '1'); // Reset to first page when searching
-      submit(newSearchParams, { method: 'GET', replace: true });
-    },
-    [searchParams, submit],
-  );
+    }
+    submit(newSearchParams, { method: 'GET', replace: true });
+  };
 
-  const handleCliniciansSearch = useCallback(
-    (search: string) => {
-      const newSearchParams = new URLSearchParams(searchParams);
-      if (search) {
-        newSearchParams.set('cliniciansSearch', search);
-      } else {
-        newSearchParams.delete('cliniciansSearch');
-      }
-      newSearchParams.set('cliniciansPage', '1'); // Reset to first page when searching
-      submit(newSearchParams, { method: 'GET', replace: true });
-    },
-    [searchParams, submit],
-  );
+  const handlePageChange = (page: number) =>
+    updateParams({ patientsPage: page.toString() });
+  const handleSort = (sort: string) =>
+    updateParams({ sort, patientsPage: '1' });
+  const handleSearch = (search: string) =>
+    updateParams({ patientsSearch: search, patientsPage: '1' });
+
+  const handleCliniciansPageChange = (page: number) =>
+    updateParams({ cliniciansPage: page.toString() });
+  const handleCliniciansSort = (sort: string) =>
+    updateParams({ cliniciansSort: sort, cliniciansPage: '1' });
+  const handleCliniciansSearch = (search: string) =>
+    updateParams({ cliniciansSearch: search, cliniciansPage: '1' });
+
+  const handlePrescriptionsPageChange = (page: number) =>
+    updateParams({ prescriptionsPage: page.toString() });
+  const handlePrescriptionsSort = (sort: string) =>
+    updateParams({ prescriptionsSort: sort, prescriptionsPage: '1' });
+  const handlePrescriptionsSearch = (search: string) =>
+    updateParams({ prescriptionsSearch: search, prescriptionsPage: '1' });
 
   const handleSaveClinicSettings = useCallback(
     (_clinicId: string, payload: ClinicSettingsPayload) => {
@@ -821,22 +861,30 @@ export default function Clinic() {
           <ClinicProfile
             clinic={clinic}
             patients={patients}
+            patientsState={patientsState}
             totalPatients={pagination.totalPatients}
             totalPages={pagination.totalPages}
             currentPage={pagination.currentPage}
             pageSize={pagination.pageSize}
             patientInvites={patientInvites}
+            patientInvitesState={patientInvitesState}
             totalInvites={invitesPagination.totalInvites}
             clinicians={clinicians}
+            cliniciansState={cliniciansState}
             totalClinicians={cliniciansPagination.totalClinicians}
             cliniciansTotalPages={cliniciansPagination.totalPages}
             cliniciansCurrentPage={cliniciansPagination.currentPage}
             cliniciansPageSize={cliniciansPagination.pageSize}
             clinicianInvites={clinicianInvites}
+            clinicianInvitesState={clinicianInvitesState}
             totalClinicianInvites={invitesPagination.totalClinicianInvites}
             prescriptions={prescriptions}
             prescriptionsState={prescriptionsState}
-            totalPrescriptions={totalPrescriptions}
+            totalPrescriptions={prescriptionsPagination.totalPrescriptions}
+            prescriptionsTotalPages={prescriptionsPagination.totalPages}
+            prescriptionsCurrentPage={prescriptionsPagination.currentPage}
+            prescriptionsPageSize={prescriptionsPagination.pageSize}
+            onPrescriptionsPageChange={handlePrescriptionsPageChange}
             mrnSettings={mrnSettings}
             patientCountSettings={patientCountSettings}
             onPageChange={handlePageChange}
@@ -847,6 +895,12 @@ export default function Clinic() {
             onCliniciansPageChange={handleCliniciansPageChange}
             onCliniciansSearch={handleCliniciansSearch}
             currentCliniciansSearch={sorting.cliniciansSearch}
+            onCliniciansSort={handleCliniciansSort}
+            currentCliniciansSort={sorting.cliniciansSort}
+            onPrescriptionsSearch={handlePrescriptionsSearch}
+            currentPrescriptionsSearch={sorting.prescriptionsSearch}
+            onPrescriptionsSort={handlePrescriptionsSort}
+            currentPrescriptionsSort={sorting.prescriptionsSort}
             onSaveClinicSettings={handleSaveClinicSettings}
             onDeleteClinic={handleDeleteClinic}
             onRevokeClinicianInvite={handleRevokeClinicianInvite}
