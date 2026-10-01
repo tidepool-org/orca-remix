@@ -582,9 +582,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
         }
 
         // Step 2: Use the key to confirm the signup
-        await apiRequest(
-          apiRoutes.user.confirmSignup(userId, signupKeyResponse.key),
-        );
+        await apiRequest(apiRoutes.user.confirmSignup(signupKeyResponse.key));
 
         return Response.json({
           success: true,

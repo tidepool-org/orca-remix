@@ -22,10 +22,9 @@ export const apiRoutes = {
       method: 'get',
       path: `/confirm/signup/${userId}`,
     }),
-    confirmSignup: (userId: string, confirmKey: string) => ({
+    confirmSignup: (confirmKey: string) => ({
       method: 'put',
-      path: `/confirm/accept/signup/${userId}`,
-      body: { key: confirmKey },
+      path: `/confirm/accept/signup/${encodeURIComponent(confirmKey)}`,
     }),
     sendConfirmation: (userId: string) => ({
       method: 'post',
