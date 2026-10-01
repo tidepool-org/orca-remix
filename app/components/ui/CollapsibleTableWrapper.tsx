@@ -7,6 +7,11 @@ export type CollapsibleTableWrapperProps = {
   icon: ReactNode;
   title: string;
   totalItems: number;
+  /**
+   * Mark `totalItems` as a floor rather than an exact count, for sources that
+   * report no total. Renders `100+ total` / `of 100+`.
+   */
+  isTotalLowerBound?: boolean;
   isExpanded?: boolean;
   onToggle?: () => void;
   children: ReactNode;
@@ -25,6 +30,7 @@ export default function CollapsibleTableWrapper({
   icon,
   title,
   totalItems,
+  isTotalLowerBound = false,
   isExpanded: controlledExpanded,
   onToggle,
   children,
@@ -57,7 +63,9 @@ export default function CollapsibleTableWrapper({
 
   // Reference design: panel header shows just the title in uppercase tracked label,
   // and the showing-range (when expanded) sits right-aligned in the same row.
-  const formattedTotal = totalItems.toLocaleString();
+  const formattedTotal = `${totalItems.toLocaleString()}${
+    isTotalLowerBound ? '+' : ''
+  }`;
   const showingText =
     isExpanded && showRange && totalItems > 0
       ? `Showing ${showRange.firstItem.toLocaleString()}–${showRange.lastItem.toLocaleString()} of ${formattedTotal}`

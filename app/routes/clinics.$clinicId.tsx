@@ -6,7 +6,6 @@ import {
   redirect,
   data,
   useLoaderData,
-  useSearchParams,
   useSubmit,
   useNavigation,
   Outlet,
@@ -60,6 +59,7 @@ import {
 } from '~/utils/recentEntities.server';
 import { useToast } from '~/contexts/ToastContext';
 import { usePersistedTab } from '~/hooks/usePersistedTab';
+import { useSearchParamUpdate } from '~/hooks/useSearchParamUpdate';
 import { filterClinicians, sortClinicians } from '~/utils/clinicians';
 import { filterPrescriptions, sortPrescriptions } from '~/utils/prescriptions';
 
@@ -672,8 +672,8 @@ export default function Clinic() {
     error?: string;
     message?: string;
   }>();
-  const [searchParams] = useSearchParams();
   const submit = useSubmit();
+  const updateSearchParams = useSearchParamUpdate();
   const navigation = useNavigation();
   const location = useLocation();
   const { showToast } = useToast();
@@ -723,39 +723,59 @@ export default function Clinic() {
     }
   }, [actionData, showToast]);
 
-  // Empty values remove the param
-  const updateParams = (updates: Record<string, string>) => {
-    const newSearchParams = new URLSearchParams(searchParams);
-    for (const [key, value] of Object.entries(updates)) {
-      if (value) {
-        newSearchParams.set(key, value);
-      } else {
-        newSearchParams.delete(key);
-      }
-    }
-    submit(newSearchParams, { method: 'GET', replace: true });
-  };
+  const handlePageChange = useCallback(
+    (page: number) => updateSearchParams({ patientsPage: page }),
+    [updateSearchParams],
+  );
 
-  const handlePageChange = (page: number) =>
-    updateParams({ patientsPage: page.toString() });
-  const handleSort = (sort: string) =>
-    updateParams({ sort, patientsPage: '1' });
-  const handleSearch = (search: string) =>
-    updateParams({ patientsSearch: search, patientsPage: '1' });
+  const handleCliniciansPageChange = useCallback(
+    (page: number) => updateSearchParams({ cliniciansPage: page }),
+    [updateSearchParams],
+  );
 
-  const handleCliniciansPageChange = (page: number) =>
-    updateParams({ cliniciansPage: page.toString() });
-  const handleCliniciansSort = (sort: string) =>
-    updateParams({ cliniciansSort: sort, cliniciansPage: '1' });
-  const handleCliniciansSearch = (search: string) =>
-    updateParams({ cliniciansSearch: search, cliniciansPage: '1' });
+  const handlePrescriptionsPageChange = useCallback(
+    (page: number) => updateSearchParams({ prescriptionsPage: page }),
+    [updateSearchParams],
+  );
 
-  const handlePrescriptionsPageChange = (page: number) =>
-    updateParams({ prescriptionsPage: page.toString() });
-  const handlePrescriptionsSort = (sort: string) =>
-    updateParams({ prescriptionsSort: sort, prescriptionsPage: '1' });
-  const handlePrescriptionsSearch = (search: string) =>
-    updateParams({ prescriptionsSearch: search, prescriptionsPage: '1' });
+  // Sorting and searching re-page the list, so the page index goes back to 1.
+  const handleSort = useCallback(
+    (sort: string) => updateSearchParams({ sort, patientsPage: 1 }),
+    [updateSearchParams],
+  );
+
+  const handleSearch = useCallback(
+    (search: string) =>
+      updateSearchParams({ patientsSearch: search, patientsPage: 1 }),
+    [updateSearchParams],
+  );
+
+  const handleCliniciansSort = useCallback(
+    (sort: string) =>
+      updateSearchParams({ cliniciansSort: sort, cliniciansPage: 1 }),
+    [updateSearchParams],
+  );
+
+  const handleCliniciansSearch = useCallback(
+    (search: string) =>
+      updateSearchParams({ cliniciansSearch: search, cliniciansPage: 1 }),
+    [updateSearchParams],
+  );
+
+  const handlePrescriptionsSort = useCallback(
+    (sort: string) =>
+      updateSearchParams({ prescriptionsSort: sort, prescriptionsPage: 1 }),
+    [updateSearchParams],
+  );
+
+  const handlePrescriptionsSearch = useCallback(
+    (search: string) =>
+      updateSearchParams({
+        prescriptionsSearch: search,
+        prescriptionsPage: 1,
+      }),
+    [updateSearchParams],
+  );
 
   const handleSaveClinicSettings = useCallback(
     (_clinicId: string, payload: ClinicSettingsPayload) => {

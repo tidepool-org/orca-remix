@@ -52,10 +52,23 @@ export const apiRoutes = {
   },
   data: {
     // ref https://tidepool.redocly.app/reference/data.v1
-    getDataSets: (userId: string) => ({
-      method: 'get',
-      path: `/v1/users/${userId}/datasets`,
-    }),
+    // `page` is 0-based; `size` is validated server-side to 1–1000.
+    getDataSets: (
+      userId: string,
+      options?: {
+        page?: number;
+        size?: number;
+      },
+    ) => {
+      const params = new URLSearchParams();
+      if (options?.page != null) params.set('page', options.page.toString());
+      if (options?.size != null) params.set('size', options.size.toString());
+
+      return {
+        method: 'get',
+        path: `/v1/users/${userId}/data_sets${params.toString() ? `?${params.toString()}` : ''}`,
+      };
+    },
     getDataSources: (userId: string) => ({
       method: 'get',
       path: `/v1/users/${userId}/data_sources`,
