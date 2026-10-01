@@ -185,6 +185,40 @@ describe('UserActions', () => {
       });
     });
 
+    it('enables delete account for a claimed user when the user ID is typed', async () => {
+      const user = userEvent.setup();
+      render(<UserActions user={claimedUser} />);
+
+      await user.click(screen.getByRole('button', { name: /danger zone/i }));
+      await user.click(screen.getByRole('button', { name: /delete account/i }));
+
+      await user.type(
+        screen.getByPlaceholderText(/enter email or user id/i),
+        'user-123',
+      );
+
+      await waitFor(() => {
+        expect(
+          screen.getByRole('button', { name: /^delete account$/i }),
+        ).toBeEnabled();
+      });
+    });
+
+    it('accepts either the email or the user ID for a claimed user', async () => {
+      const user = userEvent.setup();
+      render(<UserActions user={claimedUser} />);
+
+      await user.click(screen.getByRole('button', { name: /danger zone/i }));
+      await user.click(screen.getByRole('button', { name: /delete account/i }));
+
+      expect(
+        screen.getByLabelText(/confirm by typing the user email or id/i),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText(/type "alice@example.com" or "user-123" to confirm/i),
+      ).toBeInTheDocument();
+    });
+
     it('uses userid for confirmation when user is unclaimed', async () => {
       const user = userEvent.setup();
       render(<UserActions user={unclaimedUser} />);

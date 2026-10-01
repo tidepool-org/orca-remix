@@ -47,6 +47,9 @@ export default function UserActions({ user }: UserActionsProps) {
   // Determine if this is an unclaimed/custodial account (no email set up)
   const isUnclaimedAccount = !user.username;
   const displayName = user.username || user.userid;
+  const confirmationInputs = user.username
+    ? [user.username, user.userid]
+    : [user.userid];
 
   // Handle fetcher response
   useEffect(() => {
@@ -122,8 +125,8 @@ export default function UserActions({ user }: UserActionsProps) {
       confirmVariant: 'danger' as const,
       requiresInput: true,
       inputPlaceholder: 'Enter email or user ID',
-      expectedInput: displayName,
-      inputLabel: `Confirm by typing the user ${user.username ? 'email' : 'ID'}`,
+      expectedInput: confirmationInputs,
+      inputLabel: `Confirm by typing the user ${user.username ? 'email or ID' : 'ID'}`,
       icon: <Trash2 className="text-[color:var(--danger)]" size={20} />,
     },
     [intents.deleteAccount]: {
@@ -133,8 +136,8 @@ export default function UserActions({ user }: UserActionsProps) {
       confirmVariant: 'danger' as const,
       requiresInput: true,
       inputPlaceholder: 'Enter email or user ID',
-      expectedInput: displayName,
-      inputLabel: `Confirm by typing the user ${user.username ? 'email' : 'ID'}`,
+      expectedInput: confirmationInputs,
+      inputLabel: `Confirm by typing the user ${user.username ? 'email or ID' : 'ID'}`,
       icon: <UserX className="text-[color:var(--danger)]" size={20} />,
     },
   };
@@ -283,8 +286,11 @@ export default function UserActions({ user }: UserActionsProps) {
           }
           expectedInput={
             'expectedInput' in actionConfigs[activeModal]
-              ? (actionConfigs[activeModal] as { expectedInput: string })
-                  .expectedInput
+              ? (
+                  actionConfigs[activeModal] as {
+                    expectedInput: string | string[];
+                  }
+                ).expectedInput
               : undefined
           }
           inputLabel={
