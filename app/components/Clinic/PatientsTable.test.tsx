@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event';
 import PatientsTable from './PatientsTable';
 import { CollapsibleGroup } from '~/components/ui/CollapsibleGroup';
 import type { Patient } from './types';
+import type { ResourceState } from '~/api.types';
 
 // Helper to render PatientsTable in expanded state
 const renderExpanded = (props: React.ComponentProps<typeof PatientsTable>) => {
@@ -133,6 +134,18 @@ describe('PatientsTable', () => {
 
       expect(onSort).toHaveBeenCalledWith(expect.stringContaining('fullName'));
     });
+
+    it('reports +birthDate when the Birth Date header is clicked', async () => {
+      const user = userEvent.setup();
+      const onSort = vi.fn();
+      renderExpanded({ ...defaultProps, onSort });
+
+      await user.click(
+        screen.getByRole('columnheader', { name: /birth date/i }),
+      );
+
+      expect(onSort).toHaveBeenCalledWith('+birthDate');
+    });
   });
 
   describe('Tag and site overflow', () => {
@@ -171,6 +184,24 @@ describe('PatientsTable', () => {
       expect(mockNavigate).toHaveBeenCalledWith(
         '/clinics/clinic-123/patients/patient-1',
       );
+    });
+  });
+
+  describe('Error state', () => {
+    it('shows the error instead of the table', () => {
+      const errorState: ResourceState<Patient[]> = {
+        status: 'error',
+        error: { message: 'Failed to load' },
+      };
+
+      renderExpanded({
+        patients: [],
+        totalPatients: 0,
+        patientsState: errorState,
+      });
+
+      expect(screen.getByText('Failed to load')).toBeInTheDocument();
+      expect(screen.queryByRole('grid')).not.toBeInTheDocument();
     });
   });
 

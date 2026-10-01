@@ -19,6 +19,8 @@ import {
 } from '~/utils/tableStyles';
 import { getChipClassNames } from '~/utils/chipStyles';
 import type { Clinician } from './types';
+import type { ResourceState } from '~/api.types';
+import ResourceError from '~/components/ui/ResourceError';
 import DebouncedSearchInput from '../ui/DebouncedSearchInput';
 import ConfirmationModal from '../ui/ConfirmationModal';
 import TableEmptyState from '~/components/ui/TableEmptyState';
@@ -30,8 +32,11 @@ import TablePagination, {
 import DeleteActionButton from '~/components/ui/DeleteActionButton';
 import CopyableIdentifier from '~/components/ui/CopyableIdentifier';
 import { formatShortDate } from '~/utils/dateFormatters';
+import { primaryRoleLabel } from '~/utils/clinicians';
+import { getSortHeaderProps } from '~/utils/tableRows';
 export type CliniciansTableProps = {
   clinicians: Clinician[];
+  cliniciansState?: ResourceState<Clinician[]>;
   totalClinicians: number;
   isLoading?: boolean;
   totalPages?: number;
@@ -40,6 +45,8 @@ export type CliniciansTableProps = {
   onPageChange?: (page: number) => void;
   onSearch?: (search: string) => void;
   currentSearch?: string;
+  onSort?: (sort: string) => void;
+  currentSort?: string;
   onRemoveClinician?: (clinicianId: string) => void;
   /** Mark this as the first table in a CollapsibleGroup to auto-expand it */
   isFirstInGroup?: boolean;
@@ -53,6 +60,7 @@ type Column = {
 
 export default function CliniciansTable({
   clinicians,
+  cliniciansState,
   totalClinicians = 0,
   isLoading = false,
   totalPages = 1,
@@ -61,6 +69,8 @@ export default function CliniciansTable({
   onPageChange,
   onSearch,
   currentSearch,
+  onSort,
+  currentSort,
   onRemoveClinician,
   isFirstInGroup = false,
 }: CliniciansTableProps) {
@@ -94,22 +104,22 @@ export default function CliniciansTable({
     {
       key: 'name',
       label: 'Clinician Name',
-      sortable: false,
+      sortable: true,
     },
     {
       key: 'email',
       label: 'Email',
-      sortable: false,
+      sortable: true,
     },
     {
       key: 'roles',
       label: 'Role',
-      sortable: false,
+      sortable: true,
     },
     {
       key: 'createdTime',
       label: 'Added',
-      sortable: false,
+      sortable: true,
     },
     {
       key: 'actions',
@@ -117,6 +127,13 @@ export default function CliniciansTable({
       sortable: false,
     },
   ];
+
+  const sortHeaderProps = getSortHeaderProps({
+    currentSort,
+    columns: columns.filter((c) => c.sortable).map((c) => c.key),
+    onSort,
+    descendingFirst: ['createdTime'],
+  });
 
   const handleRemoveClick = (clinician: Clinician) => {
     setSelectedClinician(clinician);
@@ -148,28 +165,19 @@ export default function CliniciansTable({
         case 'email':
           return <CopyableIdentifier value={cellValue as string} size="sm" />;
         case 'roles': {
-          // Handle roles array - display the first role or join them
-          const rolesArray = cellValue as string[];
-          const primaryRole =
-            rolesArray && rolesArray.length > 0 ? rolesArray[0] : 'Unknown';
+          const label = primaryRoleLabel((cellValue as string[]) ?? []);
           return (
             <Chip
               className="capitalize"
-              color={
-                primaryRole.toLowerCase().includes('admin')
-                  ? 'primary'
-                  : 'default'
-              }
+              color={label.includes('admin') ? 'primary' : 'default'}
               size="sm"
               variant="flat"
               radius="sm"
               classNames={getChipClassNames(
-                primaryRole.toLowerCase().includes('admin')
-                  ? 'primary'
-                  : 'default',
+                label.includes('admin') ? 'primary' : 'default',
               )}
             >
-              {primaryRole.replace('CLINIC_', '').toLowerCase()}
+              {label}
             </Chip>
           );
         }
@@ -219,66 +227,79 @@ export default function CliniciansTable({
           lastItem: lastClinicianOnPage,
         }}
       >
-        {/* Search Controls */}
-        <div className="flex justify-start mb-4">
-          <DebouncedSearchInput
-            placeholder="Search clinicians..."
-            value={currentSearch || ''}
-            onSearch={(value) => onSearch?.(value)}
-            debounceMs={1000}
+        {cliniciansState?.status === 'error' ? (
+          <ResourceError
+            title="Clinicians"
+            message={cliniciansState.error.message}
           />
-        </div>
+        ) : (
+          <>
+            {/* Search Controls */}
+            <div className="flex justify-start mb-4">
+              <DebouncedSearchInput
+                placeholder="Search clinicians..."
+                value={currentSearch || ''}
+                onSearch={(value) => onSearch?.(value)}
+                debounceMs={1000}
+              />
+            </div>
 
-        <Table
-          aria-label="Clinic clinicians table"
-          className="flex flex-1 flex-col text-[color:var(--text)]"
-          shadow="none"
-          removeWrapper
-          selectionMode="single"
-          onSelectionChange={(keys: 'all' | Set<React.Key>) => {
-            const key = keys instanceof Set ? Array.from(keys)[0] : keys;
-            if (key && key !== 'all') {
-              navigate(`/clinics/${params.clinicId}/clinicians/${key}`);
-            }
-          }}
-          classNames={collapsibleTableClasses}
-        >
-          <TableHeader columns={columns}>
-            {(column) => (
-              <TableColumn
-                key={column.key}
-                className={
-                  column.key === 'actions' ? actionsColumnClass : columnClass
+            <Table
+              aria-label="Clinic clinicians table"
+              className="flex flex-1 flex-col text-[color:var(--text)]"
+              shadow="none"
+              removeWrapper
+              selectionMode="single"
+              onSelectionChange={(keys: 'all' | Set<React.Key>) => {
+                const key = keys instanceof Set ? Array.from(keys)[0] : keys;
+                if (key && key !== 'all') {
+                  navigate(`/clinics/${params.clinicId}/clinicians/${key}`);
                 }
-              >
-                {column.label}
-              </TableColumn>
-            )}
-          </TableHeader>
-          <TableBody
-            emptyContent={EmptyContent}
-            loadingContent={LoadingContent}
-            loadingState={isLoading ? 'loading' : 'idle'}
-          >
-            {clinicians.map((clinician) => (
-              <TableRow key={clinician.id}>
-                {(columnKey) => (
-                  <TableCell>
-                    {renderCell(clinician, columnKey as string)}
-                  </TableCell>
+              }}
+              classNames={collapsibleTableClasses}
+              {...sortHeaderProps}
+            >
+              <TableHeader columns={columns}>
+                {(column) => (
+                  <TableColumn
+                    key={column.key}
+                    allowsSorting={column.sortable}
+                    className={
+                      column.key === 'actions'
+                        ? actionsColumnClass
+                        : columnClass
+                    }
+                  >
+                    {column.label}
+                  </TableColumn>
                 )}
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+              </TableHeader>
+              <TableBody
+                emptyContent={EmptyContent}
+                loadingContent={LoadingContent}
+                loadingState={isLoading ? 'loading' : 'idle'}
+              >
+                {clinicians.map((clinician) => (
+                  <TableRow key={clinician.id}>
+                    {(columnKey) => (
+                      <TableCell>
+                        {renderCell(clinician, columnKey as string)}
+                      </TableCell>
+                    )}
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
 
-        <TablePagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          totalItems={totalClinicians}
-          pageSize={effectivePageSize}
-          onPageChange={onPageChange}
-        />
+            <TablePagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              totalItems={totalClinicians}
+              pageSize={effectivePageSize}
+              onPageChange={onPageChange}
+            />
+          </>
+        )}
       </CollapsibleTableWrapper>
 
       <ConfirmationModal

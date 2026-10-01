@@ -17,6 +17,8 @@ import {
 } from '~/utils/tableStyles';
 import ConfirmationModal from '../ui/ConfirmationModal';
 import type { ClinicianInvite } from './types';
+import type { ResourceState } from '~/api.types';
+import ResourceError from '~/components/ui/ResourceError';
 import TableEmptyState from '~/components/ui/TableEmptyState';
 import TableLoadingState from '~/components/ui/TableLoadingState';
 import DeleteActionButton from '~/components/ui/DeleteActionButton';
@@ -26,6 +28,7 @@ import { formatShortDate } from '~/utils/dateFormatters';
 
 export type ClinicianInvitesTableProps = {
   invites: ClinicianInvite[];
+  invitesState?: ResourceState<ClinicianInvite[]>;
   totalInvites: number;
   isLoading?: boolean;
   onRevokeInvite?: (inviteId: string) => void;
@@ -48,6 +51,7 @@ const columns: Column[] = [
 
 export default function ClinicianInvitesTable({
   invites,
+  invitesState,
   // totalInvites is available for future pagination support
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   totalInvites: _totalInvites = 0,
@@ -144,41 +148,52 @@ export default function ClinicianInvitesTable({
         totalItems={pendingInvites.length}
         isFirstInGroup={isFirstInGroup}
       >
-        <Table
-          aria-label="Clinic clinician invites table"
-          className="flex flex-1 flex-col text-[color:var(--text)]"
-          shadow="none"
-          removeWrapper
-          classNames={collapsibleTableClasses}
-        >
-          <TableHeader columns={columns}>
-            {(column) => (
-              <TableColumn
-                key={column.key}
-                className={
-                  column.key === 'actions' ? actionsColumnClass : columnClass
-                }
-              >
-                {column.label}
-              </TableColumn>
-            )}
-          </TableHeader>
-          <TableBody
-            emptyContent={EmptyContent}
-            loadingContent={LoadingContent}
-            loadingState={isLoading ? 'loading' : 'idle'}
-          >
-            {pendingInvites.map((invite) => (
-              <TableRow key={invite.inviteId}>
-                {(columnKey) => (
-                  <TableCell>
-                    {renderCell(invite, columnKey as string)}
-                  </TableCell>
+        {invitesState?.status === 'error' ? (
+          <ResourceError
+            title="Pending Clinician Invites"
+            message={invitesState.error.message}
+          />
+        ) : (
+          <>
+            <Table
+              aria-label="Clinic clinician invites table"
+              className="flex flex-1 flex-col text-[color:var(--text)]"
+              shadow="none"
+              removeWrapper
+              classNames={collapsibleTableClasses}
+            >
+              <TableHeader columns={columns}>
+                {(column) => (
+                  <TableColumn
+                    key={column.key}
+                    className={
+                      column.key === 'actions'
+                        ? actionsColumnClass
+                        : columnClass
+                    }
+                  >
+                    {column.label}
+                  </TableColumn>
                 )}
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+              </TableHeader>
+              <TableBody
+                emptyContent={EmptyContent}
+                loadingContent={LoadingContent}
+                loadingState={isLoading ? 'loading' : 'idle'}
+              >
+                {pendingInvites.map((invite) => (
+                  <TableRow key={invite.inviteId}>
+                    {(columnKey) => (
+                      <TableCell>
+                        {renderCell(invite, columnKey as string)}
+                      </TableCell>
+                    )}
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </>
+        )}
       </CollapsibleTableWrapper>
 
       <ConfirmationModal

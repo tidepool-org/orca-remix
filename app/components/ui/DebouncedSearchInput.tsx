@@ -5,6 +5,8 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 interface DebouncedSearchInputProps {
   value?: string;
   placeholder?: string;
+  /** Defaults to the placeholder */
+  'aria-label'?: string;
   onSearch: (search: string) => void;
   debounceMs?: number;
 }
@@ -12,6 +14,7 @@ interface DebouncedSearchInputProps {
 export default function DebouncedSearchInput({
   value = '',
   placeholder = 'Search...',
+  'aria-label': ariaLabel,
   onSearch,
   debounceMs = 1000,
 }: DebouncedSearchInputProps) {
@@ -61,7 +64,7 @@ export default function DebouncedSearchInput({
   return (
     <Input
       placeholder={placeholder}
-      aria-label={placeholder}
+      aria-label={ariaLabel ?? placeholder}
       value={localValue}
       onValueChange={handleChange}
       startContent={

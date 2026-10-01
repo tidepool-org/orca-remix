@@ -17,6 +17,8 @@ import {
   actionsColumnClass,
 } from '~/utils/tableStyles';
 import type { PatientInvite } from './types';
+import type { ResourceState } from '~/api.types';
+import ResourceError from '~/components/ui/ResourceError';
 import ConfirmationModal from '../ui/ConfirmationModal';
 import TableEmptyState from '~/components/ui/TableEmptyState';
 import TableLoadingState from '~/components/ui/TableLoadingState';
@@ -30,6 +32,7 @@ import { formatShortDate } from '~/utils/dateFormatters';
 
 export type PatientInvitesTableProps = {
   invites: PatientInvite[];
+  invitesState?: ResourceState<PatientInvite[]>;
   totalInvites: number;
   isLoading?: boolean;
   totalPages?: number;
@@ -58,6 +61,7 @@ const columns: Column[] = [
 
 export default function PatientInvitesTable({
   invites,
+  invitesState,
   totalInvites = 0,
   isLoading = false,
   totalPages = 1,
@@ -206,66 +210,78 @@ export default function PatientInvitesTable({
           lastItem: lastInviteOnPage,
         }}
       >
-        <Table
-          aria-label="Clinic patient invites table"
-          className="flex flex-1 flex-col text-[color:var(--text)]"
-          shadow="none"
-          removeWrapper
-          selectionMode="single"
-          onSelectionChange={(keys: 'all' | Set<React.Key>) => {
-            const invite = pendingInvites.find(
-              (inv) =>
-                inv.key === (keys instanceof Set ? Array.from(keys)[0] : keys),
-            );
-            if (invite?.creator?.userid)
-              navigate(`/users/${invite.creator.userid}`);
-          }}
-          classNames={collapsibleTableClasses}
-        >
-          <TableHeader columns={columns}>
-            {(column) => (
-              <TableColumn
-                key={column.key}
-                className={
-                  column.key === 'actions' ? actionsColumnClass : columnClass
-                }
-              >
-                {column.label}
-              </TableColumn>
-            )}
-          </TableHeader>
-          <TableBody
-            emptyContent={EmptyContent}
-            loadingContent={LoadingContent}
-            loadingState={isLoading ? 'loading' : 'idle'}
-          >
-            {pendingInvites.map((invite) => (
-              <TableRow key={invite.key}>
-                {(columnKey) => (
-                  <TableCell>
-                    {renderCell(
-                      invite,
-                      columnKey as
-                        | keyof PatientInvite
-                        | 'actions'
-                        | 'patientName'
-                        | 'birthday'
-                        | 'userId',
-                    )}
-                  </TableCell>
+        {invitesState?.status === 'error' ? (
+          <ResourceError
+            title="Pending Patient Invites"
+            message={invitesState.error.message}
+          />
+        ) : (
+          <>
+            <Table
+              aria-label="Clinic patient invites table"
+              className="flex flex-1 flex-col text-[color:var(--text)]"
+              shadow="none"
+              removeWrapper
+              selectionMode="single"
+              onSelectionChange={(keys: 'all' | Set<React.Key>) => {
+                const invite = pendingInvites.find(
+                  (inv) =>
+                    inv.key ===
+                    (keys instanceof Set ? Array.from(keys)[0] : keys),
+                );
+                if (invite?.creator?.userid)
+                  navigate(`/users/${invite.creator.userid}`);
+              }}
+              classNames={collapsibleTableClasses}
+            >
+              <TableHeader columns={columns}>
+                {(column) => (
+                  <TableColumn
+                    key={column.key}
+                    className={
+                      column.key === 'actions'
+                        ? actionsColumnClass
+                        : columnClass
+                    }
+                  >
+                    {column.label}
+                  </TableColumn>
                 )}
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+              </TableHeader>
+              <TableBody
+                emptyContent={EmptyContent}
+                loadingContent={LoadingContent}
+                loadingState={isLoading ? 'loading' : 'idle'}
+              >
+                {pendingInvites.map((invite) => (
+                  <TableRow key={invite.key}>
+                    {(columnKey) => (
+                      <TableCell>
+                        {renderCell(
+                          invite,
+                          columnKey as
+                            | keyof PatientInvite
+                            | 'actions'
+                            | 'patientName'
+                            | 'birthday'
+                            | 'userId',
+                        )}
+                      </TableCell>
+                    )}
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
 
-        <TablePagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          totalItems={pendingInvites.length}
-          pageSize={effectivePageSize}
-          onPageChange={onPageChange}
-        />
+            <TablePagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              totalItems={pendingInvites.length}
+              pageSize={effectivePageSize}
+              onPageChange={onPageChange}
+            />
+          </>
+        )}
       </CollapsibleTableWrapper>
 
       <ConfirmationModal
