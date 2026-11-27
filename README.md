@@ -76,8 +76,16 @@ Files with a `.` in the name that don't use `$` params create nested URL segment
 
 Authentication is handled at two layers:
 
-1. **Pomerium proxy** (infrastructure level) — the app runs behind a Pomerium reverse proxy that enforces SSO. The proxy injects a `x-pomerium-jwt-assertion` header containing a signed JWT with the user's identity (`name`, `email`, `picture`).
-2. **`requireAuth()` in `root.tsx`** — a defense-in-depth check that validates the header is present on every request.
+1. **Tailscale Ingress** (infrastructure level): the app is exposed only through a Tailscale Kubernetes-operator Ingress, so only devices on the tailnet can reach it, and the tailnet ACL decides who is allowed in. The Ingress proxies requests using Tailscale Serve, which removes any client-supplied `Tailscale-User-*` headers and adds its own identity headers:
+   - `Tailscale-User-Login`: the user's login, e.g. `alice@tidepool.org` (required)
+   - `Tailscale-User-Name`: display name (optional)
+   - `Tailscale-User-Profile-Pic`: profile picture URL (optional)
+
+   Non-ASCII login and name values arrive [RFC 2047](https://www.rfc-editor.org/rfc/rfc2047) "Q"-encoded (e.g. `=?utf-8?q?Ferris_B=C3=BCller?=`) and are decoded by the app. Tailscale does not set these headers for traffic from tagged devices, so tagged devices get a 401. See [Tailscale Serve identity headers](https://tailscale.com/docs/features/tailscale-serve).
+
+2. **`requireAuth()` in `root.tsx`** (`app/utils/auth.server.ts`): a defense-in-depth check on every request. It returns the user as `AuthUser { email, name?, picture? }` and throws a `401` response if `Tailscale-User-Login` is missing or empty. The app trusts these headers because Tailscale strips spoofed copies, so the Ingress must be the only route to the app. Anything else that can reach the pod directly could set the headers itself.
+
+Locally, either set `DEV_AUTH_BYPASS=true` (see [Environment Variables](#environment-variables)) or send the header yourself, e.g. `curl -H 'Tailscale-User-Login: you@tidepool.org' http://localhost:3000`.
 
 The app itself authenticates to the Tidepool API as a **server service account** (`auth.server.ts`). It acquires a session token using `SERVER_NAME` + `SERVER_SECRET`, caches it in memory with a 1-hour TTL, and attaches it to every `apiRequest()` call. If the token expires and multiple requests arrive simultaneously, they share a single re-authentication attempt rather than each firing their own, so the API isn't flooded with redundant login requests.
 
@@ -103,7 +111,7 @@ app/
 ├── layouts/             # Dashboard shell (sidebar + header, wraps all routes)
 ├── contexts/            # React contexts (Toast, SidebarExpanded, ProfileExpanded)
 ├── schemas/             # Zod schemas for API request/response validation
-├── utils/               # Pure helpers (formatters, error classes, converters)
+├── utils/               # Helpers (formatters, error classes, converters); auth.server.ts reads user identity
 ├── api.server.ts        # apiRequest() helper + apiRoutes definitions
 ├── auth.server.ts       # Server-to-API authentication (service account token)
 ├── sessions.server.ts   # Cookie session storage definitions
@@ -113,15 +121,15 @@ server.mjs               # Express server entry point
 
 ## Environment Variables
 
-| Variable          | Required | Description                                         |
-| ----------------- | -------- | --------------------------------------------------- |
-| `SESSION_SECRET`  | Yes      | Secret for signing session cookies                  |
-| `SERVER_SECRET`   | Yes      | Tidepool service account password                   |
-| `SERVER_NAME`     | Yes      | Tidepool service account username                   |
-| `API_HOST`        | Yes      | Base URL for the Tidepool API                       |
-| `DEV_AUTH_BYPASS` | Dev only | Set to `true` to skip Pomerium header check locally |
-| `DEV_AUTH_EMAIL`  | Dev only | Email to use when auth is bypassed                  |
-| `DEV_AUTH_NAME`   | Dev only | Display name to use when auth is bypassed           |
+| Variable          | Required | Description                                                                                     |
+| ----------------- | -------- | ----------------------------------------------------------------------------------------------- |
+| `SESSION_SECRET`  | Yes      | Secret for signing session cookies                                                              |
+| `SERVER_SECRET`   | Yes      | Tidepool service account password                                                               |
+| `SERVER_NAME`     | Yes      | Tidepool service account username                                                               |
+| `API_HOST`        | Yes      | Base URL for the Tidepool API                                                                   |
+| `DEV_AUTH_BYPASS` | Dev only | Set to `true` (with `NODE_ENV=development`) to skip the Tailscale identity header check locally |
+| `DEV_AUTH_EMAIL`  | Dev only | Email to use when auth is bypassed                                                              |
+| `DEV_AUTH_NAME`   | Dev only | Display name to use when auth is bypassed                                                       |
 
 ## Development
 
