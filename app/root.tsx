@@ -49,11 +49,10 @@ type Agent = {
 
 // Return the theme from the session storage using the loader
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  // Verify authentication (defense-in-depth alongside Pomerium proxy).
-  // requireAuth decodes and validates the Pomerium JWT (or returns the dev
-  // mock payload when auth is bypassed), so reuse its result for agent info
-  // rather than decoding the token a second time.
-  const authPayload = requireAuth(request);
+  // Verify authentication (defense-in-depth alongside the Tailscale Ingress).
+  // requireAuth reads the Tailscale Serve identity headers (or returns the dev
+  // mock user when auth is bypassed) and throws a 401 if they are missing.
+  const authUser = requireAuth(request);
 
   const { getTheme } = await themeSessionResolver(request);
   await authorizeServer();
@@ -76,12 +75,12 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const pumpSettingsCompareToPrevious: boolean =
     pumpSettingsCompareCookie.get('compareToPrevious') !== false;
 
-  // Agent data comes from the already-verified Pomerium JWT payload
-  // (or the dev mock payload when auth is bypassed).
+  // Agent data comes from the Tailscale identity read above
+  // (or the dev mock user when auth is bypassed).
   const agent: Agent = {
-    name: authPayload.name,
-    picture: authPayload.picture,
-    email: authPayload.email,
+    name: authUser.name,
+    picture: authUser.picture,
+    email: authUser.email,
   };
 
   return {
